@@ -13,9 +13,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate migration and build
+# Build 時用臨時 db，避免 SQLITE_BUSY
+ENV DB_PATH=/tmp/build.db
 RUN npx drizzle-kit generate
 RUN npm run build
+RUN rm -f /tmp/build.db /tmp/build.db-shm /tmp/build.db-wal
 
 FROM node:20-alpine AS runner
 WORKDIR /app
