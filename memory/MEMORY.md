@@ -1,0 +1,2 @@
+- [TaskDone 專案](project_taskdone.md) — 輕量型專案管理工具，專注日常 follow-up 推進，參考 Heptabase Journal
+- [使用者偏好](user_mike.md) — 一律用繁體中文回答
