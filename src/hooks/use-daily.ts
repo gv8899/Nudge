@@ -16,7 +16,8 @@ const fetcher = async (url: string) => {
 export function useDaily(date: string) {
   const { data, error, isLoading, mutate } = useSWR<DailyData>(
     `/api/daily/${date}`,
-    fetcher
+    fetcher,
+    { keepPreviousData: true }
   );
 
   return {

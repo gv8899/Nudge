@@ -112,7 +112,7 @@ export function DailyView({ date }: DailyViewProps) {
     mutate();
   };
 
-  if (isLoading) {
+  if (isLoading && !data) {
     return (
       <div className="min-h-screen bg-[#1e1f22] flex items-center justify-center text-[#6b6d71]">
         載入中...
