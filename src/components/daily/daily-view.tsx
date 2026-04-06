@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useDaily } from "@/hooks/use-daily";
 import { TaskCard } from "@/components/task/task-card";
 import { TaskCreate } from "@/components/task/task-create";
@@ -25,15 +26,16 @@ interface DailyViewProps {
   date: string;
 }
 
-export function DailyView({ date }: DailyViewProps) {
-  const { data, isLoading, mutate } = useDaily(date);
+export function DailyView({ date: initialDate }: DailyViewProps) {
+  const [currentDate, setCurrentDate] = useState(initialDate);
+  const { data, isLoading, error, mutate } = useDaily(currentDate);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
   const handleCreateTask = async (title: string) => {
-    await fetch(`/api/daily/${date}/tasks`, {
+    await fetch(`/api/daily/${currentDate}/tasks`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, status: "in_progress" }),
@@ -46,7 +48,7 @@ export function DailyView({ date }: DailyViewProps) {
     taskId: string,
     completed: boolean
   ) => {
-    await fetch(`/api/daily/${date}/tasks`, {
+    await fetch(`/api/daily/${currentDate}/tasks`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ assignmentId, taskId, isCompleted: completed }),
@@ -67,7 +69,7 @@ export function DailyView({ date }: DailyViewProps) {
     assignmentId: string,
     targetDate: string
   ) => {
-    await fetch(`/api/daily/${date}/tasks`, {
+    await fetch(`/api/daily/${currentDate}/tasks`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ assignmentId, moveToDate: targetDate }),
@@ -95,14 +97,12 @@ export function DailyView({ date }: DailyViewProps) {
     const newIndex = assignments.findIndex((a) => a.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
 
-    // 樂觀更新
     const reordered = arrayMove(assignments, oldIndex, newIndex);
     mutate({ ...data!, assignments: reordered }, false);
 
-    // 更新每個 assignment 的 sortOrder
     await Promise.all(
       reordered.map((a, i) =>
-        fetch(`/api/daily/${date}/tasks`, {
+        fetch(`/api/daily/${currentDate}/tasks`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ assignmentId: a.id, sortOrder: i }),
@@ -111,6 +111,14 @@ export function DailyView({ date }: DailyViewProps) {
     );
     mutate();
   };
+
+  // 401 時導向登入頁（只做一次）
+  if (error && (error as any).status === 401) {
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
+    return null;
+  }
 
   if (isLoading && !data) {
     return (
@@ -132,25 +140,21 @@ export function DailyView({ date }: DailyViewProps) {
           gridTemplateRows: "auto auto 1fr",
         }}
       >
-        {/* Row 1, Col 1: 日期標題 */}
         <div className="pt-4 pb-1" style={{ gridColumn: 1, gridRow: 1 }}>
-          <DateHeading date={date} />
+          <DateHeading date={currentDate} />
         </div>
 
-        {/* Row 2, Col 1: 週曆 bar */}
         <div
           className="sticky top-0 z-10 py-2 bg-[#1e1f22]"
           style={{ gridColumn: 1, gridRow: 2 }}
         >
-          <CalendarNav date={date} />
+          <CalendarNav date={currentDate} onDateChange={setCurrentDate} />
         </div>
 
-        {/* Row 2+3, Col 2: 筆記 */}
         <div style={{ gridColumn: 2, gridRow: "2 / 4", alignSelf: "start" }}>
-          <DailyNotes date={date} initialContent={noteContent} />
+          <DailyNotes date={currentDate} initialContent={noteContent} />
         </div>
 
-        {/* Row 3, Col 1: 任務列表（可拖曳排序） */}
         <div className="space-y-0 pt-2" style={{ gridColumn: 1, gridRow: 3 }}>
           <DndContext
             sensors={sensors}
@@ -165,7 +169,7 @@ export function DailyView({ date }: DailyViewProps) {
                 <TaskCard
                   key={a.id}
                   assignment={a}
-                  currentDate={date}
+                  currentDate={currentDate}
                   onToggleComplete={handleToggleComplete}
                   onStatusChange={handleStatusChange}
                   onMoveToDate={handleMoveToDate}

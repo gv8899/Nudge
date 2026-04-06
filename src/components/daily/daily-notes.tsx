@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -11,9 +11,13 @@ interface DailyNotesProps {
 }
 
 export function DailyNotes({ date, initialContent }: DailyNotesProps) {
-  const [content, setContent] = useState(initialContent);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef(initialContent);
+  const dateRef = useRef(date);
+  const skipUpdateRef = useRef(false);
+
+  // 保持 dateRef 最新
+  dateRef.current = date;
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -24,13 +28,15 @@ export function DailyNotes({ date, initialContent }: DailyNotesProps) {
     content: initialContent,
     editable: true,
     onUpdate: ({ editor }) => {
+      // 如果是程式觸發的 setContent，跳過存檔
+      if (skipUpdateRef.current) return;
+
       const html = editor.getHTML();
-      setContent(html);
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
         if (html === lastSavedRef.current) return;
         lastSavedRef.current = html;
-        fetch(`/api/daily/${date}/notes`, {
+        fetch(`/api/daily/${dateRef.current}/notes`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: html }),
@@ -47,7 +53,9 @@ export function DailyNotes({ date, initialContent }: DailyNotesProps) {
   // 切換日期時更新內容
   useEffect(() => {
     if (editor && initialContent !== editor.getHTML()) {
+      skipUpdateRef.current = true;
       editor.commands.setContent(initialContent);
+      skipUpdateRef.current = false;
       lastSavedRef.current = initialContent;
     }
   }, [initialContent, date]);
@@ -58,10 +66,8 @@ export function DailyNotes({ date, initialContent }: DailyNotesProps) {
     };
   }, []);
 
-  // 點擊容器任何地方都聚焦編輯器
   const handleContainerClick = (e: React.MouseEvent) => {
     if (!editor) return;
-    // 只有點到容器本身或空白區域時才聚焦
     const target = e.target as HTMLElement;
     if (target.closest(".tiptap")) return;
     editor.commands.focus("end");
