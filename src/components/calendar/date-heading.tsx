@@ -17,12 +17,12 @@ export function DateHeading({ date }: DateHeadingProps) {
     <div className="space-y-1 pt-2">
       <p
         className={`text-sm font-medium ${
-          isWeekendDay ? "text-[#e06c6c]" : "text-[#5cb3e8]"
+          isWeekendDay ? "text-weekend" : "text-primary"
         }`}
       >
         {dayOfWeek}
       </p>
-      <h1 className="text-3xl font-bold text-[#cdcfd2] tracking-tight">
+      <h1 className="text-3xl font-bold text-foreground tracking-tight">
         {dateFormatted}
       </h1>
     </div>

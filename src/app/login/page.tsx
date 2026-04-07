@@ -6,11 +6,11 @@ export default async function LoginPage() {
   if (session?.user) redirect("/");
 
   return (
-    <div className="min-h-screen bg-[#1e1f22] flex items-center justify-center">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="text-center space-y-8">
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold text-[#cdcfd2]">Nudge</h1>
-          <p className="text-[#6b6d71]">輕量型每日任務推進工具</p>
+          <h1 className="text-4xl font-bold text-foreground">Nudge</h1>
+          <p className="text-text-dim">輕量型每日任務推進工具</p>
         </div>
 
         <form

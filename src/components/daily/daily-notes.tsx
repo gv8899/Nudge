@@ -76,7 +76,7 @@ export function DailyNotes({ date, initialContent }: DailyNotesProps) {
   return (
     <div
       onClick={handleContainerClick}
-      className="rounded-lg border border-[#555759] bg-[#1e1f22] min-h-[300px] p-4 cursor-text"
+      className="rounded-lg border border-border-light bg-background min-h-[300px] p-4 cursor-text"
     >
       <div className="tiptap-container">
         <EditorContent editor={editor} />

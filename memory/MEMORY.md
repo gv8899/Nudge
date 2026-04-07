@@ -1,3 +1,4 @@
 - [Nudge 專案](project_nudge.md) — 輕量型專案管理工具，專注日常 follow-up 推進，參考 Heptabase Journal
 - [使用者偏好](user_mike.md) — 一律用繁體中文回答
 - [改完要測試](feedback_testing.md) — 每次改完要實際測頁面，不能只跑 build
+- [等使用者測試才推](feedback_workflow.md) — 不要自己改完就推 GitHub，等使用者確認才推

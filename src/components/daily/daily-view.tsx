@@ -48,6 +48,17 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
     taskId: string,
     completed: boolean
   ) => {
+    // 樂觀更新
+    if (data) {
+      const optimistic = {
+        ...data,
+        assignments: data.assignments.map((a) =>
+          a.id === assignmentId ? { ...a, isCompleted: completed } : a
+        ),
+      };
+      mutate(optimistic, false);
+    }
+
     await fetch(`/api/daily/${currentDate}/tasks`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -57,6 +68,17 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   };
 
   const handleStatusChange = async (taskId: string, status: TaskStatus) => {
+    // 樂觀更新
+    if (data) {
+      const optimistic = {
+        ...data,
+        assignments: data.assignments.map((a) =>
+          a.task.id === taskId ? { ...a, task: { ...a.task, status } } : a
+        ),
+      };
+      mutate(optimistic, false);
+    }
+
     await fetch(`/api/tasks/${taskId}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -69,6 +91,15 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
     assignmentId: string,
     targetDate: string
   ) => {
+    // 樂觀移除
+    if (data) {
+      const optimistic = {
+        ...data,
+        assignments: data.assignments.filter((a) => a.id !== assignmentId),
+      };
+      mutate(optimistic, false);
+    }
+
     await fetch(`/api/daily/${currentDate}/tasks`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -100,15 +131,13 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
     const reordered = arrayMove(assignments, oldIndex, newIndex);
     mutate({ ...data!, assignments: reordered }, false);
 
-    await Promise.all(
-      reordered.map((a, i) =>
-        fetch(`/api/daily/${currentDate}/tasks`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ assignmentId: a.id, sortOrder: i }),
-        })
-      )
-    );
+    await fetch(`/api/daily/${currentDate}/tasks/reorder`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        order: reordered.map((a, i) => ({ id: a.id, sortOrder: i })),
+      }),
+    });
     mutate();
   };
 
@@ -122,7 +151,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
 
   if (isLoading && !data) {
     return (
-      <div className="min-h-screen bg-[#1e1f22] flex items-center justify-center text-[#6b6d71]">
+      <div className="min-h-screen bg-background flex items-center justify-center text-text-dim">
         載入中...
       </div>
     );
@@ -132,9 +161,9 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   const noteContent = data?.noteContent || "";
 
   return (
-    <div className="min-h-screen bg-[#1e1f22]">
+    <div className="min-h-screen bg-background">
       <div
-        className="mx-auto max-w-5xl px-6 pb-8 grid gap-x-6"
+        className="mx-auto max-w-5xl px-4 md:px-6 pb-8 md:grid md:gap-x-6"
         style={{
           gridTemplateColumns: "1fr 1fr",
           gridTemplateRows: "auto auto 1fr",
@@ -145,13 +174,13 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
         </div>
 
         <div
-          className="sticky top-0 z-10 py-2 bg-[#1e1f22]"
+          className="sticky top-0 z-10 py-2 bg-background"
           style={{ gridColumn: 1, gridRow: 2 }}
         >
           <CalendarNav date={currentDate} onDateChange={setCurrentDate} />
         </div>
 
-        <div style={{ gridColumn: 2, gridRow: "2 / 4", alignSelf: "start" }}>
+        <div style={{ gridColumn: 2, gridRow: "2 / 4", alignSelf: "start" }} className="hidden md:block">
           <DailyNotes date={currentDate} initialContent={noteContent} />
         </div>
 
@@ -180,12 +209,17 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
           </DndContext>
 
           {assignments.length === 0 && (
-            <p className="text-sm text-[#6b6d71] py-4 text-center">
+            <p className="text-sm text-text-dim py-4 text-center">
               今天還沒有任務
             </p>
           )}
 
           <TaskCreate onSubmit={handleCreateTask} />
+        </div>
+
+        {/* 手機版筆記區（桌面隱藏） */}
+        <div className="mt-4 md:hidden">
+          <DailyNotes date={currentDate} initialContent={noteContent} />
         </div>
       </div>
     </div>

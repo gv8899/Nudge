@@ -11,37 +11,37 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
     <ReactMarkdown
       components={{
         h1: ({ children }) => (
-          <h1 className="text-xl font-bold text-[#cdcfd2] mt-2 mb-1">{children}</h1>
+          <h1 className="text-xl font-bold text-foreground mt-2 mb-1">{children}</h1>
         ),
         h2: ({ children }) => (
-          <h2 className="text-lg font-semibold text-[#cdcfd2] mt-2 mb-1">{children}</h2>
+          <h2 className="text-lg font-semibold text-foreground mt-2 mb-1">{children}</h2>
         ),
         h3: ({ children }) => (
-          <h3 className="text-base font-medium text-[#cdcfd2] mt-1 mb-1">{children}</h3>
+          <h3 className="text-base font-medium text-foreground mt-1 mb-1">{children}</h3>
         ),
         p: ({ children }) => (
-          <p className="my-1 text-[#b0b2b5]">{children}</p>
+          <p className="my-1 text-muted-foreground">{children}</p>
         ),
         ul: ({ children }) => (
-          <ul className="list-disc pl-5 my-1 space-y-0.5 text-[#b0b2b5]">{children}</ul>
+          <ul className="list-disc pl-5 my-1 space-y-0.5 text-muted-foreground">{children}</ul>
         ),
         ol: ({ children }) => (
-          <ol className="list-decimal pl-5 my-1 space-y-0.5 text-[#b0b2b5]">{children}</ol>
+          <ol className="list-decimal pl-5 my-1 space-y-0.5 text-muted-foreground">{children}</ol>
         ),
         li: ({ children }) => (
-          <li className="text-[#b0b2b5]">{children}</li>
+          <li className="text-muted-foreground">{children}</li>
         ),
         strong: ({ children }) => (
-          <strong className="text-[#e0e1e3] font-semibold">{children}</strong>
+          <strong className="text-foreground font-semibold">{children}</strong>
         ),
         em: ({ children }) => (
-          <em className="text-[#9b9da0]">{children}</em>
+          <em className="text-muted-foreground">{children}</em>
         ),
         code: ({ children }) => (
-          <code className="bg-[#3a3c40] px-1 py-0.5 rounded text-[#e8a855] text-xs">{children}</code>
+          <code className="bg-border px-1 py-0.5 rounded text-chart-2 text-xs">{children}</code>
         ),
         a: ({ children, href }) => (
-          <a href={href} className="text-[#5cb3e8] underline">{children}</a>
+          <a href={href} className="text-primary underline" target="_blank" rel="noopener noreferrer">{children}</a>
         ),
       }}
     >

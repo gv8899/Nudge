@@ -84,30 +84,34 @@ export function TaskCard({
       <div
         ref={setNodeRef}
         style={style}
-        className="flex items-center gap-2 px-1 py-2 hover:bg-[#2e3035] rounded-md transition-colors group"
+        className="flex items-center gap-2 px-1 py-2 hover:bg-muted rounded-md transition-colors group"
       >
         {/* 拖曳 handle */}
         <button
           {...attributes}
           {...listeners}
-          className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-[#555759] hover:text-[#9b9da0] transition-opacity shrink-0 touch-none"
+          aria-label={`拖曳排序：${task.title}`}
+          className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-text-faint hover:text-muted-foreground transition-opacity shrink-0 touch-none"
         >
           <GripVertical className="h-4 w-4" />
         </button>
 
         {/* Checkbox */}
         <button
+          role="checkbox"
+          aria-checked={assignment.isCompleted}
+          aria-label={`${task.title}：${assignment.isCompleted ? "已完成" : "未完成"}`}
           onClick={() =>
             onToggleComplete(assignment.id, task.id, !assignment.isCompleted)
           }
           className={`h-[18px] w-[18px] rounded-[4px] border-2 shrink-0 cursor-pointer flex items-center justify-center transition-colors ${
             assignment.isCompleted
-              ? "bg-[#5cb3e8] border-[#5cb3e8]"
-              : "border-[#6b6d71] bg-transparent hover:border-[#9b9da0]"
+              ? "bg-primary border-primary"
+              : "border-text-dim bg-transparent hover:border-muted-foreground"
           }`}
         >
           {assignment.isCompleted && (
-            <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+            <svg width="10" height="8" viewBox="0 0 10 8" fill="none" aria-hidden="true">
               <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           )}
@@ -127,30 +131,31 @@ export function TaskCard({
                 setIsEditingTitle(false);
               }
             }}
-            className="flex-1 min-w-0 text-sm bg-[#1e1f22] text-[#cdcfd2] rounded px-2 py-1 outline-none border border-[#5cb3e8]"
+            aria-label="編輯任務標題"
+            className="flex-1 min-w-0 text-sm bg-background text-foreground rounded px-2 py-1 outline-none border border-primary"
           />
         ) : (
-          <span
+          <button
             onClick={() => setIsEditingTitle(true)}
-            className={`flex-1 min-w-0 text-sm cursor-text ${
+            className={`flex-1 min-w-0 text-sm text-left cursor-text bg-transparent border-none p-0 truncate ${
               assignment.isCompleted
-                ? "line-through text-[#6b6d71]"
-                : "text-[#cdcfd2]"
+                ? "line-through text-text-dim"
+                : "text-foreground"
             }`}
           >
             {task.title}
-          </span>
+          </button>
         )}
 
         {/* 展開內文 */}
         <button
           onClick={() => setIsModalOpen(true)}
-          className={`transition-colors cursor-pointer p-0.5 rounded ${
+          aria-label={`展開「${task.title}」的內文`}
+          className={`transition-colors cursor-pointer p-2 rounded ${
             hasDescription
-              ? "text-[#5cb3e8] hover:text-[#7dc5f0]"
-              : "text-[#555759] hover:text-[#9b9da0]"
+              ? "text-primary hover:text-primary/80"
+              : "text-text-faint hover:text-muted-foreground"
           }`}
-          title="展開內文"
         >
           <FileText className="h-4 w-4" />
         </button>

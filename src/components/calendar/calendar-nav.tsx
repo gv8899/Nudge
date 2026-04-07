@@ -5,7 +5,6 @@ import {
   addDays,
   subDays,
   startOfWeek,
-  isToday,
   isSameDay,
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -45,15 +44,16 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
   const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
-    <div className="bg-[#2b2d30] rounded-xl px-3 py-2 inline-flex items-center gap-1">
+    <nav aria-label="週曆導航" className="bg-card rounded-xl px-2 md:px-3 py-2 flex items-center gap-0.5 md:gap-1 md:inline-flex">
       <button
         onClick={goToPrevWeek}
-        className="text-[#9b9da0] hover:text-white p-1.5 rounded-md hover:bg-white/10 transition-colors"
+        aria-label="上一週"
+        className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-white/10 transition-colors shrink-0"
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
 
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-0 md:gap-0.5 flex-1 md:flex-initial">
         {weekDays.map((day, i) => {
           const isSelected = isSameDay(day, dateObj);
           const dayStr = format(day, "yyyy-MM-dd");
@@ -63,22 +63,25 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
             <button
               key={dayStr}
               onClick={() => goTo(day)}
+              aria-label={format(day, "M月d日 EEEE")}
+              aria-current={isSelected ? "date" : undefined}
               className={`
-                relative flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all
+                relative flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1.5
+                flex-1 md:flex-initial md:w-[72px] py-1.5 md:py-1.5 rounded-full text-sm transition-all
                 ${
                   isSelected
-                    ? "bg-[#5cb3e8] text-white font-medium"
-                    : "text-[#9b9da0] hover:text-white hover:bg-white/10"
+                    ? "bg-primary text-primary-foreground font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/10"
                 }
               `}
             >
               {hasTasks && !isSelected && (
-                <span className="h-1.5 w-1.5 rounded-full bg-[#5cb3e8]" />
+                <span className="h-1 w-1 md:h-1.5 md:w-1.5 rounded-full bg-primary order-first md:order-none" aria-hidden="true" />
               )}
-              <span className={isSelected ? "" : "text-[#9b9da0]"}>
+              <span className={`hidden md:inline ${isSelected ? "" : "text-muted-foreground"}`}>
                 {dayNames[i]}
               </span>
-              <span className={isSelected ? "font-semibold" : "text-[#cdcfd2] font-medium"}>
+              <span className={`text-xs md:text-sm ${isSelected ? "font-semibold" : "text-foreground font-medium"}`}>
                 {format(day, "d")}
               </span>
             </button>
@@ -88,18 +91,19 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
 
       <button
         onClick={goToNextWeek}
-        className="text-[#9b9da0] hover:text-white p-1.5 rounded-md hover:bg-white/10 transition-colors"
+        aria-label="下一週"
+        className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-white/10 transition-colors shrink-0"
       >
         <ChevronRight className="h-4 w-4" />
       </button>
 
-      <div className="w-px h-5 bg-[#4a4c50] mx-1" />
+      <div className="w-px h-5 bg-border mx-0.5 md:mx-1 shrink-0" aria-hidden="true" />
       <button
         onClick={goToToday}
-        className="text-sm text-[#cdcfd2] px-2.5 py-1.5 rounded-full hover:bg-white/10 hover:text-white transition-colors"
+        className="text-xs md:text-sm text-foreground px-1.5 md:px-2.5 py-1.5 rounded-full hover:bg-white/10 hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
       >
         Today
       </button>
-    </div>
+    </nav>
   );
 }

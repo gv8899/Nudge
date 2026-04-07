@@ -27,8 +27,8 @@ export function MoveTaskPopover({ currentDate, onMove }: MoveTaskPopoverProps) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        className="text-[#555759] hover:text-[#9b9da0] cursor-pointer transition-colors outline-none"
-        title="移到其他天"
+        className="text-text-faint hover:text-muted-foreground cursor-pointer transition-colors outline-none p-2"
+        aria-label="移到其他天"
       >
         <CalendarDays className="h-4 w-4" />
       </PopoverTrigger>

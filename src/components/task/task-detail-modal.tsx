@@ -23,12 +23,46 @@ export function TaskDetailModal({
   onStatusChange,
 }: TaskDetailModalProps) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  // Escape 關閉
+  // 開啟時記住先前焦點，關閉時恢復
+  useEffect(() => {
+    if (open) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      // 延遲一幀讓 DOM 渲染完成
+      requestAnimationFrame(() => {
+        dialogRef.current?.focus();
+      });
+    } else if (previousFocusRef.current) {
+      previousFocusRef.current.focus();
+      previousFocusRef.current = null;
+    }
+  }, [open]);
+
+  // Escape 關閉 + 焦點陷阱
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Tab" && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"]), [contenteditable="true"]'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
@@ -63,19 +97,29 @@ export function TaskDetailModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16">
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="task-detail-title"
+    >
       {/* 背景遮罩 */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* 內容 */}
-      <div className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-xl bg-[#27292d] border border-[#3a3c40] shadow-2xl">
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-xl bg-popover border border-border shadow-2xl outline-none"
+      >
         {/* 頂部列 */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-[#27292d] border-b border-[#3a3c40] rounded-t-xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-popover border-b border-border rounded-t-xl">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-[#cdcfd2]">
+            <h2 id="task-detail-title" className="text-lg font-semibold text-foreground">
               {task.title}
             </h2>
             <StatusBadge
@@ -85,7 +129,8 @@ export function TaskDetailModal({
           </div>
           <button
             onClick={onClose}
-            className="text-[#6b6d71] hover:text-[#cdcfd2] transition-colors p-1 rounded-md hover:bg-[#3a3c40]"
+            aria-label="關閉"
+            className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
           >
             <X className="h-5 w-5" />
           </button>

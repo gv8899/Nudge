@@ -21,9 +21,10 @@ export function TaskCreate({ onSubmit }: TaskCreateProps) {
     <form onSubmit={handleSubmit}>
       <input
         placeholder="新增任務，按 Enter 建立..."
+        aria-label="新增任務"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="w-full bg-transparent px-1 py-2 text-sm text-[#cdcfd2] placeholder-[#555759] outline-none border-b border-[#3a3c40] focus:border-[#5cb3e8] transition-colors"
+        className="w-full bg-transparent px-1 py-2 text-sm text-foreground placeholder-text-faint outline-none border-b border-border focus:border-primary transition-colors"
       />
     </form>
   );
