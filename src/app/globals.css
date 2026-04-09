@@ -50,7 +50,6 @@
   --color-text-faint: var(--text-faint);
   --color-surface-hover: var(--surface-hover);
   --color-border-light: var(--border-light);
-  --color-weekend: var(--weekend);
   --color-status-inbox: var(--status-inbox);
   --color-status-backlog: var(--status-backlog);
   --color-status-in-progress: var(--status-in-progress);
@@ -60,24 +59,24 @@
 }
 
 :root {
-  /* 背景與前景 */
-  --background: #faf7ef;
+  /* 背景與前景 — 偏暖的舊紙色，比純白更柔和 */
+  --background: #efe9d4;
   --foreground: #1c1b18;
-  --card: #f3eee0;
+  --card: #e6dfc6;
   --card-foreground: #1c1b18;
-  --popover: #f3eee0;
+  --popover: #e6dfc6;
   --popover-foreground: #1c1b18;
   --primary: #a87a45;
-  --primary-foreground: #faf7ef;
-  --secondary: #f3eee0;
+  --primary-foreground: #efe9d4;
+  --secondary: #e6dfc6;
   --secondary-foreground: #1c1b18;
-  --muted: #ebe5d4;
+  --muted: #ddd6ba;
   --muted-foreground: #6e6855;
-  --accent: #ebe5d4;
+  --accent: #ddd6ba;
   --accent-foreground: #1c1b18;
   --destructive: #9a4f3f;
-  --border: #d8d2bf;
-  --input: #d8d2bf;
+  --border: #c8c0a0;
+  --input: #c8c0a0;
   --ring: #a87a45;
 
   /* Chart 色 */
@@ -90,21 +89,20 @@
   --radius: 0.625rem;
 
   /* Sidebar */
-  --sidebar: #f3eee0;
+  --sidebar: #e6dfc6;
   --sidebar-foreground: #1c1b18;
   --sidebar-primary: #a87a45;
-  --sidebar-primary-foreground: #faf7ef;
-  --sidebar-accent: #ebe5d4;
+  --sidebar-primary-foreground: #efe9d4;
+  --sidebar-accent: #ddd6ba;
   --sidebar-accent-foreground: #1c1b18;
-  --sidebar-border: #d8d2bf;
+  --sidebar-border: #c8c0a0;
   --sidebar-ring: #a87a45;
 
   /* App-specific tokens */
   --text-dim: #6e6855;
   --text-faint: #8a8068;
-  --surface-hover: #ebe5d4;
-  --border-light: #c4be9d;
-  --weekend: #9a4750;
+  --surface-hover: #ddd6ba;
+  --border-light: #b5ac8a;
 
   /* Status colors（light mode 微調） */
   --status-inbox: #7a7060;
@@ -158,7 +156,6 @@
   --text-faint: #7a7567;
   --surface-hover: #2c2a25;
   --border-light: #4a4740;
-  --weekend: #b8616a;
 
   /* Status colors（塵土色階） */
   --status-inbox: #9b9080;
@@ -178,6 +175,13 @@
   }
   html {
     @apply font-sans;
+  }
+
+  /* 紙感顆粒紋理 — 由 .paper-texture class 開關（在 <html> 上） */
+  html.paper-texture .bg-background {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.85'/%3E%3C/svg%3E");
+    background-size: 240px 240px;
+    background-blend-mode: soft-light;
   }
 }
 

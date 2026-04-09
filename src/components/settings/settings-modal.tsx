@@ -12,6 +12,10 @@ import { useTheme, type Theme } from "@/components/providers/theme-provider";
 import { fetcher } from "@/lib/fetcher";
 import { format, parseISO } from "date-fns";
 
+// 紙感顆粒紋理開關（用於 settings modal）
+const PAPER_LABEL = "紙質感";
+const PAPER_DESC = "讓背景帶有細微的紙張顆粒紋理";
+
 interface SettingsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -33,7 +37,8 @@ const themeOptions: { value: Theme; label: string; Icon: typeof Sun }[] = [
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const { data: me } = useSWR<MeResponse>(open ? "/api/me" : null, fetcher);
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, paperTexture, setPaperTexture } = useTheme();
+  const paperOn = paperTexture === "on";
 
   const handleSignOut = () => {
     signOut({ callbackUrl: "/login" });
@@ -110,6 +115,34 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   </button>
                 );
               })}
+            </div>
+          </section>
+
+          {/* 紙質感開關 */}
+          <section className="py-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim mb-3">
+              外觀
+            </h3>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="text-sm text-foreground">{PAPER_LABEL}</div>
+                <div className="text-xs text-text-dim mt-0.5">{PAPER_DESC}</div>
+              </div>
+              <button
+                role="switch"
+                aria-checked={paperOn}
+                aria-label={PAPER_LABEL}
+                onClick={() => setPaperTexture(paperOn ? "off" : "on")}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
+                  paperOn ? "bg-primary" : "bg-border"
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 rounded-full bg-background shadow transform transition-transform ${
+                    paperOn ? "translate-x-[22px]" : "translate-x-0.5"
+                  }`}
+                />
+              </button>
             </div>
           </section>
 
