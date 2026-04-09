@@ -186,6 +186,17 @@
       background-size: 240px 240px;
       background-blend-mode: soft-light;
     }
+
+    /* 排除浮動、巢狀或輸入元素 — 它們是「紙上的東西」，
+       自身不該有紋理，否則會變成噪點疊噪點 */
+    html.paper-texture [data-slot="popover-content"] .bg-background,
+    html.paper-texture .group\/calendar,
+    html.paper-texture input.bg-background,
+    html.paper-texture textarea.bg-background,
+    html.paper-texture .tiptap-container .bg-background {
+      background-image: none;
+      background-blend-mode: normal;
+    }
   }
 }
 
