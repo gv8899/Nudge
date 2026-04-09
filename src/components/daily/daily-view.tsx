@@ -129,6 +129,24 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
     mutate();
   };
 
+  const handleArchive = async (assignmentId: string, taskId: string) => {
+    // 樂觀移除
+    if (data) {
+      const optimistic = {
+        ...data,
+        overdueTasks: (data.overdueTasks || []).filter((a) => a.id !== assignmentId),
+      };
+      mutate(optimistic, false);
+    }
+
+    await fetch(`/api/tasks/${taskId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "archived" }),
+    });
+    mutate();
+  };
+
   const handleOverdueToggleComplete = async (
     assignmentId: string,
     taskId: string,
@@ -222,6 +240,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
             currentDate={currentDate}
             onToggleComplete={handleOverdueToggleComplete}
             onReschedule={handleReschedule}
+            onArchive={handleArchive}
           />
           <DndContext
             sensors={sensors}

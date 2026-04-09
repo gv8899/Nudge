@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { dailyTaskAssignments, dailyNotes, tasks } from "@/lib/db/schema";
-import { eq, and, lt } from "drizzle-orm";
+import { eq, and, lt, ne } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
 
 export async function GET(
@@ -37,7 +37,8 @@ export async function GET(
     .where(
       and(
         eq(dailyTaskAssignments.date, date),
-        eq(tasks.userId, user.id)
+        eq(tasks.userId, user.id),
+        ne(tasks.status, "archived")
       )
     )
     .orderBy(dailyTaskAssignments.sortOrder)
@@ -68,7 +69,8 @@ export async function GET(
       and(
         lt(dailyTaskAssignments.date, date),
         eq(dailyTaskAssignments.isCompleted, false),
-        eq(tasks.userId, user.id)
+        eq(tasks.userId, user.id),
+        ne(tasks.status, "archived")
       )
     )
     .orderBy(dailyTaskAssignments.date)
