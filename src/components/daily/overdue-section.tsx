@@ -26,7 +26,7 @@ export function OverdueSection({
   if (overdueTasks.length === 0) return null;
 
   return (
-    <section aria-label="過期未完成任務" className="mb-2">
+    <section aria-label="前幾天的任務" className="mb-2">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         aria-expanded={isExpanded}
@@ -39,7 +39,7 @@ export function OverdueSection({
           <ChevronRight className="h-4 w-4" />
         )}
         <CalendarClock className="h-4 w-4" />
-        <span>過期未完成 ({overdueTasks.length})</span>
+        <span>前幾天的 ({overdueTasks.length})</span>
       </button>
 
       {isExpanded && (

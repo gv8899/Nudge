@@ -23,10 +23,10 @@ export function MockupTasks() {
           </div>
         </div>
 
-        {/* 過期區塊 */}
+        {/* 前幾天的區塊 */}
         <div className="flex items-center gap-2 text-sm text-primary mb-1">
           <CheckSquare className="h-4 w-4" />
-          <span className="font-medium">過期未完成 (2)</span>
+          <span className="font-medium">前幾天的 (2)</span>
         </div>
         <TaskRow title="繳水電費" dateLabel="4/5" dotColor="#c89968" />
         <TaskRow title="回覆客戶 Email" dateLabel="4/7" dotColor="#c89968" />
