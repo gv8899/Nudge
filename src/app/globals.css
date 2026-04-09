@@ -89,43 +89,57 @@
 }
 
 .dark {
-  --background: #1e1f22;
-  --foreground: #cdcfd2;
-  --card: #2b2d30;
-  --card-foreground: #cdcfd2;
-  --popover: #27292d;
-  --popover-foreground: #cdcfd2;
-  --primary: #5cb3e8;
-  --primary-foreground: #ffffff;
-  --secondary: #2b2d30;
-  --secondary-foreground: #cdcfd2;
-  --muted: #2e3035;
-  --muted-foreground: #9b9da0;
-  --accent: #2e3035;
-  --accent-foreground: #cdcfd2;
-  --destructive: #e06c6c;
-  --border: #3a3c40;
-  --input: #3a3c40;
-  --ring: #5cb3e8;
-  --chart-1: #5cb3e8;
-  --chart-2: #e8a855;
-  --chart-3: #5ec269;
-  --chart-4: #b58af0;
-  --chart-5: #e06c6c;
-  --sidebar: #2b2d30;
-  --sidebar-foreground: #cdcfd2;
-  --sidebar-primary: #5cb3e8;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #2e3035;
-  --sidebar-accent-foreground: #cdcfd2;
-  --sidebar-border: #3a3c40;
-  --sidebar-ring: #5cb3e8;
+  /* 背景與表面層次 */
+  --background: #1c1b18;
+  --foreground: #ebe5d4;
+  --card: #252320;
+  --card-foreground: #ebe5d4;
+  --popover: #252320;
+  --popover-foreground: #ebe5d4;
+  --primary: #c89968;
+  --primary-foreground: #1c1b18;
+  --secondary: #252320;
+  --secondary-foreground: #ebe5d4;
+  --muted: #2c2a25;
+  --muted-foreground: #9b9485;
+  --accent: #2c2a25;
+  --accent-foreground: #ebe5d4;
+  --destructive: #b56b5a;
+  --border: #3a3833;
+  --input: #3a3833;
+  --ring: #c89968;
+
+  /* Chart 色 */
+  --chart-1: #7a8b9c;
+  --chart-2: #c89968;
+  --chart-3: #8aa57d;
+  --chart-4: #a78aaf;
+  --chart-5: #b56b5a;
+
+  /* Sidebar */
+  --sidebar: #252320;
+  --sidebar-foreground: #ebe5d4;
+  --sidebar-primary: #c89968;
+  --sidebar-primary-foreground: #1c1b18;
+  --sidebar-accent: #2c2a25;
+  --sidebar-accent-foreground: #ebe5d4;
+  --sidebar-border: #3a3833;
+  --sidebar-ring: #c89968;
+
   /* App-specific tokens */
-  --text-dim: #6b6d71;
-  --text-faint: #555759;
-  --surface-hover: #2e3035;
-  --border-light: #555759;
-  --weekend: #e06c6c;
+  --text-dim: #9b9485;
+  --text-faint: #6b665a;
+  --surface-hover: #2c2a25;
+  --border-light: #4a4740;
+  --weekend: #b8616a;
+
+  /* Status colors（塵土色階） */
+  --status-inbox: #9b9080;
+  --status-backlog: #7a8b9c;
+  --status-in-progress: #c89968;
+  --status-waiting: #a78aaf;
+  --status-done: #8aa57d;
+  --status-archived: #666666;
 }
 
 @layer base {
