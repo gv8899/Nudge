@@ -1,9 +1,10 @@
 export const TASK_STATUSES = {
-  inbox: { label: "暫記", color: "#9b9da0", bgColor: "#3a3c40" },
-  backlog: { label: "待排入", color: "#5cb3e8", bgColor: "#1e3a4f" },
-  in_progress: { label: "自己處理中", color: "#e8a855", bgColor: "#3d3222" },
-  waiting: { label: "等待他人", color: "#b58af0", bgColor: "#332b47" },
-  done: { label: "完成", color: "#5ec269", bgColor: "#253229" },
+  inbox: { label: "暫記", color: "var(--status-inbox)", bgColor: "color-mix(in srgb, var(--status-inbox) 12%, transparent)" },
+  backlog: { label: "待排入", color: "var(--status-backlog)", bgColor: "color-mix(in srgb, var(--status-backlog) 12%, transparent)" },
+  in_progress: { label: "自己處理中", color: "var(--status-in-progress)", bgColor: "color-mix(in srgb, var(--status-in-progress) 12%, transparent)" },
+  waiting: { label: "等待他人", color: "var(--status-waiting)", bgColor: "color-mix(in srgb, var(--status-waiting) 12%, transparent)" },
+  done: { label: "完成", color: "var(--status-done)", bgColor: "color-mix(in srgb, var(--status-done) 12%, transparent)" },
+  archived: { label: "已封存", color: "var(--status-archived)", bgColor: "color-mix(in srgb, var(--status-archived) 12%, transparent)" },
 } as const;
 
 export type TaskStatus = keyof typeof TASK_STATUSES;
@@ -14,4 +15,5 @@ export const TASK_STATUS_LIST: TaskStatus[] = [
   "in_progress",
   "waiting",
   "done",
+  "archived",
 ];
