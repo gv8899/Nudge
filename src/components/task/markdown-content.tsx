@@ -38,7 +38,7 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
           <em className="text-muted-foreground">{children}</em>
         ),
         code: ({ children }) => (
-          <code className="bg-border px-1 py-0.5 rounded text-chart-2 text-xs">{children}</code>
+          <code className="bg-border px-1 py-0.5 rounded text-primary text-xs">{children}</code>
         ),
         a: ({ children, href }) => (
           <a href={href} className="text-primary underline" target="_blank" rel="noopener noreferrer">{children}</a>

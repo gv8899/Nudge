@@ -101,7 +101,7 @@
 
   /* App-specific tokens */
   --text-dim: #6e6855;
-  --text-faint: #a89e85;
+  --text-faint: #8a8068;
   --surface-hover: #ebe5d4;
   --border-light: #c4be9d;
   --weekend: #9a4750;
@@ -112,7 +112,7 @@
   --status-in-progress: #a87a45;
   --status-waiting: #8a6d92;
   --status-done: #5a7050;
-  --status-archived: #888888;
+  --status-archived: #7a7466;
 }
 
 .dark {
@@ -155,7 +155,7 @@
 
   /* App-specific tokens */
   --text-dim: #9b9485;
-  --text-faint: #6b665a;
+  --text-faint: #7a7567;
   --surface-hover: #2c2a25;
   --border-light: #4a4740;
   --weekend: #b8616a;
@@ -166,7 +166,7 @@
   --status-in-progress: #c89968;
   --status-waiting: #a78aaf;
   --status-done: #8aa57d;
-  --status-archived: #666666;
+  --status-archived: #807a6c;
 }
 
 @layer base {
