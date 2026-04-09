@@ -44,10 +44,19 @@ export function CardDetail({ id }: CardDetailProps) {
   const [titleValue, setTitleValue] = useState("");
   const titleInputRef = useRef<HTMLInputElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasAutoFocusedRef = useRef(false);
 
   useEffect(() => {
-    if (data?.title) setTitleValue(data.title);
+    if (data?.title !== undefined) setTitleValue(data.title);
   }, [data?.title]);
+
+  // 首次載入時若標題為空（剛建立的新卡片），自動進入編輯模式
+  useEffect(() => {
+    if (!hasAutoFocusedRef.current && data && !data.title.trim()) {
+      hasAutoFocusedRef.current = true;
+      setIsEditingTitle(true);
+    }
+  }, [data]);
 
   useEffect(() => {
     if (isEditingTitle && titleInputRef.current) {
