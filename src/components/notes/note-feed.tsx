@@ -48,36 +48,35 @@ export function NoteFeed({ today }: NoteFeedProps) {
           className="relative pl-16 md:pl-20 pb-10"
           aria-label={ariaLabel}
         >
-          {/* 時間軸線條 */}
-          {(notes.length > 0 || isLoading) && (
-            <div
-              className="absolute left-[1.4rem] md:left-[1.65rem] top-5 bottom-0 w-px bg-border"
-              aria-hidden="true"
-            />
-          )}
-
-          {/* 時間軸圓點 — 今天特殊樣式 */}
+          {/* 時間軸 column — dot + line 一體化（今天為起點，無上方線段） */}
           <div
-            className="absolute left-[0.75rem] md:left-[1rem] top-1 flex items-center justify-center"
+            className="absolute left-5 md:left-6 top-0 bottom-0 w-3 flex flex-col items-center pointer-events-none"
             aria-hidden="true"
           >
-            <div className="h-4 w-4 rounded-full bg-primary ring-4 ring-primary/15" />
+            {/* spacer 對齊 dot 中心到日期數字光學中心 */}
+            <div className="h-3" />
+            {/* Dot — 今天特殊樣式：較大 + outer ring */}
+            <div className="h-3 w-3 rounded-full bg-primary ring-4 ring-primary/15 shrink-0" />
+            {/* 下方線段 — 延伸到下一個 entry */}
+            {(notes.length > 0 || isLoading) && (
+              <div className="flex-1 w-px bg-border mt-1" />
+            )}
           </div>
 
-          {/* 日期標題 */}
-          <div className="flex items-center gap-2.5 mb-4">
-            <span className="text-3xl font-extrabold leading-none text-foreground tabular-nums">
+          {/* 日期標題 — 與歷史條目同款 + 今天標籤 */}
+          <header className="flex items-center gap-3 mb-5">
+            <span className="text-[2.25rem] font-black text-primary tabular-nums leading-none tracking-tight">
               {dayNum}
             </span>
-            <div className="flex flex-col -space-y-0.5">
-              <span className="text-xs font-medium text-text-dim leading-tight">
-                {month}
-              </span>
-              <span className="text-xs text-primary/70 font-medium leading-tight">
-                今天
-              </span>
+            <div
+              className="self-stretch w-px bg-primary/25 my-1"
+              aria-hidden="true"
+            />
+            <div className="flex flex-col gap-1 text-[10px] font-bold tracking-[0.18em] uppercase leading-none">
+              <span className="text-foreground/75">{month}</span>
+              <span className="text-primary">今天</span>
             </div>
-          </div>
+          </header>
 
           {/* 可編輯的今日筆記 — 等資料載入後才渲染，避免閃爍 */}
           {todayLoading ? (

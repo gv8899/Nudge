@@ -21,32 +21,33 @@ export function NoteEntry({ date, content, isLast = false }: NoteEntryProps) {
 
   return (
     <article className="relative pl-16 md:pl-20 pb-10" aria-label={ariaLabel}>
-      {/* 時間軸線條 */}
-      {!isLast && (
-        <div
-          className="absolute left-[1.4rem] md:left-[1.65rem] top-5 bottom-0 w-px bg-border"
-          aria-hidden="true"
-        />
-      )}
-
-      {/* 時間軸圓點 */}
+      {/* 時間軸 column — dot + line 一體化 */}
       <div
-        className="absolute left-[0.95rem] md:left-[1.2rem] top-2 flex items-center justify-center"
+        className="absolute left-5 md:left-6 top-0 bottom-0 w-3 flex flex-col items-center pointer-events-none"
         aria-hidden="true"
       >
-        <div className="h-2.5 w-2.5 rounded-full bg-border-light ring-2 ring-background" />
+        {/* 上方線段 — 連到上一個 entry 的 dot */}
+        <div className="h-[18px] w-px bg-border" />
+        {/* Dot */}
+        <div className="h-3 w-3 rounded-full bg-primary shrink-0" />
+        {/* 下方線段 — 延伸到下一個 entry */}
+        {!isLast && <div className="flex-1 w-px bg-border" />}
       </div>
 
-      {/* 日期標題 */}
-      <div className="flex items-center gap-2.5 mb-4">
-        <span className="text-3xl font-extrabold leading-none text-foreground/50 tabular-nums">
+      {/* 日期標題 — 收斂版編輯排版 */}
+      <header className="flex items-center gap-3 mb-5">
+        <span className="text-[2.25rem] font-black text-primary tabular-nums leading-none tracking-tight">
           {dayNum}
         </span>
-        <div className="flex flex-col -space-y-0.5">
-          <span className="text-xs font-medium text-text-dim leading-tight">{month}</span>
-          <span className="text-xs text-text-dim/60 leading-tight">{weekday}</span>
+        <div
+          className="self-stretch w-px bg-primary/25 my-1"
+          aria-hidden="true"
+        />
+        <div className="flex flex-col gap-1 text-[10px] font-bold tracking-[0.18em] uppercase leading-none">
+          <span className="text-foreground/75">{month}</span>
+          <span className="text-text-dim">{weekday}</span>
         </div>
-      </div>
+      </header>
 
       {/* 筆記內容 */}
       <div
