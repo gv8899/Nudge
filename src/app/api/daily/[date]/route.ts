@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { dailyTaskAssignments, dailyNotes, tasks } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, lt } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
 
 export async function GET(
@@ -43,6 +43,37 @@ export async function GET(
     .orderBy(dailyTaskAssignments.sortOrder)
     .all();
 
+  const overdueTasks = db
+    .select({
+      id: dailyTaskAssignments.id,
+      taskId: dailyTaskAssignments.taskId,
+      date: dailyTaskAssignments.date,
+      isCompleted: dailyTaskAssignments.isCompleted,
+      sortOrder: dailyTaskAssignments.sortOrder,
+      task: {
+        id: tasks.id,
+        title: tasks.title,
+        description: tasks.description,
+        status: tasks.status,
+        createdAt: tasks.createdAt,
+        updatedAt: tasks.updatedAt,
+        completedAt: tasks.completedAt,
+        remindAt: tasks.remindAt,
+        sortOrder: tasks.sortOrder,
+      },
+    })
+    .from(dailyTaskAssignments)
+    .innerJoin(tasks, eq(dailyTaskAssignments.taskId, tasks.id))
+    .where(
+      and(
+        lt(dailyTaskAssignments.date, date),
+        eq(dailyTaskAssignments.isCompleted, false),
+        eq(tasks.userId, user.id)
+      )
+    )
+    .orderBy(dailyTaskAssignments.date)
+    .all();
+
   const note = db
     .select()
     .from(dailyNotes)
@@ -54,6 +85,7 @@ export async function GET(
   return NextResponse.json({
     date,
     assignments,
+    overdueTasks,
     noteContent: note?.content || "",
   });
 }

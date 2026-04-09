@@ -47,5 +47,6 @@ export interface DailyNote {
 export interface DailyData {
   date: string;
   assignments: DailyTaskAssignment[];
+  overdueTasks: DailyTaskAssignment[];
   noteContent: string;
 }
