@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { mutate as globalMutate } from "swr";
 import { useDaily } from "@/hooks/use-daily";
 import { TaskCard } from "@/components/task/task-card";
 import { TaskCreate } from "@/components/task/task-create";
@@ -24,6 +25,16 @@ import {
 
 interface DailyViewProps {
   date: string;
+}
+
+// 任務狀態 / 內容變更時，invalidate 所有 cards 相關 SWR cache，
+// 讓 /cards 頁面下次顯示時是最新狀態。
+function invalidateCardsCache() {
+  globalMutate(
+    (key) => typeof key === "string" && key.startsWith("/api/cards"),
+    undefined,
+    { revalidate: true }
+  );
 }
 
 export function DailyView({ date: initialDate }: DailyViewProps) {
@@ -65,6 +76,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
       body: JSON.stringify({ assignmentId, taskId, isCompleted: completed }),
     });
     mutate();
+    invalidateCardsCache();
   };
 
   const handleStatusChange = async (taskId: string, status: TaskStatus) => {
@@ -85,6 +97,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
       body: JSON.stringify({ status }),
     });
     mutate();
+    invalidateCardsCache();
   };
 
   const handleMoveToDate = async (
@@ -145,6 +158,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
       body: JSON.stringify({ status: "archived" }),
     });
     mutate();
+    invalidateCardsCache();
   };
 
   const handleOverdueToggleComplete = async (
@@ -167,6 +181,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
       body: JSON.stringify({ assignmentId, taskId, isCompleted: completed }),
     });
     mutate();
+    invalidateCardsCache();
   };
 
   const handleUpdateTask = async (
@@ -179,6 +194,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
       body: JSON.stringify(updates),
     });
     mutate();
+    invalidateCardsCache();
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
