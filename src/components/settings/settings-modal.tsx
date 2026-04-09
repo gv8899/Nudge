@@ -1,0 +1,130 @@
+"use client";
+
+import useSWR from "swr";
+import { signOut } from "next-auth/react";
+import { Sun, Moon, Monitor, LogOut } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useTheme, type Theme } from "@/components/providers/theme-provider";
+import { fetcher } from "@/lib/fetcher";
+import { format, parseISO } from "date-fns";
+
+interface SettingsModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+interface MeResponse {
+  id: string;
+  email: string;
+  name: string | null;
+  avatarUrl: string | null;
+  createdAt: string;
+}
+
+const themeOptions: { value: Theme; label: string; Icon: typeof Sun }[] = [
+  { value: "light", label: "Light", Icon: Sun },
+  { value: "dark", label: "Dark", Icon: Moon },
+  { value: "system", label: "跟隨系統", Icon: Monitor },
+];
+
+export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
+  const { data: me } = useSWR<MeResponse>(open ? "/api/me" : null, fetcher);
+  const { theme, setTheme } = useTheme();
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: "/login" });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogTitle className="text-lg font-semibold">設定</DialogTitle>
+
+        <div className="divide-y divide-border">
+          {/* 帳號資料 */}
+          <section className="py-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim mb-3">
+              帳號資料
+            </h3>
+            {me ? (
+              <div className="flex items-center gap-3">
+                {me.avatarUrl ? (
+                  <img
+                    src={me.avatarUrl}
+                    alt=""
+                    className="h-12 w-12 rounded-full object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-foreground font-medium">
+                    {(me.name || me.email)[0].toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-foreground truncate">
+                    {me.name || "未命名"}
+                  </div>
+                  <div className="text-xs text-text-dim truncate">{me.email}</div>
+                  <div className="text-xs text-text-faint mt-0.5">
+                    加入於 {format(parseISO(me.createdAt), "yyyy/MM/dd")}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="h-12 animate-pulse rounded bg-muted" />
+            )}
+          </section>
+
+          {/* 主題切換 */}
+          <section className="py-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim mb-3">
+              主題
+            </h3>
+            <div
+              role="radiogroup"
+              aria-label="主題切換"
+              className="grid grid-cols-3 gap-2"
+            >
+              {themeOptions.map(({ value, label, Icon }) => {
+                const active = theme === value;
+                return (
+                  <button
+                    key={value}
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setTheme(value)}
+                    className={`flex flex-col items-center gap-1.5 rounded-lg border px-3 py-3 text-xs transition-colors ${
+                      active
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-text-dim hover:border-border-light hover:text-foreground"
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* 登出 */}
+          <section className="py-4">
+            <button
+              onClick={handleSignOut}
+              className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium"
+            >
+              <LogOut className="h-4 w-4" />
+              登出
+            </button>
+          </section>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
