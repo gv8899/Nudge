@@ -241,8 +241,11 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-2xl px-4 md:px-6 pb-8">
-        <div className="pt-4 pb-1">
+      <div className="mx-auto max-w-3xl px-4 md:px-6 pb-8">
+        <div className="pt-6 mb-2">
+          <h1 className="text-2xl font-bold text-foreground">行動</h1>
+        </div>
+        <div className="pb-1">
           <DateHeading date={currentDate} />
         </div>
 

@@ -38,8 +38,10 @@ export function NoteFeed({ today }: NoteFeedProps) {
   }, [today]);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 md:px-6 py-6">
-      <h1 className="sr-only">筆記</h1>
+    <div className="mx-auto max-w-3xl px-4 md:px-6 py-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-foreground">日誌</h1>
+      </div>
 
       {/* 時間軸容器 */}
       <div className="relative">
