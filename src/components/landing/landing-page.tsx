@@ -1,5 +1,8 @@
 "use client";
 
+import { LandingNav } from "./landing-nav";
+import { LandingHero } from "./landing-hero";
+
 interface LandingPageProps {
   signInAction: () => Promise<void>;
 }
@@ -10,7 +13,10 @@ export function LandingPage({ signInAction }: LandingPageProps) {
       data-landing
       className="dark min-h-screen bg-background text-foreground"
     >
-      <div className="p-8">Landing Page — 骨架建置中</div>
+      <LandingNav />
+      <main>
+        <LandingHero signInAction={signInAction} />
+      </main>
     </div>
   );
 }
