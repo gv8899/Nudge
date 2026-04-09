@@ -193,7 +193,9 @@
     html.paper-texture .group\/calendar,
     html.paper-texture input.bg-background,
     html.paper-texture textarea.bg-background,
-    html.paper-texture .tiptap-container .bg-background {
+    html.paper-texture .tiptap-container .bg-background,
+    html.paper-texture [data-landing] .bg-background,
+    html.paper-texture [data-landing].bg-background {
       background-image: none;
       background-blend-mode: normal;
     }
