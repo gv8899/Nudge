@@ -122,7 +122,8 @@ export async function PATCH(request: NextRequest) {
           .run();
       }
 
-      db.delete(dailyTaskAssignments)
+      db.update(dailyTaskAssignments)
+        .set({ isCompleted: true })
         .where(eq(dailyTaskAssignments.id, assignmentId))
         .run();
     }
