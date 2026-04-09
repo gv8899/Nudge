@@ -51,6 +51,12 @@
   --color-surface-hover: var(--surface-hover);
   --color-border-light: var(--border-light);
   --color-weekend: var(--weekend);
+  --color-status-inbox: var(--status-inbox);
+  --color-status-backlog: var(--status-backlog);
+  --color-status-in-progress: var(--status-in-progress);
+  --color-status-waiting: var(--status-waiting);
+  --color-status-done: var(--status-done);
+  --color-status-archived: var(--status-archived);
 }
 
 :root {
