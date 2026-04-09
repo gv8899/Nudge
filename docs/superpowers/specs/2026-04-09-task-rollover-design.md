@@ -1,28 +1,28 @@
-# Task Rollover: Overdue Tasks Auto-Display
+# 任務滾動：過期未完成任務自動顯示
 
-## Summary
+## 摘要
 
-Uncompleted daily tasks automatically appear in a dedicated "Overdue" section when viewing any date >= the original assignment date. No data mutation occurs — this is purely query-based. Users can then choose to reschedule, or leave tasks in the overdue section until they act on them.
+未完成的每日任務會自動出現在一個獨立的「過期」區塊中，當使用者瀏覽任何 >= 原始指派日期的頁面時即可看到。不會變動資料 — 純粹透過查詢實現。使用者可以選擇重新排程，或讓任務留在過期區塊直到處理為止。
 
-## Core Decisions
+## 核心決策
 
-| Decision | Choice |
-|----------|--------|
-| Data mutation | None — query-based only |
-| Display style | Separate "Overdue" section above today's tasks |
-| Sort order | Oldest assignment first (most overdue on top) |
-| Persistence | Overdue tasks keep appearing until resolved |
-| Reschedule mechanism | New assignment created, old one marked completed |
+| 決策 | 選擇 |
+|------|------|
+| 資料變動 | 無 — 純查詢 |
+| 顯示方式 | 獨立「過期」區塊，位於當天任務上方 |
+| 排序 | 最舊的在最上面（拖越久越醒目） |
+| 持續性 | 過期任務持續出現直到被處理 |
+| 重新排程機制 | 建立新的 assignment，舊的標記完成 |
 
-## Data Layer
+## 資料層
 
-### Schema Changes
+### Schema 變更
 
-None. The existing `dailyTaskAssignments` and `tasks` tables are sufficient.
+無。現有的 `dailyTaskAssignments` 和 `tasks` 表已足夠。
 
-### API Changes: GET `/api/daily/[date]`
+### API 變更：GET `/api/daily/[date]`
 
-Currently queries:
+目前的查詢：
 ```sql
 SELECT ... FROM dailyTaskAssignments
 JOIN tasks ON tasks.id = dailyTaskAssignments.taskId
@@ -30,7 +30,7 @@ WHERE dailyTaskAssignments.date = :date
   AND tasks.userId = :userId
 ```
 
-New behavior — add a second query for overdue tasks:
+新增第二段查詢取得過期任務：
 ```sql
 SELECT ... FROM dailyTaskAssignments
 JOIN tasks ON tasks.id = dailyTaskAssignments.taskId
@@ -40,92 +40,92 @@ WHERE dailyTaskAssignments.date < :date
 ORDER BY dailyTaskAssignments.date ASC
 ```
 
-Response shape changes from:
+回應格式從：
 ```ts
 { tasks: DailyTask[], notes: Note[] }
 ```
-to:
+改為：
 ```ts
 { tasks: DailyTask[], overdueTasks: DailyTask[], notes: Note[] }
 ```
 
-Each overdue task includes its original `date` field for display.
+每個過期任務包含原始的 `date` 欄位供顯示使用。
 
-### API Changes: Reschedule Action
+### API 變更：重新排程
 
-When user chooses "Schedule to today" or "Move to another day":
+當使用者選擇「排入今天」或「移到其他天」時：
 
-1. Mark the original `dailyTaskAssignment` as `isCompleted = true`
-2. Create a new `dailyTaskAssignment` with the target date and `isCompleted = false`
+1. 將原始的 `dailyTaskAssignment` 標記為 `isCompleted = true`
+2. 建立新的 `dailyTaskAssignment`，目標日期設為選擇的日期，`isCompleted = false`
 
-This reuses the existing POST `/api/daily/[date]/tasks` endpoint (create assignment) plus PATCH to mark old one complete. May be combined into a single new endpoint if cleaner:
+新增端點：
 
 **POST `/api/daily/[date]/tasks/reschedule`**
 ```ts
 body: { assignmentId: string, targetDate: string }
 ```
 
-This endpoint:
-- Sets `isCompleted = true` on the source assignment
-- Creates new assignment for `targetDate` with same `taskId`, `isCompleted = false`
-- Returns the new assignment
+此端點：
+- 將來源 assignment 設為 `isCompleted = true`
+- 為 `targetDate` 建立新的 assignment，使用相同的 `taskId`，`isCompleted = false`
+- 回傳新建立的 assignment
 
-## Frontend
+## 前端
 
 ### `useDaily` Hook
 
-Update return type to include `overdueTasks` array. SWR key remains the same (`/api/daily/[date]`).
+更新回傳型別，加入 `overdueTasks` 陣列。SWR key 維持不變（`/api/daily/[date]`）。
 
 ### `daily-view.tsx`
 
-Add an "Overdue" section above the existing task list:
+在現有任務列表上方新增「過期」區塊：
 
 ```
 +----------------------------------+
-| Overdue (3)                      |
+| 過期未完成 (3)                    |
 | -------------------------------- |
-| [ ] Task from 4/5    [actions]   |
-| [ ] Task from 4/6    [actions]   |
-| [ ] Task from 4/8    [actions]   |
+| [ ] 任務 from 4/5    [操作]      |
+| [ ] 任務 from 4/6    [操作]      |
+| [ ] 任務 from 4/8    [操作]      |
 +----------------------------------+
-| Today's Tasks                    |
+| 今天的任務                        |
 | -------------------------------- |
-| [ ] Task A                       |
-| [ ] Task B                       |
+| [ ] 任務 A                       |
+| [ ] 任務 B                       |
 +----------------------------------+
 ```
 
-- Section is collapsible (default: expanded)
-- Each overdue task shows a date badge with its original date
-- Section header shows count
+- 區塊可收合（預設：展開）
+- 每個過期任務顯示原始日期標籤
+- 區塊標題顯示數量
 
-### Overdue Task Actions
+### 過期任務操作
 
-Each overdue task has a dropdown/action menu with:
+每個過期任務有一個下拉選單／操作按鈕：
 
-1. **Schedule to today** — creates new assignment for today, marks old one done
-2. **Move to...** — opens date picker, same logic with chosen date
-3. **Complete** — marks the assignment as completed (same as normal task completion)
+1. **排入今天** — 建立今天的新 assignment，舊的標記完成
+2. **移到...** — 開啟日期選擇器，同樣邏輯但目標日期不同
+3. **完成** — 標記 assignment 完成（與一般任務完成相同）
 
-"Do nothing" is implicit — just don't click anything, it stays in overdue.
+「暫時不處理」是隱含行為 — 不點擊任何操作，任務繼續留在過期區塊。
 
-### Task Completion in Overdue Section
+### 過期區塊中的任務完成
 
-Checking off an overdue task marks it completed the same way as a normal task — sets `isCompleted = true` on the assignment and updates `tasks.status` to "done" if needed.
+勾選過期任務與一般任務完成方式相同 — 設定 `isCompleted = true`，並在需要時更新 `tasks.status` 為 "done"。
 
-## Edge Cases
+## 邊界情況
 
-1. **Task assigned to multiple dates**: A task could have assignments on 4/5 and 4/8. If 4/5's assignment is incomplete, it shows in overdue. If 4/8's is also incomplete, it shows in today's list. These are independent assignments — completing one doesn't affect the other.
+1. **任務被指派到多個日期**：一個任務可能有 4/5 和 4/8 的 assignment。如果 4/5 的未完成，它出現在過期區塊。如果 4/8 的也未完成，它出現在當天任務列表。這些是獨立的 assignment — 完成一個不影響另一個。
 
-2. **Viewing past dates**: When viewing 4/5 (a past date), the overdue section should only show tasks overdue *relative to 4/5* (i.e., `date < 4/5`). This keeps the behavior consistent regardless of which date is being viewed.
+2. **瀏覽過去的日期**：瀏覽 4/5 時，過期區塊只顯示相對於 4/5 過期的任務（即 `date < 4/5`），保持行為一致。
 
-3. **No overdue tasks**: The overdue section is hidden entirely when empty.
+3. **沒有過期任務**：過期區塊完全隱藏。
 
-4. **Drag and drop**: Overdue tasks are NOT part of the drag-sortable list for today's tasks. They live in their own section and cannot be reordered via drag.
+4. **拖放排序**：過期任務不屬於當天任務的拖放排序列表，它們在獨立區塊中，不可透過拖放重新排序。
 
-## Out of Scope
+## 不在範圍內
 
-- Evening/time-of-day segmentation (Things 3 style)
-- Notifications or reminders for overdue tasks
-- Bulk reschedule actions
-- Auto-archive after N days overdue
+- 時段區分（Things 3 Evening 風格）
+- 過期任務的通知或提醒
+- 批次重新排程
+- 超過 N 天自動封存
