@@ -202,6 +202,88 @@
   }
 }
 
+/* =========================================================
+   Landing page delight 動畫
+   ========================================================= */
+
+/* 手繪路徑描繪動畫 — SVG stroke 從無到有 */
+@keyframes landing-draw-in {
+  from {
+    stroke-dashoffset: 1200;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.landing-draw-in path {
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+  animation: landing-draw-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+}
+
+/* 墨點閃爍 — 輕微的 opacity 與 scale 脈動 */
+@keyframes landing-twinkle {
+  0%,
+  100% {
+    opacity: var(--twinkle-min, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    opacity: var(--twinkle-max, 0.65);
+    transform: scale(1.15);
+  }
+}
+
+.landing-twinkle {
+  animation: landing-twinkle 3.2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* 手繪箭頭上下浮動 */
+@keyframes landing-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(-8deg);
+  }
+}
+
+.landing-float {
+  animation: landing-float 2.4s ease-in-out infinite;
+}
+
+/* Mockup 進入視窗時從下方 fade-in + 輕微上升 */
+@keyframes landing-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-rise-in {
+  animation: landing-rise-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .landing-draw-in path,
+  .landing-twinkle,
+  .landing-float,
+  .landing-rise-in {
+    animation: none;
+  }
+  .landing-draw-in path {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* Tiptap editor styles */
 .tiptap-container,
 .tiptap-container .ProseMirror {
