@@ -3,22 +3,30 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CheckSquare, NotebookPen, Settings } from "lucide-react";
-import { format } from "date-fns";
+import { CheckSquare, NotebookPen, BookOpen, Settings } from "lucide-react";
 import { SettingsModal } from "@/components/settings/settings-modal";
 
+// 注意：Tasks 連到 / —— `src/app/page.tsx` 是 server component，會 redirect
+// 到當天的日期。這樣 sidebar 不需要在 client 端呼叫 new Date()，避免 SSR/
+// hydrate 時差造成的 mismatch。
 const navItems = [
   {
-    href: () => `/day/${format(new Date(), "yyyy-MM-dd")}`,
+    href: "/",
     match: "/day/",
     icon: CheckSquare,
     label: "Tasks",
   },
   {
-    href: () => "/notes",
+    href: "/notes",
     match: "/notes",
     icon: NotebookPen,
     label: "Notes",
+  },
+  {
+    href: "/cards",
+    match: "/cards",
+    icon: BookOpen,
+    label: "Cards",
   },
 ];
 
@@ -71,12 +79,12 @@ export function AppSidebar() {
       {/* Desktop: left sidebar */}
       <aside
         aria-label="主導覽"
-        className="hidden md:flex fixed left-0 top-0 bottom-0 z-40 w-14 flex-col items-center gap-2 border-r border-border bg-background py-4"
+        className="hidden md:flex fixed left-0 top-0 bottom-0 z-40 w-14 flex-col items-center gap-2 border-r border-border bg-background pt-4 pb-16"
       >
         {navItems.map((item) => (
           <NavLink
             key={item.match}
-            href={item.href()}
+            href={item.href}
             active={pathname.startsWith(item.match)}
             icon={item.icon}
             label={item.label}
@@ -95,7 +103,7 @@ export function AppSidebar() {
         {navItems.map((item) => (
           <NavLink
             key={item.match}
-            href={item.href()}
+            href={item.href}
             active={pathname.startsWith(item.match)}
             icon={item.icon}
             label={item.label}
