@@ -114,7 +114,7 @@ export function TaskDetailModal({
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-xl bg-popover border border-border shadow-2xl outline-none"
+        className="relative z-10 w-full max-w-4xl max-h-[80vh] overflow-y-auto rounded-xl bg-popover border border-border shadow-2xl outline-none"
       >
         {/* 頂部列 */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-popover border-b border-border rounded-t-xl">

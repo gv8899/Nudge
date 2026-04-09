@@ -45,7 +45,7 @@ export function DailyNotes({ date, initialContent }: DailyNotesProps) {
     },
     editorProps: {
       attributes: {
-        class: "outline-none min-h-[268px]",
+        class: "outline-none",
       },
     },
   });
@@ -70,7 +70,7 @@ export function DailyNotes({ date, initialContent }: DailyNotesProps) {
     if (!editor) return;
     const target = e.target as HTMLElement;
     if (target.closest(".tiptap")) return;
-    editor.commands.focus("end");
+    editor.commands.focus("start");
   };
 
   return (

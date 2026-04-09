@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useDaily } from "@/hooks/use-daily";
 import { TaskCard } from "@/components/task/task-card";
 import { TaskCreate } from "@/components/task/task-create";
-import { DailyNotes } from "@/components/daily/daily-notes";
 import { CalendarNav } from "@/components/calendar/calendar-nav";
 import { DateHeading } from "@/components/calendar/date-heading";
 import type { TaskStatus } from "@/lib/constants";
@@ -157,34 +156,23 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
     );
   }
 
-  const assignments = data?.assignments || [];
-  const noteContent = data?.noteContent || "";
+  const assignments = [...(data?.assignments || [])].sort((a, b) => {
+    if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
+    return 0;
+  });
 
   return (
     <div className="min-h-screen bg-background">
-      <div
-        className="mx-auto max-w-5xl px-4 md:px-6 pb-8 md:grid md:gap-x-6"
-        style={{
-          gridTemplateColumns: "1fr 1fr",
-          gridTemplateRows: "auto auto 1fr",
-        }}
-      >
-        <div className="pt-4 pb-1" style={{ gridColumn: 1, gridRow: 1 }}>
+      <div className="mx-auto max-w-2xl px-4 md:px-6 pb-8">
+        <div className="pt-4 pb-1">
           <DateHeading date={currentDate} />
         </div>
 
-        <div
-          className="sticky top-0 z-10 py-2 bg-background"
-          style={{ gridColumn: 1, gridRow: 2 }}
-        >
+        <div className="sticky top-0 z-10 py-2 bg-background">
           <CalendarNav date={currentDate} onDateChange={setCurrentDate} />
         </div>
 
-        <div style={{ gridColumn: 2, gridRow: "2 / 4", alignSelf: "start" }} className="hidden md:block">
-          <DailyNotes date={currentDate} initialContent={noteContent} />
-        </div>
-
-        <div className="space-y-0 pt-2" style={{ gridColumn: 1, gridRow: 3 }}>
+        <div className="space-y-0 pt-2">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -215,11 +203,6 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
           )}
 
           <TaskCreate onSubmit={handleCreateTask} />
-        </div>
-
-        {/* 手機版筆記區（桌面隱藏） */}
-        <div className="mt-4 md:hidden">
-          <DailyNotes date={currentDate} initialContent={noteContent} />
         </div>
       </div>
     </div>
