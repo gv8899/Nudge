@@ -13,15 +13,18 @@ export function MockupNotes() {
           monthLabel="4 月"
           weekdayLabel="今天"
           isToday
-          lines={["今天試著把卡片系統的設計重新整理了一次。", "發現有些想法可以沉澱成卡片……"]}
+          lines={[
+            "早上去跑了 5 公里。久沒動了，膝蓋提醒我要重新適應。",
+            "晚上吃得清淡一點，意外地比想像中舒服。",
+          ]}
         />
         <NoteEntry
           dayNum={9}
           monthLabel="4 月"
           weekdayLabel="週三"
           lines={[
-            "整天在想 nudge 的色系。最後決定不再抄 Heptabase 了。",
-            "墨水紙張的感覺更貼近日記本。",
+            "會議很多，但意外談出了下季的方向。",
+            "重點不是開多少會，是有沒有留下可以行動的結論。",
           ]}
         />
         <NoteEntry
@@ -30,8 +33,8 @@ export function MockupNotes() {
           weekdayLabel="週二"
           isLast
           lines={[
-            "Task rollover 的設計：query-based 比 mutation-based 簡單太多。",
-            "排序最舊在上能製造壓力感。",
+            "讀了一篇關於「慢下來反而走得更遠」的文章。",
+            "很多時候我以為是生產力問題，其實是注意力問題。",
           ]}
         />
       </div>

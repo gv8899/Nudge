@@ -4,10 +4,16 @@ import { Plus, Search, List, LayoutGrid } from "lucide-react";
 export function MockupCards() {
   const items = [
     {
-      title: "研究 Tailwind v4",
-      preview: "新功能：@theme inline 把 CSS 變數註冊為 Tailwind token。Build 速度顯著變快。",
-      date: "4/3",
-      status: { label: "完成", color: "#8aa57d" },
+      title: "Q2 團隊 OKR 討論",
+      preview: "今天會議意外談出了下季的方向。重點不是開多少會，是有沒有留下可以行動的結論。",
+      date: "4/9",
+      status: { label: "處理中", color: "#c89968" },
+    },
+    {
+      title: "跑步筆記：第一個月的感想",
+      preview: "剛起步時膝蓋會痠，配速也抓不準。三週後身體逐漸適應，從 5K 變成可以跑 8K 不喘。",
+      date: "4/7",
+      status: { label: "處理中", color: "#c89968" },
     },
     {
       title: "產品設計：減法的力量",
@@ -16,16 +22,10 @@ export function MockupCards() {
       status: { label: "處理中", color: "#c89968" },
     },
     {
-      title: "色彩心理學筆記",
-      preview: "沉香木 #c89968 介於橘與棕之間，給人日記本的溫度但不過於激烈。",
-      date: "4/8",
-      status: { label: "處理中", color: "#c89968" },
-    },
-    {
-      title: "為什麼 nudge 不做通知",
-      preview: "市面上的 todo app 都在比誰更會打擾你。我想做的是反向的。",
-      date: "4/9",
-      status: { label: "處理中", color: "#c89968" },
+      title: "週末京都小旅行計畫",
+      preview: "四天三夜。想去的地方：嵐山竹林、伏見稻荷、鴨川散步。住宿想試試町家風格。",
+      date: "4/3",
+      status: { label: "待排入", color: "#7a8b9c" },
     },
   ];
 

@@ -16,12 +16,12 @@ export function LandingPhilosophy() {
           className="text-[32px] md:text-[42px] font-medium italic leading-[1.3] max-w-[760px] mx-auto text-foreground"
           style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
         >
-          我想要一個不催促的工具，
+          工具該等你，
           <br />
-          它在我打開的時候才存在。
+          不是追你。
         </blockquote>
-        <div className="mt-8 text-xs tracking-[0.15em] uppercase text-text-dim">
-          — NUDGE 的設計哲學
+        <div className="mt-8 text-xs tracking-[0.15em] text-text-dim">
+          — Nudge 的設計哲學
         </div>
       </div>
     </section>

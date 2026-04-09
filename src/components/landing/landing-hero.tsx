@@ -7,9 +7,6 @@ interface LandingHeroProps {
 export function LandingHero({ signInAction }: LandingHeroProps) {
   return (
     <section className="mx-auto max-w-6xl px-6 md:px-12 pt-40 pb-32">
-      <div className="text-xs font-bold tracking-[0.25em] uppercase text-primary mb-7">
-        NUDGE
-      </div>
       <h1 className="text-5xl md:text-7xl lg:text-[84px] font-black leading-[0.95] tracking-[-0.04em] max-w-[800px] mb-9">
         每天，<span className="text-primary">輕鬆</span>推進一點
       </h1>
