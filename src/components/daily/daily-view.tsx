@@ -6,6 +6,7 @@ import { TaskCard } from "@/components/task/task-card";
 import { TaskCreate } from "@/components/task/task-create";
 import { CalendarNav } from "@/components/calendar/calendar-nav";
 import { DateHeading } from "@/components/calendar/date-heading";
+import { OverdueSection } from "@/components/daily/overdue-section";
 import type { TaskStatus } from "@/lib/constants";
 import {
   DndContext,
@@ -107,6 +108,49 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
     mutate();
   };
 
+  const handleReschedule = async (
+    assignmentId: string,
+    targetDate: string
+  ) => {
+    // 樂觀移除 overdue 任務
+    if (data) {
+      const optimistic = {
+        ...data,
+        overdueTasks: (data.overdueTasks || []).filter((a) => a.id !== assignmentId),
+      };
+      mutate(optimistic, false);
+    }
+
+    await fetch(`/api/daily/${currentDate}/tasks`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assignmentId, moveToDate: targetDate }),
+    });
+    mutate();
+  };
+
+  const handleOverdueToggleComplete = async (
+    assignmentId: string,
+    taskId: string,
+    completed: boolean
+  ) => {
+    // 樂觀移除
+    if (data) {
+      const optimistic = {
+        ...data,
+        overdueTasks: (data.overdueTasks || []).filter((a) => a.id !== assignmentId),
+      };
+      mutate(optimistic, false);
+    }
+
+    await fetch(`/api/daily/${currentDate}/tasks`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assignmentId, taskId, isCompleted: completed }),
+    });
+    mutate();
+  };
+
   const handleUpdateTask = async (
     taskId: string,
     updates: { title?: string; description?: string }
@@ -173,6 +217,12 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
         </div>
 
         <div className="space-y-0 pt-2">
+          <OverdueSection
+            overdueTasks={data?.overdueTasks || []}
+            currentDate={currentDate}
+            onToggleComplete={handleOverdueToggleComplete}
+            onReschedule={handleReschedule}
+          />
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
