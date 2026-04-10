@@ -36,10 +36,12 @@ async function migrate() {
 
       for (const row of rows) {
         const columns = Object.keys(row);
-        const values = Object.values(row).map((v) => {
-          // SQLite boolean (0/1) → PostgreSQL boolean
-          if (table === "daily_task_assignments" && typeof v === "number" && (v === 0 || v === 1)) {
-            return v === 1;
+        const values = Object.values(row).map((v, idx) => {
+          // SQLite boolean → PostgreSQL boolean
+          if (table === "daily_task_assignments" && columns[idx] === "is_completed") {
+            if (typeof v === "number") return v === 1;
+            if (typeof v === "string") return v === "true" || v === "1";
+            return Boolean(v);
           }
           return v;
         });
