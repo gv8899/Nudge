@@ -45,6 +45,8 @@ next-env.d.ts
 
 # sqlite
 *.db
+*.db-shm
+*.db-wal
 
 # memory
 /memory
