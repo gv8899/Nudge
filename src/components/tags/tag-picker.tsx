@@ -50,7 +50,7 @@ export function TagPicker({ taskId, selectedTags, onTagsChange }: TagPickerProps
 
     if (!res.ok) return;
     const tag = await res.json();
-    mutateTags();
+    await mutateTags();
 
     onTagsChange([...selectedIds, tag.id]);
     setSearch("");
@@ -70,11 +70,11 @@ export function TagPicker({ taskId, selectedTags, onTagsChange }: TagPickerProps
       ))}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
-          className="inline-flex items-center gap-1 text-xs text-text-dim hover:text-foreground transition-colors px-1.5 py-0.5 rounded hover:bg-muted cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs text-text-dim hover:text-foreground transition-colors px-2 py-1 rounded hover:bg-muted cursor-pointer"
           aria-label="新增標籤"
         >
-          <TagIcon className="h-3 w-3" />
-          <Plus className="h-3 w-3" />
+          <TagIcon className="h-3.5 w-3.5" />
+          <span>{selectedTags.length === 0 ? "加標籤" : "+"}</span>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-56 p-0">
           {creatingName !== null ? (

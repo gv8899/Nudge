@@ -18,13 +18,13 @@ export function TaskCreate({ onSubmit }: TaskCreateProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="pl-7">
       <input
-        placeholder="新增任務，按 Enter 建立..."
+        placeholder="新增任務"
         aria-label="新增任務"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="w-full bg-transparent px-1 py-2 text-sm text-foreground placeholder-text-faint outline-none border-b border-border focus:border-primary transition-colors"
+        className="w-full bg-transparent py-2 text-sm text-foreground placeholder-text-faint outline-none border-b border-border focus:border-primary transition-colors"
       />
     </form>
   );

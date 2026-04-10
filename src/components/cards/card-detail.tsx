@@ -160,7 +160,7 @@ export function CardDetail({ id }: CardDetailProps) {
         <ArrowLeft className="h-4 w-4" /> 返回卡片
       </Link>
 
-      <header className="mb-6 pb-4 border-b border-border">
+      <header className="mb-2">
         {/* 標題（可點擊編輯） */}
         {isEditingTitle ? (
           <input
@@ -187,18 +187,6 @@ export function CardDetail({ id }: CardDetailProps) {
           </button>
         )}
 
-        <div className="flex items-center gap-3 text-xs text-text-dim">
-          <span>建立 {format(parseISO(data.createdAt), "yyyy/MM/dd")}</span>
-          <span>·</span>
-          <span>更新 {format(parseISO(data.updatedAt), "yyyy/MM/dd")}</span>
-        </div>
-        <div className="mt-3">
-          <TagPicker
-            taskId={id}
-            selectedTags={cardTags}
-            onTagsChange={handleTagsChange}
-          />
-        </div>
       </header>
 
       {/* 描述（可編輯 TipTap） */}
@@ -211,6 +199,24 @@ export function CardDetail({ id }: CardDetailProps) {
           editable={true}
         />
       </div>
+
+      {/* 底部資訊 */}
+      <footer className="mt-8">
+        <div className="border-t border-border pt-4">
+          <div className="mb-3">
+            <TagPicker
+              taskId={id}
+              selectedTags={cardTags}
+              onTagsChange={handleTagsChange}
+            />
+          </div>
+          <div className="flex items-center gap-3 text-xs text-text-dim">
+            <span>建立 {format(parseISO(data.createdAt), "yyyy/MM/dd")}</span>
+            <span>·</span>
+            <span>更新 {format(parseISO(data.updatedAt), "yyyy/MM/dd")}</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

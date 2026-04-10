@@ -34,7 +34,7 @@ export function OverdueSection({
   if (overdueTasks.length === 0) return null;
 
   return (
-    <section aria-label="前幾天的任務" className={`mb-2${isExpanded ? " pb-2 border-b border-border" : ""}`}>
+    <section aria-label="前幾天的任務" className="mb-2">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         aria-expanded={isExpanded}

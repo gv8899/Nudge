@@ -22,7 +22,7 @@ export function BlockDragHandle({
       data-drag-handle
       onDragStart={(e) => onDragStart(e, hoveredBlock.pos)}
       onDragEnd={onDragEnd}
-      className="hidden md:flex absolute left-1 items-center justify-center w-6 h-6 rounded text-text-faint hover:text-foreground hover:bg-muted cursor-grab active:cursor-grabbing transition-colors z-10"
+      className="hidden md:flex absolute -left-8 items-center justify-center w-6 h-6 rounded text-text-faint hover:text-foreground hover:bg-muted cursor-grab active:cursor-grabbing transition-colors z-10"
       style={{
         top: hoveredBlock.top + hoveredBlock.height / 2 - 12,
       }}

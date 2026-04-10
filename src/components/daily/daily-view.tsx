@@ -261,6 +261,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
             onReschedule={handleReschedule}
             onArchive={handleArchive}
           />
+          <TaskCreate onSubmit={handleCreateTask} />
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -290,7 +291,6 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
             </p>
           )}
 
-          <TaskCreate onSubmit={handleCreateTask} />
         </div>
       </div>
     </div>

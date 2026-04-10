@@ -74,7 +74,7 @@ export const TiptapEditor = forwardRef<
     <div
       ref={containerRef}
       {...containerProps}
-      className="tiptap-container h-full relative md:pl-10"
+      className="tiptap-container h-full relative"
     >
       {hoveredBlock && (
         <BlockDragHandle

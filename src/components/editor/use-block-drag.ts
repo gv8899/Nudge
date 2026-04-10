@@ -25,7 +25,7 @@ export interface BlockInfo {
  *   useBlockDrag(editor);
  *
  * return (
- *   <div ref={containerRef} {...containerProps} className="relative md:pl-10">
+ *   <div ref={containerRef} {...containerProps} className="relative">
  *     {hoveredBlock && <DragHandle ... />}
  *     <EditorContent editor={editor} />
  *   </div>

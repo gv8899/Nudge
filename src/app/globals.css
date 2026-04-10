@@ -117,7 +117,7 @@
   /* 背景與表面層次 */
   --background: #1c1b18;
   --foreground: #ebe5d4;
-  --card: #252320;
+  --card: #2a2825;
   --card-foreground: #ebe5d4;
   --popover: #252320;
   --popover-foreground: #ebe5d4;
@@ -511,6 +511,7 @@
 .tiptap-container .tiptap ul[data-type="taskList"] {
   list-style: none;
   padding-left: 0;
+  margin-left: 0;
 }
 .tiptap-container .tiptap ul[data-type="taskList"] li {
   display: flex;

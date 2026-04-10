@@ -44,7 +44,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
   const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
-    <nav aria-label="週曆導航" className="bg-card rounded-xl px-2 md:px-3 py-2 flex items-center gap-0.5 md:gap-1 md:inline-flex">
+    <nav aria-label="週曆導航" className="bg-card rounded-xl px-2 md:px-3 py-2 flex items-center justify-center gap-0.5 md:gap-1">
       <button
         onClick={goToPrevWeek}
         aria-label="上一週"
@@ -67,7 +67,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
               aria-current={isSelected ? "date" : undefined}
               className={`
                 relative flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1.5
-                flex-1 md:flex-initial md:w-[72px] py-1.5 md:py-1.5 rounded-full text-sm transition-all
+                flex-1 md:flex-initial md:w-16 py-1.5 md:py-1.5 rounded-full text-sm transition-all
                 ${
                   isSelected
                     ? "bg-primary text-primary-foreground font-medium"
