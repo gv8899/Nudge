@@ -3,6 +3,8 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import { useEffect, forwardRef, useImperativeHandle } from "react";
 import { createEditorExtensions } from "@/components/editor/editor-extensions";
+import { useBlockDrag } from "@/components/editor/use-block-drag";
+import { BlockDragHandle, BlockDropIndicator } from "@/components/editor/block-drag-handle";
 
 interface TiptapEditorProps {
   content: string;
@@ -41,10 +43,19 @@ export const TiptapEditor = forwardRef<
     },
     editorProps: {
       attributes: {
-        class: "outline-none min-h-[24px]",
+        class: "outline-none min-h-[50vh]",
       },
     },
   });
+
+  const {
+    containerRef,
+    hoveredBlock,
+    dropIndicatorTop,
+    containerProps,
+    handleDragStart,
+    handleDragEnd,
+  } = useBlockDrag(editor);
 
   useImperativeHandle(ref, () => ({
     focus: () => editor?.commands.focus("end"),
@@ -63,7 +74,19 @@ export const TiptapEditor = forwardRef<
   }, [editor, editable]);
 
   return (
-    <div className="tiptap-container h-full">
+    <div
+      ref={containerRef}
+      {...containerProps}
+      className="tiptap-container h-full relative md:pl-10"
+    >
+      {hoveredBlock && (
+        <BlockDragHandle
+          hoveredBlock={hoveredBlock}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        />
+      )}
+      {dropIndicatorTop !== null && <BlockDropIndicator top={dropIndicatorTop} />}
       <EditorContent editor={editor} className="h-full" />
     </div>
   );

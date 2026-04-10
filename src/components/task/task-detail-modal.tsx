@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useRef } from "react";
 import { TiptapEditor } from "./tiptap-editor";
 import { StatusBadge } from "./status-badge";
-import { X } from "lucide-react";
+import { Maximize2, X } from "lucide-react";
 import type { Task } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
 
@@ -127,13 +127,23 @@ export function TaskDetailModal({
               onStatusChange={onStatusChange}
             />
           </div>
-          <button
-            onClick={onClose}
-            aria-label="關閉"
-            className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <a
+              href={`/cards/${task.id}`}
+              aria-label="展開為單頁"
+              title="展開為單頁"
+              className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
+            >
+              <Maximize2 className="h-4 w-4" />
+            </a>
+            <button
+              onClick={onClose}
+              aria-label="關閉"
+              className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* 編輯區 */}

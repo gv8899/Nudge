@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
 import { stripHtml } from "@/lib/strip-html";
-import { TASK_STATUSES, type TaskStatus } from "@/lib/constants";
 import type { CardItem } from "@/hooks/use-cards-feed";
 
 interface CardGridItemProps {
@@ -12,7 +11,6 @@ interface CardGridItemProps {
 
 export function CardGridItem({ card }: CardGridItemProps) {
   const preview = stripHtml(card.description, 120);
-  const status = TASK_STATUSES[card.status as TaskStatus];
   const updated = format(parseISO(card.updatedAt), "M/d");
 
   return (
@@ -24,18 +22,8 @@ export function CardGridItem({ card }: CardGridItemProps) {
         {card.title}
       </h3>
       <p className="text-xs text-text-dim line-clamp-4 flex-1">{preview}</p>
-      <div className="flex items-center justify-between gap-2 pt-2 border-t border-border">
+      <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
         <span className="text-xs text-text-dim tabular-nums">{updated}</span>
-        <span
-          className="text-[10px] px-1.5 py-0.5 rounded border"
-          style={{
-            color: status.color,
-            borderColor: status.color,
-            backgroundColor: status.bgColor,
-          }}
-        >
-          {status.label}
-        </span>
       </div>
     </Link>
   );

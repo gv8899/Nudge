@@ -13,3 +13,37 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **狀態色**：定義在 `src/lib/constants.ts` 的 `TASK_STATUSES`，每個狀態都有 `color` 和 `bgColor`
 - **既有元件對齊**：新元件的 layout、間距、checkbox 樣式應參考相似既有元件（如新任務元件先讀 `src/components/task/task-card.tsx`），不要自己另起一套
 - **禁止**：硬編碼 hex 色、隨意挑 Tailwind 預設色（`amber-400`、`blue-500` 等都不可），所有顏色必須來自 design system token
+
+# 完成定義 (Definition of Done)
+
+**不能僅依靠 `next build` 成功就宣稱任務完成**。Build 只證明語法正確，不證明邏輯可用。對於任何互動功能，必須**完整走過使用者流程**後才能回報完成。
+
+## 強制檢查清單
+
+修改或新增任何「互動功能」時，必須在回報前逐項確認：
+
+- [ ] **Build 通過**（`npx next build` 無錯）
+- [ ] **實際操作整條路徑**：從「使用者第一次看到這個功能」到「達成目的」的完整流程，每一步都跑過
+- [ ] **邊界情況**：hover → click、hover → 移到另一個元素、mouse leave、focus + blur、鍵盤導覽等
+- [ ] **重新整理後的狀態**：若有持久化，reload 後還能看到正確結果
+- [ ] **沒 race condition**：async 操作完成後 UI 正確同步
+
+## 特別容易漏的場景（歷史血淚）
+
+- **拖放（drag-and-drop）**：hover 看到 handle ≠ 能拖。必須實際點住、拖到目標、放開、驗證節點真的移動。滑鼠從觸發區（文字）移到 handle（padding）時，handle 不能消失。
+- **Popover / 浮動選單**：顯示 ≠ 能點。移動滑鼠離開觸發區時，元素可能瞬間消失。
+- **自動儲存**：debounce 完成、fetch 完成、SWR cache 失效、其他頁面看得到更新 — 全部都要確認。
+- **Keyboard trap / focus 還原**：Modal 開關後 focus 要回到觸發元素。
+- **Mobile 響應式**：桌機看對 ≠ 手機正確（觸控目標、hover 失效等）。
+
+## 禁止的行為
+
+- ❌「build 過了我看起來應該 OK」
+- ❌「這邏輯看起來對所以應該 work」
+- ❌ 改了互動功能卻只 run build 就 commit
+
+## 當無法親自測試
+
+若我無法親自操作（沒有瀏覽器、環境限制等），**必須明確告訴使用者「我只驗證了 build 語法正確，實際互動流程沒有跑過，請幫我測試以下步驟：...」**，並列出具體的測試步驟讓使用者代跑。
+
+**不要預設「應該 OK」而直接報完成**。

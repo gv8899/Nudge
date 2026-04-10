@@ -8,7 +8,6 @@ import { ArrowLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { type TaskStatus } from "@/lib/constants";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
-import { StatusBadge } from "@/components/task/status-badge";
 
 interface CardDetailProps {
   id: string;
@@ -105,18 +104,6 @@ export function CardDetail({ id }: CardDetailProps) {
     setIsEditingTitle(false);
   };
 
-  const handleStatusChange = async (status: TaskStatus) => {
-    // 樂觀更新
-    if (data) mutate({ ...data, status }, false);
-    await fetch(`/api/tasks/${id}/status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    });
-    mutate();
-    invalidateCardsCache();
-  };
-
   if (isLoading) {
     return (
       <div className="mx-auto max-w-3xl px-4 md:px-6 py-8">
@@ -179,16 +166,11 @@ export function CardDetail({ id }: CardDetailProps) {
           <span>建立 {format(parseISO(data.createdAt), "yyyy/MM/dd")}</span>
           <span>·</span>
           <span>更新 {format(parseISO(data.updatedAt), "yyyy/MM/dd")}</span>
-          <span>·</span>
-          <StatusBadge
-            status={data.status}
-            onStatusChange={handleStatusChange}
-          />
         </div>
       </header>
 
       {/* 描述（可編輯 TipTap） */}
-      <div className="min-h-[300px]">
+      <div className="min-h-[60vh]">
         <TiptapEditor
           content={data.description || ""}
           onChange={handleDescChange}
