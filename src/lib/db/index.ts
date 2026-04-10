@@ -34,7 +34,8 @@ function initTables(sqlite: InstanceType<typeof Database>) {
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       name TEXT NOT NULL,
-      color TEXT NOT NULL DEFAULT '#6b7280'
+      color TEXT NOT NULL DEFAULT 'chart-1',
+      sort_order INTEGER NOT NULL DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS task_tags (
@@ -68,6 +69,15 @@ function initTables(sqlite: InstanceType<typeof Database>) {
       sort_order INTEGER NOT NULL DEFAULT 0
     );
   `);
+
+  // 增量 migration：確保 tags 表有 sort_order 欄位
+  try {
+    sqlite.exec(`ALTER TABLE tags ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`);
+  } catch {
+    // 欄位已存在，忽略
+  }
+  // 增量 migration：color 欄位從 hex 改為 token
+  sqlite.exec(`UPDATE tags SET color = 'chart-1' WHERE color LIKE '#%'`);
 }
 
 export function getDb() {

@@ -17,3 +17,16 @@ export const TASK_STATUS_LIST: TaskStatus[] = [
   "done",
   "archived",
 ];
+
+export const TAG_COLORS = [
+  { value: "chart-1", label: "灰藍" },
+  { value: "chart-2", label: "琥珀" },
+  { value: "chart-3", label: "橄欖" },
+  { value: "chart-4", label: "紫藤" },
+  { value: "chart-5", label: "赭紅" },
+  { value: "primary", label: "主色" },
+  { value: "status-waiting", label: "藏青" },
+  { value: "status-in-progress", label: "天藍" },
+] as const;
+
+export type TagColor = (typeof TAG_COLORS)[number]["value"];

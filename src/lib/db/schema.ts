@@ -33,7 +33,8 @@ export const tags = sqliteTable("tags", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  color: text("color").notNull().default("#6b7280"),
+  color: text("color").notNull().default("chart-1"),
+  sortOrder: integer("sort_order").notNull().default(0),
 });
 
 export const taskTags = sqliteTable("task_tags", {
