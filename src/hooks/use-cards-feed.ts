@@ -12,6 +12,7 @@ export interface CardItem {
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;
+  tags: Array<{ id: string; name: string; color: string }>;
 }
 
 interface CardsPage {
