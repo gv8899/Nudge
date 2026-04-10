@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronRight, CalendarClock, Archive } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isWeekend } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import type { DailyTaskAssignment } from "@/lib/types";
 import { MoveTaskPopover } from "@/components/task/move-task-popover";
 
@@ -21,7 +27,9 @@ export function OverdueSection({
   onReschedule,
   onArchive,
 }: OverdueSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  // 六日預設收合
+  const [isExpanded, setIsExpanded] = useState(() => !isWeekend(parseISO(currentDate)));
+  const [archiveTarget, setArchiveTarget] = useState<{ assignmentId: string; taskId: string; title: string } | null>(null);
 
   if (overdueTasks.length === 0) return null;
 
@@ -88,7 +96,7 @@ export function OverdueSection({
               />
 
               <button
-                onClick={() => onArchive(a.id, a.taskId)}
+                onClick={() => setArchiveTarget({ assignmentId: a.id, taskId: a.taskId, title: a.task.title })}
                 aria-label={`封存任務：${a.task.title}`}
                 className="w-7 h-7 rounded-md hover:bg-white/10 text-text-faint hover:text-muted-foreground transition-colors shrink-0 cursor-pointer flex items-center justify-center"
               >
@@ -98,6 +106,36 @@ export function OverdueSection({
           ))}
         </div>
       )}
+      {/* 封存確認 */}
+      <Dialog open={archiveTarget !== null} onOpenChange={(open) => { if (!open) setArchiveTarget(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogTitle className="text-base font-semibold">
+            封存任務
+          </DialogTitle>
+          <DialogDescription className="text-sm text-text-dim">
+            確定要封存「{archiveTarget?.title}」嗎？封存後不會出現在任務列表。
+          </DialogDescription>
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              onClick={() => setArchiveTarget(null)}
+              className="px-3 py-1.5 text-sm rounded-lg border border-border text-text-dim hover:text-foreground hover:bg-muted transition-colors"
+            >
+              取消
+            </button>
+            <button
+              onClick={() => {
+                if (archiveTarget) {
+                  onArchive(archiveTarget.assignmentId, archiveTarget.taskId);
+                  setArchiveTarget(null);
+                }
+              }}
+              className="px-3 py-1.5 text-sm rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              封存
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

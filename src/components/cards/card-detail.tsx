@@ -9,6 +9,7 @@ import { fetcher } from "@/lib/fetcher";
 import { type TaskStatus } from "@/lib/constants";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
 import { TagPicker } from "@/components/tags/tag-picker";
+import { useTags } from "@/hooks/use-tags";
 
 interface CardDetailProps {
   id: string;
@@ -47,6 +48,7 @@ export function CardDetail({ id }: CardDetailProps) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAutoFocusedRef = useRef(false);
   const [cardTags, setCardTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
+  const { tags: allTags } = useTags();
 
   useEffect(() => {
     if (data?.title !== undefined) setTitleValue(data.title);
@@ -87,6 +89,12 @@ export function CardDetail({ id }: CardDetailProps) {
   );
 
   const handleTagsChange = async (tagIds: string[]) => {
+    // 樂觀更新：立即顯示 tag badge
+    const newTags = tagIds
+      .map((tid) => allTags.find((t) => t.id === tid))
+      .filter(Boolean) as Array<{ id: string; name: string; color: string }>;
+    setCardTags(newTags);
+
     await fetch(`/api/tasks/${id}/tags`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

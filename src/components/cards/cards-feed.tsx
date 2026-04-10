@@ -20,19 +20,19 @@ const VIEW_STORAGE_KEY = "nudge:cards-view";
 
 export function CardsFeed() {
   const router = useRouter();
-  const [view, setView] = useState<View>("list");
+  const [view, setView] = useState<View>("grid");
+
+  // localStorage 讀取偏好（client only）
+  useEffect(() => {
+    const stored = localStorage.getItem(VIEW_STORAGE_KEY) as View | null;
+    if (stored === "list" || stored === "grid" || stored === "kanban") setView(stored);
+  }, []);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isCleaning, setIsCleaning] = useState(false);
   const [confirmCleanOpen, setConfirmCleanOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-
-  // 載入 view 偏好
-  useEffect(() => {
-    const stored = localStorage.getItem(VIEW_STORAGE_KEY) as View | null;
-    if (stored === "list" || stored === "grid" || stored === "kanban") setView(stored);
-  }, []);
 
   const handleViewChange = (next: View) => {
     setView(next);
@@ -134,8 +134,9 @@ export function CardsFeed() {
           </button>
 
           {/* View 切換 */}
-          <div className="flex items-center gap-1 border border-border rounded-lg p-1">
+          <div className="flex items-center gap-1 border border-border rounded-lg p-1" suppressHydrationWarning>
             <button
+              suppressHydrationWarning
               onClick={() => handleViewChange("list")}
               aria-label="列表檢視"
               aria-pressed={view === "list"}
@@ -148,6 +149,7 @@ export function CardsFeed() {
               <List className="h-4 w-4" />
             </button>
             <button
+              suppressHydrationWarning
               onClick={() => handleViewChange("grid")}
               aria-label="網格檢視"
               aria-pressed={view === "grid"}
@@ -160,6 +162,7 @@ export function CardsFeed() {
               <LayoutGrid className="h-4 w-4" />
             </button>
             <button
+              suppressHydrationWarning
               onClick={() => handleViewChange("kanban")}
               aria-label="看板檢視"
               aria-pressed={view === "kanban"}

@@ -1,14 +1,16 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import {
   DndContext,
+  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
   useDraggable,
   useDroppable,
+  type DragStartEvent,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { useTags } from "@/hooks/use-tags";
@@ -23,15 +25,29 @@ interface CardsKanbanProps {
 
 export function CardsKanban({ cards, onMutate }: CardsKanbanProps) {
   const { tags } = useTags();
+  const [activeCard, setActiveCard] = useState<CardItem | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const compositeId = event.active.id as string;
+      const cardId = compositeId.split("__")[0];
+      const card = cards.find((c) => c.id === cardId);
+      setActiveCard(card || null);
+    },
+    [cards]
+  );
+
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       const { active, over } = event;
-      if (!over) return;
+      if (!over) {
+        setActiveCard(null);
+        return;
+      }
 
       const compositeId = active.id as string;
       const cardId = compositeId.split("__")[0];
@@ -53,6 +69,7 @@ export function CardsKanban({ cards, onMutate }: CardsKanbanProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tagIds: newTagIds }),
       });
+      setActiveCard(null);
       onMutate();
     },
     [cards, onMutate]
@@ -68,7 +85,7 @@ export function CardsKanban({ cards, onMutate }: CardsKanbanProps) {
   }
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 md:-mx-6 md:px-6">
         {tags.map((tag) => {
           const columnCards = cards.filter((c) =>
@@ -79,6 +96,9 @@ export function CardsKanban({ cards, onMutate }: CardsKanbanProps) {
           );
         })}
       </div>
+      <DragOverlay dropAnimation={null}>
+        {activeCard && <KanbanCardOverlay card={activeCard} />}
+      </DragOverlay>
     </DndContext>
   );
 }
@@ -142,7 +162,7 @@ function KanbanCard({
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className={isDragging ? "opacity-40" : ""}
+      className={isDragging ? "opacity-30" : ""}
     >
       <Link
         href={`/cards/${card.id}`}
@@ -165,6 +185,24 @@ function KanbanCard({
           </div>
         )}
       </Link>
+    </div>
+  );
+}
+
+/** 拖移時跟著游標的卡片副本 */
+function KanbanCardOverlay({ card }: { card: CardItem }) {
+  const preview = stripHtml(card.description, 60);
+
+  return (
+    <div className="w-[224px] rotate-2 shadow-lg">
+      <div className="p-3 rounded-lg border border-primary/50 bg-card">
+        <h4 className="text-sm font-medium text-foreground line-clamp-2">
+          {card.title}
+        </h4>
+        {preview && (
+          <p className="mt-1 text-xs text-text-dim line-clamp-2">{preview}</p>
+        )}
+      </div>
     </div>
   );
 }
