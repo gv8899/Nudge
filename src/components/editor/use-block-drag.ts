@@ -3,6 +3,13 @@
 import { useCallback, useRef, useState } from "react";
 import type { Editor } from "@tiptap/core";
 
+// 預先載好 1px 透明圖，避免 dragStart 時圖片還沒 load 導致瀏覽器顯示預設 icon
+const emptyDragImage = typeof window !== "undefined" ? (() => {
+  const img = new Image();
+  img.src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+  return img;
+})() : null;
+
 export interface BlockInfo {
   pos: number;
   top: number;
@@ -145,10 +152,7 @@ export function useBlockDrag(editor: Editor | null) {
     (e: React.DragEvent, pos: number) => {
       setDraggingFromPos(pos);
       e.dataTransfer.effectAllowed = "move";
-      const img = new Image();
-      img.src =
-        "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
-      e.dataTransfer.setDragImage(img, 0, 0);
+      if (emptyDragImage) e.dataTransfer.setDragImage(emptyDragImage, 0, 0);
 
       // 預算所有可放置的 slot
       const slots = computeSlots(pos);

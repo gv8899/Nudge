@@ -62,10 +62,13 @@ export function TaskCard({
 
   const saveTitle = () => {
     const trimmed = titleValue.trim();
-    if (trimmed && trimmed !== task.title) {
+    if (!trimmed) {
+      // 標題刪光 → 封存任務
+      onStatusChange(task.id, "archived");
+      return;
+    }
+    if (trimmed !== task.title) {
       onUpdateTask(task.id, { title: trimmed });
-    } else {
-      setTitleValue(task.title);
     }
     setIsEditingTitle(false);
   };
@@ -125,6 +128,10 @@ export function TaskCard({
             onChange={(e) => setTitleValue(e.target.value)}
             onBlur={saveTitle}
             onKeyDown={(e) => {
+              if (e.key === "Backspace" && titleValue === "") {
+                onStatusChange(task.id, "archived");
+                return;
+              }
               if (e.key === "Enter") saveTitle();
               if (e.key === "Escape") {
                 setTitleValue(task.title);

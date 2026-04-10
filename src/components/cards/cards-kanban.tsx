@@ -165,6 +165,7 @@ function KanbanCard({
       className={isDragging ? "opacity-30" : ""}
     >
       <Link
+        draggable={false}
         href={`/cards/${card.id}`}
         className="block p-3 rounded-lg border border-border bg-card hover:border-border-light transition-colors"
         onClick={(e) => {
