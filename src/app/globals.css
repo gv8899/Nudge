@@ -498,3 +498,90 @@
 .dark-calendar .rdp-disabled button {
   color: var(--border);
 }
+
+/* =========================================================
+   Slash command 相關：task list、code block、hljs 配色
+   ========================================================= */
+
+/* Task list (checkbox) */
+.tiptap-container .tiptap ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+.tiptap-container .tiptap ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+.tiptap-container .tiptap ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  margin-top: 0.2rem;
+}
+.tiptap-container .tiptap ul[data-type="taskList"] input[type="checkbox"] {
+  accent-color: var(--primary);
+  cursor: pointer;
+  width: 0.95rem;
+  height: 0.95rem;
+}
+.tiptap-container .tiptap ul[data-type="taskList"] li[data-checked="true"] > div {
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
+
+/* Code block */
+.tiptap-container .tiptap pre {
+  background: var(--muted);
+  color: var(--foreground);
+  padding: 0.875rem 1rem;
+  border-radius: 0.5rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  position: relative;
+  margin: 0.5rem 0;
+}
+.tiptap-container .tiptap pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* Hljs 極簡配色 — 只染幾個類別，與 ink & paper 主題相容 */
+.tiptap-container .tiptap pre code .hljs-keyword,
+.tiptap-container .tiptap pre code .hljs-selector-tag,
+.tiptap-container .tiptap pre code .hljs-built_in {
+  color: var(--primary);
+  font-weight: 600;
+}
+.tiptap-container .tiptap pre code .hljs-string,
+.tiptap-container .tiptap pre code .hljs-attr {
+  color: var(--chart-3);
+}
+.tiptap-container .tiptap pre code .hljs-comment,
+.tiptap-container .tiptap pre code .hljs-meta {
+  color: var(--text-dim);
+  font-style: italic;
+}
+.tiptap-container .tiptap pre code .hljs-number,
+.tiptap-container .tiptap pre code .hljs-literal {
+  color: var(--chart-2);
+}
+.tiptap-container .tiptap pre code .hljs-function,
+.tiptap-container .tiptap pre code .hljs-title {
+  color: var(--chart-1);
+}
+.tiptap-container .tiptap pre code .hljs-tag,
+.tiptap-container .tiptap pre code .hljs-name {
+  color: var(--chart-4);
+}
+
+/* Tippy.js 透明主題 */
+.tippy-box[data-theme~="transparent"] {
+  background: transparent;
+  box-shadow: none;
+}
