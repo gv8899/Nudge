@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, List, LayoutGrid, Plus, Eraser } from "lucide-react";
+import { Search, List, LayoutGrid, Columns3, Plus, Eraser } from "lucide-react";
 import { useCardsFeed } from "@/hooks/use-cards-feed";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { CardListItem } from "./card-list-item";
 import { CardGridItem } from "./card-grid-item";
+import { CardsKanban } from "./cards-kanban";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-type View = "list" | "grid";
+type View = "list" | "grid" | "kanban";
 const VIEW_STORAGE_KEY = "nudge:cards-view";
 
 export function CardsFeed() {
@@ -30,7 +31,7 @@ export function CardsFeed() {
   // 載入 view 偏好
   useEffect(() => {
     const stored = localStorage.getItem(VIEW_STORAGE_KEY) as View | null;
-    if (stored === "list" || stored === "grid") setView(stored);
+    if (stored === "list" || stored === "grid" || stored === "kanban") setView(stored);
   }, []);
 
   const handleViewChange = (next: View) => {
@@ -158,6 +159,18 @@ export function CardsFeed() {
             >
               <LayoutGrid className="h-4 w-4" />
             </button>
+            <button
+              onClick={() => handleViewChange("kanban")}
+              aria-label="看板檢視"
+              aria-pressed={view === "kanban"}
+              className={`p-1.5 rounded transition-colors ${
+                view === "kanban"
+                  ? "bg-muted text-foreground"
+                  : "text-text-dim hover:text-foreground"
+              }`}
+            >
+              <Columns3 className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -178,10 +191,12 @@ export function CardsFeed() {
       {/* 卡片內容 */}
       {isLoading && cards.length === 0 ? (
         <p className="text-sm text-text-dim text-center py-8">載入中...</p>
-      ) : cards.length === 0 ? (
+      ) : cards.length === 0 && view !== "kanban" ? (
         <p className="text-sm text-text-dim text-center py-8">
           {debouncedQuery ? "沒有符合的卡片" : "還沒有寫過內容的任務"}
         </p>
+      ) : view === "kanban" ? (
+        <CardsKanban cards={cards} onMutate={() => mutate()} />
       ) : view === "list" ? (
         <div className="divide-y divide-border">
           {cards.map((c) => (
