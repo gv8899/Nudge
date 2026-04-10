@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { tasks } from "@/lib/db/schema";
+import { tasks, tags, taskTags } from "@/lib/db/schema";
 import { and, eq, ne, lt, desc, or, like } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
 import { stripHtml } from "@/lib/strip-html";
@@ -46,5 +46,20 @@ export async function GET(request: NextRequest) {
   const cards = hasMore ? filtered.slice(0, limit) : filtered;
   const nextCursor = hasMore ? cards[cards.length - 1].updatedAt : null;
 
-  return NextResponse.json({ cards, nextCursor });
+  const cardsWithTags = cards.map((card) => {
+    const cardTags = db
+      .select({
+        id: tags.id,
+        name: tags.name,
+        color: tags.color,
+      })
+      .from(taskTags)
+      .innerJoin(tags, eq(tags.id, taskTags.tagId))
+      .where(eq(taskTags.taskId, card.id))
+      .all();
+
+    return { ...card, tags: cardTags };
+  });
+
+  return NextResponse.json({ cards: cardsWithTags, nextCursor });
 }
