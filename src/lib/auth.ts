@@ -16,23 +16,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       try {
         if (!user.email) return false;
 
-        const existing = db
+        const [existing] = await db
           .select()
           .from(users)
           .where(eq(users.email, user.email))
-          .get();
+          .limit(1);
 
         if (!existing) {
           const now = new Date().toISOString();
-          db.insert(users)
-            .values({
-              id: nanoid(),
-              email: user.email,
-              name: user.name || null,
-              avatarUrl: user.image || null,
-              createdAt: now,
-            })
-            .run();
+          await db.insert(users).values({
+            id: nanoid(),
+            email: user.email,
+            name: user.name || null,
+            avatarUrl: user.image || null,
+            createdAt: now,
+          });
         }
 
         return true;
@@ -44,11 +42,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session }) {
       try {
         if (session.user?.email) {
-          const dbUser = db
+          const [dbUser] = await db
             .select()
             .from(users)
             .where(eq(users.email, session.user.email))
-            .get();
+            .limit(1);
 
           if (dbUser) {
             session.user.id = dbUser.id;
