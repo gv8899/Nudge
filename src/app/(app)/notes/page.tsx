@@ -1,9 +1,7 @@
-"use client";
-
 import { format } from "date-fns";
-import { NoteFeed } from "@/components/notes/note-feed";
+import { NotesCanvas } from "@/components/notes/notes-canvas";
 
 export default function NotesPage() {
   const today = format(new Date(), "yyyy-MM-dd");
-  return <NoteFeed today={today} />;
+  return <NotesCanvas date={today} isToday />;
 }
