@@ -1,9 +1,8 @@
 "use client";
 
 import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
 import { useEffect, forwardRef, useImperativeHandle } from "react";
+import { createEditorExtensions } from "@/components/editor/editor-extensions";
 
 interface TiptapEditorProps {
   content: string;
@@ -30,12 +29,7 @@ export const TiptapEditor = forwardRef<
 ) {
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [
-      StarterKit.configure({
-        heading: { levels: [1, 2, 3] },
-      }),
-      Placeholder.configure({ placeholder }),
-    ],
+    extensions: createEditorExtensions({ placeholder }),
     content,
     editable,
     autofocus: autoFocus ? "end" : false,
@@ -60,7 +54,7 @@ export const TiptapEditor = forwardRef<
     if (editor && content !== editor.getHTML()) {
       editor.commands.setContent(content);
     }
-  }, [content]);
+  }, [content, editor]);
 
   useEffect(() => {
     if (editor) {
