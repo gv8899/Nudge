@@ -12,11 +12,11 @@ export async function GET(
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const task = db
+  const [task] = await db
     .select()
     .from(tasks)
     .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
-    .get();
+    .limit(1);
 
   if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json(task);
@@ -33,11 +33,11 @@ export async function PATCH(
   const body = await request.json();
   const now = new Date().toISOString();
 
-  const existing = db
+  const [existing] = await db
     .select()
     .from(tasks)
     .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
-    .get();
+    .limit(1);
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const updates: Record<string, unknown> = { updatedAt: now };
@@ -46,9 +46,9 @@ export async function PATCH(
   if (body.remindAt !== undefined) updates.remindAt = body.remindAt;
   if (body.sortOrder !== undefined) updates.sortOrder = body.sortOrder;
 
-  db.update(tasks).set(updates).where(eq(tasks.id, id)).run();
+  await db.update(tasks).set(updates).where(eq(tasks.id, id));
 
-  const updated = db.select().from(tasks).where(eq(tasks.id, id)).get();
+  const [updated] = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
   return NextResponse.json(updated);
 }
 
@@ -60,8 +60,7 @@ export async function DELETE(
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  db.delete(tasks)
-    .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
-    .run();
+  await db.delete(tasks)
+    .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)));
   return NextResponse.json({ success: true });
 }

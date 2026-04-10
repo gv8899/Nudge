@@ -14,19 +14,17 @@ export async function GET(request: NextRequest) {
 
   let result;
   if (status) {
-    result = db
+    result = await db
       .select()
       .from(tasks)
       .where(and(eq(tasks.userId, user.id), eq(tasks.status, status as any)))
-      .orderBy(tasks.sortOrder)
-      .all();
+      .orderBy(tasks.sortOrder);
   } else {
-    result = db
+    result = await db
       .select()
       .from(tasks)
       .where(eq(tasks.userId, user.id))
-      .orderBy(tasks.sortOrder)
-      .all();
+      .orderBy(tasks.sortOrder);
   }
 
   return NextResponse.json(result);
@@ -53,9 +51,9 @@ export async function POST(request: NextRequest) {
     sortOrder: body.sortOrder || 0,
   };
 
-  db.insert(tasks).values(task).run();
+  await db.insert(tasks).values(task);
 
-  db.insert(statusHistory)
+  await db.insert(statusHistory)
     .values({
       id: nanoid(),
       taskId: id,
@@ -63,8 +61,7 @@ export async function POST(request: NextRequest) {
       toStatus: task.status,
       changedAt: now,
       note: null,
-    })
-    .run();
+    });
 
   return NextResponse.json(task, { status: 201 });
 }

@@ -21,25 +21,24 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
 
-  const existing = db
+  const [existing] = await db
     .select()
     .from(tasks)
     .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
-    .get();
+    .limit(1);
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const now = new Date().toISOString();
 
-  db.update(tasks)
+  await db.update(tasks)
     .set({
       status: newStatus,
       updatedAt: now,
       completedAt: newStatus === "done" ? now : null,
     })
-    .where(eq(tasks.id, id))
-    .run();
+    .where(eq(tasks.id, id));
 
-  db.insert(statusHistory)
+  await db.insert(statusHistory)
     .values({
       id: nanoid(),
       taskId: id,
@@ -47,10 +46,9 @@ export async function PATCH(
       toStatus: newStatus,
       changedAt: now,
       note: body.note || null,
-    })
-    .run();
+    });
 
-  const updated = db.select().from(tasks).where(eq(tasks.id, id)).get();
+  const [updated] = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
   return NextResponse.json(updated);
 }
 
@@ -62,12 +60,11 @@ export async function GET(
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const history = db
+  const history = await db
     .select()
     .from(statusHistory)
     .where(eq(statusHistory.taskId, id))
-    .orderBy(statusHistory.changedAt)
-    .all();
+    .orderBy(statusHistory.changedAt);
 
   return NextResponse.json(history);
 }

@@ -14,11 +14,11 @@ export async function PUT(
 
   const { id } = await params;
 
-  const task = db
+  const [task] = await db
     .select()
     .from(tasks)
     .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)))
-    .get();
+    .limit(1);
 
   if (!task)
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -26,10 +26,10 @@ export async function PUT(
   const body = await request.json();
   const tagIds: string[] = body.tagIds || [];
 
-  db.delete(taskTags).where(eq(taskTags.taskId, id)).run();
+  await db.delete(taskTags).where(eq(taskTags.taskId, id));
 
   for (const tagId of tagIds) {
-    db.insert(taskTags).values({ taskId: id, tagId }).run();
+    await db.insert(taskTags).values({ taskId: id, tagId });
   }
 
   return NextResponse.json({ tagIds });
