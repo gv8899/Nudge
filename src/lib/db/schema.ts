@@ -1,6 +1,6 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { pgTable, text, integer, boolean } from "drizzle-orm/pg-core";
 
-export const users = sqliteTable("users", {
+export const users = pgTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name"),
@@ -8,7 +8,7 @@ export const users = sqliteTable("users", {
   createdAt: text("created_at").notNull(),
 });
 
-export const tasks = sqliteTable("tasks", {
+export const tasks = pgTable("tasks", {
   id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
@@ -27,7 +27,7 @@ export const tasks = sqliteTable("tasks", {
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
-export const tags = sqliteTable("tags", {
+export const tags = pgTable("tags", {
   id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
@@ -37,7 +37,7 @@ export const tags = sqliteTable("tags", {
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
-export const taskTags = sqliteTable("task_tags", {
+export const taskTags = pgTable("task_tags", {
   taskId: text("task_id")
     .notNull()
     .references(() => tasks.id, { onDelete: "cascade" }),
@@ -46,7 +46,7 @@ export const taskTags = sqliteTable("task_tags", {
     .references(() => tags.id, { onDelete: "cascade" }),
 });
 
-export const statusHistory = sqliteTable("status_history", {
+export const statusHistory = pgTable("status_history", {
   id: text("id").primaryKey(),
   taskId: text("task_id")
     .notNull()
@@ -57,19 +57,17 @@ export const statusHistory = sqliteTable("status_history", {
   note: text("note"),
 });
 
-export const dailyTaskAssignments = sqliteTable("daily_task_assignments", {
+export const dailyTaskAssignments = pgTable("daily_task_assignments", {
   id: text("id").primaryKey(),
   taskId: text("task_id")
     .notNull()
     .references(() => tasks.id, { onDelete: "cascade" }),
   date: text("date").notNull(),
-  isCompleted: integer("is_completed", { mode: "boolean" })
-    .notNull()
-    .default(false),
+  isCompleted: boolean("is_completed").notNull().default(false),
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
-export const dailyNotes = sqliteTable("daily_notes", {
+export const dailyNotes = pgTable("daily_notes", {
   id: text("id").primaryKey(),
   userId: text("user_id")
     .notNull()
