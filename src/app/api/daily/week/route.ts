@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing start/end" }, { status: 400 });
   }
 
-  const assignments = db
+  const assignments = await db
     .select({ date: dailyTaskAssignments.date })
     .from(dailyTaskAssignments)
     .innerJoin(tasks, eq(dailyTaskAssignments.taskId, tasks.id))
@@ -26,8 +26,7 @@ export async function GET(request: NextRequest) {
         lte(dailyTaskAssignments.date, end),
         eq(tasks.userId, user.id)
       )
-    )
-    .all();
+    );
 
   const datesWithTasks = [...new Set(assignments.map((a) => a.date))];
   return NextResponse.json({ datesWithTasks });

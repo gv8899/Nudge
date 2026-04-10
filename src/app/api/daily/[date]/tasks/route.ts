@@ -21,7 +21,7 @@ export async function POST(
   if (!taskId && body.title) {
     taskId = nanoid();
     const status = body.status || "in_progress";
-    db.insert(tasks)
+    await db.insert(tasks)
       .values({
         id: taskId,
         userId: user.id,
@@ -33,10 +33,9 @@ export async function POST(
         completedAt: null,
         remindAt: null,
         sortOrder: 0,
-      })
-      .run();
+      });
 
-    db.insert(statusHistory)
+    await db.insert(statusHistory)
       .values({
         id: nanoid(),
         taskId,
@@ -44,11 +43,10 @@ export async function POST(
         toStatus: status,
         changedAt: now,
         note: null,
-      })
-      .run();
+      });
   }
 
-  const existing = db
+  const [existing] = await db
     .select()
     .from(dailyTaskAssignments)
     .where(
@@ -57,7 +55,7 @@ export async function POST(
         eq(dailyTaskAssignments.date, date)
       )
     )
-    .get();
+    .limit(1);
 
   if (existing) return NextResponse.json(existing);
 
@@ -69,7 +67,7 @@ export async function POST(
     sortOrder: body.sortOrder || 0,
   };
 
-  db.insert(dailyTaskAssignments).values(assignment).run();
+  await db.insert(dailyTaskAssignments).values(assignment);
   return NextResponse.json(assignment, { status: 201 });
 }
 
@@ -78,9 +76,8 @@ export async function DELETE(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  db.delete(dailyTaskAssignments)
-    .where(eq(dailyTaskAssignments.id, body.assignmentId))
-    .run();
+  await db.delete(dailyTaskAssignments)
+    .where(eq(dailyTaskAssignments.id, body.assignmentId));
   return NextResponse.json({ success: true });
 }
 
@@ -92,14 +89,14 @@ export async function PATCH(request: NextRequest) {
   const { assignmentId, isCompleted, sortOrder, moveToDate } = body;
 
   if (moveToDate && assignmentId) {
-    const existing = db
+    const [existing] = await db
       .select()
       .from(dailyTaskAssignments)
       .where(eq(dailyTaskAssignments.id, assignmentId))
-      .get();
+      .limit(1);
 
     if (existing) {
-      const alreadyExists = db
+      const [alreadyExists] = await db
         .select()
         .from(dailyTaskAssignments)
         .where(
@@ -108,24 +105,22 @@ export async function PATCH(request: NextRequest) {
             eq(dailyTaskAssignments.date, moveToDate)
           )
         )
-        .get();
+        .limit(1);
 
       if (!alreadyExists) {
-        db.insert(dailyTaskAssignments)
+        await db.insert(dailyTaskAssignments)
           .values({
             id: nanoid(),
             taskId: existing.taskId,
             date: moveToDate,
             isCompleted: false,
             sortOrder: 0,
-          })
-          .run();
+          });
       }
 
-      db.update(dailyTaskAssignments)
+      await db.update(dailyTaskAssignments)
         .set({ isCompleted: true })
-        .where(eq(dailyTaskAssignments.id, assignmentId))
-        .run();
+        .where(eq(dailyTaskAssignments.id, assignmentId));
     }
 
     return NextResponse.json({ success: true });
@@ -135,26 +130,24 @@ export async function PATCH(request: NextRequest) {
   if (isCompleted !== undefined) updates.isCompleted = isCompleted;
   if (sortOrder !== undefined) updates.sortOrder = sortOrder;
 
-  db.update(dailyTaskAssignments)
+  await db.update(dailyTaskAssignments)
     .set(updates)
-    .where(eq(dailyTaskAssignments.id, assignmentId))
-    .run();
+    .where(eq(dailyTaskAssignments.id, assignmentId));
 
   if (isCompleted === true && body.taskId) {
     const now = new Date().toISOString();
-    const task = db
+    const [task] = await db
       .select()
       .from(tasks)
       .where(eq(tasks.id, body.taskId))
-      .get();
+      .limit(1);
 
     if (task && task.status !== "done") {
-      db.update(tasks)
+      await db.update(tasks)
         .set({ status: "done", updatedAt: now, completedAt: now })
-        .where(eq(tasks.id, body.taskId))
-        .run();
+        .where(eq(tasks.id, body.taskId));
 
-      db.insert(statusHistory)
+      await db.insert(statusHistory)
         .values({
           id: nanoid(),
           taskId: body.taskId,
@@ -162,8 +155,7 @@ export async function PATCH(request: NextRequest) {
           toStatus: "done",
           changedAt: now,
           note: "透過打勾完成",
-        })
-        .run();
+        });
     }
   }
 

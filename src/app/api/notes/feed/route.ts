@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const cursor = searchParams.get("cursor") || "9999-12-31";
   const limit = Math.min(Number(searchParams.get("limit") || "10"), 50);
 
-  const rows = db
+  const rows = await db
     .select()
     .from(dailyNotes)
     .where(
@@ -24,8 +24,7 @@ export async function GET(request: NextRequest) {
       )
     )
     .orderBy(desc(dailyNotes.date))
-    .limit(limit + 1)
-    .all();
+    .limit(limit + 1);
 
   const hasMore = rows.length > limit;
   const notes = hasMore ? rows.slice(0, limit) : rows;

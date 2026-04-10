@@ -13,7 +13,7 @@ export async function GET(
 
   const { date } = await params;
 
-  const assignments = db
+  const assignments = await db
     .select({
       id: dailyTaskAssignments.id,
       taskId: dailyTaskAssignments.taskId,
@@ -41,10 +41,9 @@ export async function GET(
         ne(tasks.status, "archived")
       )
     )
-    .orderBy(dailyTaskAssignments.sortOrder)
-    .all();
+    .orderBy(dailyTaskAssignments.sortOrder);
 
-  const overdueTasks = db
+  const overdueTasks = await db
     .select({
       id: dailyTaskAssignments.id,
       taskId: dailyTaskAssignments.taskId,
@@ -73,16 +72,15 @@ export async function GET(
         ne(tasks.status, "archived")
       )
     )
-    .orderBy(dailyTaskAssignments.date)
-    .all();
+    .orderBy(dailyTaskAssignments.date);
 
-  const note = db
+  const [note] = await db
     .select()
     .from(dailyNotes)
     .where(
       and(eq(dailyNotes.date, date), eq(dailyNotes.userId, user.id))
     )
-    .get();
+    .limit(1);
 
   return NextResponse.json({
     date,

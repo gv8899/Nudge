@@ -5,25 +5,23 @@ import { eq, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getUser } from "@/lib/get-user";
 
-function upsertNote(userId: string, date: string, content: string) {
+async function upsertNote(userId: string, date: string, content: string) {
   const now = new Date().toISOString();
-  const existing = db
+  const [existing] = await db
     .select()
     .from(dailyNotes)
     .where(and(eq(dailyNotes.date, date), eq(dailyNotes.userId, userId)))
-    .get();
+    .limit(1);
 
   if (existing) {
-    db.update(dailyNotes)
+    await db.update(dailyNotes)
       .set({ content, createdAt: now })
-      .where(eq(dailyNotes.id, existing.id))
-      .run();
+      .where(eq(dailyNotes.id, existing.id));
     return NextResponse.json({ id: existing.id, content });
   } else {
     const id = nanoid();
-    db.insert(dailyNotes)
-      .values({ id, userId, date, content, createdAt: now, sortOrder: 0 })
-      .run();
+    await db.insert(dailyNotes)
+      .values({ id, userId, date, content, createdAt: now, sortOrder: 0 });
     return NextResponse.json({ id, content });
   }
 }
@@ -36,11 +34,11 @@ export async function GET(
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { date } = await params;
-  const note = db
+  const [note] = await db
     .select()
     .from(dailyNotes)
     .where(and(eq(dailyNotes.date, date), eq(dailyNotes.userId, user.id)))
-    .get();
+    .limit(1);
 
   return NextResponse.json({ content: note?.content || "", id: note?.id || null });
 }
@@ -54,7 +52,7 @@ export async function POST(
 
   const { date } = await params;
   const body = await request.json();
-  return upsertNote(user.id, date, body.content);
+  return await upsertNote(user.id, date, body.content);
 }
 
 export async function PUT(
@@ -66,5 +64,5 @@ export async function PUT(
 
   const { date } = await params;
   const body = await request.json();
-  return upsertNote(user.id, date, body.content);
+  return await upsertNote(user.id, date, body.content);
 }

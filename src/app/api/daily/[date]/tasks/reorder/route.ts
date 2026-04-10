@@ -12,10 +12,9 @@ export async function PUT(request: NextRequest) {
   const { order } = body as { order: { id: string; sortOrder: number }[] };
 
   for (const item of order) {
-    db.update(dailyTaskAssignments)
+    await db.update(dailyTaskAssignments)
       .set({ sortOrder: item.sortOrder })
-      .where(eq(dailyTaskAssignments.id, item.id))
-      .run();
+      .where(eq(dailyTaskAssignments.id, item.id));
   }
 
   return NextResponse.json({ success: true });
