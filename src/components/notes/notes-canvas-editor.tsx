@@ -2,8 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
+import { createEditorExtensions } from "@/components/editor/editor-extensions";
 import { GripVertical } from "lucide-react";
 
 interface NotesCanvasEditorProps {
@@ -34,10 +33,7 @@ export function NotesCanvasEditor({
 
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
-      Placeholder.configure({ placeholder: "寫點什麼⋯⋯" }),
-    ],
+    extensions: createEditorExtensions({ placeholder: "寫點什麼⋯⋯" }),
     content: initialContent,
     editable: true,
     onUpdate: ({ editor }) => {
