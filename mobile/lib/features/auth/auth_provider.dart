@@ -25,25 +25,27 @@ final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(storage);
 });
 
-final googleSignInProvider = Provider<GoogleSignIn>((ref) => GoogleSignIn());
+final googleSignInProvider = Provider<GoogleSignIn>(
+  (ref) => GoogleSignIn.instance,
+);
 
-final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  return AuthNotifier(
-    ref.read(apiClientProvider),
-    ref.read(authStorageProvider),
-    ref.read(googleSignInProvider),
-  );
-});
+final authProvider = NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);
 
-class AuthNotifier extends StateNotifier<AuthState> {
-  final ApiClient _apiClient;
-  final AuthStorage _authStorage;
-  final GoogleSignIn _googleSignIn;
+class AuthNotifier extends Notifier<AuthState> {
+  late final ApiClient _apiClient;
+  late final AuthStorage _authStorage;
+  late final GoogleSignIn _googleSignIn;
 
-  AuthNotifier(this._apiClient, this._authStorage, this._googleSignIn)
-      : super(AuthState.unknown()) {
+  @override
+  AuthState build() {
+    _apiClient = ref.read(apiClientProvider);
+    _authStorage = ref.read(authStorageProvider);
+    _googleSignIn = ref.read(googleSignInProvider);
     _apiClient.onUnauthorized = _handleUnauthorized;
     _init();
+    return AuthState.unknown();
   }
 
   Future<void> _init() async {
@@ -64,10 +66,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<bool> login() async {
     try {
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return false;
-
-      final googleAuth = await googleUser.authentication;
+      final googleUser = await _googleSignIn.authenticate();
+      final googleAuth = googleUser.authentication;
       final idToken = googleAuth.idToken;
       if (idToken == null) return false;
 
