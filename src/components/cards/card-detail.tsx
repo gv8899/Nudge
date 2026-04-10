@@ -172,6 +172,7 @@ export function CardDetail({ id }: CardDetailProps) {
       {/* 描述（可編輯 TipTap） */}
       <div className="min-h-[60vh]">
         <TiptapEditor
+          key={id}
           content={data.description || ""}
           onChange={handleDescChange}
           placeholder="輸入內文..."

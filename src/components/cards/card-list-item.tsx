@@ -16,7 +16,7 @@ export function CardListItem({ card }: CardListItemProps) {
   return (
     <Link
       href={`/cards/${card.id}`}
-      className="block py-4 px-2 -mx-2 rounded-lg hover:bg-muted transition-colors group"
+      className="block py-4 px-3 -mx-3 hover:bg-muted/50 transition-colors group"
     >
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">

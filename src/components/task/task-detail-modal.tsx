@@ -149,6 +149,7 @@ export function TaskDetailModal({
         {/* 編輯區 */}
         <div className="px-6 py-6 min-h-[300px]">
           <TiptapEditor
+            key={task.id}
             content={task.description || ""}
             onChange={handleDescChange}
             placeholder="輸入內文..."

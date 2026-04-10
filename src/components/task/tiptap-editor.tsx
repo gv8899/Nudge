@@ -61,11 +61,8 @@ export const TiptapEditor = forwardRef<
     focus: () => editor?.commands.focus("end"),
   }));
 
-  useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content);
-    }
-  }, [content, editor]);
+  // 不從 prop 同步回編輯器 — editor 初始化時已帶 content，
+  // 之後 editor 是 source of truth。若需切換到不同資料，由 parent 用 key 強制 remount。
 
   useEffect(() => {
     if (editor) {

@@ -57,8 +57,12 @@ export function NotesCanvasEditor({
     handleDragEnd,
   } = useBlockDrag(editor);
 
+  // 只在切換日期時重設內容，SWR revalidation 不該覆蓋正在編輯的文件
+  const prevDateRef = useRef(date);
   useEffect(() => {
-    if (editor && initialContent !== editor.getHTML()) {
+    if (!editor) return;
+    if (prevDateRef.current !== date) {
+      prevDateRef.current = date;
       skipUpdateRef.current = true;
       editor.commands.setContent(initialContent);
       skipUpdateRef.current = false;
