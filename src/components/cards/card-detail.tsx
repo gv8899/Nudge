@@ -8,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { type TaskStatus } from "@/lib/constants";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
+import { TagPicker } from "@/components/tags/tag-picker";
 
 interface CardDetailProps {
   id: string;
@@ -21,6 +22,7 @@ interface CardData {
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;
+  tags?: Array<{ id: string; name: string; color: string }>;
 }
 
 // 失效 cards 列表的 SWR cache
@@ -44,6 +46,7 @@ export function CardDetail({ id }: CardDetailProps) {
   const titleInputRef = useRef<HTMLInputElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAutoFocusedRef = useRef(false);
+  const [cardTags, setCardTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
 
   useEffect(() => {
     if (data?.title !== undefined) setTitleValue(data.title);
@@ -55,6 +58,10 @@ export function CardDetail({ id }: CardDetailProps) {
       hasAutoFocusedRef.current = true;
       setIsEditingTitle(true);
     }
+  }, [data]);
+
+  useEffect(() => {
+    if (data?.tags) setCardTags(data.tags);
   }, [data]);
 
   useEffect(() => {
@@ -78,6 +85,16 @@ export function CardDetail({ id }: CardDetailProps) {
     },
     [id, mutate]
   );
+
+  const handleTagsChange = async (tagIds: string[]) => {
+    await fetch(`/api/tasks/${id}/tags`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tagIds }),
+    });
+    mutate();
+    invalidateCardsCache();
+  };
 
   const handleDescChange = useCallback(
     (html: string) => {
@@ -166,6 +183,13 @@ export function CardDetail({ id }: CardDetailProps) {
           <span>建立 {format(parseISO(data.createdAt), "yyyy/MM/dd")}</span>
           <span>·</span>
           <span>更新 {format(parseISO(data.updatedAt), "yyyy/MM/dd")}</span>
+        </div>
+        <div className="mt-3">
+          <TagPicker
+            taskId={id}
+            selectedTags={cardTags}
+            onTagsChange={handleTagsChange}
+          />
         </div>
       </header>
 

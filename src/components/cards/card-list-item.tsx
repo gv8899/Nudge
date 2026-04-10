@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
 import { stripHtml } from "@/lib/strip-html";
+import { TagBadge } from "@/components/tags/tag-badge";
 import type { CardItem } from "@/hooks/use-cards-feed";
 
 interface CardListItemProps {
@@ -24,6 +25,13 @@ export function CardListItem({ card }: CardListItemProps) {
             {card.title}
           </h3>
           <p className="mt-1 text-xs text-text-dim line-clamp-2">{preview}</p>
+          {card.tags?.length > 0 && (
+            <div className="mt-1.5 flex items-center gap-1 flex-wrap">
+              {card.tags.map((t) => (
+                <TagBadge key={t.id} name={t.name} color={t.color} />
+              ))}
+            </div>
+          )}
         </div>
         <span className="text-xs text-text-dim tabular-nums shrink-0">
           {updated}

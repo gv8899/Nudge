@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useRef } from "react";
 import { TiptapEditor } from "./tiptap-editor";
 import { StatusBadge } from "./status-badge";
+import { TagPicker } from "@/components/tags/tag-picker";
 import { Maximize2, X } from "lucide-react";
 import type { Task } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
@@ -13,6 +14,8 @@ interface TaskDetailModalProps {
   onClose: () => void;
   onDescChange: (html: string) => void;
   onStatusChange: (status: TaskStatus) => void;
+  onTagsChange?: (tagIds: string[]) => void;
+  tags?: Array<{ id: string; name: string; color: string }>;
 }
 
 export function TaskDetailModal({
@@ -21,6 +24,8 @@ export function TaskDetailModal({
   onClose,
   onDescChange,
   onStatusChange,
+  onTagsChange,
+  tags = [],
 }: TaskDetailModalProps) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -117,17 +122,18 @@ export function TaskDetailModal({
         className="relative z-10 w-full max-w-4xl max-h-[80vh] overflow-y-auto rounded-xl bg-popover border border-border shadow-2xl outline-none"
       >
         {/* 頂部列 */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-popover border-b border-border rounded-t-xl">
-          <div className="flex items-center gap-3">
-            <h2 id="task-detail-title" className="text-lg font-semibold text-foreground">
-              {task.title}
-            </h2>
-            <StatusBadge
-              status={task.status as TaskStatus}
-              onStatusChange={onStatusChange}
-            />
-          </div>
-          <div className="flex items-center gap-1">
+        <div className="sticky top-0 z-10 px-6 py-4 bg-popover border-b border-border rounded-t-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h2 id="task-detail-title" className="text-lg font-semibold text-foreground">
+                {task.title}
+              </h2>
+              <StatusBadge
+                status={task.status as TaskStatus}
+                onStatusChange={onStatusChange}
+              />
+            </div>
+            <div className="flex items-center gap-1">
             <a
               href={`/cards/${task.id}`}
               aria-label="展開為單頁"
@@ -143,7 +149,17 @@ export function TaskDetailModal({
             >
               <X className="h-5 w-5" />
             </button>
+            </div>
           </div>
+          {onTagsChange && (
+            <div className="mt-2">
+              <TagPicker
+                taskId={task.id}
+                selectedTags={tags}
+                onTagsChange={onTagsChange}
+              />
+            </div>
+          )}
         </div>
 
         {/* 編輯區 */}

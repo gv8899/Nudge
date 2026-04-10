@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
 import { stripHtml } from "@/lib/strip-html";
+import { TagBadge } from "@/components/tags/tag-badge";
 import type { CardItem } from "@/hooks/use-cards-feed";
 
 interface CardGridItemProps {
@@ -22,6 +23,13 @@ export function CardGridItem({ card }: CardGridItemProps) {
         {card.title}
       </h3>
       <p className="text-xs text-text-dim line-clamp-4 flex-1">{preview}</p>
+      {card.tags?.length > 0 && (
+        <div className="flex items-center gap-1 flex-wrap">
+          {card.tags.map((t) => (
+            <TagBadge key={t.id} name={t.name} color={t.color} />
+          ))}
+        </div>
+      )}
       <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
         <span className="text-xs text-text-dim tabular-nums">{updated}</span>
       </div>
