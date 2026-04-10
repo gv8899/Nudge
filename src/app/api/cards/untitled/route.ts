@@ -15,11 +15,10 @@ export async function DELETE() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   // 取所有任務並在 JS 端過濾（SQL 無法直接處理「trim 後為空」）
-  const allUserTasks = db
+  const allUserTasks = await db
     .select({ id: tasks.id, title: tasks.title })
     .from(tasks)
-    .where(eq(tasks.userId, user.id))
-    .all();
+    .where(eq(tasks.userId, user.id));
 
   const idsToDelete = allUserTasks
     .filter((t) => !t.title || t.title.trim() === "")
@@ -31,7 +30,7 @@ export async function DELETE() {
 
   // 逐筆刪除（cascade 會自動清掉 dailyTaskAssignments / statusHistory 等）
   for (const id of idsToDelete) {
-    db.delete(tasks).where(eq(tasks.id, id)).run();
+    await db.delete(tasks).where(eq(tasks.id, id));
   }
 
   return NextResponse.json({ deleted: idsToDelete.length });

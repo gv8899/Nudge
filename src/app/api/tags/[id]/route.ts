@@ -15,11 +15,11 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json();
 
-  const existing = db
+  const [existing] = await db
     .select()
     .from(tags)
     .where(and(eq(tags.id, id), eq(tags.userId, user.id)))
-    .get();
+    .limit(1);
 
   if (!existing)
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -30,10 +30,10 @@ export async function PATCH(
   if (body.sortOrder !== undefined) updates.sortOrder = body.sortOrder;
 
   if (Object.keys(updates).length > 0) {
-    db.update(tags).set(updates).where(eq(tags.id, id)).run();
+    await db.update(tags).set(updates).where(eq(tags.id, id));
   }
 
-  const updated = db.select().from(tags).where(eq(tags.id, id)).get();
+  const [updated] = await db.select().from(tags).where(eq(tags.id, id)).limit(1);
   return NextResponse.json(updated);
 }
 
@@ -46,15 +46,15 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const existing = db
+  const [existing] = await db
     .select()
     .from(tags)
     .where(and(eq(tags.id, id), eq(tags.userId, user.id)))
-    .get();
+    .limit(1);
 
   if (!existing)
     return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  db.delete(tags).where(eq(tags.id, id)).run();
+  await db.delete(tags).where(eq(tags.id, id));
   return NextResponse.json({ deleted: true });
 }

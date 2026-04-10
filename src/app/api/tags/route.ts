@@ -10,12 +10,11 @@ export async function GET() {
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const rows = db
+  const rows = await db
     .select()
     .from(tags)
     .where(eq(tags.userId, user.id))
-    .orderBy(asc(tags.sortOrder))
-    .all();
+    .orderBy(asc(tags.sortOrder));
 
   return NextResponse.json({ tags: rows });
 }
@@ -30,11 +29,11 @@ export async function POST(request: NextRequest) {
   if (!name)
     return NextResponse.json({ error: "name required" }, { status: 400 });
 
-  const maxRow = db
+  const [maxRow] = await db
     .select({ maxSort: max(tags.sortOrder) })
     .from(tags)
     .where(eq(tags.userId, user.id))
-    .get();
+    .limit(1);
   const nextSort = (maxRow?.maxSort ?? -1) + 1;
 
   const tag = {
@@ -45,6 +44,6 @@ export async function POST(request: NextRequest) {
     sortOrder: nextSort,
   };
 
-  db.insert(tags).values(tag).run();
+  await db.insert(tags).values(tag);
   return NextResponse.json(tag, { status: 201 });
 }

@@ -29,13 +29,12 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const rows = db
+  const rows = await db
     .select()
     .from(tasks)
     .where(and(...conditions))
     .orderBy(desc(tasks.updatedAt))
-    .limit(limit + 1)
-    .all();
+    .limit(limit + 1);
 
   // 過濾 description strip 後是空白的（例如 <p></p>）
   const filtered = rows.filter(
@@ -46,20 +45,21 @@ export async function GET(request: NextRequest) {
   const cards = hasMore ? filtered.slice(0, limit) : filtered;
   const nextCursor = hasMore ? cards[cards.length - 1].updatedAt : null;
 
-  const cardsWithTags = cards.map((card) => {
-    const cardTags = db
-      .select({
-        id: tags.id,
-        name: tags.name,
-        color: tags.color,
-      })
-      .from(taskTags)
-      .innerJoin(tags, eq(tags.id, taskTags.tagId))
-      .where(eq(taskTags.taskId, card.id))
-      .all();
+  const cardsWithTags = await Promise.all(
+    cards.map(async (card) => {
+      const cardTags = await db
+        .select({
+          id: tags.id,
+          name: tags.name,
+          color: tags.color,
+        })
+        .from(taskTags)
+        .innerJoin(tags, eq(tags.id, taskTags.tagId))
+        .where(eq(taskTags.taskId, card.id));
 
-    return { ...card, tags: cardTags };
-  });
+      return { ...card, tags: cardTags };
+    })
+  );
 
   return NextResponse.json({ cards: cardsWithTags, nextCursor });
 }
