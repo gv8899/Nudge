@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { useTheme, type Theme } from "@/components/providers/theme-provider";
 import { fetcher } from "@/lib/fetcher";
+import { TagManager } from "@/components/tags/tag-manager";
 import { format, parseISO } from "date-fns";
 
 // 紙感顆粒紋理開關（用於 settings modal）
@@ -144,6 +145,14 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                 />
               </button>
             </div>
+          </section>
+
+          {/* 標籤管理 */}
+          <section className="py-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim mb-3">
+              標籤管理
+            </h3>
+            <TagManager />
           </section>
 
           {/* 登出 */}
