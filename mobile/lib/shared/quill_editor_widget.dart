@@ -110,16 +110,16 @@ class _QuillEditorWidgetState extends State<QuillEditorWidget> {
             ),
             child: QuillSimpleToolbar(
               controller: _controller,
-              config: const QuillSimpleToolbarConfig(
+              config: QuillSimpleToolbarConfig(
                 showBoldButton: false,
                 showItalicButton: false,
                 showHeaderStyle: true,
+                headerStyleType: HeaderStyleType.buttons,
                 showListNumbers: true,
                 showListBullets: true,
                 showListCheck: true,
                 showCodeBlock: true,
-                showInlineCode: true,
-                // Hide buttons we don't need
+                showInlineCode: false,
                 showUnderLineButton: false,
                 showStrikeThrough: false,
                 showFontFamily: false,
@@ -141,7 +141,6 @@ class _QuillEditorWidgetState extends State<QuillEditorWidget> {
                 showDividers: false,
                 showSmallButton: false,
                 showDirection: false,
-                // clipboard buttons default to false (experimental API)
                 showRedo: false,
                 showUndo: false,
                 multiRowsDisplay: false,

@@ -46,50 +46,6 @@ class NotesScreen extends ConsumerWidget {
               ),
             ),
 
-            // Date navigation
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left, color: AppColors.textDim),
-                    onPressed: () {
-                      ref.read(selectedNoteDateProvider.notifier).setDate(
-                        formatDate(dateObj.subtract(const Duration(days: 1))),
-                      );
-                    },
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      if (!isToday) {
-                        ref.read(selectedNoteDateProvider.notifier).setDate(todayStr());
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Text(
-                        isToday ? '今天' : DateFormat('M月d日').format(dateObj),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isToday ? AppColors.primary : AppColors.foreground,
-                          fontWeight: isToday ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right, color: AppColors.textDim),
-                    onPressed: () {
-                      ref.read(selectedNoteDateProvider.notifier).setDate(
-                        formatDate(dateObj.add(const Duration(days: 1))),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-
             // Editor
             Expanded(
               child: contentAsync.when(
