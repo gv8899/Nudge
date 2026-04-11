@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/theme.dart';
 import 'models.dart';
 import 'task_card.dart';
 
@@ -40,29 +39,17 @@ class TaskList extends StatelessWidget {
       },
       itemBuilder: (context, index) {
         final a = assignments[index];
-        return Row(
+        return ReorderableDragStartListener(
           key: ValueKey(a.id),
-          children: [
-            // Drag handle
-            ReorderableDragStartListener(
-              index: index,
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-                child: Icon(Icons.drag_indicator, size: 18, color: AppColors.textFaint),
-              ),
-            ),
-            // Task card
-            Expanded(
-              child: TaskCard(
-                assignment: a,
-                onToggleComplete: () => onToggleComplete(a.id, a.taskId, !a.isCompleted),
-                onStatusChange: (status) => onStatusChange(a.task.id, status),
-                onMoveDate: () => onMoveDate(a.id),
-                onTitleChange: onTitleChange,
-                onArchive: onArchive,
-              ),
-            ),
-          ],
+          index: index,
+          child: TaskCard(
+            assignment: a,
+            onToggleComplete: () => onToggleComplete(a.id, a.taskId, !a.isCompleted),
+            onStatusChange: (status) => onStatusChange(a.task.id, status),
+            onMoveDate: () => onMoveDate(a.id),
+            onTitleChange: onTitleChange,
+            onArchive: onArchive,
+          ),
         );
       },
     );

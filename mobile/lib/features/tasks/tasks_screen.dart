@@ -21,7 +21,6 @@ class TasksScreen extends ConsumerWidget {
     }
 
     final dateObj = DateTime.parse(selectedDate);
-    final dayOfWeek = DateFormat('EEEE').format(dateObj);
     final dateDisplay = DateFormat('M/d, y').format(dateObj);
 
     return Scaffold(
@@ -31,12 +30,8 @@ class TasksScreen extends ConsumerWidget {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(dayOfWeek, style: TextStyle(fontSize: 12, color: AppColors.primary)),
-                  Text(dateDisplay, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
-                ],
+              child: Center(
+                child: Text(dateDisplay, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
               ),
             ),
             const Padding(
@@ -60,13 +55,6 @@ class TasksScreen extends ConsumerWidget {
                     child: ListView(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       children: [
-                        TaskCreateInput(
-                          onSubmit: (title) {
-                            ref.read(taskActionsProvider).createTask(selectedDate, title);
-                            refreshTasks();
-                          },
-                        ),
-                        const SizedBox(height: 8),
                         OverdueSection(
                           overdueTasks: data.overdueTasks,
                           currentDate: selectedDate,
@@ -80,6 +68,12 @@ class TasksScreen extends ConsumerWidget {
                           },
                           onArchive: (assignmentId, taskId) {
                             ref.read(taskActionsProvider).updateStatus(taskId, 'archived');
+                            refreshTasks();
+                          },
+                        ),
+                        TaskCreateInput(
+                          onSubmit: (title) {
+                            ref.read(taskActionsProvider).createTask(selectedDate, title);
                             refreshTasks();
                           },
                         ),
@@ -107,6 +101,7 @@ class TasksScreen extends ConsumerWidget {
                               initialDate: DateTime.now(),
                               firstDate: DateTime.now(),
                               lastDate: DateTime.now().add(const Duration(days: 365)),
+                              initialEntryMode: DatePickerEntryMode.calendarOnly,
                             );
                             if (picked != null) {
                               final fmt = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';

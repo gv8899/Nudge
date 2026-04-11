@@ -34,6 +34,7 @@ class AppColors {
   // ── Current theme (set by NudgeApp on build) ──
   static bool _isDark = true;
 
+  static bool get isDark => _isDark;
   static void setDark(bool isDark) => _isDark = isDark;
 
   // Base

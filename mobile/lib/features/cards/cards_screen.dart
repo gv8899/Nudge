@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import 'cards_provider.dart';
 import 'card_list_item.dart';
@@ -61,7 +62,7 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                   const SizedBox(width: 8),
                   GestureDetector(
                     onTap: _createCard,
-                    child: Icon(Icons.add_circle_outline, size: 22, color: AppColors.primary),
+                    child: Icon(LucideIcons.plus, size: 20, color: AppColors.primary),
                   ),
                   const Spacer(),
                   // View toggle
@@ -73,8 +74,8 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                     ),
                     child: Row(
                       children: [
-                        _viewButton(Icons.view_list, _View.list),
-                        _viewButton(Icons.grid_view, _View.grid),
+                        _viewButton(LucideIcons.list, _View.list),
+                        _viewButton(LucideIcons.layoutGrid, _View.grid),
                       ],
                     ),
                   ),
@@ -92,7 +93,7 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                 decoration: InputDecoration(
                   hintText: '搜尋卡片...',
                   hintStyle: TextStyle(color: AppColors.textFaint),
-                  prefixIcon: Icon(Icons.search, size: 18, color: AppColors.textDim),
+                  prefixIcon: Icon(LucideIcons.search, size: 18, color: AppColors.textDim),
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 10),
                   border: OutlineInputBorder(

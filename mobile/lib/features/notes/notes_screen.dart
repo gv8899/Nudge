@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import '../../core/date_utils.dart';
 import '../../shared/quill_editor_widget.dart';
@@ -39,7 +40,7 @@ class NotesScreen extends ConsumerWidget {
                     onTap: () => context.push('/notes/feed'),
                     child: Padding(
                       padding: EdgeInsets.all(4),
-                      child: Icon(Icons.list, size: 22, color: AppColors.textDim),
+                      child: Icon(LucideIcons.edit3, size: 20, color: AppColors.textDim),
                     ),
                   ),
                 ],

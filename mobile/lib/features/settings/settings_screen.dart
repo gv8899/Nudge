@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
 import '../auth/auth_provider.dart';
@@ -62,7 +63,7 @@ class SettingsScreen extends ConsumerWidget {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () => ref.read(authProvider.notifier).logout(),
-                icon: const Icon(Icons.logout, size: 18),
+                icon: const Icon(LucideIcons.logOut, size: 18),
                 label: const Text('登出'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.destructive,
@@ -198,21 +199,21 @@ class _ThemeSelector extends StatelessWidget {
     return Row(
       children: [
         _ThemeOption(
-          icon: Icons.light_mode_outlined,
+          icon: LucideIcons.sun,
           label: 'Light',
           isSelected: current == AppThemeMode.light,
           onTap: () => onChanged(AppThemeMode.light),
         ),
         const SizedBox(width: 8),
         _ThemeOption(
-          icon: Icons.dark_mode_outlined,
+          icon: LucideIcons.moon,
           label: 'Dark',
           isSelected: current == AppThemeMode.dark,
           onTap: () => onChanged(AppThemeMode.dark),
         ),
         const SizedBox(width: 8),
         _ThemeOption(
-          icon: Icons.settings_suggest_outlined,
+          icon: LucideIcons.monitor,
           label: '跟隨系統',
           isSelected: current == AppThemeMode.system,
           onTap: () => onChanged(AppThemeMode.system),
@@ -332,7 +333,7 @@ class _CleanUntitledButtonState extends State<_CleanUntitledButton> {
         onPressed: _loading ? null : _clean,
         icon: _loading
             ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textDim))
-            : Icon(Icons.cleaning_services_outlined, size: 18),
+            : Icon(LucideIcons.eraser, size: 18),
         label: Text(_loading ? '清除中...' : '清除空白卡片'),
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textDim,

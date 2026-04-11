@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import '../../shared/quill_editor_widget.dart';
 import '../tags/models.dart' as tag_models;
@@ -71,13 +72,14 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
           backgroundColor: AppColors.background,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(LucideIcons.arrowLeft),
             onPressed: () => Navigator.pop(context),
           ),
           actions: [
             cardAsync.whenOrNull(
                   data: (card) {
-                    final status = TaskStatus.fromValue(card.status);
+                    final statusObj = TaskStatus.fromValue(card.status);
+                    final statusColor = AppColors.statusColor(card.status);
                     return GestureDetector(
                       onTap: () => showStatusPicker(
                         context,
@@ -92,10 +94,10 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                         margin: const EdgeInsets.only(right: 16),
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Color(status.color)),
+                          border: Border.all(color: statusColor),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text(status.label, style: TextStyle(fontSize: 12, color: Color(status.color))),
+                        child: Text(statusObj.label, style: TextStyle(fontSize: 12, color: statusColor)),
                       ),
                     );
                   },
@@ -117,13 +119,12 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
             _cardId = card.id;
             _cardActions = ref.read(cardActionsProvider);
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title
-                  TextField(
+            return Column(
+              children: [
+                // Title
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: TextField(
                     controller: _titleController,
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground),
                     decoration: InputDecoration(
@@ -140,92 +141,95 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                       }
                     },
                   ),
+                ),
 
-                  const SizedBox(height: 8),
+                Container(height: 1, margin: const EdgeInsets.symmetric(horizontal: 16), color: AppColors.border),
 
-                  // Tags
-                  Builder(builder: (context) {
-                    final allTags = ref.watch(tagsProvider).when(
-                      data: (t) => t,
-                      loading: () => <tag_models.Tag>[],
-                      error: (_, _) => <tag_models.Tag>[],
-                    );
-                    final displayTags = _selectedTagIds
-                        .map((id) => allTags.where((t) => t.id == id).firstOrNull)
-                        .whereType<tag_models.Tag>()
-                        .toList();
-
-                    return Wrap(
-                      spacing: 4,
-                      runSpacing: 4,
-                      children: [
-                        ...displayTags.map((t) => TagBadge(
-                              name: t.name,
-                              colorToken: t.color,
-                              onRemove: () {
-                                final newIds = _selectedTagIds.where((id) => id != t.id).toList();
-                                setState(() => _selectedTagIds = newIds);
-                                ref.read(cardActionsProvider).setTags(card.id, newIds);
-                              },
-                            )),
-                        GestureDetector(
-                          onTap: () => showTagPicker(
-                            context,
-                            ref: ref,
-                            selectedTagIds: _selectedTagIds,
-                            onChanged: (newIds) {
-                              setState(() => _selectedTagIds = newIds);
-                              ref.read(cardActionsProvider).setTags(card.id, newIds);
-                            },
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(4),
-                              color: AppColors.card,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.label_outline, size: 14, color: AppColors.textDim),
-                                SizedBox(width: 4),
-                                Text('加標籤', style: TextStyle(fontSize: 11, color: AppColors.textDim)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }),
-
-                  const SizedBox(height: 16),
-                  Container(height: 1, color: AppColors.border),
-                  const SizedBox(height: 16),
-
-                  // Description（富文本）
-                  SizedBox(
-                    height: 300,
-                    child: QuillEditorWidget(
-                      key: ValueKey('desc-${widget.taskId}'),
-                      initialHtml: card.description,
-                      onChanged: (html) {
-                        ref.read(cardActionsProvider).updateDescription(card.id, html);
-                      },
-                      showToolbar: true,
-                    ),
+                // Description（富文本）
+                Expanded(
+                  child: QuillEditorWidget(
+                    key: ValueKey('desc-${widget.taskId}'),
+                    initialHtml: card.description,
+                    onChanged: (html) {
+                      ref.read(cardActionsProvider).updateDescription(card.id, html);
+                    },
+                    showToolbar: true,
                   ),
+                ),
 
-                  const SizedBox(height: 32),
+                // Footer: tags + dates
+                Container(height: 1, margin: const EdgeInsets.symmetric(horizontal: 16), color: AppColors.border),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Tags
+                      Builder(builder: (context) {
+                        final allTags = ref.watch(tagsProvider).when(
+                          data: (t) => t,
+                          loading: () => <tag_models.Tag>[],
+                          error: (_, _) => <tag_models.Tag>[],
+                        );
+                        final displayTags = _selectedTagIds
+                            .map((id) => allTags.where((t) => t.id == id).firstOrNull)
+                            .whereType<tag_models.Tag>()
+                            .toList();
 
-                  // Footer: dates
-                  Container(height: 1, color: AppColors.border),
-                  const SizedBox(height: 12),
-                  Text(
-                    '建立 ${DateFormat('yyyy/MM/dd').format(DateTime.parse(card.createdAt))} · 更新 ${DateFormat('yyyy/MM/dd').format(DateTime.parse(card.updatedAt))}',
-                    style: TextStyle(fontSize: 11, color: AppColors.textFaint),
+                        return Wrap(
+                          spacing: 4,
+                          runSpacing: 4,
+                          children: [
+                            ...displayTags.map((t) => TagBadge(
+                                  name: t.name,
+                                  colorToken: t.color,
+                                  onRemove: () {
+                                    final newIds = _selectedTagIds.where((id) => id != t.id).toList();
+                                    setState(() => _selectedTagIds = newIds);
+                                    ref.read(cardActionsProvider).setTags(card.id, newIds);
+                                  },
+                                )),
+                            GestureDetector(
+                              onTap: () => showTagPicker(
+                                context,
+                                ref: ref,
+                                selectedTagIds: _selectedTagIds,
+                                onChanged: (newIds) {
+                                  setState(() => _selectedTagIds = newIds);
+                                  ref.read(cardActionsProvider).setTags(card.id, newIds);
+                                },
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4),
+                                  color: AppColors.card,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(LucideIcons.tag, size: 14, color: AppColors.textDim),
+                                    SizedBox(width: 4),
+                                    Text('加標籤', style: TextStyle(fontSize: 11, color: AppColors.textDim)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
+
+                      const SizedBox(height: 8),
+
+                      // Dates
+                      Text(
+                        '建立 ${DateFormat('yyyy/MM/dd').format(DateTime.parse(card.createdAt))} · 更新 ${DateFormat('yyyy/MM/dd').format(DateTime.parse(card.updatedAt))}',
+                        style: TextStyle(fontSize: 11, color: AppColors.textFaint),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           },
         ),

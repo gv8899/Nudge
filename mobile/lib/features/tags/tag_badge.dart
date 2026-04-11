@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'models.dart';
 
 class TagBadge extends StatelessWidget {
@@ -26,7 +27,7 @@ class TagBadge extends StatelessWidget {
             const SizedBox(width: 4),
             GestureDetector(
               onTap: onRemove,
-              child: Icon(Icons.close, size: 12, color: color),
+              child: Icon(LucideIcons.x, size: 12, color: color),
             ),
           ],
         ],

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import 'models.dart';
 
@@ -39,9 +39,9 @@ class _OverdueSectionState extends State<OverdueSection> {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
             child: Row(
               children: [
-                Icon(_isExpanded ? Icons.expand_more : Icons.chevron_right, size: 18, color: AppColors.primary),
+                Icon(_isExpanded ? LucideIcons.chevronDown : LucideIcons.chevronRight, size: 18, color: AppColors.primary),
                 const SizedBox(width: 4),
-                Icon(Icons.schedule, size: 16, color: AppColors.primary),
+                Icon(LucideIcons.calendarClock, size: 16, color: AppColors.primary),
                 const SizedBox(width: 6),
                 Text('前幾天的 (${widget.overdueTasks.length})', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.primary)),
               ],
@@ -54,58 +54,60 @@ class _OverdueSectionState extends State<OverdueSection> {
   }
 
   Widget _buildItem(TaskAssignment a) {
-    final dateStr = _formatDate(a.date);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Row(
         children: [
+          // Checkbox — same 44px SizedBox as task_card
           Semantics(
             label: '完成任務',
             button: true,
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () => widget.onToggleComplete(a.id, a.taskId, true),
               child: SizedBox(
                 width: 44, height: 44,
                 child: Center(
-                  child: Container(width: 20, height: 20, decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.textDim, width: 2))),
+                  child: Container(width: 18, height: 18, decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.textDim, width: 2))),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 4),
+          // Title
           Expanded(
-            child: Row(
-              children: [
-                Flexible(child: Text(a.task.title, style: TextStyle(fontSize: 14, color: AppColors.foreground), overflow: TextOverflow.ellipsis)),
-                const SizedBox(width: 8),
-                Text(dateStr, style: TextStyle(fontSize: 11, color: AppColors.textDim)),
-              ],
-            ),
+            child: Text(a.task.title, style: TextStyle(fontSize: 14, color: AppColors.foreground), overflow: TextOverflow.ellipsis),
           ),
-          GestureDetector(
-            onTap: () => widget.onReschedule(a.id, widget.currentDate),
-            child: Padding(padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12), child: Text('排入今天', style: TextStyle(fontSize: 11, color: AppColors.primary))),
-          ),
+          const SizedBox(width: 4),
+          // Spacer to align with task_card's fileText icon position (padding 12 + icon 16 + padding 12 = 40)
+          const SizedBox(width: 44),
+          // Calendar — aligned with task_card's calendar icon
           Semantics(
             label: '選擇日期',
             button: true,
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () async {
-                final picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)));
+                final picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)), initialEntryMode: DatePickerEntryMode.calendarOnly);
                 if (picked != null) {
                   final fmt = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
                   widget.onReschedule(a.id, fmt);
                 }
               },
-              child: Padding(padding: EdgeInsets.all(12), child: Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textDim)),
+              child: Padding(padding: EdgeInsets.all(12), child: Icon(LucideIcons.calendar, size: 16, color: AppColors.textDim)),
             ),
           ),
+          // Archive — match task_card's status dot width (padding 12 + 10px dot + padding 12 = 34)
           Semantics(
             label: '封存任務',
             button: true,
             child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () => _confirmArchive(a),
-              child: Padding(padding: EdgeInsets.all(12), child: Icon(Icons.archive_outlined, size: 16, color: AppColors.textDim)),
+              child: SizedBox(
+                width: 34,
+                height: 44,
+                child: Center(child: Icon(LucideIcons.archive, size: 16, color: AppColors.textDim)),
+              ),
             ),
           ),
         ],
@@ -128,7 +130,4 @@ class _OverdueSectionState extends State<OverdueSection> {
     );
   }
 
-  String _formatDate(String dateStr) {
-    try { return DateFormat('M/d').format(DateTime.parse(dateStr)); } catch (_) { return dateStr; }
-  }
 }

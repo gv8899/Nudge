@@ -25,19 +25,22 @@ class Tag {
 class TagColor {
   final String value;
   final String label;
-  final Color color;
+  final Color _light;
+  final Color _dark;
 
-  const TagColor(this.value, this.label, this.color);
+  const TagColor(this.value, this.label, this._light, this._dark);
 
-  static List<TagColor> get all => [
-    const TagColor('chart-1', '灰藍', Color(0xFF7A8B9C)),
-    const TagColor('chart-2', '琥珀', Color(0xFFC89968)),
-    const TagColor('chart-3', '橄欖', Color(0xFF8AA57D)),
-    const TagColor('chart-4', '紫藤', Color(0xFFA78AAF)),
-    const TagColor('chart-5', '赭紅', Color(0xFFB56B5A)),
-    TagColor('primary', '主色', AppColors.primary),
-    const TagColor('status-waiting', '藏青', Color(0xFF9A7B4F)),
-    const TagColor('status-in-progress', '天藍', Color(0xFF5A9BC5)),
+  Color get color => AppColors.isDark ? _dark : _light;
+
+  static const List<TagColor> all = [
+    TagColor('chart-1', '灰藍', Color(0xFF5A6B7C), Color(0xFF7A8B9C)),
+    TagColor('chart-2', '琥珀', Color(0xFFA87A45), Color(0xFFC89968)),
+    TagColor('chart-3', '橄欖', Color(0xFF5A7050), Color(0xFF8AA57D)),
+    TagColor('chart-4', '紫藤', Color(0xFF8A6D92), Color(0xFFA78AAF)),
+    TagColor('chart-5', '赭紅', Color(0xFF9A4F3F), Color(0xFFB56B5A)),
+    TagColor('primary', '主色', Color(0xFFA87A45), Color(0xFFC89968)),
+    TagColor('status-waiting', '藏青', Color(0xFF8A6D92), Color(0xFFA78AAF)),
+    TagColor('status-in-progress', '天藍', Color(0xFFA87A45), Color(0xFFC89968)),
   ];
 
   static Color resolve(String tokenName) {

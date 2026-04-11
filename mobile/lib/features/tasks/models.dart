@@ -89,17 +89,16 @@ class DailyData {
 class TaskStatus {
   final String value;
   final String label;
-  final int color;
 
-  const TaskStatus(this.value, this.label, this.color);
+  const TaskStatus(this.value, this.label);
 
   static const List<TaskStatus> all = [
-    TaskStatus('inbox', '暫記', 0xFF8A8578),
-    TaskStatus('backlog', '待排入', 0xFF7A8B9C),
-    TaskStatus('in_progress', '自己處理中', 0xFF5A9BC5),
-    TaskStatus('waiting', '等待他人', 0xFF9A7B4F),
-    TaskStatus('done', '完成', 0xFF5A7050),
-    TaskStatus('archived', '已封存', 0xFF6B6560),
+    TaskStatus('inbox', '暫記'),
+    TaskStatus('backlog', '待排入'),
+    TaskStatus('in_progress', '自己處理中'),
+    TaskStatus('waiting', '等待他人'),
+    TaskStatus('done', '完成'),
+    TaskStatus('archived', '已封存'),
   ];
 
   static TaskStatus fromValue(String value) =>

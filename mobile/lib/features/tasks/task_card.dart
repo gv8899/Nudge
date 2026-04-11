@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import 'models.dart';
 import 'task_status_picker.dart';
@@ -65,7 +66,8 @@ class _TaskCardState extends State<TaskCard> {
   Widget build(BuildContext context) {
     final task = widget.assignment.task;
     final isDone = widget.assignment.isCompleted;
-    final status = TaskStatus.fromValue(task.status);
+    final statusObj = TaskStatus.fromValue(task.status);
+    final statusColor = AppColors.statusColor(task.status);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
@@ -83,8 +85,8 @@ class _TaskCardState extends State<TaskCard> {
                 height: 44,
                 child: Center(
                   child: Container(
-                    width: 20,
-                    height: 20,
+                    width: 18,
+                    height: 18,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(4),
                       border: Border.all(
@@ -94,7 +96,10 @@ class _TaskCardState extends State<TaskCard> {
                       color: isDone ? AppColors.primary : Colors.transparent,
                     ),
                     child: isDone
-                        ? Icon(Icons.check, size: 14, color: AppColors.onPrimary)
+                        ? CustomPaint(
+                            size: const Size(10, 8),
+                            painter: _CheckmarkPainter(color: AppColors.onPrimary),
+                          )
                         : null,
                   ),
                 ),
@@ -153,7 +158,7 @@ class _TaskCardState extends State<TaskCard> {
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Icon(
-                  Icons.description_outlined,
+                  LucideIcons.fileText,
                   size: 16,
                   color: task.description != null && task.description!.isNotEmpty
                       ? AppColors.foreground
@@ -172,14 +177,14 @@ class _TaskCardState extends State<TaskCard> {
               onTap: widget.onMoveDate,
               child: Padding(
                 padding: EdgeInsets.all(12),
-                child: Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textDim),
+                child: Icon(LucideIcons.calendar, size: 16, color: AppColors.textDim),
               ),
             ),
           ),
 
           // Status dot
           Semantics(
-            label: '狀態：${status.label}',
+            label: '狀態：${statusObj.label}',
             button: true,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -190,7 +195,7 @@ class _TaskCardState extends State<TaskCard> {
                   width: 10,
                   height: 10,
                   decoration: BoxDecoration(
-                    color: Color(status.color),
+                    color: statusColor,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -201,4 +206,30 @@ class _TaskCardState extends State<TaskCard> {
       ),
     );
   }
+}
+
+/// Matches Web's SVG checkmark: path="M1 4L3.5 6.5L9 1" in 10×8 viewBox
+class _CheckmarkPainter extends CustomPainter {
+  final Color color;
+  _CheckmarkPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final sx = size.width / 10;
+    final sy = size.height / 8;
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
+    final path = Path()
+      ..moveTo(1 * sx, 4 * sy)
+      ..lineTo(3.5 * sx, 6.5 * sy)
+      ..lineTo(9 * sx, 1 * sy);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

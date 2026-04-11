@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import 'models.dart';
 import 'tags_provider.dart';
@@ -101,7 +102,7 @@ class _TagManagerState extends ConsumerState<TagManager> {
                     onTap: () => _confirmDelete(tag),
                     child: Padding(
                         padding: EdgeInsets.all(8),
-                        child: Icon(Icons.delete_outline,
+                        child: Icon(LucideIcons.trash2,
                             size: 18, color: AppColors.textFaint)),
                   ),
                 ],

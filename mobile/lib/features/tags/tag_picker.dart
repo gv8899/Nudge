@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import 'models.dart';
 import 'tags_provider.dart';
@@ -134,7 +135,7 @@ class _TagPickerState extends ConsumerState<TagPicker> {
                                 fontSize: 14,
                                 color: AppColors.foreground)),
                         trailing: isSelected
-                            ? Icon(Icons.check,
+                            ? Icon(LucideIcons.check,
                                 size: 18, color: AppColors.primary)
                             : null,
                         onTap: () => _toggle(tag.id),
@@ -143,7 +144,7 @@ class _TagPickerState extends ConsumerState<TagPicker> {
                     if (_search.trim().isNotEmpty && !exactMatch)
                       ListTile(
                         dense: true,
-                        leading: Icon(Icons.add,
+                        leading: Icon(LucideIcons.plus,
                             size: 18, color: AppColors.primary),
                         title: Text('建立「${_search.trim()}」',
                             style: TextStyle(

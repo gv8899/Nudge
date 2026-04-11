@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import 'models.dart';
 
@@ -18,9 +19,9 @@ class TaskStatusPicker extends StatelessWidget {
           children: TaskStatus.all.map((status) {
             final isSelected = status.value == currentStatus;
             return ListTile(
-              leading: Container(width: 12, height: 12, decoration: BoxDecoration(color: Color(status.color), shape: BoxShape.circle)),
+              leading: Container(width: 12, height: 12, decoration: BoxDecoration(color: AppColors.statusColor(status.value), shape: BoxShape.circle)),
               title: Text(status.label, style: TextStyle(fontSize: 14, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, color: isSelected ? AppColors.primary : AppColors.foreground)),
-              trailing: isSelected ? Icon(Icons.check, size: 18, color: AppColors.primary) : null,
+              trailing: isSelected ? Icon(LucideIcons.check, size: 18, color: AppColors.primary) : null,
               onTap: () { Navigator.pop(context); onSelected(status.value); },
             );
           }).toList(),

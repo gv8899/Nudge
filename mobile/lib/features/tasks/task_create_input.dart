@@ -19,7 +19,6 @@ class _TaskCreateInputState extends State<TaskCreateInput> {
     setState(() => _isSubmitting = true);
     widget.onSubmit(text);
     _controller.clear();
-    // Small delay to prevent double-tap
     await Future.delayed(const Duration(milliseconds: 300));
     if (mounted) setState(() => _isSubmitting = false);
   }
@@ -29,8 +28,9 @@ class _TaskCreateInputState extends State<TaskCreateInput> {
 
   @override
   Widget build(BuildContext context) {
+    // Align text and underline with checkbox left edge (4px row padding + 13px checkbox center offset)
     return Padding(
-      padding: const EdgeInsets.only(left: 36),
+      padding: const EdgeInsets.symmetric(horizontal: 17),
       child: TextField(
         controller: _controller,
         enabled: !_isSubmitting,

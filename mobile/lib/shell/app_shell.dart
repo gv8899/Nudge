@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class AppShell extends StatelessWidget {
   final int currentIndex;
@@ -19,25 +20,25 @@ class AppShell extends StatelessWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIndex,
         onDestinationSelected: onTabChanged,
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.check_circle_outline),
-            selectedIcon: Icon(Icons.check_circle),
+            icon: Icon(LucideIcons.checkSquare),
+            selectedIcon: Icon(LucideIcons.checkSquare),
             label: '行動',
           ),
           NavigationDestination(
-            icon: Icon(Icons.edit_note_outlined),
-            selectedIcon: Icon(Icons.edit_note),
+            icon: Icon(LucideIcons.fileEdit),
+            selectedIcon: Icon(LucideIcons.fileEdit),
             label: '日誌',
           ),
           NavigationDestination(
-            icon: Icon(Icons.style_outlined),
-            selectedIcon: Icon(Icons.style),
+            icon: Icon(LucideIcons.bookOpen),
+            selectedIcon: Icon(LucideIcons.bookOpen),
             label: '卡片',
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
+            icon: Icon(LucideIcons.settings),
+            selectedIcon: Icon(LucideIcons.settings),
             label: '設定',
           ),
         ],

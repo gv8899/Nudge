@@ -119,6 +119,16 @@ class _QuillEditorWidgetState extends State<QuillEditorWidget> {
                 showItalicButton: false,
                 showHeaderStyle: true,
                 headerStyleType: HeaderStyleType.buttons,
+                buttonOptions: QuillSimpleToolbarButtonOptions(
+                  selectHeaderStyleButtons: QuillToolbarSelectHeaderStyleButtonsOptions(
+                    attributes: const [
+                      Attribute.h1,
+                      Attribute.h2,
+                      Attribute.h3,
+                      Attribute.header,
+                    ],
+                  ),
+                ),
                 showListNumbers: true,
                 showListBullets: true,
                 showListCheck: widget.showListCheck,
