@@ -102,7 +102,7 @@ class _TaskCardState extends State<TaskCard> {
             ),
           ),
 
-          // Title — tap to edit inline, long press to navigate detail
+          // Title — tap to navigate detail
           Expanded(
             child: _isEditing
                 ? TextField(
@@ -123,8 +123,8 @@ class _TaskCardState extends State<TaskCard> {
                   )
                 : GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => setState(() => _isEditing = true),
-                    onLongPress: () => context.push('/task/${task.id}'),
+                    onTap: () => context.push('/task/${task.id}'),
+                    onLongPress: () => setState(() => _isEditing = true),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Text(
@@ -143,20 +143,25 @@ class _TaskCardState extends State<TaskCard> {
 
           const SizedBox(width: 4),
 
-          // Description icon
-          if (task.description != null && task.description!.isNotEmpty)
-            Semantics(
-              label: '查看詳情',
-              button: true,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => context.push('/task/${task.id}'),
-                child: const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Icon(Icons.description_outlined, size: 16, color: AppColors.textDim),
+          // Detail icon — always visible
+          Semantics(
+            label: '查看詳情',
+            button: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => context.push('/task/${task.id}'),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Icon(
+                  Icons.description_outlined,
+                  size: 16,
+                  color: task.description != null && task.description!.isNotEmpty
+                      ? AppColors.foreground
+                      : AppColors.textFaint,
                 ),
               ),
             ),
+          ),
 
           // Calendar icon
           Semantics(

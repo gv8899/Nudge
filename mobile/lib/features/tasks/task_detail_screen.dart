@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import '../../core/theme.dart';
 import '../auth/auth_provider.dart';
 import 'models.dart';
@@ -23,10 +23,10 @@ class TaskDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
-  bool _isEditingTitle = false;
   late TextEditingController _titleController;
-  bool _isEditingDesc = false;
   late TextEditingController _descController;
+  Timer? _saveTimer;
+  bool _initialized = false;
 
   @override
   void initState() {
@@ -37,9 +37,59 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
 
   @override
   void dispose() {
+    _saveTimer?.cancel();
+    // Save any pending changes
+    _flushSave();
     _titleController.dispose();
     _descController.dispose();
     super.dispose();
+  }
+
+  void _flushSave() {
+    if (!_initialized) return;
+    final taskAsync = ref.read(taskDetailProvider(widget.taskId));
+    final task = taskAsync.when(data: (t) => t, loading: () => null, error: (_, _) => null);
+    if (task == null) return;
+
+    final trimmedTitle = _titleController.text.trim();
+    if (trimmedTitle.isNotEmpty && trimmedTitle != task.title) {
+      ref.read(taskActionsProvider).updateTitle(task.id, trimmedTitle);
+    }
+
+    final text = _descController.text;
+    final html = text.trim().isEmpty
+        ? ''
+        : '<p>${text.replaceAll('\n', '</p><p>')}</p>';
+    final currentDesc = _stripHtml(task.description ?? '');
+    if (text.trim() != currentDesc.trim()) {
+      ref.read(taskActionsProvider).updateDescription(task.id, html);
+    }
+  }
+
+  void _onDescChanged() {
+    _saveTimer?.cancel();
+    _saveTimer = Timer(const Duration(milliseconds: 800), () {
+      final taskAsync = ref.read(taskDetailProvider(widget.taskId));
+      final task = taskAsync.when(data: (t) => t, loading: () => null, error: (_, _) => null);
+      if (task == null) return;
+
+      final text = _descController.text;
+      final html = text.trim().isEmpty
+          ? ''
+          : '<p>${text.replaceAll('\n', '</p><p>')}</p>';
+      ref.read(taskActionsProvider).updateDescription(task.id, html);
+    });
+  }
+
+  String _stripHtml(String html) {
+    return html
+        .replaceAll(RegExp(r'<[^>]*>'), '\n')
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+        .trim();
   }
 
   @override
@@ -49,6 +99,8 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
     return PopScope(
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
+          _saveTimer?.cancel();
+          _flushSave();
           final date = ref.read(selectedDateProvider);
           ref.invalidate(dailyDataProvider(date));
         }
@@ -93,8 +145,11 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('載入失敗', style: TextStyle(color: Colors.grey[400]))),
           data: (task) {
-            if (!_isEditingTitle) {
+            // 初始化 controllers（只在第一次載入或 task 變更時）
+            if (!_initialized) {
               _titleController.text = task.title;
+              _descController.text = _stripHtml(task.description ?? '');
+              _initialized = true;
             }
 
             return SingleChildScrollView(
@@ -102,103 +157,51 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _isEditingTitle
-                      ? TextField(
-                          controller: _titleController,
-                          autofocus: true,
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground),
-                          decoration: const InputDecoration(
-                            border: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
-                            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
-                          ),
-                          onSubmitted: (value) async {
-                            final trimmed = value.trim();
-                            if (trimmed.isNotEmpty && trimmed != task.title) {
-                              await ref.read(taskActionsProvider).updateTitle(task.id, trimmed);
-                              ref.invalidate(taskDetailProvider(widget.taskId));
-                            }
-                            setState(() => _isEditingTitle = false);
-                          },
-                        )
-                      : Semantics(
-                          label: '點擊編輯標題',
-                          child: GestureDetector(
-                            onTap: () => setState(() => _isEditingTitle = true),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(task.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
-                                ),
-                                const SizedBox(width: 8),
-                                const Icon(Icons.edit_outlined, size: 16, color: AppColors.textDim),
-                              ],
-                            ),
-                          ),
-                        ),
-                  const SizedBox(height: 24),
+                  // Title — 直接是 TextField，像 Web 一樣
+                  TextField(
+                    controller: _titleController,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.foreground,
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: '任務標題',
+                      hintStyle: TextStyle(color: AppColors.textFaint),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    onSubmitted: (value) {
+                      final trimmed = value.trim();
+                      if (trimmed.isNotEmpty && trimmed != task.title) {
+                        ref.read(taskActionsProvider).updateTitle(task.id, trimmed);
+                        ref.invalidate(taskDetailProvider(widget.taskId));
+                      }
+                    },
+                  ),
 
-                  // Description
-                  _isEditingDesc
-                      ? Column(
-                          children: [
-                            TextField(
-                              controller: _descController,
-                              autofocus: true,
-                              maxLines: null,
-                              style: const TextStyle(fontSize: 14, color: AppColors.textMuted, height: 1.6),
-                              decoration: const InputDecoration(
-                                hintText: '輸入內容...',
-                                hintStyle: TextStyle(color: AppColors.textFaint),
-                                border: InputBorder.none,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed: () async {
-                                  final text = _descController.text.trim();
-                                  final html = text.isEmpty ? '' : '<p>${text.replaceAll('\n', '</p><p>')}</p>';
-                                  ref.read(taskActionsProvider).updateDescription(task.id, html);
-                                  ref.invalidate(taskDetailProvider(widget.taskId));
-                                  setState(() => _isEditingDesc = false);
-                                },
-                                child: const Text('完成', style: TextStyle(color: AppColors.primary)),
-                              ),
-                            ),
-                          ],
-                        )
-                      : GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            // Strip HTML to plain text for editing
-                            final plainText = task.description
-                                    ?.replaceAll(RegExp(r'<[^>]*>'), '')
-                                    .replaceAll('&nbsp;', ' ')
-                                    .replaceAll('&amp;', '&')
-                                    .replaceAll('&lt;', '<')
-                                    .replaceAll('&gt;', '>')
-                                    .trim() ??
-                                '';
-                            _descController.text = plainText;
-                            setState(() => _isEditingDesc = true);
-                          },
-                          child: task.description != null && task.description!.isNotEmpty
-                              ? HtmlWidget(
-                                  task.description!,
-                                  textStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted, height: 1.6),
-                                )
-                              : const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 16),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.add, size: 16, color: AppColors.textFaint),
-                                      SizedBox(width: 4),
-                                      Text('新增內容', style: TextStyle(fontSize: 14, color: AppColors.textFaint)),
-                                    ],
-                                  ),
-                                ),
-                        ),
+                  const SizedBox(height: 16),
+                  Container(height: 1, color: AppColors.border),
+                  const SizedBox(height: 16),
+
+                  // Description — 直接是 TextField，自動儲存
+                  TextField(
+                    controller: _descController,
+                    maxLines: null,
+                    minLines: 8,
+                    onChanged: (_) => _onDescChanged(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textMuted,
+                      height: 1.8,
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: '輸入內容...',
+                      hintStyle: TextStyle(color: AppColors.textFaint),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
                 ],
               ),
             );
