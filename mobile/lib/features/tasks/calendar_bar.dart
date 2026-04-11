@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/date_utils.dart';
 import '../../core/theme.dart';
 import 'tasks_provider.dart';
 
@@ -13,7 +14,7 @@ class CalendarBar extends ConsumerWidget {
 
     final weekday = selected.weekday;
     final weekStart = selected.subtract(Duration(days: weekday - 1));
-    final weekStartStr = _fmt(weekStart);
+    final weekStartStr = formatDate(weekStart);
 
     final weekDots = ref.watch(weekDotsProvider(weekStartStr));
     final dots = weekDots.when(
@@ -24,7 +25,18 @@ class CalendarBar extends ConsumerWidget {
 
     final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-    return Container(
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity == null) return;
+        if (details.primaryVelocity! < -100) {
+          final next = weekStart.add(const Duration(days: 7));
+          ref.read(selectedDateProvider.notifier).setDate(formatDate(next));
+        } else if (details.primaryVelocity! > 100) {
+          final prev = weekStart.subtract(const Duration(days: 7));
+          ref.read(selectedDateProvider.notifier).setDate(formatDate(prev));
+        }
+      },
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.card,
@@ -37,12 +49,12 @@ class CalendarBar extends ConsumerWidget {
             button: true,
             child: _navButton(Icons.chevron_left, () {
               final prev = weekStart.subtract(const Duration(days: 7));
-              ref.read(selectedDateProvider.notifier).setDate(_fmt(prev));
+              ref.read(selectedDateProvider.notifier).setDate(formatDate(prev));
             }),
           ),
           ...List.generate(7, (i) {
             final day = weekStart.add(Duration(days: i));
-            final dayStr = _fmt(day);
+            final dayStr = formatDate(day);
             final isSelected = dayStr == selectedDate;
             final hasTasks = dots.contains(dayStr);
 
@@ -111,7 +123,7 @@ class CalendarBar extends ConsumerWidget {
             button: true,
             child: _navButton(Icons.chevron_right, () {
             final next = weekStart.add(const Duration(days: 7));
-            ref.read(selectedDateProvider.notifier).setDate(_fmt(next));
+            ref.read(selectedDateProvider.notifier).setDate(formatDate(next));
           }),
           ),
           Container(
@@ -125,7 +137,7 @@ class CalendarBar extends ConsumerWidget {
             button: true,
             child: GestureDetector(
               onTap: () {
-                ref.read(selectedDateProvider.notifier).setDate(_fmt(DateTime.now()));
+                ref.read(selectedDateProvider.notifier).setDate(formatDate(DateTime.now()));
               },
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -137,6 +149,7 @@ class CalendarBar extends ConsumerWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -151,6 +164,4 @@ class CalendarBar extends ConsumerWidget {
     );
   }
 
-  static String _fmt(DateTime d) =>
-      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 }

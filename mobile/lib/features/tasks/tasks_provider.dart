@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/api_client.dart';
+import '../../core/date_utils.dart';
 import '../auth/auth_provider.dart';
 import 'models.dart';
 
@@ -23,18 +24,13 @@ final weekDotsProvider =
   return Set<String>.from(list.cast<String>());
 });
 
-String _todayStr() {
-  final now = DateTime.now();
-  return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-}
-
 final selectedDateProvider = NotifierProvider<SelectedDateNotifier, String>(
   SelectedDateNotifier.new,
 );
 
 class SelectedDateNotifier extends Notifier<String> {
   @override
-  String build() => _todayStr();
+  String build() => todayStr();
 
   void setDate(String date) => state = date;
 }

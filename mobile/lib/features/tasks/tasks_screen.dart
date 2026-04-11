@@ -16,6 +16,10 @@ class TasksScreen extends ConsumerWidget {
     final selectedDate = ref.watch(selectedDateProvider);
     final dailyAsync = ref.watch(dailyDataProvider(selectedDate));
 
+    void refreshTasks() {
+      ref.invalidate(dailyDataProvider(selectedDate));
+    }
+
     final dateObj = DateTime.parse(selectedDate);
     final dayOfWeek = DateFormat('EEEE').format(dateObj);
     final dateDisplay = DateFormat('M/d, y').format(dateObj);
@@ -51,7 +55,7 @@ class TasksScreen extends ConsumerWidget {
 
                   return RefreshIndicator(
                     onRefresh: () async {
-                      ref.invalidate(dailyDataProvider(selectedDate));
+                      refreshTasks();
                     },
                     child: ListView(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -59,7 +63,7 @@ class TasksScreen extends ConsumerWidget {
                         TaskCreateInput(
                           onSubmit: (title) async {
                             await ref.read(taskActionsProvider).createTask(selectedDate, title);
-                            ref.invalidate(dailyDataProvider(selectedDate));
+                            refreshTasks();
                           },
                         ),
                         const SizedBox(height: 8),
@@ -68,26 +72,26 @@ class TasksScreen extends ConsumerWidget {
                           currentDate: selectedDate,
                           onToggleComplete: (assignmentId, taskId, isCompleted) async {
                             await ref.read(taskActionsProvider).toggleComplete(selectedDate, assignmentId, taskId, isCompleted);
-                            ref.invalidate(dailyDataProvider(selectedDate));
+                            refreshTasks();
                           },
                           onReschedule: (assignmentId, targetDate) async {
                             await ref.read(taskActionsProvider).moveToDate(selectedDate, assignmentId, targetDate);
-                            ref.invalidate(dailyDataProvider(selectedDate));
+                            refreshTasks();
                           },
                           onArchive: (assignmentId, taskId) async {
                             await ref.read(taskActionsProvider).updateStatus(taskId, 'archived');
-                            ref.invalidate(dailyDataProvider(selectedDate));
+                            refreshTasks();
                           },
                         ),
                         TaskList(
                           assignments: sorted,
                           onToggleComplete: (assignmentId, taskId, isCompleted) async {
                             await ref.read(taskActionsProvider).toggleComplete(selectedDate, assignmentId, taskId, isCompleted);
-                            ref.invalidate(dailyDataProvider(selectedDate));
+                            refreshTasks();
                           },
                           onStatusChange: (taskId, status) async {
                             await ref.read(taskActionsProvider).updateStatus(taskId, status);
-                            ref.invalidate(dailyDataProvider(selectedDate));
+                            refreshTasks();
                           },
                           onMoveDate: (assignmentId) async {
                             final picked = await showDatePicker(
@@ -99,7 +103,7 @@ class TasksScreen extends ConsumerWidget {
                             if (picked != null) {
                               final fmt = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
                               await ref.read(taskActionsProvider).moveToDate(selectedDate, assignmentId, fmt);
-                              ref.invalidate(dailyDataProvider(selectedDate));
+                              refreshTasks();
                             }
                           },
                           onReorder: (oldIndex, newIndex) async {
@@ -109,7 +113,7 @@ class TasksScreen extends ConsumerWidget {
                             reordered.insert(newIndex, item);
                             final order = reordered.asMap().entries.map((e) => {'id': e.value.id, 'sortOrder': e.key}).toList();
                             await ref.read(taskActionsProvider).reorder(selectedDate, order);
-                            ref.invalidate(dailyDataProvider(selectedDate));
+                            refreshTasks();
                           },
                         ),
                         if (sorted.isEmpty && data.overdueTasks.isEmpty)

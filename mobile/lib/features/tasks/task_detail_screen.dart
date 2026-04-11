@@ -113,7 +113,15 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                         label: '點擊編輯標題',
                         child: GestureDetector(
                           onTap: () => setState(() => _isEditingTitle = true),
-                          child: Text(task.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(task.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.edit_outlined, size: 16, color: AppColors.textDim),
+                            ],
+                          ),
                         ),
                       ),
                 const SizedBox(height: 24),
