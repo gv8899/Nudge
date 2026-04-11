@@ -7,11 +7,14 @@ import '../tags/models.dart' as tag_models;
 import '../tags/tag_badge.dart';
 import '../tags/tag_picker.dart';
 import '../tags/tags_provider.dart';
+import '../tasks/models.dart';
+import '../tasks/tasks_provider.dart';
+import '../tasks/task_status_picker.dart';
 import 'cards_provider.dart';
 
 class CardDetailScreen extends ConsumerStatefulWidget {
-  final String cardId;
-  const CardDetailScreen({super.key, required this.cardId});
+  final String taskId;
+  const CardDetailScreen({super.key, required this.taskId});
 
   @override
   ConsumerState<CardDetailScreen> createState() => _CardDetailScreenState();
@@ -42,7 +45,7 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
 
   void _flushSave() {
     if (!_initialized) return;
-    final cardAsync = ref.read(cardDetailProvider(widget.cardId));
+    final cardAsync = ref.read(cardDetailProvider(widget.taskId));
     final card = cardAsync.when(data: (c) => c, loading: () => null, error: (_, _) => null);
     if (card == null) return;
 
@@ -62,7 +65,7 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
   void _onDescChanged() {
     _saveTimer?.cancel();
     _saveTimer = Timer(const Duration(milliseconds: 800), () {
-      final cardAsync = ref.read(cardDetailProvider(widget.cardId));
+      final cardAsync = ref.read(cardDetailProvider(widget.taskId));
       final card = cardAsync.when(data: (c) => c, loading: () => null, error: (_, _) => null);
       if (card == null) return;
 
@@ -85,13 +88,16 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cardAsync = ref.watch(cardDetailProvider(widget.cardId));
+    final cardAsync = ref.watch(cardDetailProvider(widget.taskId));
 
     return PopScope(
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
           _saveTimer?.cancel();
           _flushSave();
+          // 刷新行動頁和卡片頁
+          final date = ref.read(selectedDateProvider);
+          ref.invalidate(dailyDataProvider(date));
           ref.invalidate(cardsProvider);
         }
       },
@@ -103,6 +109,34 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
           ),
+          actions: [
+            cardAsync.whenOrNull(
+                  data: (card) {
+                    final status = TaskStatus.fromValue(card.status);
+                    return GestureDetector(
+                      onTap: () => showStatusPicker(
+                        context,
+                        card.status,
+                        (newStatus) async {
+                          await ref.read(cardActionsProvider).updateTitle(card.id, card.title);
+                          await ref.read(taskActionsProvider).updateStatus(card.id, newStatus);
+                          ref.invalidate(cardDetailProvider(widget.taskId));
+                        },
+                      ),
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Color(status.color)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(status.label, style: TextStyle(fontSize: 12, color: Color(status.color))),
+                      ),
+                    );
+                  },
+                ) ??
+                const SizedBox.shrink(),
+          ],
         ),
         body: cardAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -125,7 +159,7 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                     controller: _titleController,
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground),
                     decoration: const InputDecoration(
-                      hintText: '卡片標題',
+                      hintText: '標題',
                       hintStyle: TextStyle(color: AppColors.textFaint),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.zero,
@@ -134,14 +168,14 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                       final trimmed = value.trim();
                       if (trimmed.isNotEmpty && trimmed != card.title) {
                         ref.read(cardActionsProvider).updateTitle(card.id, trimmed);
-                        ref.invalidate(cardDetailProvider(widget.cardId));
+                        ref.invalidate(cardDetailProvider(widget.taskId));
                       }
                     },
                   ),
 
                   const SizedBox(height: 8),
 
-                  // Tags — 用 _selectedTagIds + tagsProvider 顯示（因為 /api/tasks/:id 不回傳 tags）
+                  // Tags
                   Builder(builder: (context) {
                     final allTags = ref.watch(tagsProvider).when(
                       data: (t) => t,
