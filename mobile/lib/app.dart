@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'features/auth/auth_provider.dart';
 import 'features/auth/login_screen.dart';
 import 'features/tasks/tasks_screen.dart';
+import 'features/tasks/task_detail_screen.dart';
 import 'features/notes/notes_screen.dart';
 import 'features/cards/cards_screen.dart';
 import 'features/settings/settings_screen.dart';
@@ -42,6 +43,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/',
                 builder: (context, state) => const TasksScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'task/:id',
+                    builder: (context, state) => TaskDetailScreen(
+                      taskId: state.pathParameters['id']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
