@@ -132,7 +132,7 @@ class _QuillEditorWidgetState extends State<QuillEditorWidget> {
                 showCenterAlignment: false,
                 showRightAlignment: false,
                 showJustifyAlignment: false,
-                showQuote: false,
+                showQuote: true,
                 showLink: false,
                 showSearchButton: false,
                 showSubscript: false,
