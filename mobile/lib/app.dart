@@ -8,6 +8,7 @@ import 'features/tasks/tasks_screen.dart';
 import 'features/tasks/task_detail_screen.dart';
 import 'features/notes/notes_screen.dart';
 import 'features/cards/cards_screen.dart';
+import 'features/cards/card_detail_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'shell/app_shell.dart';
 
@@ -68,6 +69,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/cards',
                 builder: (context, state) => const CardsScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) => CardDetailScreen(
+                      cardId: state.pathParameters['id']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
