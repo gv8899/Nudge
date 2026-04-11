@@ -5,9 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../tags/tag_badge.dart';
 import '../tags/tag_picker.dart';
-import '../tags/tags_provider.dart';
 import 'cards_provider.dart';
-import 'models.dart';
 
 class CardDetailScreen extends ConsumerStatefulWidget {
   final String cardId;
