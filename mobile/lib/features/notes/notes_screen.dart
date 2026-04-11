@@ -20,7 +20,7 @@ class NotesScreen extends ConsumerWidget {
     final isToday = selectedDate == today;
     final dateLabel = isToday
         ? '${DateFormat('M/d').format(dateObj)} · 今天'
-        : DateFormat('M/d · EEEE').format(dateObj);
+        : '${DateFormat('M/d').format(dateObj)} · ${DateFormat('EEEE', 'zh_TW').format(dateObj)}';
 
     return Scaffold(
       body: SafeArea(

@@ -38,7 +38,7 @@ class NotesFeedScreen extends ConsumerWidget {
               itemBuilder: (_, index) {
                 final note = notes[index];
                 final dateObj = DateTime.parse(note.date);
-                final dateStr = DateFormat('M/d, y · EEEE').format(dateObj);
+                final dateStr = '${DateFormat('M/d, y').format(dateObj)} · ${DateFormat('EEEE', 'zh_TW').format(dateObj)}';
                 final preview = _stripHtml(note.content, 120);
 
                 return GestureDetector(
