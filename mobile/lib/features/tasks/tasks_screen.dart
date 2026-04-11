@@ -61,8 +61,8 @@ class TasksScreen extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       children: [
                         TaskCreateInput(
-                          onSubmit: (title) async {
-                            await ref.read(taskActionsProvider).createTask(selectedDate, title);
+                          onSubmit: (title) {
+                            ref.read(taskActionsProvider).createTask(selectedDate, title);
                             refreshTasks();
                           },
                         ),
@@ -70,27 +70,27 @@ class TasksScreen extends ConsumerWidget {
                         OverdueSection(
                           overdueTasks: data.overdueTasks,
                           currentDate: selectedDate,
-                          onToggleComplete: (assignmentId, taskId, isCompleted) async {
-                            await ref.read(taskActionsProvider).toggleComplete(selectedDate, assignmentId, taskId, isCompleted);
+                          onToggleComplete: (assignmentId, taskId, isCompleted) {
+                            ref.read(taskActionsProvider).toggleComplete(selectedDate, assignmentId, taskId, isCompleted);
                             refreshTasks();
                           },
-                          onReschedule: (assignmentId, targetDate) async {
-                            await ref.read(taskActionsProvider).moveToDate(selectedDate, assignmentId, targetDate);
+                          onReschedule: (assignmentId, targetDate) {
+                            ref.read(taskActionsProvider).moveToDate(selectedDate, assignmentId, targetDate);
                             refreshTasks();
                           },
-                          onArchive: (assignmentId, taskId) async {
-                            await ref.read(taskActionsProvider).updateStatus(taskId, 'archived');
+                          onArchive: (assignmentId, taskId) {
+                            ref.read(taskActionsProvider).updateStatus(taskId, 'archived');
                             refreshTasks();
                           },
                         ),
                         TaskList(
                           assignments: sorted,
-                          onToggleComplete: (assignmentId, taskId, isCompleted) async {
-                            await ref.read(taskActionsProvider).toggleComplete(selectedDate, assignmentId, taskId, isCompleted);
+                          onToggleComplete: (assignmentId, taskId, isCompleted) {
+                            ref.read(taskActionsProvider).toggleComplete(selectedDate, assignmentId, taskId, isCompleted);
                             refreshTasks();
                           },
-                          onStatusChange: (taskId, status) async {
-                            await ref.read(taskActionsProvider).updateStatus(taskId, status);
+                          onStatusChange: (taskId, status) {
+                            ref.read(taskActionsProvider).updateStatus(taskId, status);
                             refreshTasks();
                           },
                           onMoveDate: (assignmentId) async {
@@ -102,17 +102,17 @@ class TasksScreen extends ConsumerWidget {
                             );
                             if (picked != null) {
                               final fmt = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
-                              await ref.read(taskActionsProvider).moveToDate(selectedDate, assignmentId, fmt);
+                              ref.read(taskActionsProvider).moveToDate(selectedDate, assignmentId, fmt);
                               refreshTasks();
                             }
                           },
-                          onReorder: (oldIndex, newIndex) async {
+                          onReorder: (oldIndex, newIndex) {
                             if (newIndex > oldIndex) newIndex--;
                             final reordered = [...sorted];
                             final item = reordered.removeAt(oldIndex);
                             reordered.insert(newIndex, item);
                             final order = reordered.asMap().entries.map((e) => {'id': e.value.id, 'sortOrder': e.key}).toList();
-                            await ref.read(taskActionsProvider).reorder(selectedDate, order);
+                            ref.read(taskActionsProvider).reorder(selectedDate, order);
                             refreshTasks();
                           },
                         ),
