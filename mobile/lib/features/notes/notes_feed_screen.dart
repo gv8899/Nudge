@@ -34,7 +34,7 @@ class NotesFeedScreen extends ConsumerWidget {
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: notes.length,
-              separatorBuilder: (_, __) => Container(height: 1, margin: const EdgeInsets.symmetric(vertical: 4), color: AppColors.border),
+              separatorBuilder: (_, _) => Container(height: 1, margin: const EdgeInsets.symmetric(vertical: 4), color: AppColors.border),
               itemBuilder: (_, index) {
                 final note = notes[index];
                 final dateObj = DateTime.parse(note.date);
