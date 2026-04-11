@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme.dart';
+import '../tags/models.dart' as tag_models;
 import '../tags/tag_badge.dart';
 import '../tags/tag_picker.dart';
+import '../tags/tags_provider.dart';
 import 'cards_provider.dart';
 
 class CardDetailScreen extends ConsumerStatefulWidget {
@@ -139,50 +141,60 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
 
                   const SizedBox(height: 8),
 
-                  // Tags
-                  Wrap(
-                    spacing: 4,
-                    runSpacing: 4,
-                    children: [
-                      ...card.tags.map((t) => TagBadge(
-                            name: t.name,
-                            colorToken: t.color,
-                            onRemove: () {
-                              final newIds = _selectedTagIds.where((id) => id != t.id).toList();
+                  // Tags — 用 _selectedTagIds + tagsProvider 顯示（因為 /api/tasks/:id 不回傳 tags）
+                  Builder(builder: (context) {
+                    final allTags = ref.watch(tagsProvider).when(
+                      data: (t) => t,
+                      loading: () => <tag_models.Tag>[],
+                      error: (_, _) => <tag_models.Tag>[],
+                    );
+                    final displayTags = _selectedTagIds
+                        .map((id) => allTags.where((t) => t.id == id).firstOrNull)
+                        .whereType<tag_models.Tag>()
+                        .toList();
+
+                    return Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: [
+                        ...displayTags.map((t) => TagBadge(
+                              name: t.name,
+                              colorToken: t.color,
+                              onRemove: () {
+                                final newIds = _selectedTagIds.where((id) => id != t.id).toList();
+                                setState(() => _selectedTagIds = newIds);
+                                ref.read(cardActionsProvider).setTags(card.id, newIds);
+                              },
+                            )),
+                        GestureDetector(
+                          onTap: () => showTagPicker(
+                            context,
+                            ref: ref,
+                            selectedTagIds: _selectedTagIds,
+                            onChanged: (newIds) {
                               setState(() => _selectedTagIds = newIds);
                               ref.read(cardActionsProvider).setTags(card.id, newIds);
-                              ref.invalidate(cardDetailProvider(widget.cardId));
                             },
-                          )),
-                      GestureDetector(
-                        onTap: () => showTagPicker(
-                          context,
-                          ref: ref,
-                          selectedTagIds: _selectedTagIds,
-                          onChanged: (newIds) {
-                            setState(() => _selectedTagIds = newIds);
-                            ref.read(cardActionsProvider).setTags(card.id, newIds);
-                            ref.invalidate(cardDetailProvider(widget.cardId));
-                          },
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            color: AppColors.card,
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(Icons.label_outline, size: 14, color: AppColors.textDim),
-                              SizedBox(width: 4),
-                              Text('加標籤', style: TextStyle(fontSize: 11, color: AppColors.textDim)),
-                            ],
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(4),
+                              color: AppColors.card,
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.label_outline, size: 14, color: AppColors.textDim),
+                                SizedBox(width: 4),
+                                Text('加標籤', style: TextStyle(fontSize: 11, color: AppColors.textDim)),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    );
+                  }),
 
                   const SizedBox(height: 16),
                   Container(height: 1, color: AppColors.border),
