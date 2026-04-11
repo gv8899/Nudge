@@ -6,6 +6,7 @@ import 'features/auth/auth_provider.dart';
 import 'features/auth/login_screen.dart';
 import 'features/tasks/tasks_screen.dart';
 import 'features/notes/notes_screen.dart';
+import 'features/notes/notes_feed_screen.dart';
 import 'features/cards/cards_screen.dart';
 import 'features/cards/card_detail_screen.dart';
 import 'features/settings/settings_screen.dart';
@@ -60,6 +61,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/notes',
                 builder: (context, state) => const NotesScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'feed',
+                    builder: (context, state) => const NotesFeedScreen(),
+                  ),
+                ],
               ),
             ],
           ),

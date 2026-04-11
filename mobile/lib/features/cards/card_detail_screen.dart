@@ -1,8 +1,8 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme.dart';
+import '../../shared/quill_editor_widget.dart';
 import '../tags/models.dart' as tag_models;
 import '../tags/tag_badge.dart';
 import '../tags/tag_picker.dart';
@@ -22,8 +22,6 @@ class CardDetailScreen extends ConsumerStatefulWidget {
 
 class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
   late TextEditingController _titleController;
-  late TextEditingController _descController;
-  Timer? _saveTimer;
   bool _initialized = false;
   List<String> _selectedTagIds = [];
 
@@ -31,15 +29,12 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
   void initState() {
     super.initState();
     _titleController = TextEditingController();
-    _descController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _saveTimer?.cancel();
     _flushSave();
     _titleController.dispose();
-    _descController.dispose();
     super.dispose();
   }
 
@@ -53,37 +48,6 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
     if (trimmedTitle.isNotEmpty && trimmedTitle != card.title) {
       ref.read(cardActionsProvider).updateTitle(card.id, trimmedTitle);
     }
-
-    final text = _descController.text;
-    final html = text.trim().isEmpty ? '' : '<p>${text.replaceAll('\n', '</p><p>')}</p>';
-    final currentDesc = _stripHtml(card.description);
-    if (text.trim() != currentDesc.trim()) {
-      ref.read(cardActionsProvider).updateDescription(card.id, html);
-    }
-  }
-
-  void _onDescChanged() {
-    _saveTimer?.cancel();
-    _saveTimer = Timer(const Duration(milliseconds: 800), () {
-      final cardAsync = ref.read(cardDetailProvider(widget.taskId));
-      final card = cardAsync.when(data: (c) => c, loading: () => null, error: (_, _) => null);
-      if (card == null) return;
-
-      final text = _descController.text;
-      final html = text.trim().isEmpty ? '' : '<p>${text.replaceAll('\n', '</p><p>')}</p>';
-      ref.read(cardActionsProvider).updateDescription(card.id, html);
-    });
-  }
-
-  String _stripHtml(String html) {
-    return html
-        .replaceAll(RegExp(r'<[^>]*>'), '\n')
-        .replaceAll('&nbsp;', ' ')
-        .replaceAll('&amp;', '&')
-        .replaceAll('&lt;', '<')
-        .replaceAll('&gt;', '>')
-        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
-        .trim();
   }
 
   @override
@@ -93,7 +57,6 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
     return PopScope(
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
-          _saveTimer?.cancel();
           _flushSave();
           // 刷新行動頁和卡片頁
           final date = ref.read(selectedDateProvider);
@@ -144,7 +107,6 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
           data: (card) {
             if (!_initialized) {
               _titleController.text = card.title;
-              _descController.text = _stripHtml(card.description);
               _selectedTagIds = card.tags.map((t) => t.id).toList();
               _initialized = true;
             }
@@ -234,18 +196,16 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                   Container(height: 1, color: AppColors.border),
                   const SizedBox(height: 16),
 
-                  // Description
-                  TextField(
-                    controller: _descController,
-                    maxLines: null,
-                    minLines: 8,
-                    onChanged: (_) => _onDescChanged(),
-                    style: const TextStyle(fontSize: 14, color: AppColors.textMuted, height: 1.8),
-                    decoration: const InputDecoration(
-                      hintText: '輸入內容...',
-                      hintStyle: TextStyle(color: AppColors.textFaint),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
+                  // Description（富文本）
+                  SizedBox(
+                    height: 300,
+                    child: QuillEditorWidget(
+                      key: ValueKey('desc-${widget.taskId}'),
+                      initialHtml: card.description,
+                      onChanged: (html) {
+                        ref.read(cardActionsProvider).updateDescription(card.id, html);
+                      },
+                      showToolbar: true,
                     ),
                   ),
 
