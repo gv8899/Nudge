@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import 'notes_provider.dart';
@@ -26,40 +27,36 @@ class NotesFeedScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('載入失敗', style: TextStyle(color: Colors.grey[400]))),
         data: (notes) {
           if (notes.isEmpty) {
-            return const Center(child: Text('還沒有日誌', style: TextStyle(fontSize: 14, color: AppColors.textDim)));
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('還沒有過去的日記', style: TextStyle(fontSize: 14, color: AppColors.textDim)),
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Text('去今天的日誌', style: TextStyle(fontSize: 13, color: AppColors.primary)),
+                  ),
+                ],
+              ),
+            );
           }
 
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(notesFeedProvider),
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               itemCount: notes.length,
-              separatorBuilder: (_, _) => Container(height: 1, margin: const EdgeInsets.symmetric(vertical: 4), color: AppColors.border),
               itemBuilder: (_, index) {
                 final note = notes[index];
-                final dateObj = DateTime.parse(note.date);
-                final dateStr = '${DateFormat('M/d, y').format(dateObj)} · ${DateFormat('EEEE', 'zh_TW').format(dateObj)}';
-                final preview = _stripHtml(note.content, 120);
-
-                return GestureDetector(
-                  behavior: HitTestBehavior.opaque,
+                final isLast = index == notes.length - 1;
+                return _NoteEntry(
+                  note: note,
+                  isLast: isLast,
                   onTap: () {
                     ref.read(selectedNoteDateProvider.notifier).setDate(note.date);
                     Navigator.pop(context);
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(dateStr, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.foreground)),
-                        if (preview.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(preview, style: const TextStyle(fontSize: 12, color: AppColors.textDim), maxLines: 2, overflow: TextOverflow.ellipsis),
-                        ],
-                      ],
-                    ),
-                  ),
                 );
               },
             ),
@@ -68,10 +65,121 @@ class NotesFeedScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  String _stripHtml(String html, int maxLen) {
-    final text = html.replaceAll(RegExp(r'<[^>]*>'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
-    if (text.length > maxLen) return '${text.substring(0, maxLen)}…';
-    return text;
+class _NoteEntry extends StatelessWidget {
+  final NoteFeedItem note;
+  final bool isLast;
+  final VoidCallback onTap;
+
+  const _NoteEntry({required this.note, required this.isLast, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final d = DateTime.parse(note.date);
+    final dayNum = d.day.toString();
+    final month = '${d.month} 月';
+    final weekday = DateFormat('EEE', 'zh_TW').format(d);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 時間軸 column
+            SizedBox(
+              width: 28,
+              child: Column(
+                children: [
+                  // 上方線
+                  Container(width: 1, height: 18, color: AppColors.border),
+                  // 圓點
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  // 下方線
+                  if (!isLast)
+                    Expanded(child: Container(width: 1, color: AppColors.border))
+                  else
+                    const Expanded(child: SizedBox()),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            // 內容
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 日期標題
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          dayNum,
+                          style: const TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.primary,
+                            height: 1,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Container(width: 1, height: 28, color: AppColors.primary.withValues(alpha: 0.25)),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              month,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                                color: AppColors.foreground.withValues(alpha: 0.75),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              weekday,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                                color: AppColors.textDim,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // 內容預覽（HTML render）
+                    HtmlWidget(
+                      note.content,
+                      textStyle: const TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.6),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
