@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/auth_provider.dart';
+import '../tags/tag_manager.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -38,6 +39,8 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 32),
               ],
+              const TagManager(),
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
