@@ -41,9 +41,9 @@ class _OverdueSectionState extends State<OverdueSection> {
               children: [
                 Icon(_isExpanded ? Icons.expand_more : Icons.chevron_right, size: 18, color: AppColors.primary),
                 const SizedBox(width: 4),
-                const Icon(Icons.schedule, size: 16, color: AppColors.primary),
+                Icon(Icons.schedule, size: 16, color: AppColors.primary),
                 const SizedBox(width: 6),
-                Text('前幾天的 (${widget.overdueTasks.length})', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.primary)),
+                Text('前幾天的 (${widget.overdueTasks.length})', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.primary)),
               ],
             ),
           ),
@@ -76,15 +76,15 @@ class _OverdueSectionState extends State<OverdueSection> {
           Expanded(
             child: Row(
               children: [
-                Flexible(child: Text(a.task.title, style: const TextStyle(fontSize: 14, color: AppColors.foreground), overflow: TextOverflow.ellipsis)),
+                Flexible(child: Text(a.task.title, style: TextStyle(fontSize: 14, color: AppColors.foreground), overflow: TextOverflow.ellipsis)),
                 const SizedBox(width: 8),
-                Text(dateStr, style: const TextStyle(fontSize: 11, color: AppColors.textDim)),
+                Text(dateStr, style: TextStyle(fontSize: 11, color: AppColors.textDim)),
               ],
             ),
           ),
           GestureDetector(
             onTap: () => widget.onReschedule(a.id, widget.currentDate),
-            child: const Padding(padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12), child: Text('排入今天', style: TextStyle(fontSize: 11, color: AppColors.primary))),
+            child: Padding(padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12), child: Text('排入今天', style: TextStyle(fontSize: 11, color: AppColors.primary))),
           ),
           Semantics(
             label: '選擇日期',
@@ -97,7 +97,7 @@ class _OverdueSectionState extends State<OverdueSection> {
                   widget.onReschedule(a.id, fmt);
                 }
               },
-              child: const Padding(padding: EdgeInsets.all(12), child: Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textDim)),
+              child: Padding(padding: EdgeInsets.all(12), child: Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textDim)),
             ),
           ),
           Semantics(
@@ -105,7 +105,7 @@ class _OverdueSectionState extends State<OverdueSection> {
             button: true,
             child: GestureDetector(
               onTap: () => _confirmArchive(a),
-              child: const Padding(padding: EdgeInsets.all(12), child: Icon(Icons.archive_outlined, size: 16, color: AppColors.textDim)),
+              child: Padding(padding: EdgeInsets.all(12), child: Icon(Icons.archive_outlined, size: 16, color: AppColors.textDim)),
             ),
           ),
         ],
@@ -119,7 +119,7 @@ class _OverdueSectionState extends State<OverdueSection> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.card,
         title: const Text('封存任務', style: TextStyle(fontSize: 16)),
-        content: Text('確定要封存「${a.task.title}」嗎？', style: const TextStyle(fontSize: 14, color: AppColors.textDim)),
+        content: Text('確定要封存「${a.task.title}」嗎？', style: TextStyle(fontSize: 14, color: AppColors.textDim)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
           TextButton(onPressed: () { Navigator.pop(ctx); widget.onArchive(a.id, a.taskId); }, child: const Text('封存', style: TextStyle(color: Colors.redAccent))),

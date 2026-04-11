@@ -31,13 +31,13 @@ class NotesScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Row(
                 children: [
-                  const Text('日誌', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
+                  Text('日誌', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
                   const Spacer(),
-                  Text(dateLabel, style: const TextStyle(fontSize: 13, color: AppColors.textDim)),
+                  Text(dateLabel, style: TextStyle(fontSize: 13, color: AppColors.textDim)),
                   const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () => context.push('/notes/feed'),
-                    child: const Padding(
+                    child: Padding(
                       padding: EdgeInsets.all(4),
                       child: Icon(Icons.list, size: 22, color: AppColors.textDim),
                     ),
@@ -58,6 +58,8 @@ class NotesScreen extends ConsumerWidget {
                     ref.read(notesActionsProvider).save(selectedDate, htmlContent);
                   },
                   showToolbar: true,
+                  showCodeBlock: false,
+                  showListCheck: false,
                 ),
               ),
             ),

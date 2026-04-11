@@ -77,8 +77,8 @@ class _TagPickerState extends ConsumerState<TagPicker> {
               autofocus: true,
               onChanged: (v) => setState(() => _search = v),
               style:
-                  const TextStyle(fontSize: 14, color: AppColors.foreground),
-              decoration: const InputDecoration(
+                  TextStyle(fontSize: 14, color: AppColors.foreground),
+              decoration: InputDecoration(
                 hintText: '搜尋或建立標籤...',
                 hintStyle: TextStyle(color: AppColors.textFaint),
                 border: UnderlineInputBorder(
@@ -92,7 +92,7 @@ class _TagPickerState extends ConsumerState<TagPicker> {
             const SizedBox(height: 8),
             if (_isCreating) ...[
               Text('建立「${_searchController.text.trim()}」',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 13, color: AppColors.foreground)),
               const SizedBox(height: 12),
               TagColorPicker(
@@ -104,11 +104,11 @@ class _TagPickerState extends ConsumerState<TagPicker> {
                 children: [
                   TextButton(
                       onPressed: () => setState(() => _isCreating = false),
-                      child: const Text('取消',
+                      child: Text('取消',
                           style: TextStyle(color: AppColors.textDim))),
                   TextButton(
                       onPressed: _createTag,
-                      child: const Text('建立',
+                      child: Text('建立',
                           style: TextStyle(color: AppColors.primary))),
                 ],
               ),
@@ -130,11 +130,11 @@ class _TagPickerState extends ConsumerState<TagPicker> {
                                 color: TagColor.resolve(tag.color),
                                 shape: BoxShape.circle)),
                         title: Text(tag.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 14,
                                 color: AppColors.foreground)),
                         trailing: isSelected
-                            ? const Icon(Icons.check,
+                            ? Icon(Icons.check,
                                 size: 18, color: AppColors.primary)
                             : null,
                         onTap: () => _toggle(tag.id),
@@ -143,10 +143,10 @@ class _TagPickerState extends ConsumerState<TagPicker> {
                     if (_search.trim().isNotEmpty && !exactMatch)
                       ListTile(
                         dense: true,
-                        leading: const Icon(Icons.add,
+                        leading: Icon(Icons.add,
                             size: 18, color: AppColors.primary),
                         title: Text('建立「${_search.trim()}」',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 14, color: AppColors.primary)),
                         onTap: () => setState(() => _isCreating = true),
                       ),

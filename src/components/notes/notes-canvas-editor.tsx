@@ -24,7 +24,7 @@ export function NotesCanvasEditor({
 
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: createEditorExtensions({ placeholder: "寫點什麼⋯⋯" }),
+    extensions: createEditorExtensions({ placeholder: "寫點什麼⋯⋯", taskList: false, codeBlock: false }),
     content: initialContent,
     editable: true,
     onUpdate: ({ editor }) => {

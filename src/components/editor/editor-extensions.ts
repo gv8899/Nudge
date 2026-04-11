@@ -116,28 +116,44 @@ const SplitTaskList = Extension.create({
 
 interface CreateEditorExtensionsOptions {
   placeholder: string;
+  taskList?: boolean;
+  codeBlock?: boolean;
 }
 
 export function createEditorExtensions({
   placeholder,
+  taskList = true,
+  codeBlock = true,
 }: CreateEditorExtensionsOptions) {
-  return [
+  const extensions = [
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
       codeBlock: false,
     }),
     Placeholder.configure({ placeholder }),
-    TaskList,
-    TaskItem.configure({ nested: false }),
-    SplitTaskList,
-    CodeBlockLowlight.extend({
-      addNodeView() {
-        return ReactNodeViewRenderer(CodeBlockNodeView);
-      },
-    }).configure({
-      lowlight,
-      defaultLanguage: "plaintext",
-    }),
     slashCommandExtension,
   ];
+
+  if (taskList) {
+    extensions.push(
+      TaskList as any,
+      TaskItem.configure({ nested: false }) as any,
+      SplitTaskList as any,
+    );
+  }
+
+  if (codeBlock) {
+    extensions.push(
+      CodeBlockLowlight.extend({
+        addNodeView() {
+          return ReactNodeViewRenderer(CodeBlockNodeView);
+        },
+      }).configure({
+        lowlight,
+        defaultLanguage: "plaintext",
+      }) as any,
+    );
+  }
+
+  return extensions;
 }

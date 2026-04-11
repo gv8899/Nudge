@@ -38,7 +38,7 @@ export const slashCommandExtension = Extension.create({
       Suggestion({
         editor: this.editor,
         ...this.options.suggestion,
-        items: ({ query }: { query: string }) => filterSlashItems(query),
+        items: ({ query, editor }: { query: string; editor: any }) => filterSlashItems(query, editor),
         render: () => {
           let component: ReactRenderer<SlashCommandMenuRef> | null = null;
           let popup: TippyInstance[] = [];

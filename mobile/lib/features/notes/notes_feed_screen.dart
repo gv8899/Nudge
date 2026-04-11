@@ -31,11 +31,11 @@ class NotesFeedScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('還沒有過去的日記', style: TextStyle(fontSize: 14, color: AppColors.textDim)),
+                  Text('還沒有過去的日記', style: TextStyle(fontSize: 14, color: AppColors.textDim)),
                   const SizedBox(height: 12),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Text('去今天的日誌', style: TextStyle(fontSize: 13, color: AppColors.primary)),
+                    child: Text('去今天的日誌', style: TextStyle(fontSize: 13, color: AppColors.primary)),
                   ),
                 ],
               ),
@@ -99,7 +99,7 @@ class _NoteEntry extends StatelessWidget {
                   Container(
                     width: 10,
                     height: 10,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.primary,
                       shape: BoxShape.circle,
                     ),
@@ -128,7 +128,7 @@ class _NoteEntry extends StatelessWidget {
                       children: [
                         Text(
                           dayNum,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.w900,
                             color: AppColors.primary,
@@ -154,7 +154,7 @@ class _NoteEntry extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text(
                               weekday,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1.5,
@@ -171,7 +171,7 @@ class _NoteEntry extends StatelessWidget {
                     // 內容預覽（HTML render）
                     HtmlWidget(
                       note.content,
-                      textStyle: const TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.6),
+                      textStyle: TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.6),
                     ),
                   ],
                 ),

@@ -56,12 +56,12 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Row(
                 children: [
-                  const Text('卡片',
+                  Text('卡片',
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
                   const SizedBox(width: 8),
                   GestureDetector(
                     onTap: _createCard,
-                    child: const Icon(Icons.add_circle_outline, size: 22, color: AppColors.primary),
+                    child: Icon(Icons.add_circle_outline, size: 22, color: AppColors.primary),
                   ),
                   const Spacer(),
                   // View toggle
@@ -88,24 +88,24 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
               child: TextField(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
-                style: const TextStyle(fontSize: 14, color: AppColors.foreground),
+                style: TextStyle(fontSize: 14, color: AppColors.foreground),
                 decoration: InputDecoration(
                   hintText: '搜尋卡片...',
-                  hintStyle: const TextStyle(color: AppColors.textFaint),
-                  prefixIcon: const Icon(Icons.search, size: 18, color: AppColors.textDim),
+                  hintStyle: TextStyle(color: AppColors.textFaint),
+                  prefixIcon: Icon(Icons.search, size: 18, color: AppColors.textDim),
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 10),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: AppColors.border),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: AppColors.border),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: AppColors.primary),
+                    borderSide: BorderSide(color: AppColors.primary),
                   ),
                   filled: true,
                   fillColor: AppColors.background,
@@ -125,7 +125,7 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                     return Center(
                       child: Text(
                         _query.isNotEmpty ? '沒有符合的卡片' : '還沒有卡片',
-                        style: const TextStyle(fontSize: 14, color: AppColors.textDim),
+                        style: TextStyle(fontSize: 14, color: AppColors.textDim),
                       ),
                     );
                   }

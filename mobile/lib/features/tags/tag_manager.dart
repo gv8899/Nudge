@@ -33,7 +33,7 @@ class _TagManagerState extends ConsumerState<TagManager> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('標籤管理',
+        Text('標籤管理',
             style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
@@ -58,9 +58,9 @@ class _TagManagerState extends ConsumerState<TagManager> {
                         ? TextField(
                             controller: _editController,
                             autofocus: true,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 14, color: AppColors.foreground),
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                                 isDense: true,
                                 contentPadding:
                                     EdgeInsets.symmetric(vertical: 8),
@@ -92,14 +92,14 @@ class _TagManagerState extends ConsumerState<TagManager> {
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 8),
                                 child: Text(tag.name,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 14,
                                         color: AppColors.foreground))),
                           ),
                   ),
                   GestureDetector(
                     onTap: () => _confirmDelete(tag),
-                    child: const Padding(
+                    child: Padding(
                         padding: EdgeInsets.all(8),
                         child: Icon(Icons.delete_outline,
                             size: 18, color: AppColors.textFaint)),
@@ -110,8 +110,8 @@ class _TagManagerState extends ConsumerState<TagManager> {
         const SizedBox(height: 8),
         TextField(
           controller: _newNameController,
-          style: const TextStyle(fontSize: 14, color: AppColors.foreground),
-          decoration: const InputDecoration(
+          style: TextStyle(fontSize: 14, color: AppColors.foreground),
+          decoration: InputDecoration(
             hintText: '新增標籤...',
             hintStyle: TextStyle(color: AppColors.textFaint),
             isDense: true,
@@ -163,7 +163,7 @@ class _TagManagerState extends ConsumerState<TagManager> {
         backgroundColor: AppColors.card,
         title: const Text('刪除標籤', style: TextStyle(fontSize: 16)),
         content: Text('確定要刪除「${tag.name}」嗎？',
-            style: const TextStyle(fontSize: 14, color: AppColors.textDim)),
+            style: TextStyle(fontSize: 14, color: AppColors.textDim)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx),

@@ -20,7 +20,7 @@ class TaskStatusPicker extends StatelessWidget {
             return ListTile(
               leading: Container(width: 12, height: 12, decoration: BoxDecoration(color: Color(status.color), shape: BoxShape.circle)),
               title: Text(status.label, style: TextStyle(fontSize: 14, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal, color: isSelected ? AppColors.primary : AppColors.foreground)),
-              trailing: isSelected ? const Icon(Icons.check, size: 18, color: AppColors.primary) : null,
+              trailing: isSelected ? Icon(Icons.check, size: 18, color: AppColors.primary) : null,
               onTap: () { Navigator.pop(context); onSelected(status.value); },
             );
           }).toList(),

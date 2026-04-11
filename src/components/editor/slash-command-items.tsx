@@ -17,6 +17,8 @@ export interface SlashCommandItem {
   description: string;
   icon: LucideIcon;
   keywords: string[];
+  /** Extension name required for this item (used to auto-hide when extension is not loaded) */
+  requiredExtension?: string;
   command: (args: { editor: Editor; range: Range }) => void;
 }
 
@@ -86,6 +88,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     description: "Checkbox task list",
     icon: ListTodo,
     keywords: ["todo", "task", "check", "待辦"],
+    requiredExtension: "taskList",
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleTaskList().run();
     },
@@ -104,6 +107,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     description: "Code block",
     icon: Code,
     keywords: ["code", "block", "程式"],
+    requiredExtension: "codeBlock",
     command: ({ editor, range }) => {
       editor
         .chain()
@@ -124,11 +128,19 @@ export const slashCommandItems: SlashCommandItem[] = [
   },
 ];
 
-/** 根據 query 字串 filter 項目 */
-export function filterSlashItems(query: string): SlashCommandItem[] {
-  if (!query) return slashCommandItems;
+/** 根據 query 字串 filter 項目，並排除 editor 未載入的 extension */
+export function filterSlashItems(query: string, editor?: Editor): SlashCommandItem[] {
+  let items = slashCommandItems;
+
+  // Filter out items whose required extension is not loaded
+  if (editor) {
+    const loadedExtensions = new Set(editor.extensionManager.extensions.map((e) => e.name));
+    items = items.filter((item) => !item.requiredExtension || loadedExtensions.has(item.requiredExtension));
+  }
+
+  if (!query) return items;
   const q = query.toLowerCase();
-  return slashCommandItems.filter(
+  return items.filter(
     (item) =>
       item.label.toLowerCase().includes(q) ||
       item.keywords.some((k) => k.toLowerCase().includes(q))

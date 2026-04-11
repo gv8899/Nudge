@@ -28,12 +28,12 @@ class CardListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(card.title,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.foreground),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.foreground),
                       maxLines: 1, overflow: TextOverflow.ellipsis),
                   if (preview.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(preview,
-                        style: const TextStyle(fontSize: 12, color: AppColors.textDim),
+                        style: TextStyle(fontSize: 12, color: AppColors.textDim),
                         maxLines: 2, overflow: TextOverflow.ellipsis),
                   ],
                   if (card.tags.isNotEmpty) ...[
@@ -48,7 +48,7 @@ class CardListItem extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text(updated, style: const TextStyle(fontSize: 11, color: AppColors.textDim)),
+            Text(updated, style: TextStyle(fontSize: 11, color: AppColors.textDim)),
           ],
         ),
       ),

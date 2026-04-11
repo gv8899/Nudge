@@ -35,8 +35,8 @@ class _TaskCreateInputState extends State<TaskCreateInput> {
         controller: _controller,
         enabled: !_isSubmitting,
         onSubmitted: (_) => _submit(),
-        style: const TextStyle(fontSize: 14, color: AppColors.foreground),
-        decoration: const InputDecoration(
+        style: TextStyle(fontSize: 14, color: AppColors.foreground),
+        decoration: InputDecoration(
           hintText: '新增任務',
           hintStyle: TextStyle(color: AppColors.textFaint, fontSize: 14),
           border: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.border)),

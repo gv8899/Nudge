@@ -25,6 +25,11 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
   bool _initialized = false;
   List<String> _selectedTagIds = [];
 
+  // Cached for safe use in dispose()
+  String? _lastKnownTitle;
+  String? _cardId;
+  CardActions? _cardActions;
+
   @override
   void initState() {
     super.initState();
@@ -39,14 +44,11 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
   }
 
   void _flushSave() {
-    if (!_initialized) return;
-    final cardAsync = ref.read(cardDetailProvider(widget.taskId));
-    final card = cardAsync.when(data: (c) => c, loading: () => null, error: (_, _) => null);
-    if (card == null) return;
+    if (!_initialized || _cardId == null || _cardActions == null) return;
 
     final trimmedTitle = _titleController.text.trim();
-    if (trimmedTitle.isNotEmpty && trimmedTitle != card.title) {
-      ref.read(cardActionsProvider).updateTitle(card.id, trimmedTitle);
+    if (trimmedTitle.isNotEmpty && trimmedTitle != _lastKnownTitle) {
+      _cardActions!.updateTitle(_cardId!, trimmedTitle);
     }
   }
 
@@ -110,6 +112,10 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
               _selectedTagIds = card.tags.map((t) => t.id).toList();
               _initialized = true;
             }
+            // Cache for safe dispose
+            _lastKnownTitle = card.title;
+            _cardId = card.id;
+            _cardActions = ref.read(cardActionsProvider);
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -119,8 +125,8 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                   // Title
                   TextField(
                     controller: _titleController,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground),
-                    decoration: const InputDecoration(
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground),
+                    decoration: InputDecoration(
                       hintText: '標題',
                       hintStyle: TextStyle(color: AppColors.textFaint),
                       border: InputBorder.none,
@@ -178,7 +184,7 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                               borderRadius: BorderRadius.circular(4),
                               color: AppColors.card,
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(Icons.label_outline, size: 14, color: AppColors.textDim),
@@ -216,7 +222,7 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                   const SizedBox(height: 12),
                   Text(
                     '建立 ${DateFormat('yyyy/MM/dd').format(DateTime.parse(card.createdAt))} · 更新 ${DateFormat('yyyy/MM/dd').format(DateTime.parse(card.updatedAt))}',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textFaint),
+                    style: TextStyle(fontSize: 11, color: AppColors.textFaint),
                   ),
                 ],
               ),

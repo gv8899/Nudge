@@ -34,8 +34,8 @@ class TasksScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(dayOfWeek, style: const TextStyle(fontSize: 12, color: AppColors.primary)),
-                  Text(dateDisplay, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
+                  Text(dayOfWeek, style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                  Text(dateDisplay, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
                 ],
               ),
             ),
@@ -125,7 +125,7 @@ class TasksScreen extends ConsumerWidget {
                           },
                         ),
                         if (sorted.isEmpty && data.overdueTasks.isEmpty)
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.only(top: 32),
                             child: Center(child: Text('今天還沒有任務', style: TextStyle(fontSize: 14, color: AppColors.textDim))),
                           ),

@@ -19,6 +19,8 @@ class QuillEditorWidget extends StatefulWidget {
     this.showToolbar = true,
     this.readOnly = false,
     this.placeholder,
+    this.showCodeBlock = true,
+    this.showListCheck = true,
   });
 
   final String initialHtml;
@@ -26,6 +28,8 @@ class QuillEditorWidget extends StatefulWidget {
   final bool showToolbar;
   final bool readOnly;
   final String? placeholder;
+  final bool showCodeBlock;
+  final bool showListCheck;
 
   @override
   State<QuillEditorWidget> createState() => _QuillEditorWidgetState();
@@ -117,8 +121,8 @@ class _QuillEditorWidgetState extends State<QuillEditorWidget> {
                 headerStyleType: HeaderStyleType.buttons,
                 showListNumbers: true,
                 showListBullets: true,
-                showListCheck: true,
-                showCodeBlock: true,
+                showListCheck: widget.showListCheck,
+                showCodeBlock: widget.showCodeBlock,
                 showInlineCode: false,
                 showUnderLineButton: false,
                 showStrikeThrough: false,

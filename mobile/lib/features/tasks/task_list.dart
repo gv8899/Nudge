@@ -46,7 +46,7 @@ class TaskList extends StatelessWidget {
             // Drag handle
             ReorderableDragStartListener(
               index: index,
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                 child: Icon(Icons.drag_indicator, size: 18, color: AppColors.textFaint),
               ),

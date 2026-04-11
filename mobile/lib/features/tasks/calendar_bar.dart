@@ -83,7 +83,7 @@ class CalendarBar extends ConsumerWidget {
                           width: 4,
                           height: 4,
                           margin: const EdgeInsets.only(bottom: 2),
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
@@ -139,7 +139,7 @@ class CalendarBar extends ConsumerWidget {
               onTap: () {
                 ref.read(selectedDateProvider.notifier).setDate(formatDate(DateTime.now()));
               },
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Text(
                   '今天',

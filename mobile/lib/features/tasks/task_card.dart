@@ -94,7 +94,7 @@ class _TaskCardState extends State<TaskCard> {
                       color: isDone ? AppColors.primary : Colors.transparent,
                     ),
                     child: isDone
-                        ? const Icon(Icons.check, size: 14, color: AppColors.onPrimary)
+                        ? Icon(Icons.check, size: 14, color: AppColors.onPrimary)
                         : null,
                   ),
                 ),
@@ -112,7 +112,7 @@ class _TaskCardState extends State<TaskCard> {
                       fontSize: 14,
                       color: isDone ? AppColors.textDim : AppColors.foreground,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       border: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
                       focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
                       isDense: true,
@@ -170,7 +170,7 @@ class _TaskCardState extends State<TaskCard> {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: widget.onMoveDate,
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.all(12),
                 child: Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textDim),
               ),
