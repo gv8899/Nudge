@@ -16,8 +16,7 @@ final weekDotsProvider =
   final apiClient = ref.read(apiClientProvider);
   final start = DateTime.parse(weekStart);
   final end = start.add(const Duration(days: 6));
-  final endStr =
-      '${end.year}-${end.month.toString().padLeft(2, '0')}-${end.day.toString().padLeft(2, '0')}';
+  final endStr = formatDate(end);
   final response =
       await apiClient.dio.get('/api/daily/week?start=$weekStart&end=$endStr');
   final list = response.data['datesWithTasks'] as List;
@@ -79,6 +78,12 @@ class TaskActions {
   Future<void> updateTitle(String taskId, String title) async {
     await _api.dio.patch('/api/tasks/$taskId', data: {
       'title': title,
+    });
+  }
+
+  Future<void> updateDescription(String taskId, String description) async {
+    await _api.dio.patch('/api/tasks/$taskId', data: {
+      'description': description,
     });
   }
 }

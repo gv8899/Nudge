@@ -11,12 +11,17 @@ class TaskCreateInput extends StatefulWidget {
 
 class _TaskCreateInputState extends State<TaskCreateInput> {
   final _controller = TextEditingController();
+  bool _isSubmitting = false;
 
-  void _submit() {
+  void _submit() async {
     final text = _controller.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || _isSubmitting) return;
+    setState(() => _isSubmitting = true);
     widget.onSubmit(text);
     _controller.clear();
+    // Small delay to prevent double-tap
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (mounted) setState(() => _isSubmitting = false);
   }
 
   @override
@@ -28,6 +33,7 @@ class _TaskCreateInputState extends State<TaskCreateInput> {
       padding: const EdgeInsets.only(left: 36),
       child: TextField(
         controller: _controller,
+        enabled: !_isSubmitting,
         onSubmitted: (_) => _submit(),
         style: const TextStyle(fontSize: 14, color: AppColors.foreground),
         decoration: const InputDecoration(
