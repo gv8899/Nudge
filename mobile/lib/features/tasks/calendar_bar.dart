@@ -15,7 +15,11 @@ class CalendarBar extends ConsumerWidget {
     final weekStartStr = _fmt(weekStart);
 
     final weekDots = ref.watch(weekDotsProvider(weekStartStr));
-    final dots = weekDots.valueOrNull ?? <String>{};
+    final dots = weekDots.when(
+      data: (d) => d,
+      loading: () => <String>{},
+      error: (_, _) => <String>{},
+    );
 
     final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -29,7 +33,7 @@ class CalendarBar extends ConsumerWidget {
         children: [
           _navButton(Icons.chevron_left, () {
             final prev = weekStart.subtract(const Duration(days: 7));
-            ref.read(selectedDateProvider.notifier).state = _fmt(prev);
+            ref.read(selectedDateProvider.notifier).setDate(_fmt(prev));
           }),
           ...List.generate(7, (i) {
             final day = weekStart.add(Duration(days: i));
@@ -40,7 +44,7 @@ class CalendarBar extends ConsumerWidget {
             return Expanded(
               child: GestureDetector(
                 onTap: () {
-                  ref.read(selectedDateProvider.notifier).state = dayStr;
+                  ref.read(selectedDateProvider.notifier).setDate(dayStr);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 6),
@@ -94,7 +98,7 @@ class CalendarBar extends ConsumerWidget {
           }),
           _navButton(Icons.chevron_right, () {
             final next = weekStart.add(const Duration(days: 7));
-            ref.read(selectedDateProvider.notifier).state = _fmt(next);
+            ref.read(selectedDateProvider.notifier).setDate(_fmt(next));
           }),
           Container(
             width: 1,
@@ -104,8 +108,7 @@ class CalendarBar extends ConsumerWidget {
           ),
           GestureDetector(
             onTap: () {
-              ref.read(selectedDateProvider.notifier).state =
-                  _fmt(DateTime.now());
+              ref.read(selectedDateProvider.notifier).setDate(_fmt(DateTime.now()));
             },
             child: const Padding(
               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),

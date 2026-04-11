@@ -23,10 +23,21 @@ final weekDotsProvider =
   return Set<String>.from(list.cast<String>());
 });
 
-final selectedDateProvider = StateProvider<String>((ref) {
+String _todayStr() {
   final now = DateTime.now();
   return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-});
+}
+
+final selectedDateProvider = NotifierProvider<SelectedDateNotifier, String>(
+  SelectedDateNotifier.new,
+);
+
+class SelectedDateNotifier extends Notifier<String> {
+  @override
+  String build() => _todayStr();
+
+  void setDate(String date) => state = date;
+}
 
 class TaskActions {
   final ApiClient _api;
