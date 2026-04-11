@@ -9,6 +9,8 @@ class TaskList extends StatelessWidget {
   final void Function(String taskId, String status) onStatusChange;
   final void Function(String assignmentId) onMoveDate;
   final void Function(int oldIndex, int newIndex) onReorder;
+  final void Function(String taskId, String title)? onTitleChange;
+  final void Function(String taskId)? onArchive;
 
   const TaskList({
     super.key,
@@ -17,6 +19,8 @@ class TaskList extends StatelessWidget {
     required this.onStatusChange,
     required this.onMoveDate,
     required this.onReorder,
+    this.onTitleChange,
+    this.onArchive,
   });
 
   @override
@@ -54,6 +58,8 @@ class TaskList extends StatelessWidget {
                 onToggleComplete: () => onToggleComplete(a.id, a.taskId, !a.isCompleted),
                 onStatusChange: (status) => onStatusChange(a.task.id, status),
                 onMoveDate: () => onMoveDate(a.id),
+                onTitleChange: onTitleChange,
+                onArchive: onArchive,
               ),
             ),
           ],

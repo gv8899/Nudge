@@ -93,6 +93,14 @@ class TasksScreen extends ConsumerWidget {
                             ref.read(taskActionsProvider).updateStatus(taskId, status);
                             refreshTasks();
                           },
+                          onTitleChange: (taskId, title) {
+                            ref.read(taskActionsProvider).updateTitle(taskId, title);
+                            refreshTasks();
+                          },
+                          onArchive: (taskId) {
+                            ref.read(taskActionsProvider).updateStatus(taskId, 'archived');
+                            refreshTasks();
+                          },
                           onMoveDate: (assignmentId) async {
                             final picked = await showDatePicker(
                               context: context,

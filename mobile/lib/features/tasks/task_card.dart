@@ -4,11 +4,13 @@ import '../../core/theme.dart';
 import 'models.dart';
 import 'task_status_picker.dart';
 
-class TaskCard extends StatelessWidget {
+class TaskCard extends StatefulWidget {
   final TaskAssignment assignment;
   final VoidCallback onToggleComplete;
   final ValueChanged<String> onStatusChange;
   final VoidCallback onMoveDate;
+  final void Function(String taskId, String title)? onTitleChange;
+  final void Function(String taskId)? onArchive;
 
   const TaskCard({
     super.key,
@@ -16,25 +18,66 @@ class TaskCard extends StatelessWidget {
     required this.onToggleComplete,
     required this.onStatusChange,
     required this.onMoveDate,
+    this.onTitleChange,
+    this.onArchive,
   });
 
   @override
+  State<TaskCard> createState() => _TaskCardState();
+}
+
+class _TaskCardState extends State<TaskCard> {
+  bool _isEditing = false;
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.assignment.task.title);
+  }
+
+  @override
+  void didUpdateWidget(TaskCard old) {
+    super.didUpdateWidget(old);
+    if (!_isEditing && old.assignment.task.title != widget.assignment.task.title) {
+      _controller.text = widget.assignment.task.title;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _saveTitle() {
+    final trimmed = _controller.text.trim();
+    if (trimmed.isEmpty) {
+      // Title deleted → archive
+      widget.onArchive?.call(widget.assignment.task.id);
+    } else if (trimmed != widget.assignment.task.title) {
+      widget.onTitleChange?.call(widget.assignment.task.id, trimmed);
+    }
+    setState(() => _isEditing = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final task = assignment.task;
-    final isDone = assignment.isCompleted;
+    final task = widget.assignment.task;
+    final isDone = widget.assignment.isCompleted;
     final status = TaskStatus.fromValue(task.status);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Row(
         children: [
-          // Checkbox — isolated tap target
+          // Checkbox
           Semantics(
             label: isDone ? '取消完成' : '完成任務',
             button: true,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: onToggleComplete,
+              onTap: widget.onToggleComplete,
               child: SizedBox(
                 width: 44,
                 height: 44,
@@ -59,25 +102,43 @@ class TaskCard extends StatelessWidget {
             ),
           ),
 
-          // Title — tap to navigate to detail
+          // Title — tap to edit inline, long press to navigate detail
           Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => context.push('/task/${task.id}'),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Text(
-                  task.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDone ? AppColors.textDim : AppColors.foreground,
-                    decoration: isDone ? TextDecoration.lineThrough : null,
+            child: _isEditing
+                ? TextField(
+                    controller: _controller,
+                    autofocus: true,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDone ? AppColors.textDim : AppColors.foreground,
+                    ),
+                    decoration: const InputDecoration(
+                      border: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
+                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    onSubmitted: (_) => _saveTitle(),
+                    onTapOutside: (_) => _saveTitle(),
+                  )
+                : GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => setState(() => _isEditing = true),
+                    onLongPress: () => context.push('/task/${task.id}'),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Text(
+                        task.title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDone ? AppColors.textDim : AppColors.foreground,
+                          decoration: isDone ? TextDecoration.lineThrough : null,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ),
           ),
 
           const SizedBox(width: 4),
@@ -103,7 +164,7 @@ class TaskCard extends StatelessWidget {
             button: true,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: onMoveDate,
+              onTap: widget.onMoveDate,
               child: const Padding(
                 padding: EdgeInsets.all(12),
                 child: Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textDim),
@@ -117,7 +178,7 @@ class TaskCard extends StatelessWidget {
             button: true,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => showStatusPicker(context, task.status, onStatusChange),
+              onTap: () => showStatusPicker(context, task.status, widget.onStatusChange),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Container(
