@@ -109,9 +109,12 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                           setState(() => _isEditingTitle = false);
                         },
                       )
-                    : GestureDetector(
-                        onTap: () => setState(() => _isEditingTitle = true),
-                        child: Text(task.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
+                    : Semantics(
+                        label: '點擊編輯標題',
+                        child: GestureDetector(
+                          onTap: () => setState(() => _isEditingTitle = true),
+                          child: Text(task.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
+                        ),
                       ),
                 const SizedBox(height: 24),
                 if (task.description != null && task.description!.isNotEmpty)

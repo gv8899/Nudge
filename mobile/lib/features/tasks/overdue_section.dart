@@ -59,11 +59,20 @@ class _OverdueSectionState extends State<OverdueSection> {
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () => widget.onToggleComplete(a.id, a.taskId, true),
-            child: Container(width: 20, height: 20, decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.textDim, width: 2))),
+          Semantics(
+            label: '完成任務',
+            button: true,
+            child: GestureDetector(
+              onTap: () => widget.onToggleComplete(a.id, a.taskId, true),
+              child: SizedBox(
+                width: 44, height: 44,
+                child: Center(
+                  child: Container(width: 20, height: 20, decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.textDim, width: 2))),
+                ),
+              ),
+            ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 4),
           Expanded(
             child: Row(
               children: [
@@ -75,21 +84,29 @@ class _OverdueSectionState extends State<OverdueSection> {
           ),
           GestureDetector(
             onTap: () => widget.onReschedule(a.id, widget.currentDate),
-            child: const Padding(padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4), child: Text('排入今天', style: TextStyle(fontSize: 11, color: AppColors.primary))),
+            child: const Padding(padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12), child: Text('排入今天', style: TextStyle(fontSize: 11, color: AppColors.primary))),
           ),
-          GestureDetector(
-            onTap: () async {
-              final picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)));
-              if (picked != null) {
-                final fmt = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
-                widget.onReschedule(a.id, fmt);
-              }
-            },
-            child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textDim)),
+          Semantics(
+            label: '選擇日期',
+            button: true,
+            child: GestureDetector(
+              onTap: () async {
+                final picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)));
+                if (picked != null) {
+                  final fmt = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+                  widget.onReschedule(a.id, fmt);
+                }
+              },
+              child: const Padding(padding: EdgeInsets.all(12), child: Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textDim)),
+            ),
           ),
-          GestureDetector(
-            onTap: () => _confirmArchive(a),
-            child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.archive_outlined, size: 16, color: AppColors.textDim)),
+          Semantics(
+            label: '封存任務',
+            button: true,
+            child: GestureDetector(
+              onTap: () => _confirmArchive(a),
+              child: const Padding(padding: EdgeInsets.all(12), child: Icon(Icons.archive_outlined, size: 16, color: AppColors.textDim)),
+            ),
           ),
         ],
       ),

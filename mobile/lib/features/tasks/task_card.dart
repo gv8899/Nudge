@@ -25,35 +25,56 @@ class TaskCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         child: Row(
           children: [
-            GestureDetector(
-              onTap: onToggleComplete,
-              child: Container(
-                width: 20, height: 20,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: isDone ? AppColors.primary : AppColors.textDim, width: 2),
-                  color: isDone ? AppColors.primary : Colors.transparent,
+            Semantics(
+              label: isDone ? '取消完成' : '完成任務',
+              button: true,
+              child: GestureDetector(
+                onTap: onToggleComplete,
+                child: SizedBox(
+                  width: 44, height: 44,
+                  child: Center(
+                    child: Container(
+                      width: 20, height: 20,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: isDone ? AppColors.primary : AppColors.textDim, width: 2),
+                        color: isDone ? AppColors.primary : Colors.transparent,
+                      ),
+                      child: isDone ? const Icon(Icons.check, size: 14, color: AppColors.onPrimary) : null,
+                    ),
+                  ),
                 ),
-                child: isDone ? const Icon(Icons.check, size: 14, color: AppColors.onPrimary) : null,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 4),
             Expanded(
               child: Text(task.title, style: TextStyle(fontSize: 14, color: isDone ? AppColors.textDim : AppColors.foreground, decoration: isDone ? TextDecoration.lineThrough : null), maxLines: 2, overflow: TextOverflow.ellipsis),
             ),
             const SizedBox(width: 8),
             if (task.description != null && task.description!.isNotEmpty)
-              GestureDetector(
-                onTap: () => context.push('/task/${task.id}'),
-                child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.description_outlined, size: 16, color: AppColors.textDim)),
+              Semantics(
+                label: '查看詳情',
+                button: true,
+                child: GestureDetector(
+                  onTap: () => context.push('/task/${task.id}'),
+                  child: const Padding(padding: EdgeInsets.all(12), child: Icon(Icons.description_outlined, size: 16, color: AppColors.textDim)),
+                ),
               ),
-            GestureDetector(
-              onTap: onMoveDate,
-              child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textDim)),
+            Semantics(
+              label: '移到其他日期',
+              button: true,
+              child: GestureDetector(
+                onTap: onMoveDate,
+                child: const Padding(padding: EdgeInsets.all(12), child: Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textDim)),
+              ),
             ),
-            GestureDetector(
-              onTap: () => showStatusPicker(context, task.status, onStatusChange),
-              child: Padding(padding: const EdgeInsets.all(4), child: Container(width: 10, height: 10, decoration: BoxDecoration(color: Color(status.color), shape: BoxShape.circle))),
+            Semantics(
+              label: '狀態：${status.label}',
+              button: true,
+              child: GestureDetector(
+                onTap: () => showStatusPicker(context, task.status, onStatusChange),
+                child: Padding(padding: const EdgeInsets.all(12), child: Container(width: 10, height: 10, decoration: BoxDecoration(color: Color(status.color), shape: BoxShape.circle))),
+              ),
             ),
           ],
         ),

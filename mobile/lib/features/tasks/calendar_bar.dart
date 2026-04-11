@@ -32,10 +32,14 @@ class CalendarBar extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          _navButton(Icons.chevron_left, () {
-            final prev = weekStart.subtract(const Duration(days: 7));
-            ref.read(selectedDateProvider.notifier).setDate(_fmt(prev));
-          }),
+          Semantics(
+            label: '上一週',
+            button: true,
+            child: _navButton(Icons.chevron_left, () {
+              final prev = weekStart.subtract(const Duration(days: 7));
+              ref.read(selectedDateProvider.notifier).setDate(_fmt(prev));
+            }),
+          ),
           ...List.generate(7, (i) {
             final day = weekStart.add(Duration(days: i));
             final dayStr = _fmt(day);
@@ -43,7 +47,11 @@ class CalendarBar extends ConsumerWidget {
             final hasTasks = dots.contains(dayStr);
 
             return Expanded(
-              child: GestureDetector(
+              child: Semantics(
+                label: '${dayNames[i]} ${day.day}日',
+                button: true,
+                selected: isSelected,
+                child: GestureDetector(
                 onTap: () {
                   ref.read(selectedDateProvider.notifier).setDate(dayStr);
                 },
@@ -95,27 +103,36 @@ class CalendarBar extends ConsumerWidget {
                   ),
                 ),
               ),
+              ),
             );
           }),
-          _navButton(Icons.chevron_right, () {
+          Semantics(
+            label: '下一週',
+            button: true,
+            child: _navButton(Icons.chevron_right, () {
             final next = weekStart.add(const Duration(days: 7));
             ref.read(selectedDateProvider.notifier).setDate(_fmt(next));
           }),
+          ),
           Container(
             width: 1,
             height: 20,
             margin: const EdgeInsets.symmetric(horizontal: 4),
             color: AppColors.border,
           ),
-          GestureDetector(
-            onTap: () {
-              ref.read(selectedDateProvider.notifier).setDate(_fmt(DateTime.now()));
-            },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Text(
-                '今天',
-                style: TextStyle(fontSize: 13, color: AppColors.foreground),
+          Semantics(
+            label: '回到今天',
+            button: true,
+            child: GestureDetector(
+              onTap: () {
+                ref.read(selectedDateProvider.notifier).setDate(_fmt(DateTime.now()));
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Text(
+                  '今天',
+                  style: TextStyle(fontSize: 13, color: AppColors.foreground),
+                ),
               ),
             ),
           ),
@@ -128,7 +145,7 @@ class CalendarBar extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: const EdgeInsets.all(12),
         child: Icon(icon, size: 18, color: AppColors.textDim),
       ),
     );
