@@ -3,14 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill_delta_from_html/flutter_quill_delta_from_html.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
 
 import '../core/theme.dart';
 
-/// Shared rich-text editor backed by flutter_quill.
-///
-/// Converts HTML ↔ Quill Delta automatically so the rest of the app
-/// only deals with HTML strings (matching the web client).
 class QuillEditorWidget extends StatefulWidget {
   const QuillEditorWidget({
     super.key,
@@ -21,6 +18,7 @@ class QuillEditorWidget extends StatefulWidget {
     this.placeholder,
     this.showCodeBlock = true,
     this.showListCheck = true,
+    this.showSlashMenu = false,
   });
 
   final String initialHtml;
@@ -30,6 +28,7 @@ class QuillEditorWidget extends StatefulWidget {
   final String? placeholder;
   final bool showCodeBlock;
   final bool showListCheck;
+  final bool showSlashMenu;
 
   @override
   State<QuillEditorWidget> createState() => _QuillEditorWidgetState();
@@ -38,6 +37,11 @@ class QuillEditorWidget extends StatefulWidget {
 class _QuillEditorWidgetState extends State<QuillEditorWidget> {
   late final QuillController _controller;
   Timer? _debounce;
+
+  // Slash menu state
+  bool _showSlash = false;
+  String _slashFilter = '';
+  int _slashStartOffset = -1;
 
   @override
   void initState() {
@@ -56,7 +60,6 @@ class _QuillEditorWidgetState extends State<QuillEditorWidget> {
         final delta = converter.convert(html);
         doc = Document.fromDelta(delta);
       } catch (_) {
-        // Fallback: treat as plain text
         doc = Document()..insert(0, html);
       }
     }
@@ -68,12 +71,78 @@ class _QuillEditorWidgetState extends State<QuillEditorWidget> {
   }
 
   void _onDocChange() {
+    // Debounced HTML export
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 800), () {
       if (!mounted) return;
       final html = _deltaToHtml(_controller.document);
       widget.onChanged?.call(html);
     });
+
+    // Slash menu detection
+    if (widget.showSlashMenu) {
+      _detectSlash();
+    }
+  }
+
+  void _detectSlash() {
+    final sel = _controller.selection;
+    if (!sel.isCollapsed) {
+      if (_showSlash) setState(() => _showSlash = false);
+      return;
+    }
+
+    final offset = sel.baseOffset;
+    final doc = _controller.document;
+    final docLength = doc.length;
+
+    if (offset <= 0 || offset > docLength) {
+      if (_showSlash) setState(() => _showSlash = false);
+      return;
+    }
+
+    // Find the start of the current line
+    final text = doc.toPlainText();
+    if (offset > text.length) {
+      if (_showSlash) setState(() => _showSlash = false);
+      return;
+    }
+
+    // Look backwards from cursor to find /
+    int lineStart = offset - 1;
+    while (lineStart > 0 && text[lineStart - 1] != '\n') {
+      lineStart--;
+    }
+
+    final lineText = text.substring(lineStart, offset);
+
+    if (lineText.startsWith('/')) {
+      final filter = lineText.substring(1);
+      if (!_showSlash || _slashFilter != filter) {
+        setState(() {
+          _showSlash = true;
+          _slashFilter = filter;
+          _slashStartOffset = lineStart;
+        });
+      }
+    } else {
+      if (_showSlash) setState(() => _showSlash = false);
+    }
+  }
+
+  void _applySlashCommand(_SlashItem item) {
+    final offset = _controller.selection.baseOffset;
+    final deleteLength = offset - _slashStartOffset;
+
+    // Delete the "/" and any filter text
+    _controller.replaceText(_slashStartOffset, deleteLength, '', null);
+
+    // Apply the block attribute
+    if (item.attribute != null) {
+      _controller.formatSelection(item.attribute!);
+    }
+
+    setState(() => _showSlash = false);
   }
 
   String _deltaToHtml(Document document) {
@@ -162,79 +231,193 @@ class _QuillEditorWidgetState extends State<QuillEditorWidget> {
             ),
           ),
         Expanded(
-          child: QuillEditor.basic(
-            controller: _controller,
-            config: QuillEditorConfig(
-              placeholder: widget.placeholder ?? '',
-              padding: const EdgeInsets.all(16),
-              customStyles: DefaultStyles(
-                paragraph: DefaultTextBlockStyle(
-                  TextStyle(
-                    color: AppColors.foreground,
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
-                  const HorizontalSpacing(0, 0),
-                  const VerticalSpacing(0, 8),
-                  const VerticalSpacing(0, 0),
-                  null,
-                ),
-                h1: DefaultTextBlockStyle(
-                  TextStyle(
-                    color: AppColors.foreground,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    height: 1.3,
-                  ),
-                  const HorizontalSpacing(0, 0),
-                  const VerticalSpacing(16, 8),
-                  const VerticalSpacing(0, 0),
-                  null,
-                ),
-                h2: DefaultTextBlockStyle(
-                  TextStyle(
-                    color: AppColors.foreground,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    height: 1.3,
-                  ),
-                  const HorizontalSpacing(0, 0),
-                  const VerticalSpacing(12, 8),
-                  const VerticalSpacing(0, 0),
-                  null,
-                ),
-                h3: DefaultTextBlockStyle(
-                  TextStyle(
-                    color: AppColors.foreground,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    height: 1.3,
-                  ),
-                  const HorizontalSpacing(0, 0),
-                  const VerticalSpacing(8, 8),
-                  const VerticalSpacing(0, 0),
-                  null,
-                ),
-                code: DefaultTextBlockStyle(
-                  TextStyle(
-                    color: AppColors.foreground,
-                    fontSize: 14,
-                    fontFamily: 'monospace',
-                    height: 1.5,
-                  ),
-                  const HorizontalSpacing(0, 0),
-                  const VerticalSpacing(8, 8),
-                  const VerticalSpacing(0, 0),
-                  BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(4),
+          child: Stack(
+            children: [
+              QuillEditor.basic(
+                controller: _controller,
+                config: QuillEditorConfig(
+                  placeholder: widget.placeholder ?? '',
+                  padding: const EdgeInsets.all(16),
+                  customStyles: DefaultStyles(
+                    paragraph: DefaultTextBlockStyle(
+                      TextStyle(
+                        color: AppColors.foreground,
+                        fontSize: 16,
+                        height: 1.5,
+                      ),
+                      const HorizontalSpacing(0, 0),
+                      const VerticalSpacing(0, 8),
+                      const VerticalSpacing(0, 0),
+                      null,
+                    ),
+                    h1: DefaultTextBlockStyle(
+                      TextStyle(
+                        color: AppColors.foreground,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        height: 1.3,
+                      ),
+                      const HorizontalSpacing(0, 0),
+                      const VerticalSpacing(16, 8),
+                      const VerticalSpacing(0, 0),
+                      null,
+                    ),
+                    h2: DefaultTextBlockStyle(
+                      TextStyle(
+                        color: AppColors.foreground,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        height: 1.3,
+                      ),
+                      const HorizontalSpacing(0, 0),
+                      const VerticalSpacing(12, 8),
+                      const VerticalSpacing(0, 0),
+                      null,
+                    ),
+                    h3: DefaultTextBlockStyle(
+                      TextStyle(
+                        color: AppColors.foreground,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        height: 1.3,
+                      ),
+                      const HorizontalSpacing(0, 0),
+                      const VerticalSpacing(8, 8),
+                      const VerticalSpacing(0, 0),
+                      null,
+                    ),
+                    code: DefaultTextBlockStyle(
+                      TextStyle(
+                        color: AppColors.foreground,
+                        fontSize: 14,
+                        fontFamily: 'monospace',
+                        height: 1.5,
+                      ),
+                      const HorizontalSpacing(0, 0),
+                      const VerticalSpacing(8, 8),
+                      const VerticalSpacing(0, 0),
+                      BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+
+              // Slash command menu overlay
+              if (_showSlash)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: _SlashCommandMenu(
+                    filter: _slashFilter,
+                    onSelect: _applySlashCommand,
+                    onDismiss: () => setState(() => _showSlash = false),
+                  ),
+                ),
+            ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SlashItem {
+  final String label;
+  final IconData icon;
+  final Attribute? attribute;
+
+  const _SlashItem(this.label, this.icon, this.attribute);
+}
+
+const _allSlashItems = [
+  _SlashItem('Text', LucideIcons.type, Attribute.header),
+  _SlashItem('Heading 1', LucideIcons.heading1, Attribute.h1),
+  _SlashItem('Heading 2', LucideIcons.heading2, Attribute.h2),
+  _SlashItem('Heading 3', LucideIcons.heading3, Attribute.h3),
+  _SlashItem('Bullet List', LucideIcons.list, Attribute.ul),
+  _SlashItem('Numbered List', LucideIcons.listOrdered, Attribute.ol),
+  _SlashItem('Quote', LucideIcons.quote, Attribute.blockQuote),
+  _SlashItem('Code Block', LucideIcons.code, Attribute.codeBlock),
+];
+
+class _SlashCommandMenu extends StatelessWidget {
+  final String filter;
+  final ValueChanged<_SlashItem> onSelect;
+  final VoidCallback onDismiss;
+
+  const _SlashCommandMenu({
+    required this.filter,
+    required this.onSelect,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = filter.isEmpty
+        ? _allSlashItems
+        : _allSlashItems.where((item) =>
+            item.label.toLowerCase().contains(filter.toLowerCase())).toList();
+
+    if (filtered.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 320),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Filter hint
+          if (filter.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+              child: Row(
+                children: [
+                  Text('篩選：', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
+                  Text(filter, style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                ],
+              ),
+            ),
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              itemCount: filtered.length,
+              itemBuilder: (_, i) {
+                final item = filtered[i];
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onSelect(item),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: AppColors.muted,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Icon(item.icon, size: 16, color: AppColors.foreground),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(item.label, style: TextStyle(fontSize: 15, color: AppColors.foreground)),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
