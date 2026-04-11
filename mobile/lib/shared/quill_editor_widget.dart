@@ -111,8 +111,8 @@ class _QuillEditorWidgetState extends State<QuillEditorWidget> {
             child: QuillSimpleToolbar(
               controller: _controller,
               config: const QuillSimpleToolbarConfig(
-                showBoldButton: true,
-                showItalicButton: true,
+                showBoldButton: false,
+                showItalicButton: false,
                 showHeaderStyle: true,
                 showListNumbers: true,
                 showListBullets: true,
