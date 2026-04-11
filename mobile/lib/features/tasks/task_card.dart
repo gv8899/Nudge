@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/theme.dart';
 import 'models.dart';
 import 'task_status_picker.dart';
 
@@ -30,25 +31,25 @@ class TaskCard extends StatelessWidget {
                 width: 20, height: 20,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: isDone ? const Color(0xFFD4A574) : const Color(0xFF8A8578), width: 2),
-                  color: isDone ? const Color(0xFFD4A574) : Colors.transparent,
+                  border: Border.all(color: isDone ? AppColors.primary : AppColors.textDim, width: 2),
+                  color: isDone ? AppColors.primary : Colors.transparent,
                 ),
-                child: isDone ? const Icon(Icons.check, size: 14, color: Color(0xFF1C1B18)) : null,
+                child: isDone ? const Icon(Icons.check, size: 14, color: AppColors.onPrimary) : null,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(task.title, style: TextStyle(fontSize: 14, color: isDone ? const Color(0xFF8A8578) : const Color(0xFFEBE5D4), decoration: isDone ? TextDecoration.lineThrough : null), maxLines: 2, overflow: TextOverflow.ellipsis),
+              child: Text(task.title, style: TextStyle(fontSize: 14, color: isDone ? AppColors.textDim : AppColors.foreground, decoration: isDone ? TextDecoration.lineThrough : null), maxLines: 2, overflow: TextOverflow.ellipsis),
             ),
             const SizedBox(width: 8),
             if (task.description != null && task.description!.isNotEmpty)
               GestureDetector(
                 onTap: () => context.push('/task/${task.id}'),
-                child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.description_outlined, size: 16, color: Color(0xFF8A8578))),
+                child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.description_outlined, size: 16, color: AppColors.textDim)),
               ),
             GestureDetector(
               onTap: onMoveDate,
-              child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF8A8578))),
+              child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textDim)),
             ),
             GestureDetector(
               onTap: () => showStatusPicker(context, task.status, onStatusChange),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'core/theme.dart';
 import 'features/auth/auth_provider.dart';
 import 'features/auth/login_screen.dart';
 import 'features/tasks/tasks_screen.dart';
@@ -96,43 +97,43 @@ class NudgeApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF1C1B18),
+        scaffoldBackgroundColor: AppColors.background,
         colorScheme: ColorScheme.dark(
-          surface: const Color(0xFF1C1B18),
-          primary: const Color(0xFFD4A574),
-          onPrimary: const Color(0xFF1C1B18),
-          secondary: const Color(0xFF2A2825),
-          onSurface: const Color(0xFFEBE5D4),
+          surface: AppColors.background,
+          primary: AppColors.primary,
+          onPrimary: AppColors.onPrimary,
+          secondary: AppColors.card,
+          onSurface: AppColors.foreground,
         ),
         navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: const Color(0xFF2A2825),
-          indicatorColor: const Color(0xFFD4A574).withValues(alpha: 0.2),
+          backgroundColor: AppColors.card,
+          indicatorColor: AppColors.primary.withValues(alpha: 0.2),
           labelTextStyle: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFFD4A574),
+                color: AppColors.primary,
               );
             }
             return const TextStyle(
               fontSize: 11,
-              color: Color(0xFF8A8578),
+              color: AppColors.textDim,
             );
           }),
           iconTheme: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
-              return const IconThemeData(color: Color(0xFFD4A574), size: 22);
+              return const IconThemeData(color: AppColors.primary, size: 22);
             }
-            return const IconThemeData(color: Color(0xFF8A8578), size: 22);
+            return const IconThemeData(color: AppColors.textDim, size: 22);
           }),
         ),
         textTheme: const TextTheme(
-          headlineLarge: TextStyle(color: Color(0xFFEBE5D4)),
-          headlineSmall: TextStyle(color: Color(0xFFEBE5D4)),
-          titleMedium: TextStyle(color: Color(0xFFEBE5D4)),
-          bodyMedium: TextStyle(color: Color(0xFFEBE5D4)),
-          bodySmall: TextStyle(color: Color(0xFF8A8578)),
+          headlineLarge: TextStyle(color: AppColors.foreground),
+          headlineSmall: TextStyle(color: AppColors.foreground),
+          titleMedium: TextStyle(color: AppColors.foreground),
+          bodyMedium: TextStyle(color: AppColors.foreground),
+          bodySmall: TextStyle(color: AppColors.textDim),
         ),
       ),
       routerConfig: router,

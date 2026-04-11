@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/theme.dart';
 import 'tasks_provider.dart';
 
 class CalendarBar extends ConsumerWidget {
@@ -26,7 +27,7 @@ class CalendarBar extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2825),
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -50,7 +51,7 @@ class CalendarBar extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFFD4A574)
+                        ? AppColors.primary
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -63,7 +64,7 @@ class CalendarBar extends ConsumerWidget {
                           height: 4,
                           margin: const EdgeInsets.only(bottom: 2),
                           decoration: const BoxDecoration(
-                            color: Color(0xFFD4A574),
+                            color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
                         )
@@ -74,8 +75,8 @@ class CalendarBar extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 11,
                           color: isSelected
-                              ? const Color(0xFF1C1B18)
-                              : const Color(0xFF8A8578),
+                              ? AppColors.onPrimary
+                              : AppColors.textDim,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -86,8 +87,8 @@ class CalendarBar extends ConsumerWidget {
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.w500,
                           color: isSelected
-                              ? const Color(0xFF1C1B18)
-                              : const Color(0xFFEBE5D4),
+                              ? AppColors.onPrimary
+                              : AppColors.foreground,
                         ),
                       ),
                     ],
@@ -104,7 +105,7 @@ class CalendarBar extends ConsumerWidget {
             width: 1,
             height: 20,
             margin: const EdgeInsets.symmetric(horizontal: 4),
-            color: const Color(0xFF3A3835),
+            color: AppColors.border,
           ),
           GestureDetector(
             onTap: () {
@@ -114,7 +115,7 @@ class CalendarBar extends ConsumerWidget {
               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: Text(
                 '今天',
-                style: TextStyle(fontSize: 13, color: Color(0xFFEBE5D4)),
+                style: TextStyle(fontSize: 13, color: AppColors.foreground),
               ),
             ),
           ),
@@ -128,7 +129,7 @@ class CalendarBar extends ConsumerWidget {
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(4),
-        child: Icon(icon, size: 18, color: const Color(0xFF8A8578)),
+        child: Icon(icon, size: 18, color: AppColors.textDim),
       ),
     );
   }

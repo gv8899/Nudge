@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme.dart';
 
 class TaskCreateInput extends StatefulWidget {
   final ValueChanged<String> onSubmit;
@@ -28,13 +29,13 @@ class _TaskCreateInputState extends State<TaskCreateInput> {
       child: TextField(
         controller: _controller,
         onSubmitted: (_) => _submit(),
-        style: const TextStyle(fontSize: 14, color: Color(0xFFEBE5D4)),
+        style: const TextStyle(fontSize: 14, color: AppColors.foreground),
         decoration: const InputDecoration(
           hintText: '新增任務',
-          hintStyle: TextStyle(color: Color(0xFF6B6560), fontSize: 14),
-          border: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF3A3835))),
-          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF3A3835))),
-          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFD4A574))),
+          hintStyle: TextStyle(color: AppColors.textFaint, fontSize: 14),
+          border: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.border)),
+          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.border)),
+          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
           contentPadding: EdgeInsets.symmetric(vertical: 12),
           isDense: true,
         ),

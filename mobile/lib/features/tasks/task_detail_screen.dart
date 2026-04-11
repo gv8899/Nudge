@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
+import '../../core/theme.dart';
 import '../auth/auth_provider.dart';
 import 'models.dart';
 import 'tasks_provider.dart';
@@ -43,7 +44,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1C1B18),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -94,10 +95,10 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                     ? TextField(
                         controller: _titleController,
                         autofocus: true,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFFEBE5D4)),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground),
                         decoration: const InputDecoration(
-                          border: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFD4A574))),
-                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFD4A574))),
+                          border: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
+                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary)),
                         ),
                         onSubmitted: (value) async {
                           final trimmed = value.trim();
@@ -110,16 +111,16 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                       )
                     : GestureDetector(
                         onTap: () => setState(() => _isEditingTitle = true),
-                        child: Text(task.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFFEBE5D4))),
+                        child: Text(task.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
                       ),
                 const SizedBox(height: 24),
                 if (task.description != null && task.description!.isNotEmpty)
                   HtmlWidget(
                     task.description!,
-                    textStyle: const TextStyle(fontSize: 14, color: Color(0xFFBBB5A0), height: 1.6),
+                    textStyle: const TextStyle(fontSize: 14, color: AppColors.textMuted, height: 1.6),
                   )
                 else
-                  const Text('沒有內容', style: TextStyle(fontSize: 14, color: Color(0xFF6B6560), fontStyle: FontStyle.italic)),
+                  const Text('沒有內容', style: TextStyle(fontSize: 14, color: AppColors.textFaint, fontStyle: FontStyle.italic)),
               ],
             ),
           );

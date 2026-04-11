@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../core/theme.dart';
 import 'tasks_provider.dart';
 import 'calendar_bar.dart';
 import 'task_create_input.dart';
@@ -29,8 +30,8 @@ class TasksScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(dayOfWeek, style: const TextStyle(fontSize: 12, color: Color(0xFFD4A574))),
-                  Text(dateDisplay, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFFEBE5D4))),
+                  Text(dayOfWeek, style: const TextStyle(fontSize: 12, color: AppColors.primary)),
+                  Text(dateDisplay, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
                 ],
               ),
             ),
@@ -114,7 +115,7 @@ class TasksScreen extends ConsumerWidget {
                         if (sorted.isEmpty && data.overdueTasks.isEmpty)
                           const Padding(
                             padding: EdgeInsets.only(top: 32),
-                            child: Center(child: Text('今天還沒有任務', style: TextStyle(fontSize: 14, color: Color(0xFF8A8578)))),
+                            child: Center(child: Text('今天還沒有任務', style: TextStyle(fontSize: 14, color: AppColors.textDim))),
                           ),
                       ],
                     ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../core/theme.dart';
 import 'models.dart';
 
 class OverdueSection extends StatefulWidget {
@@ -38,11 +39,11 @@ class _OverdueSectionState extends State<OverdueSection> {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
             child: Row(
               children: [
-                Icon(_isExpanded ? Icons.expand_more : Icons.chevron_right, size: 18, color: const Color(0xFFD4A574)),
+                Icon(_isExpanded ? Icons.expand_more : Icons.chevron_right, size: 18, color: AppColors.primary),
                 const SizedBox(width: 4),
-                const Icon(Icons.schedule, size: 16, color: Color(0xFFD4A574)),
+                const Icon(Icons.schedule, size: 16, color: AppColors.primary),
                 const SizedBox(width: 6),
-                Text('前幾天的 (${widget.overdueTasks.length})', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFFD4A574))),
+                Text('前幾天的 (${widget.overdueTasks.length})', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.primary)),
               ],
             ),
           ),
@@ -60,21 +61,21 @@ class _OverdueSectionState extends State<OverdueSection> {
         children: [
           GestureDetector(
             onTap: () => widget.onToggleComplete(a.id, a.taskId, true),
-            child: Container(width: 20, height: 20, decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), border: Border.all(color: const Color(0xFF8A8578), width: 2))),
+            child: Container(width: 20, height: 20, decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), border: Border.all(color: AppColors.textDim, width: 2))),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Row(
               children: [
-                Flexible(child: Text(a.task.title, style: const TextStyle(fontSize: 14, color: Color(0xFFEBE5D4)), overflow: TextOverflow.ellipsis)),
+                Flexible(child: Text(a.task.title, style: const TextStyle(fontSize: 14, color: AppColors.foreground), overflow: TextOverflow.ellipsis)),
                 const SizedBox(width: 8),
-                Text(dateStr, style: const TextStyle(fontSize: 11, color: Color(0xFF8A8578))),
+                Text(dateStr, style: const TextStyle(fontSize: 11, color: AppColors.textDim)),
               ],
             ),
           ),
           GestureDetector(
             onTap: () => widget.onReschedule(a.id, widget.currentDate),
-            child: const Padding(padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4), child: Text('排入今天', style: TextStyle(fontSize: 11, color: Color(0xFFD4A574)))),
+            child: const Padding(padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4), child: Text('排入今天', style: TextStyle(fontSize: 11, color: AppColors.primary))),
           ),
           GestureDetector(
             onTap: () async {
@@ -84,11 +85,11 @@ class _OverdueSectionState extends State<OverdueSection> {
                 widget.onReschedule(a.id, fmt);
               }
             },
-            child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF8A8578))),
+            child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textDim)),
           ),
           GestureDetector(
             onTap: () => _confirmArchive(a),
-            child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.archive_outlined, size: 16, color: Color(0xFF8A8578))),
+            child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.archive_outlined, size: 16, color: AppColors.textDim)),
           ),
         ],
       ),
@@ -99,9 +100,9 @@ class _OverdueSectionState extends State<OverdueSection> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2825),
+        backgroundColor: AppColors.card,
         title: const Text('封存任務', style: TextStyle(fontSize: 16)),
-        content: Text('確定要封存「${a.task.title}」嗎？', style: const TextStyle(fontSize: 14, color: Color(0xFF8A8578))),
+        content: Text('確定要封存「${a.task.title}」嗎？', style: const TextStyle(fontSize: 14, color: AppColors.textDim)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
           TextButton(onPressed: () { Navigator.pop(ctx); widget.onArchive(a.id, a.taskId); }, child: const Text('封存', style: TextStyle(color: Colors.redAccent))),
