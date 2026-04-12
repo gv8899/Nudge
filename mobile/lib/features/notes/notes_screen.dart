@@ -58,9 +58,9 @@ class NotesScreen extends ConsumerWidget {
                   onChanged: (htmlContent) {
                     ref.read(notesActionsProvider).save(selectedDate, htmlContent);
                   },
-                  showToolbar: true,
-                  showCodeBlock: false,
-                  showListCheck: false,
+                  showToolbar: false,
+                  showSlashMenu: true,
+                  placeholder: '輸入 / 開啟格式選單',
                 ),
               ),
             ),
