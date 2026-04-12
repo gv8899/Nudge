@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Tag as TagIcon, Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useTags } from "@/hooks/use-tags";
 import { TagBadge } from "./tag-badge";
@@ -15,6 +16,8 @@ interface TagPickerProps {
 }
 
 export function TagPicker({ taskId, selectedTags, onTagsChange }: TagPickerProps) {
+  const t = useTranslations("tags");
+  const tCommon = useTranslations("common");
   const { tags: allTags, mutate: mutateTags } = useTags();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -71,16 +74,16 @@ export function TagPicker({ taskId, selectedTags, onTagsChange }: TagPickerProps
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           className="inline-flex items-center gap-1.5 text-xs text-text-dim hover:text-foreground transition-colors px-2 py-1 rounded hover:bg-muted cursor-pointer"
-          aria-label="新增標籤"
+          aria-label={t("addTag")}
         >
           <TagIcon className="h-3.5 w-3.5" />
-          <span>{selectedTags.length === 0 ? "加標籤" : "+"}</span>
+          <span>{selectedTags.length === 0 ? t("addTagShort") : "+"}</span>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-56 p-0">
           {creatingName !== null ? (
             <div className="p-3 space-y-3">
               <div className="text-xs font-medium text-foreground">
-                建立「{creatingName}」
+                {t("createNamed", { name: creatingName })}
               </div>
               <TagColorPicker value={newColor} onChange={setNewColor} />
               <div className="flex justify-end gap-2">
@@ -89,14 +92,14 @@ export function TagPicker({ taskId, selectedTags, onTagsChange }: TagPickerProps
                   onClick={() => setCreatingName(null)}
                   className="text-xs text-text-dim hover:text-foreground transition-colors"
                 >
-                  取消
+                  {tCommon("cancel")}
                 </button>
                 <button
                   type="button"
                   onClick={createTag}
                   className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
                 >
-                  建立
+                  {t("create")}
                 </button>
               </div>
             </div>
@@ -107,7 +110,7 @@ export function TagPicker({ taskId, selectedTags, onTagsChange }: TagPickerProps
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="搜尋或建立標籤..."
+                  placeholder={t("searchOrCreate")}
                   className="w-full text-sm bg-transparent outline-none placeholder:text-text-faint text-foreground"
                   autoFocus
                 />
@@ -137,7 +140,7 @@ export function TagPicker({ taskId, selectedTags, onTagsChange }: TagPickerProps
                     className="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded text-sm hover:bg-muted transition-colors text-primary"
                   >
                     <Plus className="h-3 w-3" />
-                    建立「{search.trim()}」
+                    {t("createNamed", { name: search.trim() })}
                   </button>
                 )}
               </div>
