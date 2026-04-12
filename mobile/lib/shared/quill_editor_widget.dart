@@ -52,7 +52,10 @@ class _QuillEditorWidgetState extends State<QuillEditorWidget> {
 
   QuillController _buildController(String html) {
     Document doc;
-    if (html.trim().isEmpty) {
+    // 把所有 tag 拿掉後若是空字串（例如 <p></p>、<p><br></p>），就當成空文件，
+    // 否則 HtmlToDelta 對空段落可能丟例外而 fallback 成把原始 html 當純文字插入
+    final stripped = html.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+    if (stripped.isEmpty) {
       doc = Document();
     } else {
       try {
@@ -60,7 +63,7 @@ class _QuillEditorWidgetState extends State<QuillEditorWidget> {
         final delta = converter.convert(html);
         doc = Document.fromDelta(delta);
       } catch (_) {
-        doc = Document()..insert(0, html);
+        doc = Document()..insert(0, stripped);
       }
     }
     return QuillController(

@@ -22,7 +22,7 @@ class TagColorPicker extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: tc.color,
+              color: tc.resolve(context),
               shape: BoxShape.circle,
               border: isSelected
                   ? Border.all(color: AppColors.foreground, width: 2)

@@ -12,7 +12,7 @@ class TagBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = TagColor.resolve(colorToken);
+    final color = TagColor.forToken(context, colorToken);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(

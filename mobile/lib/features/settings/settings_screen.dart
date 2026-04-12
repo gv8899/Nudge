@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
 import '../auth/auth_provider.dart';
+import '../cards/cards_provider.dart';
 import '../tags/tag_manager.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -32,42 +33,34 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // 帳號資料
-            _SectionTitle(title: '帳號資料'),
-            const SizedBox(height: 12),
             if (authState.user != null) _UserProfile(user: authState.user!),
             const SizedBox(height: 24),
 
             // 主題
-            _SectionTitle(title: '主題'),
-            const SizedBox(height: 12),
             _ThemeSelector(
               current: themeMode,
               onChanged: (mode) => ref.read(themeProvider.notifier).setTheme(mode),
             ),
             const SizedBox(height: 24),
 
-            // 標籤管理
-            _SectionTitle(title: '標籤管理'),
-            const SizedBox(height: 12),
+            // 標籤管理（TagManager 自己有標題）
             const TagManager(),
             const SizedBox(height: 24),
 
             // 清除空白卡片
-            _SectionTitle(title: '維護'),
-            const SizedBox(height: 12),
-            _CleanUntitledButton(ref: ref),
+            const _CleanUntitledButton(),
             const SizedBox(height: 24),
 
             // 登出
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => ref.read(authProvider.notifier).logout(),
+                onPressed: () => _confirmLogout(context, ref),
                 icon: const Icon(LucideIcons.logOut, size: 18),
                 label: const Text('登出'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.destructive,
-                  side: BorderSide(color: AppColors.destructive.withValues(alpha: 0.4)),
+                  side: BorderSide(color: AppColors.destructiveBorder),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
@@ -77,23 +70,29 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
-}
 
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  const _SectionTitle({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 1.2,
-        color: AppColors.textDim,
+  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.card,
+        title: const Text('登出', style: TextStyle(fontSize: 16)),
+        content: Text(
+          '確定要登出嗎？',
+          style: TextStyle(fontSize: 14, color: AppColors.textDim),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('登出', style: TextStyle(color: AppColors.destructive)),
+          ),
+        ],
       ),
     );
+    if (confirmed == true) {
+      ref.read(authProvider.notifier).logout();
+    }
   }
 }
 
@@ -125,8 +124,14 @@ class _UserProfile extends StatelessWidget {
               avatarUrl,
               width: 48,
               height: 48,
+              cacheWidth: 96,
+              cacheHeight: 96,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _InitialsAvatar(name: name),
+              loadingBuilder: (ctx, child, progress) {
+                if (progress == null) return child;
+                return _InitialsAvatar(name: name);
+              },
+              errorBuilder: (_, _, _) => _InitialsAvatar(name: name),
             ),
           )
         else
@@ -200,14 +205,14 @@ class _ThemeSelector extends StatelessWidget {
       children: [
         _ThemeOption(
           icon: LucideIcons.sun,
-          label: 'Light',
+          label: '淺色',
           isSelected: current == AppThemeMode.light,
           onTap: () => onChanged(AppThemeMode.light),
         ),
         const SizedBox(width: 8),
         _ThemeOption(
           icon: LucideIcons.moon,
-          label: 'Dark',
+          label: '深色',
           isSelected: current == AppThemeMode.dark,
           onTap: () => onChanged(AppThemeMode.dark),
         ),
@@ -239,29 +244,38 @@ class _ThemeOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
+      child: Semantics(
+        button: true,
+        selected: isSelected,
+        label: label,
+        child: Material(
+          color: isSelected ? AppColors.primarySoft : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          child: InkWell(
+            onTap: onTap,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.border,
-            ),
-            color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
-          ),
-          child: Column(
-            children: [
-              Icon(icon, size: 20, color: isSelected ? AppColors.primary : AppColors.textDim),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: isSelected ? AppColors.primary : AppColors.textDim,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : AppColors.border,
                 ),
               ),
-            ],
+              child: Column(
+                children: [
+                  Icon(icon, size: 20, color: isSelected ? AppColors.primary : AppColors.textDim),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isSelected ? AppColors.primary : AppColors.textDim,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -269,15 +283,14 @@ class _ThemeOption extends StatelessWidget {
   }
 }
 
-class _CleanUntitledButton extends StatefulWidget {
-  final WidgetRef ref;
-  const _CleanUntitledButton({required this.ref});
+class _CleanUntitledButton extends ConsumerStatefulWidget {
+  const _CleanUntitledButton();
 
   @override
-  State<_CleanUntitledButton> createState() => _CleanUntitledButtonState();
+  ConsumerState<_CleanUntitledButton> createState() => _CleanUntitledButtonState();
 }
 
-class _CleanUntitledButtonState extends State<_CleanUntitledButton> {
+class _CleanUntitledButtonState extends ConsumerState<_CleanUntitledButton> {
   bool _loading = false;
 
   Future<void> _clean() async {
@@ -304,9 +317,10 @@ class _CleanUntitledButtonState extends State<_CleanUntitledButton> {
 
     setState(() => _loading = true);
     try {
-      final api = widget.ref.read(apiClientProvider);
+      final api = ref.read(apiClientProvider);
       final res = await api.dio.delete('/api/cards/untitled');
       final deleted = res.data['deleted'] ?? 0;
+      ref.invalidate(cardsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -334,7 +348,7 @@ class _CleanUntitledButtonState extends State<_CleanUntitledButton> {
         icon: _loading
             ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textDim))
             : Icon(LucideIcons.eraser, size: 18),
-        label: Text(_loading ? '清除中...' : '清除空白卡片'),
+        label: Text(_loading ? '清除中…' : '清除空白卡片'),
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textDim,
           side: BorderSide(color: AppColors.border),

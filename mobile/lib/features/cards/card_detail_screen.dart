@@ -147,7 +147,7 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                     },
                     showToolbar: false,
                     showSlashMenu: true,
-                    placeholder: '輸入 / 開啟格式選單',
+                    placeholder: '打 / 插入標題、清單…',
                   ),
                 ),
               ],
@@ -257,7 +257,7 @@ class _MetadataSheetState extends ConsumerState<_MetadataSheet> {
             ...allTags.map((tag) {
               final isSelected = _tagIds.contains(tag.id);
               return ListTile(
-                leading: Container(width: 12, height: 12, decoration: BoxDecoration(color: tag_models.TagColor.resolve(tag.color), shape: BoxShape.circle)),
+                leading: Container(width: 12, height: 12, decoration: BoxDecoration(color: tag_models.TagColor.forToken(context, tag.color), shape: BoxShape.circle)),
                 title: Text(tag.name, style: TextStyle(fontSize: 14, color: AppColors.foreground)),
                 trailing: isSelected ? Icon(LucideIcons.check, size: 18, color: AppColors.primary) : null,
                 onTap: () => _toggleTag(tag.id),
@@ -283,7 +283,7 @@ class _MetadataSheetState extends ConsumerState<_MetadataSheet> {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: tc.color,
+                          color: tc.resolve(context),
                           shape: BoxShape.circle,
                           border: isSelected ? Border.all(color: AppColors.primary, width: 2) : null,
                         ),

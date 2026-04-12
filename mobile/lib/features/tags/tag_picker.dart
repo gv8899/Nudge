@@ -128,7 +128,7 @@ class _TagPickerState extends ConsumerState<TagPicker> {
                             width: 12,
                             height: 12,
                             decoration: BoxDecoration(
-                                color: TagColor.resolve(tag.color),
+                                color: TagColor.forToken(context, tag.color),
                                 shape: BoxShape.circle)),
                         title: Text(tag.name,
                             style: TextStyle(

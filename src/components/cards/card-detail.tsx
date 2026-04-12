@@ -195,7 +195,7 @@ export function CardDetail({ id }: CardDetailProps) {
           key={id}
           content={data.description || ""}
           onChange={handleDescChange}
-          placeholder="輸入內文..."
+          placeholder="打 / 插入標題、清單…"
           editable={true}
         />
       </div>

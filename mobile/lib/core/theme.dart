@@ -56,6 +56,12 @@ class AppColors {
   static Color get muted => _isDark ? _darkMuted : _lightMuted;
   static Color get destructive => _isDark ? _darkDestructive : _lightDestructive;
 
+  // Semantic soft variants (avoid magic alpha at call sites)
+  static Color get primarySoft =>
+      (_isDark ? _darkPrimary : _lightPrimary).withValues(alpha: 0.12);
+  static Color get destructiveBorder =>
+      (_isDark ? _darkDestructive : _lightDestructive).withValues(alpha: 0.4);
+
   // Status colors (same in both modes, matching web)
   static Color get statusInbox => _isDark ? const Color(0xFF9B9080) : const Color(0xFF7A7060);
   static Color get statusBacklog => _isDark ? const Color(0xFF7A8B9C) : const Color(0xFF5A6B7C);

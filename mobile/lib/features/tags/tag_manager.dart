@@ -50,7 +50,7 @@ class _TagManagerState extends ConsumerState<TagManager> {
                         width: 16,
                         height: 16,
                         decoration: BoxDecoration(
-                            color: TagColor.resolve(tag.color),
+                            color: TagColor.forToken(context, tag.color),
                             shape: BoxShape.circle)),
                   ),
                   const SizedBox(width: 12),

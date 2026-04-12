@@ -60,7 +60,7 @@ class NotesScreen extends ConsumerWidget {
                   },
                   showToolbar: false,
                   showSlashMenu: true,
-                  placeholder: '輸入 / 開啟格式選單',
+                  placeholder: '打 / 插入標題、清單…',
                 ),
               ),
             ),

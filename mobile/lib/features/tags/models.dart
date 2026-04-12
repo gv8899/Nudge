@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/theme.dart';
 
 class Tag {
   final String id;
@@ -30,7 +29,9 @@ class TagColor {
 
   const TagColor(this.value, this.label, this._light, this._dark);
 
-  Color get color => AppColors.isDark ? _dark : _light;
+  /// 依目前 Theme brightness 取出該 tag 色；直接讀 context 避免靜態狀態同步問題
+  Color resolve(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? _dark : _light;
 
   static const List<TagColor> all = [
     TagColor('chart-1', '灰藍', Color(0xFF5A6B7C), Color(0xFF7A8B9C)),
@@ -43,7 +44,9 @@ class TagColor {
     TagColor('status-in-progress', '天藍', Color(0xFFA87A45), Color(0xFFC89968)),
   ];
 
-  static Color resolve(String tokenName) {
-    return all.firstWhere((c) => c.value == tokenName, orElse: () => all[0]).color;
+  static Color forToken(BuildContext context, String tokenName) {
+    return all
+        .firstWhere((c) => c.value == tokenName, orElse: () => all[0])
+        .resolve(context);
   }
 }
