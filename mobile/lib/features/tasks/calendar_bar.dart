@@ -18,10 +18,11 @@ class CalendarBar extends ConsumerWidget {
     final weekStart = selected.subtract(Duration(days: weekday - 1));
 
     final dayFormatter = DateFormat('EEE', localeTag);
-    final dayNames = List.generate(
-      7,
-      (i) => dayFormatter.format(weekStart.add(Duration(days: i))),
-    );
+    // 繁中「週一/週二…」精簡成「一/二…」；其他語系照 locale default
+    final dayNames = List.generate(7, (i) {
+      final raw = dayFormatter.format(weekStart.add(Duration(days: i)));
+      return raw.startsWith('週') ? raw.substring(1) : raw;
+    });
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,

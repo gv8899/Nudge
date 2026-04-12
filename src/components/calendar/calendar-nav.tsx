@@ -83,7 +83,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
                 <span className="h-1 w-1 md:h-1.5 md:w-1.5 rounded-full bg-primary order-first md:order-none" aria-hidden="true" />
               )}
               <span className={`hidden md:inline ${isSelected ? "" : "text-muted-foreground"}`}>
-                {format(day, "EEE", { locale: dateFnsLocale })}
+                {format(day, "EEE", { locale: dateFnsLocale }).replace(/^週/, "")}
               </span>
               <span className={`text-xs md:text-sm ${isSelected ? "font-semibold" : "text-foreground font-medium"}`}>
                 {format(day, "d")}
