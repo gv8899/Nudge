@@ -362,6 +362,42 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'搜尋或建立標籤...'**
   String get tagsSearchOrCreate;
+
+  /// No description provided for @navTasks.
+  ///
+  /// In zh, this message translates to:
+  /// **'行動'**
+  String get navTasks;
+
+  /// No description provided for @navNotes.
+  ///
+  /// In zh, this message translates to:
+  /// **'日誌'**
+  String get navNotes;
+
+  /// No description provided for @navCards.
+  ///
+  /// In zh, this message translates to:
+  /// **'卡片'**
+  String get navCards;
+
+  /// No description provided for @navSettings.
+  ///
+  /// In zh, this message translates to:
+  /// **'設定'**
+  String get navSettings;
+
+  /// No description provided for @navMainNavAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'主導覽'**
+  String get navMainNavAria;
+
+  /// No description provided for @navSettingsAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'開啟設定'**
+  String get navSettingsAria;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

@@ -154,4 +154,22 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get tagsSearchOrCreate => 'Search or create tag...';
+
+  @override
+  String get navTasks => 'Tasks';
+
+  @override
+  String get navNotes => 'Notes';
+
+  @override
+  String get navCards => 'Cards';
+
+  @override
+  String get navSettings => 'Settings';
+
+  @override
+  String get navMainNavAria => 'Main navigation';
+
+  @override
+  String get navSettingsAria => 'Open settings';
 }

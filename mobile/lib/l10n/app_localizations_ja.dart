@@ -152,4 +152,22 @@ class AppL10nJa extends AppL10n {
 
   @override
   String get tagsSearchOrCreate => 'タグを検索・作成...';
+
+  @override
+  String get navTasks => 'アクション';
+
+  @override
+  String get navNotes => 'ジャーナル';
+
+  @override
+  String get navCards => 'カード';
+
+  @override
+  String get navSettings => '設定';
+
+  @override
+  String get navMainNavAria => 'メインナビ';
+
+  @override
+  String get navSettingsAria => '設定を開く';
 }

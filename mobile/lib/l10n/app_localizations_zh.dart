@@ -151,4 +151,22 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get tagsSearchOrCreate => '搜尋或建立標籤...';
+
+  @override
+  String get navTasks => '行動';
+
+  @override
+  String get navNotes => '日誌';
+
+  @override
+  String get navCards => '卡片';
+
+  @override
+  String get navSettings => '設定';
+
+  @override
+  String get navMainNavAria => '主導覽';
+
+  @override
+  String get navSettingsAria => '開啟設定';
 }
