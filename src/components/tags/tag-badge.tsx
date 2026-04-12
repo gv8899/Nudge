@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 interface TagBadgeProps {
   name: string;
   color: string;
@@ -7,6 +9,7 @@ interface TagBadgeProps {
 }
 
 export function TagBadge({ name, color, onRemove }: TagBadgeProps) {
+  const t = useTranslations("tags");
   return (
     <span
       className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded"
@@ -25,7 +28,7 @@ export function TagBadge({ name, color, onRemove }: TagBadgeProps) {
             onRemove();
           }}
           className="hover:opacity-70 transition-opacity leading-none"
-          aria-label={`移除 ${name}`}
+          aria-label={t("removeAria", { name })}
         >
           ×
         </button>
