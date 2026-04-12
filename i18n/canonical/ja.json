@@ -70,5 +70,10 @@
     "settings": "設定",
     "mainNavAria": "メインナビ",
     "settingsAria": "設定を開く"
+  },
+  "login": {
+    "tagline": "毎日のタスクをそっと後押し",
+    "signInWithGoogle": "Google でサインイン",
+    "loginFailed": "サインインに失敗しました。もう一度お試しください。"
   }
 }

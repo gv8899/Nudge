@@ -135,5 +135,11 @@
   "navMainNavAria": "主導覽",
   "@navMainNavAria": {},
   "navSettingsAria": "開啟設定",
-  "@navSettingsAria": {}
+  "@navSettingsAria": {},
+  "loginTagline": "輕量型每日任務推進工具",
+  "@loginTagline": {},
+  "loginSignInWithGoogle": "使用 Google 帳號登入",
+  "@loginSignInWithGoogle": {},
+  "loginLoginFailed": "登入失敗，請再試一次",
+  "@loginLoginFailed": {}
 }

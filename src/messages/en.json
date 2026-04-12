@@ -70,5 +70,10 @@
     "settings": "Settings",
     "mainNavAria": "Main navigation",
     "settingsAria": "Open settings"
+  },
+  "login": {
+    "tagline": "A lightweight nudge for your daily tasks",
+    "signInWithGoogle": "Sign in with Google",
+    "loginFailed": "Sign-in failed. Please try again."
   }
 }

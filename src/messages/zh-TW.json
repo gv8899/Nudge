@@ -70,5 +70,10 @@
     "settings": "設定",
     "mainNavAria": "主導覽",
     "settingsAria": "開啟設定"
+  },
+  "login": {
+    "tagline": "輕量型每日任務推進工具",
+    "signInWithGoogle": "使用 Google 帳號登入",
+    "loginFailed": "登入失敗，請再試一次"
   }
 }

@@ -135,5 +135,11 @@
   "navMainNavAria": "Main navigation",
   "@navMainNavAria": {},
   "navSettingsAria": "Open settings",
-  "@navSettingsAria": {}
+  "@navSettingsAria": {},
+  "loginTagline": "A lightweight nudge for your daily tasks",
+  "@loginTagline": {},
+  "loginSignInWithGoogle": "Sign in with Google",
+  "@loginSignInWithGoogle": {},
+  "loginLoginFailed": "Sign-in failed. Please try again.",
+  "@loginLoginFailed": {}
 }

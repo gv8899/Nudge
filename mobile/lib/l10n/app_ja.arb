@@ -135,5 +135,11 @@
   "navMainNavAria": "メインナビ",
   "@navMainNavAria": {},
   "navSettingsAria": "設定を開く",
-  "@navSettingsAria": {}
+  "@navSettingsAria": {},
+  "loginTagline": "毎日のタスクをそっと後押し",
+  "@loginTagline": {},
+  "loginSignInWithGoogle": "Google でサインイン",
+  "@loginSignInWithGoogle": {},
+  "loginLoginFailed": "サインインに失敗しました。もう一度お試しください。",
+  "@loginLoginFailed": {}
 }

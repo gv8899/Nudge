@@ -50,7 +50,10 @@
     "nav.cards": "fb5640f8e12e3337ca89ef43b578d0461640497021a7e6ccd5edd869abf877de",
     "nav.settings": "0d8619aae051ae343ea983e969d29b7bd7a618eb1b25a6c87c133c5e3ee25264",
     "nav.mainNavAria": "1944996eb06b5a6a4ba94b092b13d19d1ac3b97f14861340afe482a6803a5e7b",
-    "nav.settingsAria": "4fda12d3e30b71506f8a766a7715a2f7962903d8f7ff4f339f48f2635e151861"
+    "nav.settingsAria": "4fda12d3e30b71506f8a766a7715a2f7962903d8f7ff4f339f48f2635e151861",
+    "login.tagline": "4ae25fb217ef1417148d677d2f636c024d138f47ee8743fd9068d9061e55f699",
+    "login.signInWithGoogle": "f2a23af75b5aa47b8a42aa7fc56731e1fe7d94260e39e466378f2bac7c96a48c",
+    "login.loginFailed": "fb38b0c811e19557cd5510ec427615d7c027bcb780d6e63b830b25642c0e5aa9"
   },
   "locked": {}
 }
