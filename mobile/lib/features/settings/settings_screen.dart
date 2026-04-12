@@ -453,16 +453,19 @@ class _LanguageSection extends ConsumerWidget {
     final option = _options.firstWhere((o) => o.key == key);
     final tag = option.locale == null ? null : formatLocaleTag(option.locale!);
 
+    // Offline-first：先切本機 locale（立刻生效、持久化），再盡力同步 server。
+    // server 失敗不擋 UX，只 snackbar 提示跨裝置同步失敗。
+    if (option.locale == null) {
+      await ref.read(localeProvider.notifier).clearLocale();
+    } else {
+      await ref.read(localeProvider.notifier).setLocale(option.locale!);
+    }
+
     try {
       await ref.read(apiClientProvider).dio.patch(
         '/api/me/locale',
         data: {'locale': tag},
       );
-      if (option.locale == null) {
-        await ref.read(localeProvider.notifier).clearLocale();
-      } else {
-        await ref.read(localeProvider.notifier).setLocale(option.locale!);
-      }
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
