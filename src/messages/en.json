@@ -3,5 +3,50 @@
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete"
+  },
+  "settings": {
+    "title": "Settings",
+    "account": {
+      "section": "Account",
+      "unnamed": "Unnamed",
+      "joinedAt": "Joined {date}"
+    },
+    "theme": {
+      "section": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "appearance": {
+      "section": "Appearance",
+      "paperLabel": "Paper texture",
+      "paperDesc": "Subtle paper grain on the background"
+    },
+    "language": {
+      "section": "Language",
+      "zhTW": "繁中",
+      "en": "EN",
+      "ja": "日本語",
+      "auto": "Auto",
+      "updateFailed": "Couldn't change language. Try again later."
+    },
+    "tags": {
+      "section": "Tags"
+    },
+    "cleanUntitled": {
+      "label": "Clean up empty cards",
+      "labelLoading": "Cleaning…",
+      "confirmTitle": "Clean up empty cards",
+      "confirmBody": "This deletes every untitled card. Are you sure?",
+      "confirmOk": "Delete",
+      "successWithCount": "Cleaned {count} empty card(s)",
+      "successEmpty": "Nothing to clean",
+      "failed": "Clean up failed"
+    },
+    "logout": {
+      "button": "Log out",
+      "confirmTitle": "Log out",
+      "confirmBody": "Log out now?"
+    }
   }
 }

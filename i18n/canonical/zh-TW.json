@@ -3,5 +3,50 @@
     "save": "儲存",
     "cancel": "取消",
     "delete": "刪除"
+  },
+  "settings": {
+    "title": "設定",
+    "account": {
+      "section": "帳號資料",
+      "unnamed": "未命名",
+      "joinedAt": "加入於 {date}"
+    },
+    "theme": {
+      "section": "主題",
+      "light": "淺色",
+      "dark": "深色",
+      "system": "跟隨系統"
+    },
+    "appearance": {
+      "section": "外觀",
+      "paperLabel": "紙質感",
+      "paperDesc": "讓背景帶有細微的紙張顆粒紋理"
+    },
+    "language": {
+      "section": "語言",
+      "zhTW": "繁中",
+      "en": "EN",
+      "ja": "日本語",
+      "auto": "自動",
+      "updateFailed": "切換語言失敗，請稍後再試"
+    },
+    "tags": {
+      "section": "標籤管理"
+    },
+    "cleanUntitled": {
+      "label": "清除空白卡片",
+      "labelLoading": "清除中…",
+      "confirmTitle": "清除空白卡片",
+      "confirmBody": "這會刪除所有沒有標題的卡片，確定嗎？",
+      "confirmOk": "確定清除",
+      "successWithCount": "已清除 {count} 張空白卡片",
+      "successEmpty": "沒有需要清除的卡片",
+      "failed": "清除失敗"
+    },
+    "logout": {
+      "button": "登出",
+      "confirmTitle": "登出",
+      "confirmBody": "確定要登出嗎？"
+    }
   }
 }

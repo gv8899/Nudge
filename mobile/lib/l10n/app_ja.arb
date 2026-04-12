@@ -5,5 +5,75 @@
   "commonCancel": "キャンセル",
   "@commonCancel": {},
   "commonDelete": "削除",
-  "@commonDelete": {}
+  "@commonDelete": {},
+  "settingsTitle": "設定",
+  "@settingsTitle": {},
+  "settingsAccountSection": "アカウント",
+  "@settingsAccountSection": {},
+  "settingsAccountUnnamed": "名称未設定",
+  "@settingsAccountUnnamed": {},
+  "settingsAccountJoinedAt": "{date} 登録",
+  "@settingsAccountJoinedAt": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "settingsThemeSection": "テーマ",
+  "@settingsThemeSection": {},
+  "settingsThemeLight": "ライト",
+  "@settingsThemeLight": {},
+  "settingsThemeDark": "ダーク",
+  "@settingsThemeDark": {},
+  "settingsThemeSystem": "システム",
+  "@settingsThemeSystem": {},
+  "settingsAppearanceSection": "外観",
+  "@settingsAppearanceSection": {},
+  "settingsAppearancePaperLabel": "紙質感",
+  "@settingsAppearancePaperLabel": {},
+  "settingsAppearancePaperDesc": "背景に紙のざらつきを加えます",
+  "@settingsAppearancePaperDesc": {},
+  "settingsLanguageSection": "言語",
+  "@settingsLanguageSection": {},
+  "settingsLanguageZhTW": "繁中",
+  "@settingsLanguageZhTW": {},
+  "settingsLanguageEn": "EN",
+  "@settingsLanguageEn": {},
+  "settingsLanguageJa": "日本語",
+  "@settingsLanguageJa": {},
+  "settingsLanguageAuto": "自動",
+  "@settingsLanguageAuto": {},
+  "settingsLanguageUpdateFailed": "言語を切り替えできませんでした。後で再試行してください。",
+  "@settingsLanguageUpdateFailed": {},
+  "settingsTagsSection": "タグ",
+  "@settingsTagsSection": {},
+  "settingsCleanUntitledLabel": "空白カードを削除",
+  "@settingsCleanUntitledLabel": {},
+  "settingsCleanUntitledLabelLoading": "削除中…",
+  "@settingsCleanUntitledLabelLoading": {},
+  "settingsCleanUntitledConfirmTitle": "空白カードを削除",
+  "@settingsCleanUntitledConfirmTitle": {},
+  "settingsCleanUntitledConfirmBody": "タイトル未入力のカードがすべて削除されます。よろしいですか？",
+  "@settingsCleanUntitledConfirmBody": {},
+  "settingsCleanUntitledConfirmOk": "削除する",
+  "@settingsCleanUntitledConfirmOk": {},
+  "settingsCleanUntitledSuccessWithCount": "{count} 件の空白カードを削除しました",
+  "@settingsCleanUntitledSuccessWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "settingsCleanUntitledSuccessEmpty": "削除対象がありません",
+  "@settingsCleanUntitledSuccessEmpty": {},
+  "settingsCleanUntitledFailed": "削除に失敗しました",
+  "@settingsCleanUntitledFailed": {},
+  "settingsLogoutButton": "ログアウト",
+  "@settingsLogoutButton": {},
+  "settingsLogoutConfirmTitle": "ログアウト",
+  "@settingsLogoutConfirmTitle": {},
+  "settingsLogoutConfirmBody": "本当にログアウトしますか？",
+  "@settingsLogoutConfirmBody": {}
 }

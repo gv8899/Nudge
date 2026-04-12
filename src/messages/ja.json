@@ -3,5 +3,50 @@
     "save": "保存",
     "cancel": "キャンセル",
     "delete": "削除"
+  },
+  "settings": {
+    "title": "設定",
+    "account": {
+      "section": "アカウント",
+      "unnamed": "名称未設定",
+      "joinedAt": "{date} 登録"
+    },
+    "theme": {
+      "section": "テーマ",
+      "light": "ライト",
+      "dark": "ダーク",
+      "system": "システム"
+    },
+    "appearance": {
+      "section": "外観",
+      "paperLabel": "紙質感",
+      "paperDesc": "背景に紙のざらつきを加えます"
+    },
+    "language": {
+      "section": "言語",
+      "zhTW": "繁中",
+      "en": "EN",
+      "ja": "日本語",
+      "auto": "自動",
+      "updateFailed": "言語を切り替えできませんでした。後で再試行してください。"
+    },
+    "tags": {
+      "section": "タグ"
+    },
+    "cleanUntitled": {
+      "label": "空白カードを削除",
+      "labelLoading": "削除中…",
+      "confirmTitle": "空白カードを削除",
+      "confirmBody": "タイトル未入力のカードがすべて削除されます。よろしいですか？",
+      "confirmOk": "削除する",
+      "successWithCount": "{count} 件の空白カードを削除しました",
+      "successEmpty": "削除対象がありません",
+      "failed": "削除に失敗しました"
+    },
+    "logout": {
+      "button": "ログアウト",
+      "confirmTitle": "ログアウト",
+      "confirmBody": "本当にログアウトしますか？"
+    }
   }
 }

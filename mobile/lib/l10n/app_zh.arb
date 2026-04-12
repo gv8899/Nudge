@@ -5,5 +5,75 @@
   "commonCancel": "取消",
   "@commonCancel": {},
   "commonDelete": "刪除",
-  "@commonDelete": {}
+  "@commonDelete": {},
+  "settingsTitle": "設定",
+  "@settingsTitle": {},
+  "settingsAccountSection": "帳號資料",
+  "@settingsAccountSection": {},
+  "settingsAccountUnnamed": "未命名",
+  "@settingsAccountUnnamed": {},
+  "settingsAccountJoinedAt": "加入於 {date}",
+  "@settingsAccountJoinedAt": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "settingsThemeSection": "主題",
+  "@settingsThemeSection": {},
+  "settingsThemeLight": "淺色",
+  "@settingsThemeLight": {},
+  "settingsThemeDark": "深色",
+  "@settingsThemeDark": {},
+  "settingsThemeSystem": "跟隨系統",
+  "@settingsThemeSystem": {},
+  "settingsAppearanceSection": "外觀",
+  "@settingsAppearanceSection": {},
+  "settingsAppearancePaperLabel": "紙質感",
+  "@settingsAppearancePaperLabel": {},
+  "settingsAppearancePaperDesc": "讓背景帶有細微的紙張顆粒紋理",
+  "@settingsAppearancePaperDesc": {},
+  "settingsLanguageSection": "語言",
+  "@settingsLanguageSection": {},
+  "settingsLanguageZhTW": "繁中",
+  "@settingsLanguageZhTW": {},
+  "settingsLanguageEn": "EN",
+  "@settingsLanguageEn": {},
+  "settingsLanguageJa": "日本語",
+  "@settingsLanguageJa": {},
+  "settingsLanguageAuto": "自動",
+  "@settingsLanguageAuto": {},
+  "settingsLanguageUpdateFailed": "切換語言失敗，請稍後再試",
+  "@settingsLanguageUpdateFailed": {},
+  "settingsTagsSection": "標籤管理",
+  "@settingsTagsSection": {},
+  "settingsCleanUntitledLabel": "清除空白卡片",
+  "@settingsCleanUntitledLabel": {},
+  "settingsCleanUntitledLabelLoading": "清除中…",
+  "@settingsCleanUntitledLabelLoading": {},
+  "settingsCleanUntitledConfirmTitle": "清除空白卡片",
+  "@settingsCleanUntitledConfirmTitle": {},
+  "settingsCleanUntitledConfirmBody": "這會刪除所有沒有標題的卡片，確定嗎？",
+  "@settingsCleanUntitledConfirmBody": {},
+  "settingsCleanUntitledConfirmOk": "確定清除",
+  "@settingsCleanUntitledConfirmOk": {},
+  "settingsCleanUntitledSuccessWithCount": "已清除 {count} 張空白卡片",
+  "@settingsCleanUntitledSuccessWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "settingsCleanUntitledSuccessEmpty": "沒有需要清除的卡片",
+  "@settingsCleanUntitledSuccessEmpty": {},
+  "settingsCleanUntitledFailed": "清除失敗",
+  "@settingsCleanUntitledFailed": {},
+  "settingsLogoutButton": "登出",
+  "@settingsLogoutButton": {},
+  "settingsLogoutConfirmTitle": "登出",
+  "@settingsLogoutConfirmTitle": {},
+  "settingsLogoutConfirmBody": "確定要登出嗎？",
+  "@settingsLogoutConfirmBody": {}
 }

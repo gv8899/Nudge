@@ -5,5 +5,75 @@
   "commonCancel": "Cancel",
   "@commonCancel": {},
   "commonDelete": "Delete",
-  "@commonDelete": {}
+  "@commonDelete": {},
+  "settingsTitle": "Settings",
+  "@settingsTitle": {},
+  "settingsAccountSection": "Account",
+  "@settingsAccountSection": {},
+  "settingsAccountUnnamed": "Unnamed",
+  "@settingsAccountUnnamed": {},
+  "settingsAccountJoinedAt": "Joined {date}",
+  "@settingsAccountJoinedAt": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "settingsThemeSection": "Theme",
+  "@settingsThemeSection": {},
+  "settingsThemeLight": "Light",
+  "@settingsThemeLight": {},
+  "settingsThemeDark": "Dark",
+  "@settingsThemeDark": {},
+  "settingsThemeSystem": "System",
+  "@settingsThemeSystem": {},
+  "settingsAppearanceSection": "Appearance",
+  "@settingsAppearanceSection": {},
+  "settingsAppearancePaperLabel": "Paper texture",
+  "@settingsAppearancePaperLabel": {},
+  "settingsAppearancePaperDesc": "Subtle paper grain on the background",
+  "@settingsAppearancePaperDesc": {},
+  "settingsLanguageSection": "Language",
+  "@settingsLanguageSection": {},
+  "settingsLanguageZhTW": "繁中",
+  "@settingsLanguageZhTW": {},
+  "settingsLanguageEn": "EN",
+  "@settingsLanguageEn": {},
+  "settingsLanguageJa": "日本語",
+  "@settingsLanguageJa": {},
+  "settingsLanguageAuto": "Auto",
+  "@settingsLanguageAuto": {},
+  "settingsLanguageUpdateFailed": "Couldn't change language. Try again later.",
+  "@settingsLanguageUpdateFailed": {},
+  "settingsTagsSection": "Tags",
+  "@settingsTagsSection": {},
+  "settingsCleanUntitledLabel": "Clean up empty cards",
+  "@settingsCleanUntitledLabel": {},
+  "settingsCleanUntitledLabelLoading": "Cleaning…",
+  "@settingsCleanUntitledLabelLoading": {},
+  "settingsCleanUntitledConfirmTitle": "Clean up empty cards",
+  "@settingsCleanUntitledConfirmTitle": {},
+  "settingsCleanUntitledConfirmBody": "This deletes every untitled card. Are you sure?",
+  "@settingsCleanUntitledConfirmBody": {},
+  "settingsCleanUntitledConfirmOk": "Delete",
+  "@settingsCleanUntitledConfirmOk": {},
+  "settingsCleanUntitledSuccessWithCount": "Cleaned {count} empty card(s)",
+  "@settingsCleanUntitledSuccessWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "settingsCleanUntitledSuccessEmpty": "Nothing to clean",
+  "@settingsCleanUntitledSuccessEmpty": {},
+  "settingsCleanUntitledFailed": "Clean up failed",
+  "@settingsCleanUntitledFailed": {},
+  "settingsLogoutButton": "Log out",
+  "@settingsLogoutButton": {},
+  "settingsLogoutConfirmTitle": "Log out",
+  "@settingsLogoutConfirmTitle": {},
+  "settingsLogoutConfirmBody": "Log out now?",
+  "@settingsLogoutConfirmBody": {}
 }
