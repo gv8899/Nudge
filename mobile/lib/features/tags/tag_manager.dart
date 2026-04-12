@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
+import '../../l10n/app_localizations.dart';
 import 'models.dart';
 import 'tags_provider.dart';
 import 'tag_color_picker.dart';
@@ -27,6 +28,7 @@ class _TagManagerState extends ConsumerState<TagManager> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context)!;
     final tagsAsync = ref.watch(tagsProvider);
     final tags = tagsAsync.when(
         data: (t) => t, loading: () => <Tag>[], error: (_, _) => <Tag>[]);
@@ -34,7 +36,7 @@ class _TagManagerState extends ConsumerState<TagManager> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('標籤管理',
+        Text(l.settingsTagsSection,
             style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
@@ -113,7 +115,7 @@ class _TagManagerState extends ConsumerState<TagManager> {
           controller: _newNameController,
           style: TextStyle(fontSize: 14, color: AppColors.foreground),
           decoration: InputDecoration(
-            hintText: '新增標籤...',
+            hintText: l.tagsNewTagPlaceholder,
             hintStyle: TextStyle(color: AppColors.textFaint),
             isDense: true,
             contentPadding: EdgeInsets.symmetric(vertical: 8),
@@ -158,25 +160,26 @@ class _TagManagerState extends ConsumerState<TagManager> {
   }
 
   void _confirmDelete(Tag tag) {
+    final l = AppL10n.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: const Text('刪除標籤', style: TextStyle(fontSize: 16)),
-        content: Text('確定要刪除「${tag.name}」嗎？',
+        title: Text(l.tagsDeleteTitle, style: const TextStyle(fontSize: 16)),
+        content: Text(l.tagsDeleteConfirm(tag.name),
             style: TextStyle(fontSize: 14, color: AppColors.textDim)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('取消')),
+              child: Text(l.commonCancel)),
           TextButton(
               onPressed: () async {
                 Navigator.pop(ctx);
                 await ref.read(tagActionsProvider).delete(tag.id);
                 ref.invalidate(tagsProvider);
               },
-              child:
-                  Text('刪除', style: TextStyle(color: AppColors.destructive))),
+              child: Text(l.commonDelete,
+                  style: TextStyle(color: AppColors.destructive))),
         ],
       ),
     );
