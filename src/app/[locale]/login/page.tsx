@@ -1,9 +1,14 @@
 import { signIn, auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { redirect } from "@/i18n/routing";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const session = await auth();
-  if (session?.user) redirect("/");
+  if (session?.user) redirect({ href: "/", locale });
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">

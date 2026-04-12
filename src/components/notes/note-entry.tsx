@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import DOMPurify from "dompurify";
 import { format, parseISO } from "date-fns";
 import { zhTW } from "date-fns/locale";

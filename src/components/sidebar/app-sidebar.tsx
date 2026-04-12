@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/routing";
 import { CheckSquare, NotebookPen, BookOpen, Settings } from "lucide-react";
 import { SettingsModal } from "@/components/settings/settings-modal";
 

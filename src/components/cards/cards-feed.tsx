@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { Search, List, LayoutGrid, Columns3, Plus, Eraser } from "lucide-react";
 import { useCardsFeed } from "@/hooks/use-cards-feed";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
