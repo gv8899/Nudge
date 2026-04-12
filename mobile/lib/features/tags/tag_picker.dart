@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
+import '../../l10n/app_localizations.dart';
 import 'models.dart';
 import 'tags_provider.dart';
 import 'tag_color_picker.dart';
@@ -56,6 +57,7 @@ class _TagPickerState extends ConsumerState<TagPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context)!;
     final tagsAsync = ref.watch(tagsProvider);
     final allTags = tagsAsync.when(
         data: (t) => t,
@@ -80,7 +82,7 @@ class _TagPickerState extends ConsumerState<TagPicker> {
               style:
                   TextStyle(fontSize: 14, color: AppColors.foreground),
               decoration: InputDecoration(
-                hintText: '搜尋或建立標籤...',
+                hintText: l.tagsSearchOrCreate,
                 hintStyle: TextStyle(color: AppColors.textFaint),
                 border: UnderlineInputBorder(
                     borderSide: BorderSide(color: AppColors.border)),
@@ -92,7 +94,7 @@ class _TagPickerState extends ConsumerState<TagPicker> {
             ),
             const SizedBox(height: 8),
             if (_isCreating) ...[
-              Text('建立「${_searchController.text.trim()}」',
+              Text(l.tagsCreateNamed(_searchController.text.trim()),
                   style: TextStyle(
                       fontSize: 13, color: AppColors.foreground)),
               const SizedBox(height: 12),
@@ -105,11 +107,11 @@ class _TagPickerState extends ConsumerState<TagPicker> {
                 children: [
                   TextButton(
                       onPressed: () => setState(() => _isCreating = false),
-                      child: Text('取消',
+                      child: Text(l.commonCancel,
                           style: TextStyle(color: AppColors.textDim))),
                   TextButton(
                       onPressed: _createTag,
-                      child: Text('建立',
+                      child: Text(l.tagsCreate,
                           style: TextStyle(color: AppColors.primary))),
                 ],
               ),
@@ -146,7 +148,7 @@ class _TagPickerState extends ConsumerState<TagPicker> {
                         dense: true,
                         leading: Icon(LucideIcons.plus,
                             size: 18, color: AppColors.primary),
-                        title: Text('建立「${_search.trim()}」',
+                        title: Text(l.tagsCreateNamed(_search.trim()),
                             style: TextStyle(
                                 fontSize: 14, color: AppColors.primary)),
                         onTap: () => setState(() => _isCreating = true),
