@@ -13,7 +13,7 @@ Single source of truth for all UI strings across Web and Mobile.
 ## Workflow
 
 1. 改 `canonical/zh-TW.json`（新增/修改/刪除 key）
-2. 跑 `pnpm run i18n:sync`
+2. 跑 `npm run i18n:sync`
 3. Script 偵測 diff → 呼叫 Claude API 翻譯增量 → 寫回 en/ja
 4. Script 轉檔到 Web (`src/messages/*.json`) 和 Mobile (`mobile/lib/l10n/*.arb`)
 5. `git diff` 檢視翻譯結果、修 en/ja 中不滿意的文案
@@ -22,7 +22,19 @@ Single source of truth for all UI strings across Web and Mobile.
 
 ## CLI
 
-- `pnpm run i18n:sync` — 全流程
-- `pnpm run i18n:sync --dry` — 只 diff 不改檔（CI 用）
-- `pnpm run i18n:sync --skip-llm` — 不呼叫 LLM，只轉檔
-- `pnpm run i18n:sync --retranslate <key>` — 強制重翻某 key
+- `npm run i18n:sync` — 全流程
+- `npm run i18n:check` — `--dry`，只 diff 不改檔（CI 用）
+- `npm run i18n:sync -- --skip-llm` — 不呼叫 LLM，只轉檔
+- `npm run i18n:sync -- --retranslate <key>` — 強制重翻某 key
+- `npm run i18n:test` — vitest 跑 `i18n/scripts/` 的單元測試
+
+## CI Integration
+
+專案目前尚無 `.github/workflows/`。未來設 CI 時，加入以下 step 檢查 canonical 與生成檔是否同步：
+
+```yaml
+- name: i18n sync check
+  run: npm run i18n:check
+```
+
+此指令只做 diff 檢查、不呼叫 LLM、不寫檔。若 canonical 有變動但生成檔沒跟上，會 exit 1 並要求開發者在本地跑 `npm run i18n:sync`。
