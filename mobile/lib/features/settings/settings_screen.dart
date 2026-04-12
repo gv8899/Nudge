@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../auth/auth_provider.dart';
 import '../cards/cards_provider.dart';
 import '../tags/tag_manager.dart';
@@ -15,6 +16,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
     final themeMode = ref.watch(themeProvider);
+    final l = AppL10n.of(context)!;
 
     return Scaffold(
       body: SafeArea(
@@ -23,7 +25,7 @@ class SettingsScreen extends ConsumerWidget {
           children: [
             const SizedBox(height: 16),
             Text(
-              '設定',
+              l.settingsTitle,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -57,7 +59,7 @@ class SettingsScreen extends ConsumerWidget {
               child: OutlinedButton.icon(
                 onPressed: () => _confirmLogout(context, ref),
                 icon: const Icon(LucideIcons.logOut, size: 18),
-                label: const Text('登出'),
+                label: Text(l.settingsLogoutButton),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.destructive,
                   side: BorderSide(color: AppColors.destructiveBorder),
@@ -72,20 +74,21 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final l = AppL10n.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: const Text('登出', style: TextStyle(fontSize: 16)),
+        title: Text(l.settingsLogoutConfirmTitle, style: const TextStyle(fontSize: 16)),
         content: Text(
-          '確定要登出嗎？',
+          l.settingsLogoutConfirmBody,
           style: TextStyle(fontSize: 14, color: AppColors.textDim),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.commonCancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('登出', style: TextStyle(color: AppColors.destructive)),
+            child: Text(l.settingsLogoutButton, style: TextStyle(color: AppColors.destructive)),
           ),
         ],
       ),
@@ -102,7 +105,8 @@ class _UserProfile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = user['name'] as String? ?? '未命名';
+    final l = AppL10n.of(context)!;
+    final name = user['name'] as String? ?? l.settingsAccountUnnamed;
     final email = user['email'] as String? ?? '';
     final avatarUrl = user['avatarUrl'] as String?;
     final createdAt = user['createdAt'] as String?;
@@ -155,7 +159,7 @@ class _UserProfile extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
-                    '加入於 $joinDate',
+                    l.settingsAccountJoinedAt(joinDate),
                     style: TextStyle(fontSize: 11, color: AppColors.textFaint),
                   ),
                 ),
@@ -201,25 +205,26 @@ class _ThemeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context)!;
     return Row(
       children: [
         _ThemeOption(
           icon: LucideIcons.sun,
-          label: '淺色',
+          label: l.settingsThemeLight,
           isSelected: current == AppThemeMode.light,
           onTap: () => onChanged(AppThemeMode.light),
         ),
         const SizedBox(width: 8),
         _ThemeOption(
           icon: LucideIcons.moon,
-          label: '深色',
+          label: l.settingsThemeDark,
           isSelected: current == AppThemeMode.dark,
           onTap: () => onChanged(AppThemeMode.dark),
         ),
         const SizedBox(width: 8),
         _ThemeOption(
           icon: LucideIcons.monitor,
-          label: '跟隨系統',
+          label: l.settingsThemeSystem,
           isSelected: current == AppThemeMode.system,
           onTap: () => onChanged(AppThemeMode.system),
         ),
@@ -294,20 +299,21 @@ class _CleanUntitledButtonState extends ConsumerState<_CleanUntitledButton> {
   bool _loading = false;
 
   Future<void> _clean() async {
+    final l = AppL10n.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: const Text('清除空白卡片', style: TextStyle(fontSize: 16)),
+        title: Text(l.settingsCleanUntitledConfirmTitle, style: const TextStyle(fontSize: 16)),
         content: Text(
-          '這會刪除所有沒有標題的卡片，確定嗎？',
+          l.settingsCleanUntitledConfirmBody,
           style: TextStyle(fontSize: 14, color: AppColors.textDim),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.commonCancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('確定清除', style: TextStyle(color: AppColors.destructive)),
+            child: Text(l.settingsCleanUntitledConfirmOk, style: TextStyle(color: AppColors.destructive)),
           ),
         ],
       ),
@@ -319,19 +325,18 @@ class _CleanUntitledButtonState extends ConsumerState<_CleanUntitledButton> {
     try {
       final api = ref.read(apiClientProvider);
       final res = await api.dio.delete('/api/cards/untitled');
-      final deleted = res.data['deleted'] ?? 0;
+      final deleted = (res.data['deleted'] as int?) ?? 0;
       ref.invalidate(cardsProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(deleted > 0 ? '已清除 $deleted 張空白卡片' : '沒有需要清除的卡片'),
-          ),
-        );
+        final msg = deleted > 0
+            ? l.settingsCleanUntitledSuccessWithCount(deleted)
+            : l.settingsCleanUntitledSuccessEmpty;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('清除失敗')),
+          SnackBar(content: Text(l.settingsCleanUntitledFailed)),
         );
       }
     } finally {
@@ -341,6 +346,7 @@ class _CleanUntitledButtonState extends ConsumerState<_CleanUntitledButton> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context)!;
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
@@ -348,7 +354,7 @@ class _CleanUntitledButtonState extends ConsumerState<_CleanUntitledButton> {
         icon: _loading
             ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textDim))
             : Icon(LucideIcons.eraser, size: 18),
-        label: Text(_loading ? '清除中…' : '清除空白卡片'),
+        label: Text(_loading ? l.settingsCleanUntitledLabelLoading : l.settingsCleanUntitledLabel),
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textDim,
           side: BorderSide(color: AppColors.border),
