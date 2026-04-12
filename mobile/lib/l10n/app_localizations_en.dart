@@ -110,4 +110,48 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get settingsLogoutConfirmBody => 'Log out now?';
+
+  @override
+  String get tagsAdd => 'Add';
+
+  @override
+  String get tagsAddTag => 'Add tag';
+
+  @override
+  String get tagsAddTagShort => 'Add tag';
+
+  @override
+  String get tagsChangeColor => 'Color';
+
+  @override
+  String get tagsCreate => 'Create';
+
+  @override
+  String tagsCreateNamed(Object name) {
+    return 'Create \"$name\"';
+  }
+
+  @override
+  String get tagsDeleteTitle => 'Delete tag';
+
+  @override
+  String tagsDeleteConfirm(Object name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String tagsDeleteTagAria(Object name) {
+    return 'Delete $name';
+  }
+
+  @override
+  String get tagsNewTagPlaceholder => 'New tag...';
+
+  @override
+  String tagsRemoveAria(Object name) {
+    return 'Remove $name';
+  }
+
+  @override
+  String get tagsSearchOrCreate => 'Search or create tag...';
 }

@@ -108,4 +108,48 @@ class AppL10nJa extends AppL10n {
 
   @override
   String get settingsLogoutConfirmBody => '本当にログアウトしますか？';
+
+  @override
+  String get tagsAdd => '追加';
+
+  @override
+  String get tagsAddTag => 'タグ追加';
+
+  @override
+  String get tagsAddTagShort => 'タグ追加';
+
+  @override
+  String get tagsChangeColor => '色';
+
+  @override
+  String get tagsCreate => '作成';
+
+  @override
+  String tagsCreateNamed(Object name) {
+    return '「$name」を作成';
+  }
+
+  @override
+  String get tagsDeleteTitle => 'タグを削除';
+
+  @override
+  String tagsDeleteConfirm(Object name) {
+    return '「$name」を削除しますか？';
+  }
+
+  @override
+  String tagsDeleteTagAria(Object name) {
+    return '$name を削除';
+  }
+
+  @override
+  String get tagsNewTagPlaceholder => '新しいタグ...';
+
+  @override
+  String tagsRemoveAria(Object name) {
+    return '$name を外す';
+  }
+
+  @override
+  String get tagsSearchOrCreate => 'タグを検索・作成...';
 }

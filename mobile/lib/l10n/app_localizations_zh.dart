@@ -107,4 +107,48 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get settingsLogoutConfirmBody => '確定要登出嗎？';
+
+  @override
+  String get tagsAdd => '新增';
+
+  @override
+  String get tagsAddTag => '新增標籤';
+
+  @override
+  String get tagsAddTagShort => '加標籤';
+
+  @override
+  String get tagsChangeColor => '換色';
+
+  @override
+  String get tagsCreate => '建立';
+
+  @override
+  String tagsCreateNamed(Object name) {
+    return '建立「$name」';
+  }
+
+  @override
+  String get tagsDeleteTitle => '刪除標籤';
+
+  @override
+  String tagsDeleteConfirm(Object name) {
+    return '確定要刪除「$name」嗎？';
+  }
+
+  @override
+  String tagsDeleteTagAria(Object name) {
+    return '刪除 $name';
+  }
+
+  @override
+  String get tagsNewTagPlaceholder => '新增標籤...';
+
+  @override
+  String tagsRemoveAria(Object name) {
+    return '移除 $name';
+  }
+
+  @override
+  String get tagsSearchOrCreate => '搜尋或建立標籤...';
 }

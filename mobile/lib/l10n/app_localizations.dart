@@ -290,6 +290,78 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'確定要登出嗎？'**
   String get settingsLogoutConfirmBody;
+
+  /// No description provided for @tagsAdd.
+  ///
+  /// In zh, this message translates to:
+  /// **'新增'**
+  String get tagsAdd;
+
+  /// No description provided for @tagsAddTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'新增標籤'**
+  String get tagsAddTag;
+
+  /// No description provided for @tagsAddTagShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'加標籤'**
+  String get tagsAddTagShort;
+
+  /// No description provided for @tagsChangeColor.
+  ///
+  /// In zh, this message translates to:
+  /// **'換色'**
+  String get tagsChangeColor;
+
+  /// No description provided for @tagsCreate.
+  ///
+  /// In zh, this message translates to:
+  /// **'建立'**
+  String get tagsCreate;
+
+  /// No description provided for @tagsCreateNamed.
+  ///
+  /// In zh, this message translates to:
+  /// **'建立「{name}」'**
+  String tagsCreateNamed(Object name);
+
+  /// No description provided for @tagsDeleteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'刪除標籤'**
+  String get tagsDeleteTitle;
+
+  /// No description provided for @tagsDeleteConfirm.
+  ///
+  /// In zh, this message translates to:
+  /// **'確定要刪除「{name}」嗎？'**
+  String tagsDeleteConfirm(Object name);
+
+  /// No description provided for @tagsDeleteTagAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'刪除 {name}'**
+  String tagsDeleteTagAria(Object name);
+
+  /// No description provided for @tagsNewTagPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'新增標籤...'**
+  String get tagsNewTagPlaceholder;
+
+  /// No description provided for @tagsRemoveAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'移除 {name}'**
+  String tagsRemoveAria(Object name);
+
+  /// No description provided for @tagsSearchOrCreate.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜尋或建立標籤...'**
+  String get tagsSearchOrCreate;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {
