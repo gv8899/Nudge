@@ -195,6 +195,8 @@ async function main() {
   console.log('📝 Wrote src/messages/*.json');
 
   // 9. Transpile → Mobile ARB
+  //    gen-l10n 要求 template_arb_file 的 locale 是 base locale（zh，不含 country code），
+  //    所以 mobile 上 'zh' 就是繁中（與 web 上的 'zh-TW' 等價）。
   const zhArb = buildArbJson(buildArbKeyMap(zhFlat), 'zh');
   const enArb = buildArbJson(buildArbKeyMap(mergedEn), 'en');
   const jaArb = buildArbJson(buildArbKeyMap(mergedJa), 'ja');
