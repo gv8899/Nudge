@@ -3,6 +3,7 @@
 import { useRef, useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { createEditorExtensions } from "@/components/editor/editor-extensions";
+import { useSlashCommandItems } from "@/components/editor/slash-command-items";
 import { useBlockDrag } from "@/components/editor/use-block-drag";
 import { BlockDragHandle, BlockDropIndicator } from "@/components/editor/block-drag-handle";
 
@@ -22,9 +23,10 @@ export function NotesCanvasEditor({
 
   dateRef.current = date;
 
+  const slashItems = useSlashCommandItems();
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: createEditorExtensions({ placeholder: "寫點什麼⋯⋯", taskList: false, codeBlock: false }),
+    extensions: createEditorExtensions({ placeholder: "寫點什麼⋯⋯", slashItems, taskList: false, codeBlock: false }),
     content: initialContent,
     editable: true,
     onUpdate: ({ editor }) => {

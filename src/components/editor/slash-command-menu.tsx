@@ -6,6 +6,7 @@ import {
   useCallback,
 } from "react";
 import type { Editor, Range } from "@tiptap/core";
+import { useTranslations } from "next-intl";
 import type { SlashCommandItem } from "./slash-command-items";
 
 interface SlashCommandMenuProps {
@@ -24,6 +25,7 @@ export const SlashCommandMenu = forwardRef<
   SlashCommandMenuProps
 >(function SlashCommandMenu({ items, command }, ref) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const t = useTranslations("editor");
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -61,7 +63,7 @@ export const SlashCommandMenu = forwardRef<
   if (items.length === 0) {
     return (
       <div className="w-72 rounded-lg bg-popover text-popover-foreground border border-border shadow-lg p-3 text-sm text-text-dim">
-        沒有符合的項目
+        {t("slashNoResults")}
       </div>
     );
   }
@@ -76,7 +78,7 @@ export const SlashCommandMenu = forwardRef<
         const isSelected = index === selectedIndex;
         return (
           <button
-            key={item.label}
+            key={item.id}
             type="button"
             role="menuitem"
             onClick={() => selectItem(index)}

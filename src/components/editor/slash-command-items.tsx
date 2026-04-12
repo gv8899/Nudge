@@ -11,138 +11,147 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Editor, Range } from "@tiptap/core";
+import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 
 export interface SlashCommandItem {
+  id: string;
   label: string;
   description: string;
   icon: LucideIcon;
   keywords: string[];
-  /** Extension name required for this item (used to auto-hide when extension is not loaded) */
   requiredExtension?: string;
   command: (args: { editor: Editor; range: Range }) => void;
 }
 
-export const slashCommandItems: SlashCommandItem[] = [
+interface SlashCommandDef {
+  id: string;
+  icon: LucideIcon;
+  requiredExtension?: string;
+  command: (args: { editor: Editor; range: Range }) => void;
+}
+
+const SLASH_COMMAND_DEFS: SlashCommandDef[] = [
   {
-    label: "Heading 1",
-    description: "大標題",
+    id: "h1",
     icon: Heading1,
-    keywords: ["h1", "head", "heading", "標題", "title"],
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setNode("heading", { level: 1 })
-        .run();
+      editor.chain().focus().deleteRange(range).setNode("heading", { level: 1 }).run();
     },
   },
   {
-    label: "Heading 2",
-    description: "中標題",
+    id: "h2",
     icon: Heading2,
-    keywords: ["h2", "head", "heading", "標題"],
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setNode("heading", { level: 2 })
-        .run();
+      editor.chain().focus().deleteRange(range).setNode("heading", { level: 2 }).run();
     },
   },
   {
-    label: "Heading 3",
-    description: "小標題",
+    id: "h3",
     icon: Heading3,
-    keywords: ["h3", "head", "heading", "標題"],
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .setNode("heading", { level: 3 })
-        .run();
+      editor.chain().focus().deleteRange(range).setNode("heading", { level: 3 }).run();
     },
   },
   {
-    label: "項目符號列表",
-    description: "Bullet list",
+    id: "bullet",
     icon: List,
-    keywords: ["list", "bullet", "ul", "項目"],
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleBulletList().run();
     },
   },
   {
-    label: "數字列表",
-    description: "Numbered list",
+    id: "ordered",
     icon: ListOrdered,
-    keywords: ["ol", "number", "ordered", "數字"],
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleOrderedList().run();
     },
   },
   {
-    label: "待辦列表",
-    description: "Checkbox task list",
+    id: "todo",
     icon: ListTodo,
-    keywords: ["todo", "task", "check", "待辦"],
     requiredExtension: "taskList",
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleTaskList().run();
     },
   },
   {
-    label: "引言",
-    description: "Blockquote",
+    id: "quote",
     icon: Quote,
-    keywords: ["quote", "blockquote", "引用", "引言"],
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleBlockquote().run();
     },
   },
   {
-    label: "程式碼區塊",
-    description: "Code block",
+    id: "code",
     icon: Code,
-    keywords: ["code", "block", "程式"],
     requiredExtension: "codeBlock",
     command: ({ editor, range }) => {
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .toggleCodeBlock()
-        .run();
+      editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
     },
   },
   {
-    label: "分隔線",
-    description: "Horizontal rule",
+    id: "divider",
     icon: Minus,
-    keywords: ["hr", "divider", "separator", "分隔"],
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setHorizontalRule().run();
     },
   },
 ];
 
-/** 根據 query 字串 filter 項目，並排除 editor 未載入的 extension */
-export function filterSlashItems(query: string, editor?: Editor): SlashCommandItem[] {
-  let items = slashCommandItems;
+const ID_TO_KEY: Record<string, { label: string; description: string; keywords: string }> = {
+  h1: { label: "slashH1Label", description: "slashH1Description", keywords: "slashH1Keywords" },
+  h2: { label: "slashH2Label", description: "slashH2Description", keywords: "slashH2Keywords" },
+  h3: { label: "slashH3Label", description: "slashH3Description", keywords: "slashH3Keywords" },
+  bullet: { label: "slashBulletLabel", description: "slashBulletDescription", keywords: "slashBulletKeywords" },
+  ordered: { label: "slashOrderedLabel", description: "slashOrderedDescription", keywords: "slashOrderedKeywords" },
+  todo: { label: "slashTodoLabel", description: "slashTodoDescription", keywords: "slashTodoKeywords" },
+  quote: { label: "slashQuoteLabel", description: "slashQuoteDescription", keywords: "slashQuoteKeywords" },
+  code: { label: "slashCodeLabel", description: "slashCodeDescription", keywords: "slashCodeKeywords" },
+  divider: { label: "slashDividerLabel", description: "slashDividerDescription", keywords: "slashDividerKeywords" },
+};
 
-  // Filter out items whose required extension is not loaded
+/** Hook 回傳已翻譯的 slash command items；必須在 client component 內使用 */
+export function useSlashCommandItems(): SlashCommandItem[] {
+  const t = useTranslations("editor");
+  return useMemo(
+    () =>
+      SLASH_COMMAND_DEFS.map((def) => {
+        const keys = ID_TO_KEY[def.id];
+        return {
+          id: def.id,
+          icon: def.icon,
+          requiredExtension: def.requiredExtension,
+          command: def.command,
+          label: t(keys.label),
+          description: t(keys.description),
+          keywords: t(keys.keywords).split("|").filter(Boolean),
+        };
+      }),
+    [t],
+  );
+}
+
+/** 根據 query 字串 filter 項目，並排除 editor 未載入的 extension */
+export function filterSlashItems(
+  items: SlashCommandItem[],
+  query: string,
+  editor?: Editor,
+): SlashCommandItem[] {
+  let filtered = items;
+
   if (editor) {
     const loadedExtensions = new Set(editor.extensionManager.extensions.map((e) => e.name));
-    items = items.filter((item) => !item.requiredExtension || loadedExtensions.has(item.requiredExtension));
+    filtered = filtered.filter(
+      (item) => !item.requiredExtension || loadedExtensions.has(item.requiredExtension),
+    );
   }
 
-  if (!query) return items;
+  if (!query) return filtered;
   const q = query.toLowerCase();
-  return items.filter(
+  return filtered.filter(
     (item) =>
       item.label.toLowerCase().includes(q) ||
-      item.keywords.some((k) => k.toLowerCase().includes(q))
+      item.keywords.some((k) => k.toLowerCase().includes(q)),
   );
 }

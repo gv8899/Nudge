@@ -3,6 +3,7 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import { useEffect, forwardRef, useImperativeHandle } from "react";
 import { createEditorExtensions } from "@/components/editor/editor-extensions";
+import { useSlashCommandItems } from "@/components/editor/slash-command-items";
 import { useBlockDrag } from "@/components/editor/use-block-drag";
 import { BlockDragHandle, BlockDropIndicator } from "@/components/editor/block-drag-handle";
 
@@ -29,9 +30,10 @@ export const TiptapEditor = forwardRef<
   },
   ref
 ) {
+  const slashItems = useSlashCommandItems();
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: createEditorExtensions({ placeholder }),
+    extensions: createEditorExtensions({ placeholder, slashItems }),
     content,
     editable,
     autofocus: autoFocus ? "end" : false,

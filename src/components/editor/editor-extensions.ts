@@ -9,6 +9,7 @@ import { ReactNodeViewRenderer } from "@tiptap/react";
 import { lowlight } from "./lowlight-instance";
 import { slashCommandExtension } from "./slash-command-extension";
 import { CodeBlockNodeView } from "./code-block-node-view";
+import type { SlashCommandItem } from "./slash-command-items";
 
 /**
  * 自動拆分 taskList — 確保每個 taskList 只包含一個 taskItem，
@@ -116,12 +117,14 @@ const SplitTaskList = Extension.create({
 
 interface CreateEditorExtensionsOptions {
   placeholder: string;
+  slashItems: SlashCommandItem[];
   taskList?: boolean;
   codeBlock?: boolean;
 }
 
 export function createEditorExtensions({
   placeholder,
+  slashItems,
   taskList = true,
   codeBlock = true,
 }: CreateEditorExtensionsOptions) {
@@ -131,7 +134,7 @@ export function createEditorExtensions({
       codeBlock: false,
     }),
     Placeholder.configure({ placeholder }),
-    slashCommandExtension,
+    slashCommandExtension.configure({ items: slashItems }),
   ];
 
   if (taskList) {

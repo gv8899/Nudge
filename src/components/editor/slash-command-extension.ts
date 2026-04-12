@@ -11,11 +11,17 @@ import {
   type SlashCommandItem,
 } from "./slash-command-items";
 
-export const slashCommandExtension = Extension.create({
+interface SlashCommandExtensionOptions {
+  items: SlashCommandItem[];
+  suggestion: Record<string, unknown>;
+}
+
+export const slashCommandExtension = Extension.create<SlashCommandExtensionOptions>({
   name: "slashCommand",
 
   addOptions() {
     return {
+      items: [],
       suggestion: {
         char: "/",
         command: ({
@@ -34,11 +40,13 @@ export const slashCommandExtension = Extension.create({
   },
 
   addProseMirrorPlugins() {
+    const extensionOptions = this.options;
     return [
       Suggestion({
         editor: this.editor,
-        ...this.options.suggestion,
-        items: ({ query, editor }: { query: string; editor: any }) => filterSlashItems(query, editor),
+        ...(extensionOptions.suggestion as any),
+        items: ({ query, editor }: { query: string; editor: any }) =>
+          filterSlashItems(extensionOptions.items, query, editor),
         render: () => {
           let component: ReactRenderer<SlashCommandMenuRef> | null = null;
           let popup: TippyInstance[] = [];
