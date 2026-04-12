@@ -3,5 +3,7 @@
   "commonSave": "Save",
   "@commonSave": {},
   "commonCancel": "Cancel",
-  "@commonCancel": {}
+  "@commonCancel": {},
+  "commonDelete": "Delete",
+  "@commonDelete": {}
 }

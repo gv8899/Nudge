@@ -3,5 +3,7 @@
   "commonSave": "儲存",
   "@commonSave": {},
   "commonCancel": "取消",
-  "@commonCancel": {}
+  "@commonCancel": {},
+  "commonDelete": "刪除",
+  "@commonDelete": {}
 }

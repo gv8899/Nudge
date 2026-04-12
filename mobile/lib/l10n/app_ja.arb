@@ -3,5 +3,7 @@
   "commonSave": "保存",
   "@commonSave": {},
   "commonCancel": "キャンセル",
-  "@commonCancel": {}
+  "@commonCancel": {},
+  "commonDelete": "削除",
+  "@commonDelete": {}
 }

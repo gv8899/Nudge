@@ -13,4 +13,7 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get commonCancel => '取消';
+
+  @override
+  String get commonDelete => '刪除';
 }

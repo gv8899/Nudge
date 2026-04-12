@@ -1,6 +1,7 @@
 {
   "common": {
     "save": "保存",
-    "cancel": "キャンセル"
+    "cancel": "キャンセル",
+    "delete": "削除"
   }
 }

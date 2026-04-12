@@ -13,4 +13,7 @@ class AppL10nJa extends AppL10n {
 
   @override
   String get commonCancel => 'キャンセル';
+
+  @override
+  String get commonDelete => '削除';
 }

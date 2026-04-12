@@ -110,6 +110,12 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'取消'**
   String get commonCancel;
+
+  /// No description provided for @commonDelete.
+  ///
+  /// In zh, this message translates to:
+  /// **'刪除'**
+  String get commonDelete;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {
