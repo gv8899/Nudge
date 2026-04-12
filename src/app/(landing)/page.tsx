@@ -7,7 +7,7 @@ export default async function Home() {
   const session = await auth();
   if (session?.user) {
     const today = format(new Date(), "yyyy-MM-dd");
-    redirect(`/day/${today}`);
+    redirect(`/zh-TW/day/${today}`);
   }
 
   async function handleSignIn() {

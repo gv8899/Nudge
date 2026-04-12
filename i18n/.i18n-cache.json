@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "hashes": {
+    "common.save": "dba44ed3f54f2012941c8fb13fc2a13c4960a6df4b89166424f17ae9d796521f",
+    "common.cancel": "2cd0f3be8738a86cede1a1452f874f31d569864bbb00cacd4130990f4610cb5c",
+    "common.delete": "3c8f5b363ab3ab0b8d12844c62e605bb0b847f51d7a21ca2b32bcb6c36ce67d1"
+  },
+  "locked": {}
+}

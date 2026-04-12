@@ -42,6 +42,7 @@ export async function getUser() {
       email: session.user.email,
       name: session.user.name || null,
       avatarUrl: session.user.image || null,
+      locale: null,
       createdAt: now,
     };
     await db.insert(users).values(newUser);

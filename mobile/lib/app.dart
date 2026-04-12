@@ -3,9 +3,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:go_router/go_router.dart';
+import 'core/locale_provider.dart';
 import 'core/theme.dart';
 import 'core/theme_provider.dart';
 import 'features/auth/auth_provider.dart';
+import 'l10n/app_localizations.dart';
 import 'features/auth/login_screen.dart';
 import 'features/tasks/tasks_screen.dart';
 import 'features/notes/notes_screen.dart';
@@ -111,6 +113,7 @@ class NudgeApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeProvider);
     final brightness = resolveThemeBrightness(themeMode);
+    final userLocale = ref.watch(localeProvider);
 
     // Set AppColors before building so static getters return correct values
     AppColors.setDark(brightness == Brightness.dark);
@@ -119,15 +122,18 @@ class NudgeApp extends ConsumerWidget {
       title: 'Nudge',
       debugShowCheckedModeBanner: false,
       theme: AppColors.buildThemeData(brightness),
+      locale: userLocale,
       localizationsDelegates: const [
+        AppL10n.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
         FlutterQuillLocalizations.delegate,
       ],
       supportedLocales: const [
-        Locale('zh', 'TW'),
+        Locale('zh'),
         Locale('en'),
+        Locale('ja'),
       ],
       routerConfig: router,
     );

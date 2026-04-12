@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../core/auth_storage.dart';
 import '../../core/api_client.dart';
+import '../../core/locale_provider.dart';
 
 enum AuthStatus { unknown, authenticated, unauthenticated }
 
@@ -58,9 +59,22 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final response = await _apiClient.dio.get('/api/me');
       state = AuthState.authenticated(response.data);
+      _syncServerLocale(response.data);
     } catch (_) {
       await _authStorage.clearToken();
       state = AuthState.unauthenticated();
+    }
+  }
+
+  /// 若 server user.locale 與本機 localeProvider 不同，以 server 為準覆蓋本機。
+  /// 跨裝置切換語言時讓兩邊同步。
+  void _syncServerLocale(dynamic responseData) {
+    final serverTag = responseData is Map ? responseData['locale'] as String? : null;
+    if (serverTag == null || !supportedLocaleTags.contains(serverTag)) return;
+    final current = ref.read(localeProvider);
+    final currentTag = current == null ? null : formatLocaleTag(current);
+    if (currentTag != serverTag) {
+      ref.read(localeProvider.notifier).setLocale(parseLocaleTag(serverTag));
     }
   }
 
@@ -80,6 +94,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
       await _authStorage.setToken(jwt);
       state = AuthState.authenticated(user);
+      _syncServerLocale(user);
       return true;
     } catch (e) {
       return false;

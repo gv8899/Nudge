@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { format, parseISO } from "date-fns";
 import { stripHtml } from "@/lib/strip-html";
 import { TagBadge } from "@/components/tags/tag-badge";

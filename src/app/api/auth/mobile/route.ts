@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       email,
       name: name || null,
       avatarUrl: picture || null,
+      locale: null,
       createdAt: now,
     };
     await db.insert(users).values(newUser);
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
       email: user.email,
       name: user.name,
       avatarUrl: user.avatarUrl,
+      locale: user.locale,
     },
   });
 }

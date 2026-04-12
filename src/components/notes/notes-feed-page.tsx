@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { PenLine } from "lucide-react";
 import { NoteEntry } from "./note-entry";
 import { useNotesFeed } from "@/hooks/use-notes-feed";

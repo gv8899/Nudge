@@ -1,0 +1,9 @@
+{
+  "@@locale": "en",
+  "commonSave": "Save",
+  "@commonSave": {},
+  "commonCancel": "Cancel",
+  "@commonCancel": {},
+  "commonDelete": "Delete",
+  "@commonDelete": {}
+}
