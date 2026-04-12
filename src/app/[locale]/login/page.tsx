@@ -1,5 +1,6 @@
 import { signIn, auth } from "@/lib/auth";
 import { redirect } from "@/i18n/routing";
+import { getTranslations } from "next-intl/server";
 
 export default async function LoginPage({
   params,
@@ -10,12 +11,14 @@ export default async function LoginPage({
   const session = await auth();
   if (session?.user) redirect({ href: "/", locale });
 
+  const t = await getTranslations({ locale, namespace: "login" });
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="text-center space-y-8">
         <div className="space-y-2">
           <h1 className="text-4xl font-bold text-foreground">Nudge</h1>
-          <p className="text-text-dim">輕量型每日任務推進工具</p>
+          <p className="text-text-dim">{t("tagline")}</p>
         </div>
 
         <form
@@ -46,7 +49,7 @@ export default async function LoginPage({
                 fill="#EA4335"
               />
             </svg>
-            使用 Google 帳號登入
+            {t("signInWithGoogle")}
           </button>
         </form>
       </div>
