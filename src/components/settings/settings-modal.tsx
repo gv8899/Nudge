@@ -1,6 +1,6 @@
 "use client";
 
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { useTranslations } from "next-intl";
 import { signOut } from "next-auth/react";
 import { Sun, Moon, Monitor, LogOut } from "lucide-react";
@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useTheme, type Theme } from "@/components/providers/theme-provider";
+import { useRouter, usePathname, type Locale } from "@/i18n/routing";
 import { fetcher } from "@/lib/fetcher";
 import { TagManager } from "@/components/tags/tag-manager";
 import { format, parseISO } from "date-fns";
@@ -24,6 +25,7 @@ interface MeResponse {
   email: string;
   name: string | null;
   avatarUrl: string | null;
+  locale: Locale | null;
   createdAt: string;
 }
 
@@ -33,15 +35,47 @@ const themeOptions: { value: Theme; key: "light" | "dark" | "system"; Icon: type
   { value: "system", key: "system", Icon: Monitor },
 ];
 
+const LOCALE_OPTIONS: {
+  key: "zhTW" | "en" | "ja" | "auto";
+  value: Locale | null;
+}[] = [
+  { key: "zhTW", value: "zh-TW" },
+  { key: "en", value: "en" },
+  { key: "ja", value: "ja" },
+  { key: "auto", value: null },
+];
+
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const t = useTranslations("settings");
   const { data: me } = useSWR<MeResponse>(open ? "/api/me" : null, fetcher);
   const { theme, setTheme, paperTexture, setPaperTexture } = useTheme();
   const paperOn = paperTexture === "on";
+  const router = useRouter();
+  const pathname = usePathname();
+  const { mutate } = useSWRConfig();
 
   const handleSignOut = () => {
     signOut({ callbackUrl: "/login" });
   };
+
+  async function handleLocaleChange(value: Locale | null) {
+    try {
+      const res = await fetch("/api/me/locale", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale: value }),
+      });
+      if (!res.ok) throw new Error("patch failed");
+      await mutate("/api/me");
+      if (value === null) {
+        window.location.href = "/";
+      } else {
+        router.replace(pathname, { locale: value });
+      }
+    } catch {
+      alert(t("language.updateFailed"));
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -111,6 +145,38 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   >
                     <Icon className="h-5 w-5" />
                     {t(`theme.${key}`)}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* 語言切換 */}
+          <section className="py-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim mb-3">
+              {t("language.section")}
+            </h3>
+            <div
+              role="radiogroup"
+              aria-label={t("language.section")}
+              className="flex rounded-lg border border-border p-0.5 gap-0.5"
+            >
+              {LOCALE_OPTIONS.map(({ key, value }) => {
+                const active =
+                  value === null ? !me?.locale : me?.locale === value;
+                return (
+                  <button
+                    key={key}
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => handleLocaleChange(value)}
+                    className={`flex-1 px-2 py-1.5 text-xs rounded-md transition-colors ${
+                      active
+                        ? "bg-primary/10 text-primary"
+                        : "text-text-dim hover:text-foreground"
+                    }`}
+                  >
+                    {t(`language.${key}`)}
                   </button>
                 );
               })}
