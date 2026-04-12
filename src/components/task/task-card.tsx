@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { StatusBadge } from "./status-badge";
@@ -27,6 +28,7 @@ export function TaskCard({
   onMoveToDate,
   onUpdateTask,
 }: TaskCardProps) {
+  const t = useTranslations("task");
   const { task } = assignment;
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState(task.title);
@@ -93,7 +95,7 @@ export function TaskCard({
         <button
           {...attributes}
           {...listeners}
-          aria-label={`拖曳排序：${task.title}`}
+          aria-label={t("dragReorder", { title: task.title })}
           className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-text-faint hover:text-muted-foreground transition-opacity shrink-0 touch-none"
         >
           <GripVertical className="h-4 w-4" />
@@ -103,7 +105,10 @@ export function TaskCard({
         <button
           role="checkbox"
           aria-checked={assignment.isCompleted}
-          aria-label={`${task.title}：${assignment.isCompleted ? "已完成" : "未完成"}`}
+          aria-label={t("checkboxAria", {
+            title: task.title,
+            state: assignment.isCompleted ? t("stateCompleted") : t("stateIncomplete"),
+          })}
           onClick={() =>
             onToggleComplete(assignment.id, task.id, !assignment.isCompleted)
           }
@@ -138,7 +143,7 @@ export function TaskCard({
                 setIsEditingTitle(false);
               }
             }}
-            aria-label="編輯任務標題"
+            aria-label={t("editTitleAria")}
             className="flex-1 min-w-0 text-sm bg-background text-foreground rounded px-2 py-1 outline-none border border-primary"
           />
         ) : (
@@ -157,7 +162,7 @@ export function TaskCard({
         {/* 展開內文 */}
         <button
           onClick={() => setIsModalOpen(true)}
-          aria-label={`展開「${task.title}」的內文`}
+          aria-label={t("expandContentAria", { title: task.title })}
           className={`transition-colors cursor-pointer p-2 rounded ${
             hasDescription
               ? "text-primary hover:text-primary/80"
