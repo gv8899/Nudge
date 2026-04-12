@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../../core/date_utils.dart';
 import '../../core/theme.dart';
 import '../../l10n/app_localizations.dart';
 import 'notes_provider.dart';
@@ -12,6 +13,7 @@ class NotesFeedScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Theme.of(context); // subscribe to theme changes so static AppColors getters re-evaluate
     final l = AppL10n.of(context)!;
     final feedAsync = ref.watch(notesFeedProvider);
 
@@ -80,7 +82,7 @@ class _NoteEntry extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppL10n.of(context)!;
-    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    final localeTag = intlLocaleOf(context);
     final d = DateTime.parse(note.date);
     final dayNum = d.day.toString();
     final month = l.notesMonthLabel(d.month);

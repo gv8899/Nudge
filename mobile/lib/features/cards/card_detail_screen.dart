@@ -67,6 +67,7 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Theme.of(context); // subscribe to theme changes so static AppColors getters re-evaluate
     final l = AppL10n.of(context)!;
     final cardAsync = ref.watch(cardDetailProvider(widget.taskId));
 

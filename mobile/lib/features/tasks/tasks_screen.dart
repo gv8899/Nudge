@@ -14,6 +14,7 @@ class TasksScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Theme.of(context); // subscribe to theme changes so static AppColors getters re-evaluate
     final l = AppL10n.of(context)!;
     final selectedDate = ref.watch(selectedDateProvider);
     final dailyAsync = ref.watch(dailyDataProvider(selectedDate));

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../core/date_utils.dart';
 import '../../core/theme.dart';
 import 'tasks_provider.dart';
@@ -12,10 +13,15 @@ class CalendarBar extends ConsumerWidget {
     final selectedDate = ref.watch(selectedDateProvider);
     final selected = DateTime.parse(selectedDate);
 
+    final localeTag = intlLocaleOf(context);
     final weekday = selected.weekday;
     final weekStart = selected.subtract(Duration(days: weekday - 1));
 
-    final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final dayFormatter = DateFormat('EEE', localeTag);
+    final dayNames = List.generate(
+      7,
+      (i) => dayFormatter.format(weekStart.add(Duration(days: i))),
+    );
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,

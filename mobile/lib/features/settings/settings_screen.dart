@@ -15,6 +15,7 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Theme.of(context); // subscribe to theme changes so static AppColors getters re-evaluate
     final authState = ref.watch(authProvider);
     final themeMode = ref.watch(themeProvider);
     final l = AppL10n.of(context)!;
@@ -22,9 +23,8 @@ class SettingsScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
           children: [
-            const SizedBox(height: 16),
             Text(
               l.settingsTitle,
               style: TextStyle(
@@ -410,6 +410,7 @@ class _LanguageSection extends ConsumerWidget {
           }).toList(),
           selected: {_selectedKey(current)},
           showSelectedIcon: false,
+          expandedInsets: EdgeInsets.zero,
           onSelectionChanged: (set) => _handleChange(context, ref, set.first),
           style: ButtonStyle(
             textStyle: WidgetStateProperty.all(const TextStyle(fontSize: 12)),

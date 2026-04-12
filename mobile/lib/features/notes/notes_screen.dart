@@ -14,8 +14,9 @@ class NotesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    Theme.of(context); // subscribe to theme changes so static AppColors getters re-evaluate
     final l = AppL10n.of(context)!;
-    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    final localeTag = intlLocaleOf(context);
     final selectedDate = ref.watch(selectedNoteDateProvider);
     final contentAsync = ref.watch(notesContentProvider(selectedDate));
 
