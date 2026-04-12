@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme.dart';
+import '../../l10n/app_localizations.dart';
 import 'tasks_provider.dart';
 import 'calendar_bar.dart';
 import 'task_create_input.dart';
@@ -13,6 +14,7 @@ class TasksScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppL10n.of(context)!;
     final selectedDate = ref.watch(selectedDateProvider);
     final dailyAsync = ref.watch(dailyDataProvider(selectedDate));
 
@@ -41,7 +43,7 @@ class TasksScreen extends ConsumerWidget {
             Expanded(
               child: dailyAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('載入失敗', style: TextStyle(color: AppColors.textDim))),
+                error: (e, _) => Center(child: Text(l.commonLoadFailed, style: TextStyle(color: AppColors.textDim))),
                 data: (data) {
                   final sorted = [...data.assignments]..sort((a, b) {
                       if (a.isCompleted != b.isCompleted) return a.isCompleted ? 1 : -1;
@@ -122,7 +124,7 @@ class TasksScreen extends ConsumerWidget {
                         if (sorted.isEmpty && data.overdueTasks.isEmpty)
                           Padding(
                             padding: EdgeInsets.only(top: 32),
-                            child: Center(child: Text('今天還沒有任務', style: TextStyle(fontSize: 14, color: AppColors.textDim))),
+                            child: Center(child: Text(l.dailyEmptyToday, style: TextStyle(fontSize: 14, color: AppColors.textDim))),
                           ),
                       ],
                     ),

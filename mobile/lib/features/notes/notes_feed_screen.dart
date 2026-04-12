@@ -4,6 +4,7 @@ import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
+import '../../l10n/app_localizations.dart';
 import 'notes_provider.dart';
 
 class NotesFeedScreen extends ConsumerWidget {
@@ -11,6 +12,7 @@ class NotesFeedScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppL10n.of(context)!;
     final feedAsync = ref.watch(notesFeedProvider);
 
     return Scaffold(
@@ -21,22 +23,22 @@ class NotesFeedScreen extends ConsumerWidget {
           icon: const Icon(LucideIcons.arrowLeft),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('日誌', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        title: Text(l.navNotes, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
       ),
       body: feedAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('載入失敗', style: TextStyle(color: AppColors.textDim))),
+        error: (e, _) => Center(child: Text(l.commonLoadFailed, style: TextStyle(color: AppColors.textDim))),
         data: (notes) {
           if (notes.isEmpty) {
             return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('還沒有過去的日記', style: TextStyle(fontSize: 14, color: AppColors.textDim)),
+                  Text(l.notesEmptyFeedShort, style: TextStyle(fontSize: 14, color: AppColors.textDim)),
                   const SizedBox(height: 12),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: Text('去今天的日誌', style: TextStyle(fontSize: 13, color: AppColors.primary)),
+                    child: Text(l.notesGoToToday, style: TextStyle(fontSize: 13, color: AppColors.primary)),
                   ),
                 ],
               ),
@@ -77,10 +79,12 @@ class _NoteEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context)!;
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
     final d = DateTime.parse(note.date);
     final dayNum = d.day.toString();
-    final month = '${d.month} 月';
-    final weekday = DateFormat('EEE', 'zh_TW').format(d);
+    final month = l.notesMonthLabel(d.month);
+    final weekday = DateFormat('EEE', localeTag).format(d);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

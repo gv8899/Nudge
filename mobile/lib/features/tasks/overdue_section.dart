@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
+import '../../l10n/app_localizations.dart';
 import 'models.dart';
 
 class OverdueSection extends StatefulWidget {
@@ -28,6 +29,7 @@ class _OverdueSectionState extends State<OverdueSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context)!;
     if (widget.overdueTasks.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -43,24 +45,24 @@ class _OverdueSectionState extends State<OverdueSection> {
                 const SizedBox(width: 4),
                 Icon(LucideIcons.calendarClock, size: 16, color: AppColors.primary),
                 const SizedBox(width: 6),
-                Text('前幾天的 (${widget.overdueTasks.length})', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.primary)),
+                Text(l.dailyOverdueLabel(widget.overdueTasks.length), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.primary)),
               ],
             ),
           ),
         ),
-        if (_isExpanded) ...widget.overdueTasks.map(_buildItem),
+        if (_isExpanded) ...widget.overdueTasks.map((a) => _buildItem(a, l)),
       ],
     );
   }
 
-  Widget _buildItem(TaskAssignment a) {
+  Widget _buildItem(TaskAssignment a, AppL10n l) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Row(
         children: [
           // Checkbox — same 44px SizedBox as task_card
           Semantics(
-            label: '完成任務',
+            label: l.taskComplete,
             button: true,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -82,7 +84,7 @@ class _OverdueSectionState extends State<OverdueSection> {
           const SizedBox(width: 44),
           // Calendar — aligned with task_card's calendar icon
           Semantics(
-            label: '選擇日期',
+            label: l.taskMoveToOtherDate,
             button: true,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -98,7 +100,7 @@ class _OverdueSectionState extends State<OverdueSection> {
           ),
           // Archive — match task_card's status dot width (padding 12 + 10px dot + padding 12 = 34)
           Semantics(
-            label: '封存任務',
+            label: l.dailyArchiveTitle,
             button: true,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -116,15 +118,16 @@ class _OverdueSectionState extends State<OverdueSection> {
   }
 
   void _confirmArchive(TaskAssignment a) {
+    final l = AppL10n.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: const Text('封存任務', style: TextStyle(fontSize: 16)),
-        content: Text('確定要封存「${a.task.title}」嗎？', style: TextStyle(fontSize: 14, color: AppColors.textDim)),
+        title: Text(l.dailyArchiveTitle, style: const TextStyle(fontSize: 16)),
+        content: Text(l.dailyArchiveConfirmBody(a.task.title), style: TextStyle(fontSize: 14, color: AppColors.textDim)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-          TextButton(onPressed: () { Navigator.pop(ctx); widget.onArchive(a.id, a.taskId); }, child: Text('封存', style: TextStyle(color: AppColors.destructive))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l.commonCancel)),
+          TextButton(onPressed: () { Navigator.pop(ctx); widget.onArchive(a.id, a.taskId); }, child: Text(l.dailyArchiveButton, style: TextStyle(color: AppColors.destructive))),
         ],
       ),
     );

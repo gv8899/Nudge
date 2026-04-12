@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../shared/quill_editor_widget.dart';
 import '../tags/models.dart' as tag_models;
 import '../tags/tags_provider.dart';
@@ -66,6 +67,7 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context)!;
     final cardAsync = ref.watch(cardDetailProvider(widget.taskId));
 
     return PopScope(
@@ -88,7 +90,7 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
         ),
         body: cardAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('載入失敗', style: TextStyle(color: AppColors.textDim))),
+          error: (e, _) => Center(child: Text(l.commonLoadFailed, style: TextStyle(color: AppColors.textDim))),
           data: (card) {
             if (!_initialized) {
               _titleController.text = card.title;
@@ -111,7 +113,7 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                           controller: _titleController,
                           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground),
                           decoration: InputDecoration(
-                            hintText: '標題',
+                            hintText: l.cardDetailTitleHint,
                             hintStyle: TextStyle(color: AppColors.textFaint),
                             border: InputBorder.none,
                             contentPadding: EdgeInsets.zero,
@@ -147,7 +149,7 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
                     },
                     showToolbar: false,
                     showSlashMenu: true,
-                    placeholder: '打 / 插入標題、清單…',
+                    placeholder: l.cardDetailEditorPlaceholder,
                   ),
                 ),
               ],
@@ -238,6 +240,7 @@ class _MetadataSheetState extends ConsumerState<_MetadataSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context)!;
     final allTags = ref.watch(tagsProvider).when(
       data: (t) => t,
       loading: () => <tag_models.Tag>[],
@@ -268,7 +271,7 @@ class _MetadataSheetState extends ConsumerState<_MetadataSheet> {
             if (_pickingColor) ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                child: Text('「$_pendingTagName」選擇顏色', style: TextStyle(fontSize: 13, color: AppColors.foreground)),
+                child: Text(l.tagsCreateNamed(_pendingTagName), style: TextStyle(fontSize: 13, color: AppColors.foreground)),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -299,12 +302,12 @@ class _MetadataSheetState extends ConsumerState<_MetadataSheet> {
                   children: [
                     TextButton(
                       onPressed: () => setState(() { _pickingColor = false; _pendingTagName = ''; }),
-                      child: Text('取消', style: TextStyle(color: AppColors.textDim)),
+                      child: Text(l.commonCancel, style: TextStyle(color: AppColors.textDim)),
                     ),
                     const SizedBox(width: 8),
                     TextButton(
                       onPressed: _confirmCreate,
-                      child: Text('建立', style: TextStyle(color: AppColors.primary)),
+                      child: Text(l.tagsCreate, style: TextStyle(color: AppColors.primary)),
                     ),
                   ],
                 ),
@@ -316,7 +319,7 @@ class _MetadataSheetState extends ConsumerState<_MetadataSheet> {
                   controller: _newTagController,
                   style: TextStyle(fontSize: 14, color: AppColors.foreground),
                   decoration: InputDecoration(
-                    hintText: '新增標籤...',
+                    hintText: l.tagsNewTagPlaceholder,
                     hintStyle: TextStyle(color: AppColors.textFaint),
                     prefixIcon: Icon(LucideIcons.plus, size: 16, color: AppColors.textDim),
                     prefixIconConstraints: const BoxConstraints(minWidth: 40),

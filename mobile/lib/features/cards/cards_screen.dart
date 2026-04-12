@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
+import '../../l10n/app_localizations.dart';
 import 'cards_provider.dart';
 import 'card_list_item.dart';
 import 'card_grid_item.dart';
@@ -46,6 +47,7 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context)!;
     final cardsAsync = ref.watch(cardsProvider(_query));
 
     return Scaffold(
@@ -57,7 +59,7 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Row(
                 children: [
-                  Text('卡片',
+                  Text(l.navCards,
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
                   const SizedBox(width: 8),
                   GestureDetector(
@@ -91,7 +93,7 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                 onChanged: _onSearchChanged,
                 style: TextStyle(fontSize: 14, color: AppColors.foreground),
                 decoration: InputDecoration(
-                  hintText: '搜尋卡片...',
+                  hintText: l.cardsSearchPlaceholder,
                   hintStyle: TextStyle(color: AppColors.textFaint),
                   prefixIcon: Icon(LucideIcons.search, size: 18, color: AppColors.textDim),
                   isDense: true,
@@ -120,12 +122,12 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
             Expanded(
               child: cardsAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('載入失敗', style: TextStyle(color: AppColors.textDim))),
+                error: (e, _) => Center(child: Text(l.commonLoadFailed, style: TextStyle(color: AppColors.textDim))),
                 data: (cards) {
                   if (cards.isEmpty) {
                     return Center(
                       child: Text(
-                        _query.isNotEmpty ? '沒有符合的卡片' : '還沒有卡片',
+                        _query.isNotEmpty ? l.cardsEmptyWithQuery : l.cardsEmptyMobile,
                         style: TextStyle(fontSize: 14, color: AppColors.textDim),
                       ),
                     );

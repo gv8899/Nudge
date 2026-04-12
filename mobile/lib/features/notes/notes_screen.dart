@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import '../../core/date_utils.dart';
+import '../../l10n/app_localizations.dart';
 import '../../shared/quill_editor_widget.dart';
 import 'notes_provider.dart';
 
@@ -13,6 +14,8 @@ class NotesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppL10n.of(context)!;
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
     final selectedDate = ref.watch(selectedNoteDateProvider);
     final contentAsync = ref.watch(notesContentProvider(selectedDate));
 
@@ -20,8 +23,8 @@ class NotesScreen extends ConsumerWidget {
     final today = formatDate(DateTime.now());
     final isToday = selectedDate == today;
     final dateLabel = isToday
-        ? '${DateFormat('M/d').format(dateObj)} · 今天'
-        : '${DateFormat('M/d').format(dateObj)} · ${DateFormat('EEEE', 'zh_TW').format(dateObj)}';
+        ? '${DateFormat('M/d').format(dateObj)} · ${l.commonToday}'
+        : '${DateFormat('M/d').format(dateObj)} · ${DateFormat('EEEE', localeTag).format(dateObj)}';
 
     return Scaffold(
       body: SafeArea(
@@ -32,7 +35,7 @@ class NotesScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Row(
                 children: [
-                  Text('日誌', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
+                  Text(l.navNotes, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.foreground)),
                   const Spacer(),
                   Text(dateLabel, style: TextStyle(fontSize: 13, color: AppColors.textDim)),
                   const SizedBox(width: 8),
@@ -51,7 +54,7 @@ class NotesScreen extends ConsumerWidget {
             Expanded(
               child: contentAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('載入失敗', style: TextStyle(color: AppColors.textDim))),
+                error: (e, _) => Center(child: Text(l.commonLoadFailed, style: TextStyle(color: AppColors.textDim))),
                 data: (html) => QuillEditorWidget(
                   key: ValueKey(selectedDate),
                   initialHtml: html,
@@ -60,7 +63,7 @@ class NotesScreen extends ConsumerWidget {
                   },
                   showToolbar: false,
                   showSlashMenu: true,
-                  placeholder: '打 / 插入標題、清單…',
+                  placeholder: l.cardDetailEditorPlaceholder,
                 ),
               ),
             ),

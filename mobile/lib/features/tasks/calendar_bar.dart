@@ -40,7 +40,7 @@ class CalendarBar extends ConsumerWidget {
 
             return Expanded(
               child: Semantics(
-                label: '${dayNames[i]} ${day.day}日',
+                label: '${dayNames[i]} ${day.day}',
                 button: true,
                 selected: isSelected,
                 child: GestureDetector(
