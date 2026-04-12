@@ -178,4 +178,157 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get loginLoginFailed => '登入失敗，請再試一次';
+
+  @override
+  String taskDragReorder(Object title) {
+    return '拖曳排序：$title';
+  }
+
+  @override
+  String taskCheckboxAria(Object title, Object state) {
+    return '$title：$state';
+  }
+
+  @override
+  String get taskStateCompleted => '已完成';
+
+  @override
+  String get taskStateIncomplete => '未完成';
+
+  @override
+  String get taskEditTitleAria => '編輯任務標題';
+
+  @override
+  String taskExpandContentAria(Object title) {
+    return '展開「$title」的內文';
+  }
+
+  @override
+  String get taskDetailExpandPage => '展開為單頁';
+
+  @override
+  String get taskDetailClose => '關閉';
+
+  @override
+  String get taskDetailContentPlaceholder => '輸入內文...';
+
+  @override
+  String get taskCreatePlaceholder => '新增任務';
+
+  @override
+  String get taskMoveToOtherDay => '移到其他天';
+
+  @override
+  String get taskViewDetails => '查看詳情';
+
+  @override
+  String get taskComplete => '完成任務';
+
+  @override
+  String get taskUncomplete => '取消完成';
+
+  @override
+  String get taskMoveToOtherDate => '移到其他日期';
+
+  @override
+  String get editorDragBlockAria => '拖動區塊';
+
+  @override
+  String get editorDragBlockTitle => '拖動以重新排序';
+
+  @override
+  String get editorCodeLangAria => '切換語言';
+
+  @override
+  String get editorCodeCopyAria => '複製';
+
+  @override
+  String get editorCodeCopiedAria => '已複製';
+
+  @override
+  String get editorCodeCopyTitle => '複製程式碼';
+
+  @override
+  String get editorSlashNoResults => '沒有符合的項目';
+
+  @override
+  String get editorSlashH1Label => '標題 1';
+
+  @override
+  String get editorSlashH1Description => '大標題';
+
+  @override
+  String get editorSlashH1Keywords => 'h1|head|heading|標題|大標題';
+
+  @override
+  String get editorSlashH2Label => '標題 2';
+
+  @override
+  String get editorSlashH2Description => '中標題';
+
+  @override
+  String get editorSlashH2Keywords => 'h2|head|heading|標題|中標題';
+
+  @override
+  String get editorSlashH3Label => '標題 3';
+
+  @override
+  String get editorSlashH3Description => '小標題';
+
+  @override
+  String get editorSlashH3Keywords => 'h3|head|heading|標題|小標題';
+
+  @override
+  String get editorSlashBulletLabel => '項目符號列表';
+
+  @override
+  String get editorSlashBulletDescription => '建立無序列表';
+
+  @override
+  String get editorSlashBulletKeywords => 'list|bullet|ul|項目|清單|列表';
+
+  @override
+  String get editorSlashOrderedLabel => '數字列表';
+
+  @override
+  String get editorSlashOrderedDescription => '建立編號列表';
+
+  @override
+  String get editorSlashOrderedKeywords => 'ol|number|ordered|數字|編號|列表';
+
+  @override
+  String get editorSlashTodoLabel => '待辦列表';
+
+  @override
+  String get editorSlashTodoDescription => '可勾選的待辦清單';
+
+  @override
+  String get editorSlashTodoKeywords => 'todo|task|check|待辦|任務';
+
+  @override
+  String get editorSlashQuoteLabel => '引言';
+
+  @override
+  String get editorSlashQuoteDescription => '引用區塊';
+
+  @override
+  String get editorSlashQuoteKeywords => 'quote|blockquote|引用|引言';
+
+  @override
+  String get editorSlashCodeLabel => '程式碼區塊';
+
+  @override
+  String get editorSlashCodeDescription => '含語法高亮的程式碼區塊';
+
+  @override
+  String get editorSlashCodeKeywords => 'code|block|程式|程式碼';
+
+  @override
+  String get editorSlashDividerLabel => '分隔線';
+
+  @override
+  String get editorSlashDividerDescription => '插入水平分隔線';
+
+  @override
+  String get editorSlashDividerKeywords => 'hr|divider|separator|分隔|分隔線';
 }

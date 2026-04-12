@@ -181,4 +181,158 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get loginLoginFailed => 'Sign-in failed. Please try again.';
+
+  @override
+  String taskDragReorder(Object title) {
+    return 'Drag to reorder: $title';
+  }
+
+  @override
+  String taskCheckboxAria(Object title, Object state) {
+    return '$title: $state';
+  }
+
+  @override
+  String get taskStateCompleted => 'Completed';
+
+  @override
+  String get taskStateIncomplete => 'Not completed';
+
+  @override
+  String get taskEditTitleAria => 'Edit task title';
+
+  @override
+  String taskExpandContentAria(Object title) {
+    return 'Expand content of \"$title\"';
+  }
+
+  @override
+  String get taskDetailExpandPage => 'Expand to full page';
+
+  @override
+  String get taskDetailClose => 'Close';
+
+  @override
+  String get taskDetailContentPlaceholder => 'Write content...';
+
+  @override
+  String get taskCreatePlaceholder => 'Add a task';
+
+  @override
+  String get taskMoveToOtherDay => 'Move to another day';
+
+  @override
+  String get taskViewDetails => 'View details';
+
+  @override
+  String get taskComplete => 'Complete task';
+
+  @override
+  String get taskUncomplete => 'Mark as incomplete';
+
+  @override
+  String get taskMoveToOtherDate => 'Move to another date';
+
+  @override
+  String get editorDragBlockAria => 'Drag block';
+
+  @override
+  String get editorDragBlockTitle => 'Drag to reorder';
+
+  @override
+  String get editorCodeLangAria => 'Switch language';
+
+  @override
+  String get editorCodeCopyAria => 'Copy';
+
+  @override
+  String get editorCodeCopiedAria => 'Copied';
+
+  @override
+  String get editorCodeCopyTitle => 'Copy code';
+
+  @override
+  String get editorSlashNoResults => 'No matching items';
+
+  @override
+  String get editorSlashH1Label => 'Heading 1';
+
+  @override
+  String get editorSlashH1Description => 'Large section heading';
+
+  @override
+  String get editorSlashH1Keywords => 'h1|head|heading|large|title';
+
+  @override
+  String get editorSlashH2Label => 'Heading 2';
+
+  @override
+  String get editorSlashH2Description => 'Medium section heading';
+
+  @override
+  String get editorSlashH2Keywords => 'h2|head|heading|medium';
+
+  @override
+  String get editorSlashH3Label => 'Heading 3';
+
+  @override
+  String get editorSlashH3Description => 'Small section heading';
+
+  @override
+  String get editorSlashH3Keywords => 'h3|head|heading|small';
+
+  @override
+  String get editorSlashBulletLabel => 'Bullet list';
+
+  @override
+  String get editorSlashBulletDescription => 'Create an unordered list';
+
+  @override
+  String get editorSlashBulletKeywords => 'list|bullet|ul|unordered';
+
+  @override
+  String get editorSlashOrderedLabel => 'Numbered list';
+
+  @override
+  String get editorSlashOrderedDescription => 'Create a numbered list';
+
+  @override
+  String get editorSlashOrderedKeywords => 'ol|number|ordered|list';
+
+  @override
+  String get editorSlashTodoLabel => 'To-do list';
+
+  @override
+  String get editorSlashTodoDescription => 'Checklist with checkboxes';
+
+  @override
+  String get editorSlashTodoKeywords => 'todo|task|check|checklist';
+
+  @override
+  String get editorSlashQuoteLabel => 'Quote';
+
+  @override
+  String get editorSlashQuoteDescription => 'Blockquote';
+
+  @override
+  String get editorSlashQuoteKeywords => 'quote|blockquote|cite';
+
+  @override
+  String get editorSlashCodeLabel => 'Code block';
+
+  @override
+  String get editorSlashCodeDescription =>
+      'Code block with syntax highlighting';
+
+  @override
+  String get editorSlashCodeKeywords => 'code|block|pre|syntax';
+
+  @override
+  String get editorSlashDividerLabel => 'Divider';
+
+  @override
+  String get editorSlashDividerDescription => 'Horizontal divider line';
+
+  @override
+  String get editorSlashDividerKeywords => 'hr|divider|separator|line';
 }
