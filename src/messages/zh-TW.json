@@ -62,5 +62,13 @@
     "newTagPlaceholder": "新增標籤...",
     "removeAria": "移除 {name}",
     "searchOrCreate": "搜尋或建立標籤..."
+  },
+  "nav": {
+    "tasks": "行動",
+    "notes": "日誌",
+    "cards": "卡片",
+    "settings": "設定",
+    "mainNavAria": "主導覽",
+    "settingsAria": "開啟設定"
   }
 }

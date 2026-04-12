@@ -123,5 +123,17 @@
     }
   },
   "tagsSearchOrCreate": "搜尋或建立標籤...",
-  "@tagsSearchOrCreate": {}
+  "@tagsSearchOrCreate": {},
+  "navTasks": "行動",
+  "@navTasks": {},
+  "navNotes": "日誌",
+  "@navNotes": {},
+  "navCards": "卡片",
+  "@navCards": {},
+  "navSettings": "設定",
+  "@navSettings": {},
+  "navMainNavAria": "主導覽",
+  "@navMainNavAria": {},
+  "navSettingsAria": "開啟設定",
+  "@navSettingsAria": {}
 }

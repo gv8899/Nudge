@@ -44,7 +44,13 @@
     "tags.deleteTagAria": "0d38660448cfb163bfff6dc5a52a4bae60f35ec96fba28678d8edfc5d4db6cbc",
     "tags.newTagPlaceholder": "9c8b2a19ebc2bfc4b0b1524f8e19d0bd646400f58a1228a194952d5016e226c4",
     "tags.removeAria": "8a73a4332e20f1a2f2d8b34b96c1f59c24e8c66fb9aaa0dad6513cf9119285ab",
-    "tags.searchOrCreate": "9dbbbf81ff015819d6b61a02e02f4f8d584de27add89ac0358f52b6c4dd640a1"
+    "tags.searchOrCreate": "9dbbbf81ff015819d6b61a02e02f4f8d584de27add89ac0358f52b6c4dd640a1",
+    "nav.tasks": "b396c18ea561591d6703d832ecd48d71c99ddd79c3700fd8887c9e9883f35436",
+    "nav.notes": "1fa4bfdaa11846109ccc0defc083bc9b3980621f02930b3075c44db2a6201a5c",
+    "nav.cards": "fb5640f8e12e3337ca89ef43b578d0461640497021a7e6ccd5edd869abf877de",
+    "nav.settings": "0d8619aae051ae343ea983e969d29b7bd7a618eb1b25a6c87c133c5e3ee25264",
+    "nav.mainNavAria": "1944996eb06b5a6a4ba94b092b13d19d1ac3b97f14861340afe482a6803a5e7b",
+    "nav.settingsAria": "4fda12d3e30b71506f8a766a7715a2f7962903d8f7ff4f339f48f2635e151861"
   },
   "locked": {}
 }

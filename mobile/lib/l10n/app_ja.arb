@@ -123,5 +123,17 @@
     }
   },
   "tagsSearchOrCreate": "タグを検索・作成...",
-  "@tagsSearchOrCreate": {}
+  "@tagsSearchOrCreate": {},
+  "navTasks": "アクション",
+  "@navTasks": {},
+  "navNotes": "ジャーナル",
+  "@navNotes": {},
+  "navCards": "カード",
+  "@navCards": {},
+  "navSettings": "設定",
+  "@navSettings": {},
+  "navMainNavAria": "メインナビ",
+  "@navMainNavAria": {},
+  "navSettingsAria": "設定を開く",
+  "@navSettingsAria": {}
 }

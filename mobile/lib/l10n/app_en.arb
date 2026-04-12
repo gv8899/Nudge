@@ -123,5 +123,17 @@
     }
   },
   "tagsSearchOrCreate": "Search or create tag...",
-  "@tagsSearchOrCreate": {}
+  "@tagsSearchOrCreate": {},
+  "navTasks": "Tasks",
+  "@navTasks": {},
+  "navNotes": "Notes",
+  "@navNotes": {},
+  "navCards": "Cards",
+  "@navCards": {},
+  "navSettings": "Settings",
+  "@navSettings": {},
+  "navMainNavAria": "Main navigation",
+  "@navMainNavAria": {},
+  "navSettingsAria": "Open settings",
+  "@navSettingsAria": {}
 }

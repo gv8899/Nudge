@@ -62,5 +62,13 @@
     "newTagPlaceholder": "新しいタグ...",
     "removeAria": "{name} を外す",
     "searchOrCreate": "タグを検索・作成..."
+  },
+  "nav": {
+    "tasks": "アクション",
+    "notes": "ジャーナル",
+    "cards": "カード",
+    "settings": "設定",
+    "mainNavAria": "メインナビ",
+    "settingsAria": "設定を開く"
   }
 }

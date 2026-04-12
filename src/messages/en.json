@@ -62,5 +62,13 @@
     "newTagPlaceholder": "New tag...",
     "removeAria": "Remove {name}",
     "searchOrCreate": "Search or create tag..."
+  },
+  "nav": {
+    "tasks": "Tasks",
+    "notes": "Notes",
+    "cards": "Cards",
+    "settings": "Settings",
+    "mainNavAria": "Main navigation",
+    "settingsAria": "Open settings"
   }
 }
