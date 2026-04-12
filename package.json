@@ -51,7 +51,6 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.88.0",
     "@tailwindcss/postcss": "^4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/dompurify": "^3.0.5",
