@@ -88,7 +88,7 @@ class _CardDetailScreenState extends ConsumerState<CardDetailScreen> {
         ),
         body: cardAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('載入失敗', style: TextStyle(color: Colors.grey[400]))),
+          error: (e, _) => Center(child: Text('載入失敗', style: TextStyle(color: AppColors.textDim))),
           data: (card) {
             if (!_initialized) {
               _titleController.text = card.title;

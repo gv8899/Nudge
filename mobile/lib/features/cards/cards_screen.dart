@@ -120,7 +120,7 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
             Expanded(
               child: cardsAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('載入失敗', style: TextStyle(color: Colors.grey[400]))),
+                error: (e, _) => Center(child: Text('載入失敗', style: TextStyle(color: AppColors.textDim))),
                 data: (cards) {
                   if (cards.isEmpty) {
                     return Center(

@@ -88,27 +88,144 @@ class AppColors {
     final isDark = brightness == Brightness.dark;
     setDark(isDark);
 
+    final cs = isDark
+        ? ColorScheme.dark(
+            surface: background,
+            onSurface: foreground,
+            surfaceContainerHighest: card,
+            onSurfaceVariant: textDim,
+            primary: primary,
+            onPrimary: onPrimary,
+            secondary: card,
+            onSecondary: foreground,
+            error: destructive,
+            onError: onPrimary,
+            outline: border,
+            outlineVariant: border,
+          )
+        : ColorScheme.light(
+            surface: background,
+            onSurface: foreground,
+            surfaceContainerHighest: card,
+            onSurfaceVariant: textDim,
+            primary: primary,
+            onPrimary: onPrimary,
+            secondary: card,
+            onSecondary: foreground,
+            error: destructive,
+            onError: onPrimary,
+            outline: border,
+            outlineVariant: border,
+          );
+
     return ThemeData(
       brightness: brightness,
       scaffoldBackgroundColor: background,
-      colorScheme: isDark
-          ? ColorScheme.dark(
-              surface: background,
-              primary: primary,
-              onPrimary: onPrimary,
-              secondary: card,
-              onSurface: foreground,
-            )
-          : ColorScheme.light(
-              surface: background,
-              primary: primary,
-              onPrimary: onPrimary,
-              secondary: card,
-              onSurface: foreground,
-            ),
+      canvasColor: background,
+      dividerColor: border,
+      colorScheme: cs,
+
+      // Text / icon defaults
+      iconTheme: IconThemeData(color: foreground),
+      primaryIconTheme: IconThemeData(color: foreground),
+
+      textTheme: TextTheme(
+        displayLarge: TextStyle(color: foreground),
+        displayMedium: TextStyle(color: foreground),
+        displaySmall: TextStyle(color: foreground),
+        headlineLarge: TextStyle(color: foreground),
+        headlineMedium: TextStyle(color: foreground),
+        headlineSmall: TextStyle(color: foreground),
+        titleLarge: TextStyle(color: foreground),
+        titleMedium: TextStyle(color: foreground),
+        titleSmall: TextStyle(color: foreground),
+        bodyLarge: TextStyle(color: foreground),
+        bodyMedium: TextStyle(color: foreground),
+        bodySmall: TextStyle(color: textDim),
+        labelLarge: TextStyle(color: foreground),
+        labelMedium: TextStyle(color: foreground),
+        labelSmall: TextStyle(color: textDim),
+      ),
+
+      // AppBar
+      appBarTheme: AppBarTheme(
+        backgroundColor: background,
+        foregroundColor: foreground,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        iconTheme: IconThemeData(color: foreground),
+        titleTextStyle: TextStyle(color: foreground, fontSize: 18, fontWeight: FontWeight.w600),
+      ),
+
+      // ListTile
+      listTileTheme: ListTileThemeData(
+        textColor: foreground,
+        iconColor: textDim,
+        titleTextStyle: TextStyle(color: foreground, fontSize: 14),
+        subtitleTextStyle: TextStyle(color: textDim, fontSize: 12),
+      ),
+
+      // Dialog
+      dialogTheme: DialogThemeData(
+        backgroundColor: card,
+        titleTextStyle: TextStyle(color: foreground, fontSize: 16, fontWeight: FontWeight.w600),
+        contentTextStyle: TextStyle(color: textDim, fontSize: 14),
+      ),
+
+      // Bottom sheet
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: card,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: card,
+        modalBarrierColor: Colors.black.withValues(alpha: 0.4),
+      ),
+
+      // Buttons
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: primary),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: foreground,
+          side: BorderSide(color: border),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(foregroundColor: foreground),
+      ),
+
+      // Input fields
+      inputDecorationTheme: InputDecorationTheme(
+        hintStyle: TextStyle(color: textFaint),
+        labelStyle: TextStyle(color: textDim),
+        floatingLabelStyle: TextStyle(color: primary),
+        border: UnderlineInputBorder(borderSide: BorderSide(color: border)),
+        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: border)),
+        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: primary)),
+      ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: primary,
+        selectionColor: primary.withValues(alpha: 0.3),
+        selectionHandleColor: primary,
+      ),
+
+      // Card
+      cardTheme: CardThemeData(
+        color: card,
+        surfaceTintColor: Colors.transparent,
+      ),
+
+      // Divider
+      dividerTheme: DividerThemeData(color: border, thickness: 1),
+
+      // Progress indicator
+      progressIndicatorTheme: ProgressIndicatorThemeData(color: primary),
+
+      // Navigation bar (bottom nav)
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: card,
         indicatorColor: primary.withValues(alpha: 0.2),
+        surfaceTintColor: Colors.transparent,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: primary);
@@ -122,12 +239,12 @@ class AppColors {
           return IconThemeData(color: textDim, size: 22);
         }),
       ),
-      textTheme: TextTheme(
-        headlineLarge: TextStyle(color: foreground),
-        headlineSmall: TextStyle(color: foreground),
-        titleMedium: TextStyle(color: foreground),
-        bodyMedium: TextStyle(color: foreground),
-        bodySmall: TextStyle(color: textDim),
+
+      // Snackbar
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: card,
+        contentTextStyle: TextStyle(color: foreground),
+        actionTextColor: primary,
       ),
     );
   }

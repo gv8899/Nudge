@@ -124,7 +124,7 @@ class _OverdueSectionState extends State<OverdueSection> {
         content: Text('確定要封存「${a.task.title}」嗎？', style: TextStyle(fontSize: 14, color: AppColors.textDim)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-          TextButton(onPressed: () { Navigator.pop(ctx); widget.onArchive(a.id, a.taskId); }, child: const Text('封存', style: TextStyle(color: Colors.redAccent))),
+          TextButton(onPressed: () { Navigator.pop(ctx); widget.onArchive(a.id, a.taskId); }, child: Text('封存', style: TextStyle(color: AppColors.destructive))),
         ],
       ),
     );

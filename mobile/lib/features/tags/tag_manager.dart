@@ -176,7 +176,7 @@ class _TagManagerState extends ConsumerState<TagManager> {
                 ref.invalidate(tagsProvider);
               },
               child:
-                  const Text('刪除', style: TextStyle(color: Colors.redAccent))),
+                  Text('刪除', style: TextStyle(color: AppColors.destructive))),
         ],
       ),
     );
