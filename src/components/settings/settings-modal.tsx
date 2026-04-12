@@ -1,6 +1,7 @@
 "use client";
 
 import useSWR from "swr";
+import { useTranslations } from "next-intl";
 import { signOut } from "next-auth/react";
 import { Sun, Moon, Monitor, LogOut } from "lucide-react";
 import {
@@ -12,10 +13,6 @@ import { useTheme, type Theme } from "@/components/providers/theme-provider";
 import { fetcher } from "@/lib/fetcher";
 import { TagManager } from "@/components/tags/tag-manager";
 import { format, parseISO } from "date-fns";
-
-// 紙感顆粒紋理開關（用於 settings modal）
-const PAPER_LABEL = "紙質感";
-const PAPER_DESC = "讓背景帶有細微的紙張顆粒紋理";
 
 interface SettingsModalProps {
   open: boolean;
@@ -30,13 +27,14 @@ interface MeResponse {
   createdAt: string;
 }
 
-const themeOptions: { value: Theme; label: string; Icon: typeof Sun }[] = [
-  { value: "light", label: "Light", Icon: Sun },
-  { value: "dark", label: "Dark", Icon: Moon },
-  { value: "system", label: "跟隨系統", Icon: Monitor },
+const themeOptions: { value: Theme; key: "light" | "dark" | "system"; Icon: typeof Sun }[] = [
+  { value: "light", key: "light", Icon: Sun },
+  { value: "dark", key: "dark", Icon: Moon },
+  { value: "system", key: "system", Icon: Monitor },
 ];
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
+  const t = useTranslations("settings");
   const { data: me } = useSWR<MeResponse>(open ? "/api/me" : null, fetcher);
   const { theme, setTheme, paperTexture, setPaperTexture } = useTheme();
   const paperOn = paperTexture === "on";
@@ -48,13 +46,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogTitle className="text-lg font-semibold">設定</DialogTitle>
+        <DialogTitle className="text-lg font-semibold">{t("title")}</DialogTitle>
 
         <div className="divide-y divide-border">
           {/* 帳號資料 */}
           <section className="py-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim mb-3">
-              帳號資料
+              {t("account.section")}
             </h3>
             {me ? (
               <div className="flex items-center gap-3">
@@ -74,11 +72,11 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-foreground truncate">
-                    {me.name || "未命名"}
+                    {me.name || t("account.unnamed")}
                   </div>
                   <div className="text-xs text-text-dim truncate">{me.email}</div>
                   <div className="text-xs text-text-faint mt-0.5">
-                    加入於 {format(parseISO(me.createdAt), "yyyy/MM/dd")}
+                    {t("account.joinedAt", { date: format(parseISO(me.createdAt), "yyyy/MM/dd") })}
                   </div>
                 </div>
               </div>
@@ -90,14 +88,14 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           {/* 主題切換 */}
           <section className="py-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim mb-3">
-              主題
+              {t("theme.section")}
             </h3>
             <div
               role="radiogroup"
-              aria-label="主題切換"
+              aria-label={t("theme.section")}
               className="grid grid-cols-3 gap-2"
             >
-              {themeOptions.map(({ value, label, Icon }) => {
+              {themeOptions.map(({ value, key, Icon }) => {
                 const active = theme === value;
                 return (
                   <button
@@ -112,7 +110,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                     }`}
                   >
                     <Icon className="h-5 w-5" />
-                    {label}
+                    {t(`theme.${key}`)}
                   </button>
                 );
               })}
@@ -122,17 +120,17 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           {/* 紙質感開關 */}
           <section className="py-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim mb-3">
-              外觀
+              {t("appearance.section")}
             </h3>
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <div className="text-sm text-foreground">{PAPER_LABEL}</div>
-                <div className="text-xs text-text-dim mt-0.5">{PAPER_DESC}</div>
+                <div className="text-sm text-foreground">{t("appearance.paperLabel")}</div>
+                <div className="text-xs text-text-dim mt-0.5">{t("appearance.paperDesc")}</div>
               </div>
               <button
                 role="switch"
                 aria-checked={paperOn}
-                aria-label={PAPER_LABEL}
+                aria-label={t("appearance.paperLabel")}
                 onClick={() => setPaperTexture(paperOn ? "off" : "on")}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
                   paperOn ? "bg-primary" : "bg-border"
@@ -150,7 +148,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           {/* 標籤管理 */}
           <section className="py-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim mb-3">
-              標籤管理
+              {t("tags.section")}
             </h3>
             <TagManager />
           </section>
@@ -162,7 +160,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium"
             >
               <LogOut className="h-4 w-4" />
-              登出
+              {t("logout.button")}
             </button>
           </section>
         </div>
