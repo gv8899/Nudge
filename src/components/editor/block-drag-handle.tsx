@@ -1,6 +1,7 @@
 "use client";
 
 import { GripVertical } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { BlockInfo } from "./use-block-drag";
 
 interface BlockDragHandleProps {
@@ -15,6 +16,7 @@ export function BlockDragHandle({
   onDragStart,
   onDragEnd,
 }: BlockDragHandleProps) {
+  const t = useTranslations("editor");
   return (
     <button
       type="button"
@@ -26,8 +28,8 @@ export function BlockDragHandle({
       style={{
         top: hoveredBlock.top + hoveredBlock.height / 2 - 12,
       }}
-      aria-label="拖動區塊"
-      title="拖動以重新排序"
+      aria-label={t("dragBlockAria")}
+      title={t("dragBlockTitle")}
     >
       <GripVertical className="h-4 w-4" />
     </button>

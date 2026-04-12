@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   NodeViewContent,
   NodeViewWrapper,
@@ -13,6 +14,7 @@ export function CodeBlockNodeView({
   node,
   updateAttributes,
 }: NodeViewProps) {
+  const t = useTranslations("editor");
   const currentLang = (node.attrs.language as string) || "plaintext";
   const [copied, setCopied] = useState(false);
 
@@ -38,7 +40,7 @@ export function CodeBlockNodeView({
           value={currentLang}
           onChange={(e) => updateAttributes({ language: e.target.value })}
           className="text-[11px] font-medium bg-background/80 backdrop-blur-sm text-text-dim hover:text-foreground border border-border rounded px-2 py-1 cursor-pointer outline-none focus:ring-1 focus:ring-primary transition-colors"
-          aria-label="切換語言"
+          aria-label={t("codeLangAria")}
         >
           {CODE_BLOCK_LANGUAGES.map((lang) => (
             <option key={lang.value} value={lang.value}>
@@ -49,8 +51,8 @@ export function CodeBlockNodeView({
         <button
           type="button"
           onClick={handleCopy}
-          aria-label={copied ? "已複製" : "複製"}
-          title={copied ? "已複製" : "複製程式碼"}
+          aria-label={copied ? t("codeCopiedAria") : t("codeCopyAria")}
+          title={copied ? t("codeCopiedAria") : t("codeCopyTitle")}
           className="flex items-center justify-center w-7 h-7 bg-background/80 backdrop-blur-sm text-text-dim hover:text-foreground border border-border rounded transition-colors"
         >
           {copied ? (
