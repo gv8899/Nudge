@@ -398,6 +398,24 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'開啟設定'**
   String get navSettingsAria;
+
+  /// No description provided for @loginTagline.
+  ///
+  /// In zh, this message translates to:
+  /// **'輕量型每日任務推進工具'**
+  String get loginTagline;
+
+  /// No description provided for @loginSignInWithGoogle.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用 Google 帳號登入'**
+  String get loginSignInWithGoogle;
+
+  /// No description provided for @loginLoginFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'登入失敗，請再試一次'**
+  String get loginLoginFailed;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

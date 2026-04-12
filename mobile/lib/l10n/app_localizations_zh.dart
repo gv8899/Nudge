@@ -169,4 +169,13 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get navSettingsAria => '開啟設定';
+
+  @override
+  String get loginTagline => '輕量型每日任務推進工具';
+
+  @override
+  String get loginSignInWithGoogle => '使用 Google 帳號登入';
+
+  @override
+  String get loginLoginFailed => '登入失敗，請再試一次';
 }

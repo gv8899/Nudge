@@ -172,4 +172,13 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get navSettingsAria => 'Open settings';
+
+  @override
+  String get loginTagline => 'A lightweight nudge for your daily tasks';
+
+  @override
+  String get loginSignInWithGoogle => 'Sign in with Google';
+
+  @override
+  String get loginLoginFailed => 'Sign-in failed. Please try again.';
 }

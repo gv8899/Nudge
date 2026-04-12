@@ -170,4 +170,13 @@ class AppL10nJa extends AppL10n {
 
   @override
   String get navSettingsAria => '設定を開く';
+
+  @override
+  String get loginTagline => '毎日のタスクをそっと後押し';
+
+  @override
+  String get loginSignInWithGoogle => 'Google でサインイン';
+
+  @override
+  String get loginLoginFailed => 'サインインに失敗しました。もう一度お試しください。';
 }
