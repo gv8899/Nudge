@@ -16,4 +16,96 @@ class AppL10nJa extends AppL10n {
 
   @override
   String get commonDelete => '削除';
+
+  @override
+  String get settingsTitle => '設定';
+
+  @override
+  String get settingsAccountSection => 'アカウント';
+
+  @override
+  String get settingsAccountUnnamed => '名称未設定';
+
+  @override
+  String settingsAccountJoinedAt(Object date) {
+    return '$date 登録';
+  }
+
+  @override
+  String get settingsThemeSection => 'テーマ';
+
+  @override
+  String get settingsThemeLight => 'ライト';
+
+  @override
+  String get settingsThemeDark => 'ダーク';
+
+  @override
+  String get settingsThemeSystem => 'システム';
+
+  @override
+  String get settingsAppearanceSection => '外観';
+
+  @override
+  String get settingsAppearancePaperLabel => '紙質感';
+
+  @override
+  String get settingsAppearancePaperDesc => '背景に紙のざらつきを加えます';
+
+  @override
+  String get settingsLanguageSection => '言語';
+
+  @override
+  String get settingsLanguageZhTW => '繁中';
+
+  @override
+  String get settingsLanguageEn => 'EN';
+
+  @override
+  String get settingsLanguageJa => '日本語';
+
+  @override
+  String get settingsLanguageAuto => '自動';
+
+  @override
+  String get settingsLanguageUpdateFailed => '言語を切り替えできませんでした。後で再試行してください。';
+
+  @override
+  String get settingsTagsSection => 'タグ';
+
+  @override
+  String get settingsCleanUntitledLabel => '空白カードを削除';
+
+  @override
+  String get settingsCleanUntitledLabelLoading => '削除中…';
+
+  @override
+  String get settingsCleanUntitledConfirmTitle => '空白カードを削除';
+
+  @override
+  String get settingsCleanUntitledConfirmBody =>
+      'タイトル未入力のカードがすべて削除されます。よろしいですか？';
+
+  @override
+  String get settingsCleanUntitledConfirmOk => '削除する';
+
+  @override
+  String settingsCleanUntitledSuccessWithCount(Object count) {
+    return '$count 件の空白カードを削除しました';
+  }
+
+  @override
+  String get settingsCleanUntitledSuccessEmpty => '削除対象がありません';
+
+  @override
+  String get settingsCleanUntitledFailed => '削除に失敗しました';
+
+  @override
+  String get settingsLogoutButton => 'ログアウト';
+
+  @override
+  String get settingsLogoutConfirmTitle => 'ログアウト';
+
+  @override
+  String get settingsLogoutConfirmBody => '本当にログアウトしますか？';
 }

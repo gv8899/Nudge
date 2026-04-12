@@ -16,4 +16,98 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get commonDelete => 'Delete';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsAccountSection => 'Account';
+
+  @override
+  String get settingsAccountUnnamed => 'Unnamed';
+
+  @override
+  String settingsAccountJoinedAt(Object date) {
+    return 'Joined $date';
+  }
+
+  @override
+  String get settingsThemeSection => 'Theme';
+
+  @override
+  String get settingsThemeLight => 'Light';
+
+  @override
+  String get settingsThemeDark => 'Dark';
+
+  @override
+  String get settingsThemeSystem => 'System';
+
+  @override
+  String get settingsAppearanceSection => 'Appearance';
+
+  @override
+  String get settingsAppearancePaperLabel => 'Paper texture';
+
+  @override
+  String get settingsAppearancePaperDesc =>
+      'Subtle paper grain on the background';
+
+  @override
+  String get settingsLanguageSection => 'Language';
+
+  @override
+  String get settingsLanguageZhTW => '繁中';
+
+  @override
+  String get settingsLanguageEn => 'EN';
+
+  @override
+  String get settingsLanguageJa => '日本語';
+
+  @override
+  String get settingsLanguageAuto => 'Auto';
+
+  @override
+  String get settingsLanguageUpdateFailed =>
+      'Couldn\'t change language. Try again later.';
+
+  @override
+  String get settingsTagsSection => 'Tags';
+
+  @override
+  String get settingsCleanUntitledLabel => 'Clean up empty cards';
+
+  @override
+  String get settingsCleanUntitledLabelLoading => 'Cleaning…';
+
+  @override
+  String get settingsCleanUntitledConfirmTitle => 'Clean up empty cards';
+
+  @override
+  String get settingsCleanUntitledConfirmBody =>
+      'This deletes every untitled card. Are you sure?';
+
+  @override
+  String get settingsCleanUntitledConfirmOk => 'Delete';
+
+  @override
+  String settingsCleanUntitledSuccessWithCount(Object count) {
+    return 'Cleaned $count empty card(s)';
+  }
+
+  @override
+  String get settingsCleanUntitledSuccessEmpty => 'Nothing to clean';
+
+  @override
+  String get settingsCleanUntitledFailed => 'Clean up failed';
+
+  @override
+  String get settingsLogoutButton => 'Log out';
+
+  @override
+  String get settingsLogoutConfirmTitle => 'Log out';
+
+  @override
+  String get settingsLogoutConfirmBody => 'Log out now?';
 }

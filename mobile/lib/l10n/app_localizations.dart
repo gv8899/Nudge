@@ -116,6 +116,180 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'刪除'**
   String get commonDelete;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'設定'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsAccountSection.
+  ///
+  /// In zh, this message translates to:
+  /// **'帳號資料'**
+  String get settingsAccountSection;
+
+  /// No description provided for @settingsAccountUnnamed.
+  ///
+  /// In zh, this message translates to:
+  /// **'未命名'**
+  String get settingsAccountUnnamed;
+
+  /// No description provided for @settingsAccountJoinedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'加入於 {date}'**
+  String settingsAccountJoinedAt(Object date);
+
+  /// No description provided for @settingsThemeSection.
+  ///
+  /// In zh, this message translates to:
+  /// **'主題'**
+  String get settingsThemeSection;
+
+  /// No description provided for @settingsThemeLight.
+  ///
+  /// In zh, this message translates to:
+  /// **'淺色'**
+  String get settingsThemeLight;
+
+  /// No description provided for @settingsThemeDark.
+  ///
+  /// In zh, this message translates to:
+  /// **'深色'**
+  String get settingsThemeDark;
+
+  /// No description provided for @settingsThemeSystem.
+  ///
+  /// In zh, this message translates to:
+  /// **'跟隨系統'**
+  String get settingsThemeSystem;
+
+  /// No description provided for @settingsAppearanceSection.
+  ///
+  /// In zh, this message translates to:
+  /// **'外觀'**
+  String get settingsAppearanceSection;
+
+  /// No description provided for @settingsAppearancePaperLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'紙質感'**
+  String get settingsAppearancePaperLabel;
+
+  /// No description provided for @settingsAppearancePaperDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'讓背景帶有細微的紙張顆粒紋理'**
+  String get settingsAppearancePaperDesc;
+
+  /// No description provided for @settingsLanguageSection.
+  ///
+  /// In zh, this message translates to:
+  /// **'語言'**
+  String get settingsLanguageSection;
+
+  /// No description provided for @settingsLanguageZhTW.
+  ///
+  /// In zh, this message translates to:
+  /// **'繁中'**
+  String get settingsLanguageZhTW;
+
+  /// No description provided for @settingsLanguageEn.
+  ///
+  /// In zh, this message translates to:
+  /// **'EN'**
+  String get settingsLanguageEn;
+
+  /// No description provided for @settingsLanguageJa.
+  ///
+  /// In zh, this message translates to:
+  /// **'日本語'**
+  String get settingsLanguageJa;
+
+  /// No description provided for @settingsLanguageAuto.
+  ///
+  /// In zh, this message translates to:
+  /// **'自動'**
+  String get settingsLanguageAuto;
+
+  /// No description provided for @settingsLanguageUpdateFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'切換語言失敗，請稍後再試'**
+  String get settingsLanguageUpdateFailed;
+
+  /// No description provided for @settingsTagsSection.
+  ///
+  /// In zh, this message translates to:
+  /// **'標籤管理'**
+  String get settingsTagsSection;
+
+  /// No description provided for @settingsCleanUntitledLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除空白卡片'**
+  String get settingsCleanUntitledLabel;
+
+  /// No description provided for @settingsCleanUntitledLabelLoading.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除中…'**
+  String get settingsCleanUntitledLabelLoading;
+
+  /// No description provided for @settingsCleanUntitledConfirmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除空白卡片'**
+  String get settingsCleanUntitledConfirmTitle;
+
+  /// No description provided for @settingsCleanUntitledConfirmBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'這會刪除所有沒有標題的卡片，確定嗎？'**
+  String get settingsCleanUntitledConfirmBody;
+
+  /// No description provided for @settingsCleanUntitledConfirmOk.
+  ///
+  /// In zh, this message translates to:
+  /// **'確定清除'**
+  String get settingsCleanUntitledConfirmOk;
+
+  /// No description provided for @settingsCleanUntitledSuccessWithCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'已清除 {count} 張空白卡片'**
+  String settingsCleanUntitledSuccessWithCount(Object count);
+
+  /// No description provided for @settingsCleanUntitledSuccessEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'沒有需要清除的卡片'**
+  String get settingsCleanUntitledSuccessEmpty;
+
+  /// No description provided for @settingsCleanUntitledFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除失敗'**
+  String get settingsCleanUntitledFailed;
+
+  /// No description provided for @settingsLogoutButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'登出'**
+  String get settingsLogoutButton;
+
+  /// No description provided for @settingsLogoutConfirmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'登出'**
+  String get settingsLogoutConfirmTitle;
+
+  /// No description provided for @settingsLogoutConfirmBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'確定要登出嗎？'**
+  String get settingsLogoutConfirmBody;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {
