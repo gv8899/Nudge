@@ -1,3 +1,7 @@
 {
-  "@@locale": "zh"
+  "@@locale": "zh",
+  "commonSave": "儲存",
+  "@commonSave": {},
+  "commonCancel": "取消",
+  "@commonCancel": {}
 }

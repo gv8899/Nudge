@@ -1,5 +1,8 @@
 {
   "version": 1,
-  "hashes": {},
+  "hashes": {
+    "common.save": "dba44ed3f54f2012941c8fb13fc2a13c4960a6df4b89166424f17ae9d796521f",
+    "common.cancel": "2cd0f3be8738a86cede1a1452f874f31d569864bbb00cacd4130990f4610cb5c"
+  },
   "locked": {}
 }

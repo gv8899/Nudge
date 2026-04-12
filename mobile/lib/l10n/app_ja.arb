@@ -1,3 +1,7 @@
 {
-  "@@locale": "ja"
+  "@@locale": "ja",
+  "commonSave": "保存",
+  "@commonSave": {},
+  "commonCancel": "キャンセル",
+  "@commonCancel": {}
 }
