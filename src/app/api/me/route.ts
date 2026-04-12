@@ -11,6 +11,7 @@ export async function GET() {
     email: user.email,
     name: user.name,
     avatarUrl: user.avatarUrl,
+    locale: user.locale,
     createdAt: user.createdAt,
   });
 }
