@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import {
   DndContext,
@@ -24,6 +25,7 @@ interface CardsKanbanProps {
 }
 
 export function CardsKanban({ cards, onMutate }: CardsKanbanProps) {
+  const t = useTranslations("cards");
   const { tags } = useTags();
   const [activeCard, setActiveCard] = useState<CardItem | null>(null);
 
@@ -78,8 +80,8 @@ export function CardsKanban({ cards, onMutate }: CardsKanbanProps) {
   if (tags.length === 0) {
     return (
       <div className="text-center py-16">
-        <p className="text-sm text-text-dim">建立第一個標籤來開始使用看板</p>
-        <p className="text-xs text-text-faint mt-1">到設定 → 標籤管理新增標籤</p>
+        <p className="text-sm text-text-dim">{t("kanbanEmptyTitle")}</p>
+        <p className="text-xs text-text-faint mt-1">{t("kanbanEmptySubtitle")}</p>
       </div>
     );
   }

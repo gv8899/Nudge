@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { ChevronDown, ChevronRight, CalendarClock, Archive } from "lucide-react";
 import { format, parseISO, isWeekend } from "date-fns";
+import { enUS, ja, zhTW } from "date-fns/locale";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +29,10 @@ export function OverdueSection({
   onReschedule,
   onArchive,
 }: OverdueSectionProps) {
+  const t = useTranslations("daily");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
   // 六日預設收合
   const [isExpanded, setIsExpanded] = useState(() => !isWeekend(parseISO(currentDate)));
   const [archiveTarget, setArchiveTarget] = useState<{ assignmentId: string; taskId: string; title: string } | null>(null);
@@ -34,7 +40,7 @@ export function OverdueSection({
   if (overdueTasks.length === 0) return null;
 
   return (
-    <section aria-label="前幾天的任務" className="mb-2">
+    <section aria-label={t("overdueSectionAria")} className="mb-2">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         aria-expanded={isExpanded}
@@ -47,7 +53,7 @@ export function OverdueSection({
           <ChevronRight className="h-4 w-4" />
         )}
         <CalendarClock className="h-4 w-4" />
-        <span>前幾天的 ({overdueTasks.length})</span>
+        <span>{t("overdueLabel", { count: overdueTasks.length })}</span>
       </button>
 
       {isExpanded && (
@@ -64,7 +70,7 @@ export function OverdueSection({
               <button
                 role="checkbox"
                 aria-checked={false}
-                aria-label={`${a.task.title}：未完成`}
+                aria-label={t("overdueIncompleteAria", { title: a.task.title })}
                 onClick={() => onToggleComplete(a.id, a.taskId, true)}
                 className="h-[18px] w-[18px] rounded-[4px] border-2 border-text-dim bg-transparent hover:border-muted-foreground shrink-0 cursor-pointer flex items-center justify-center transition-colors"
               />
@@ -76,7 +82,9 @@ export function OverdueSection({
                 </span>
                 <span
                   className="text-xs text-text-dim shrink-0 tabular-nums"
-                  aria-label={`原始日期：${format(parseISO(a.date), "M月d日")}`}
+                  aria-label={t("overdueOriginalDateAria", {
+                    date: format(parseISO(a.date), "PP", { locale: dateFnsLocale }),
+                  })}
                 >
                   {format(parseISO(a.date), "M/d")}
                 </span>
@@ -87,7 +95,7 @@ export function OverdueSection({
                 onClick={() => onReschedule(a.id, currentDate)}
                 className="text-xs px-2 py-1 rounded text-primary hover:bg-muted-foreground/10 transition-colors shrink-0"
               >
-                排入今天
+                {t("overdueScheduleToday")}
               </button>
 
               <MoveTaskPopover
@@ -97,7 +105,7 @@ export function OverdueSection({
 
               <button
                 onClick={() => setArchiveTarget({ assignmentId: a.id, taskId: a.taskId, title: a.task.title })}
-                aria-label={`封存任務：${a.task.title}`}
+                aria-label={t("overdueArchiveAria", { title: a.task.title })}
                 className="w-7 h-7 rounded-md hover:bg-white/10 text-text-faint hover:text-muted-foreground transition-colors shrink-0 cursor-pointer flex items-center justify-center"
               >
                 <Archive className="h-4 w-4" />
@@ -110,17 +118,17 @@ export function OverdueSection({
       <Dialog open={archiveTarget !== null} onOpenChange={(open) => { if (!open) setArchiveTarget(null); }}>
         <DialogContent className="sm:max-w-sm">
           <DialogTitle className="text-base font-semibold">
-            封存任務
+            {t("archiveTitle")}
           </DialogTitle>
           <DialogDescription className="text-sm text-text-dim">
-            確定要封存「{archiveTarget?.title}」嗎？封存後不會出現在任務列表。
+            {t("archiveConfirmBody", { title: archiveTarget?.title ?? "" })}
           </DialogDescription>
           <div className="flex justify-end gap-2 mt-4">
             <button
               onClick={() => setArchiveTarget(null)}
               className="px-3 py-1.5 text-sm rounded-lg border border-border text-text-dim hover:text-foreground hover:bg-muted transition-colors"
             >
-              取消
+              {tCommon("cancel")}
             </button>
             <button
               onClick={() => {
@@ -131,7 +139,7 @@ export function OverdueSection({
               }}
               className="px-3 py-1.5 text-sm rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors"
             >
-              封存
+              {t("archiveButton")}
             </button>
           </div>
         </DialogContent>

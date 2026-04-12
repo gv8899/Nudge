@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import useSWR, { mutate as globalMutate } from "swr";
 import { format, parseISO } from "date-fns";
@@ -36,6 +37,8 @@ function invalidateCardsCache() {
 }
 
 export function CardDetail({ id }: CardDetailProps) {
+  const t = useTranslations("cardDetail");
+  const tCommon = useTranslations("common");
   const { data, error, isLoading, mutate } = useSWR<CardData>(
     `/api/tasks/${id}`,
     fetcher
@@ -132,7 +135,7 @@ export function CardDetail({ id }: CardDetailProps) {
   if (isLoading) {
     return (
       <div className="mx-auto max-w-3xl px-4 md:px-6 py-8">
-        <p className="text-sm text-text-dim">載入中...</p>
+        <p className="text-sm text-text-dim">{tCommon("loading")}</p>
       </div>
     );
   }
@@ -144,9 +147,9 @@ export function CardDetail({ id }: CardDetailProps) {
           href="/cards"
           className="inline-flex items-center gap-1 text-sm text-text-dim hover:text-foreground transition-colors mb-4"
         >
-          <ArrowLeft className="h-4 w-4" /> 返回卡片
+          <ArrowLeft className="h-4 w-4" /> {t("backToCards")}
         </Link>
-        <p className="text-sm text-destructive">找不到這張卡片</p>
+        <p className="text-sm text-destructive">{t("notFound")}</p>
       </div>
     );
   }
@@ -157,7 +160,7 @@ export function CardDetail({ id }: CardDetailProps) {
         href="/cards"
         className="inline-flex items-center gap-1 text-sm text-text-dim hover:text-foreground transition-colors mb-6"
       >
-        <ArrowLeft className="h-4 w-4" /> 返回卡片
+        <ArrowLeft className="h-4 w-4" /> {t("backToCards")}
       </Link>
 
       <header className="mb-2">
@@ -175,7 +178,7 @@ export function CardDetail({ id }: CardDetailProps) {
                 setIsEditingTitle(false);
               }
             }}
-            aria-label="編輯標題"
+            aria-label={t("editTitleAria")}
             className="w-full text-3xl font-bold text-foreground tracking-tight bg-transparent rounded outline-none border-b-2 border-primary mb-3"
           />
         ) : (
@@ -195,7 +198,7 @@ export function CardDetail({ id }: CardDetailProps) {
           key={id}
           content={data.description || ""}
           onChange={handleDescChange}
-          placeholder="打 / 插入標題、清單…"
+          placeholder={t("editorPlaceholder")}
           editable={true}
         />
       </div>
@@ -211,9 +214,9 @@ export function CardDetail({ id }: CardDetailProps) {
             />
           </div>
           <div className="flex items-center gap-3 text-xs text-text-dim">
-            <span>建立 {format(parseISO(data.createdAt), "yyyy/MM/dd")}</span>
+            <span>{t("createdAt", { date: format(parseISO(data.createdAt), "yyyy/MM/dd") })}</span>
             <span>·</span>
-            <span>更新 {format(parseISO(data.updatedAt), "yyyy/MM/dd")}</span>
+            <span>{t("updatedAt", { date: format(parseISO(data.updatedAt), "yyyy/MM/dd") })}</span>
           </div>
         </div>
       </footer>

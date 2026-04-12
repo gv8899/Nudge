@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { mutate as globalMutate } from "swr";
 import { useDaily } from "@/hooks/use-daily";
 import { TaskCard } from "@/components/task/task-card";
@@ -38,6 +39,9 @@ function invalidateCardsCache() {
 }
 
 export function DailyView({ date: initialDate }: DailyViewProps) {
+  const t = useTranslations("daily");
+  const tNav = useTranslations("nav");
+  const tCommon = useTranslations("common");
   const [currentDate, setCurrentDate] = useState(initialDate);
   const { data, isLoading, error, mutate } = useDaily(currentDate);
 
@@ -229,7 +233,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   if (isLoading && !data) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center text-text-dim">
-        載入中...
+        {tCommon("loading")}
       </div>
     );
   }
@@ -243,7 +247,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-4 md:px-6 pb-8">
         <div className="pt-6 mb-2">
-          <h1 className="text-2xl font-bold text-foreground">行動</h1>
+          <h1 className="text-2xl font-bold text-foreground">{tNav("tasks")}</h1>
         </div>
         <div className="pb-1">
           <DateHeading date={currentDate} />
@@ -287,7 +291,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
 
           {assignments.length === 0 && (
             <p className="text-sm text-text-dim py-4 text-center">
-              今天還沒有任務
+              {t("emptyToday")}
             </p>
           )}
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { format } from "date-fns";
-import { enUS } from "date-fns/locale";
+import { enUS, ja, zhTW } from "date-fns/locale";
+import { useLocale } from "next-intl";
 
 interface DateHeadingProps {
   date: string;
@@ -12,8 +13,10 @@ interface DateHeadingProps {
 const GHOST_DATE = "12/30, 2026";
 
 export function DateHeading({ date }: DateHeadingProps) {
+  const locale = useLocale();
+  const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
   const dateObj = new Date(date + "T00:00:00");
-  const dayOfWeek = format(dateObj, "EEEE", { locale: enUS });
+  const dayOfWeek = format(dateObj, "EEEE", { locale: dateFnsLocale });
   const dateFormatted = `${dateObj.getMonth() + 1}/${dateObj.getDate()}, ${dateObj.getFullYear()}`;
 
   return (

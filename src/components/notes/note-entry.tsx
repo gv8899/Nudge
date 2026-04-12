@@ -3,7 +3,8 @@
 import { Link } from "@/i18n/routing";
 import DOMPurify from "dompurify";
 import { format, parseISO } from "date-fns";
-import { zhTW } from "date-fns/locale";
+import { enUS, ja, zhTW } from "date-fns/locale";
+import { useTranslations, useLocale } from "next-intl";
 
 interface NoteEntryProps {
   date: string;
@@ -12,11 +13,18 @@ interface NoteEntryProps {
 }
 
 export function NoteEntry({ date, content, isLast = false }: NoteEntryProps) {
+  const t = useTranslations("notes");
+  const locale = useLocale();
+  const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
   const d = parseISO(date);
   const dayNum = format(d, "d");
-  const month = format(d, "M 月", { locale: zhTW });
-  const weekday = format(d, "EEE", { locale: zhTW });
-  const ariaLabel = format(d, "yyyy年M月d日的日記", { locale: zhTW });
+  const month = t("monthLabel", { month: d.getMonth() + 1 });
+  const weekday = format(d, "EEE", { locale: dateFnsLocale });
+  const ariaLabel = t("entryAria", {
+    year: d.getFullYear(),
+    month: d.getMonth() + 1,
+    day: d.getDate(),
+  });
 
   const cleanHTML = DOMPurify.sanitize(content);
 

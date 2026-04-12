@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { createEditorExtensions } from "@/components/editor/editor-extensions";
 import { useSlashCommandItems } from "@/components/editor/slash-command-items";
@@ -16,6 +17,7 @@ export function NotesCanvasEditor({
   date,
   initialContent,
 }: NotesCanvasEditorProps) {
+  const t = useTranslations("notes");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef(initialContent);
   const dateRef = useRef(date);
@@ -26,7 +28,7 @@ export function NotesCanvasEditor({
   const slashItems = useSlashCommandItems();
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: createEditorExtensions({ placeholder: "寫點什麼⋯⋯", slashItems, taskList: false, codeBlock: false }),
+    extensions: createEditorExtensions({ placeholder: t("canvasPlaceholder"), slashItems, taskList: false, codeBlock: false }),
     content: initialContent,
     editable: true,
     onUpdate: ({ editor }) => {

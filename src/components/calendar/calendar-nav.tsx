@@ -7,7 +7,9 @@ import {
   startOfWeek,
   isSameDay,
 } from "date-fns";
+import { enUS, ja, zhTW } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
 import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -18,6 +20,10 @@ interface CalendarNavProps {
 }
 
 export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
+  const t = useTranslations("daily");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
   const dateObj = new Date(date + "T00:00:00");
 
   const weekStart = startOfWeek(dateObj, { weekStartsOn: 1 });
@@ -41,20 +47,18 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
   const goToNextWeek = () => goTo(addDays(weekStart, 7));
   const goToToday = () => goTo(new Date());
 
-  const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
   return (
-    <nav aria-label="週曆導航" className="bg-card rounded-xl px-2 md:px-3 py-2 flex items-center justify-center gap-0.5 md:gap-1">
+    <nav aria-label={t("calendarNavAria")} className="bg-card rounded-xl px-2 md:px-3 py-2 flex items-center justify-center gap-0.5 md:gap-1">
       <button
         onClick={goToPrevWeek}
-        aria-label="上一週"
+        aria-label={t("prevWeekAria")}
         className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-white/10 transition-colors shrink-0"
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
 
       <div className="flex items-center gap-0 md:gap-0.5 flex-1 md:flex-initial">
-        {weekDays.map((day, i) => {
+        {weekDays.map((day) => {
           const isSelected = isSameDay(day, dateObj);
           const dayStr = format(day, "yyyy-MM-dd");
           const hasTasks = datesWithTasks.has(dayStr);
@@ -63,7 +67,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
             <button
               key={dayStr}
               onClick={() => goTo(day)}
-              aria-label={format(day, "M月d日 EEEE")}
+              aria-label={format(day, "PPPP", { locale: dateFnsLocale })}
               aria-current={isSelected ? "date" : undefined}
               className={`
                 relative flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1.5
@@ -79,7 +83,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
                 <span className="h-1 w-1 md:h-1.5 md:w-1.5 rounded-full bg-primary order-first md:order-none" aria-hidden="true" />
               )}
               <span className={`hidden md:inline ${isSelected ? "" : "text-muted-foreground"}`}>
-                {dayNames[i]}
+                {format(day, "EEE", { locale: dateFnsLocale })}
               </span>
               <span className={`text-xs md:text-sm ${isSelected ? "font-semibold" : "text-foreground font-medium"}`}>
                 {format(day, "d")}
@@ -91,7 +95,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
 
       <button
         onClick={goToNextWeek}
-        aria-label="下一週"
+        aria-label={t("nextWeekAria")}
         className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-white/10 transition-colors shrink-0"
       >
         <ChevronRight className="h-4 w-4" />
@@ -102,7 +106,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
         onClick={goToToday}
         className="text-xs md:text-sm text-foreground px-1.5 md:px-2.5 py-1.5 rounded-full hover:bg-white/10 hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
       >
-        Today
+        {tCommon("today")}
       </button>
     </nav>
   );
