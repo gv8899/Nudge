@@ -2,12 +2,14 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Trash2, GripVertical } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useTags } from "@/hooks/use-tags";
 import { TagColorPicker } from "./tag-color-picker";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import type { TagColor } from "@/lib/constants";
 
 export function TagManager() {
+  const t = useTranslations("tags");
   const { tags, mutate } = useTags();
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export function TagManager() {
           <GripVertical className="h-3.5 w-3.5 text-text-faint shrink-0" />
 
           <Popover>
-            <PopoverTrigger className="shrink-0 cursor-pointer" aria-label="換色">
+            <PopoverTrigger className="shrink-0 cursor-pointer" aria-label={t("changeColor")}>
               <span
                 className="w-4 h-4 rounded-full block"
                 style={{ backgroundColor: `var(--${tag.color})` }}
@@ -102,7 +104,7 @@ export function TagManager() {
           <button
             type="button"
             onClick={() => deleteTag(tag.id)}
-            aria-label={`刪除 ${tag.name}`}
+            aria-label={t("deleteTagAria", { name: tag.name })}
             className="opacity-0 group-hover:opacity-100 text-text-faint hover:text-destructive transition-all shrink-0 p-1"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -118,7 +120,7 @@ export function TagManager() {
           onKeyDown={(e) => {
             if (e.key === "Enter") createTag();
           }}
-          placeholder="新增標籤..."
+          placeholder={t("newTagPlaceholder")}
           className="flex-1 text-sm bg-transparent outline-none placeholder:text-text-faint text-foreground"
         />
         {newName.trim() && (
@@ -127,7 +129,7 @@ export function TagManager() {
             onClick={createTag}
             className="text-xs text-primary hover:text-primary/80 font-medium transition-colors shrink-0"
           >
-            新增
+            {t("add")}
           </button>
         )}
       </div>
