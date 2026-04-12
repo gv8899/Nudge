@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { TiptapEditor } from "./tiptap-editor";
 import { StatusBadge } from "./status-badge";
 import { TagPicker } from "@/components/tags/tag-picker";
@@ -27,6 +28,7 @@ export function TaskDetailModal({
   onTagsChange,
   tags = [],
 }: TaskDetailModalProps) {
+  const t = useTranslations("task");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -136,15 +138,15 @@ export function TaskDetailModal({
             <div className="flex items-center gap-1">
             <a
               href={`/cards/${task.id}`}
-              aria-label="展開為單頁"
-              title="展開為單頁"
+              aria-label={t("detailExpandPage")}
+              title={t("detailExpandPage")}
               className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
             >
               <Maximize2 className="h-4 w-4" />
             </a>
             <button
               onClick={onClose}
-              aria-label="關閉"
+              aria-label={t("detailClose")}
               className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
             >
               <X className="h-5 w-5" />
@@ -168,7 +170,7 @@ export function TaskDetailModal({
             key={task.id}
             content={task.description || ""}
             onChange={handleDescChange}
-            placeholder="輸入內文..."
+            placeholder={t("detailContentPlaceholder")}
             editable={true}
             autoFocus={true}
           />

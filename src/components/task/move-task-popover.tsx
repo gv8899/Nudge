@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -13,6 +14,7 @@ interface MoveTaskPopoverProps {
 }
 
 export function MoveTaskPopover({ currentDate, onMove }: MoveTaskPopoverProps) {
+  const t = useTranslations("task");
   const [open, setOpen] = useState(false);
 
   const handleSelect = (day: Date | undefined) => {
@@ -28,7 +30,7 @@ export function MoveTaskPopover({ currentDate, onMove }: MoveTaskPopoverProps) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         className="text-text-faint hover:text-muted-foreground cursor-pointer transition-colors outline-none p-2"
-        aria-label="移到其他天"
+        aria-label={t("moveToOtherDay")}
       >
         <CalendarDays className="h-4 w-4" />
       </PopoverTrigger>
