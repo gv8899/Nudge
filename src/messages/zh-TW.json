@@ -48,5 +48,19 @@
       "confirmTitle": "登出",
       "confirmBody": "確定要登出嗎？"
     }
+  },
+  "tags": {
+    "add": "新增",
+    "addTag": "新增標籤",
+    "addTagShort": "加標籤",
+    "changeColor": "換色",
+    "create": "建立",
+    "createNamed": "建立「{name}」",
+    "deleteTitle": "刪除標籤",
+    "deleteConfirm": "確定要刪除「{name}」嗎？",
+    "deleteTagAria": "刪除 {name}",
+    "newTagPlaceholder": "新增標籤...",
+    "removeAria": "移除 {name}",
+    "searchOrCreate": "搜尋或建立標籤..."
   }
 }

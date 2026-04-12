@@ -48,5 +48,19 @@
       "confirmTitle": "ログアウト",
       "confirmBody": "本当にログアウトしますか？"
     }
+  },
+  "tags": {
+    "add": "追加",
+    "addTag": "タグ追加",
+    "addTagShort": "タグ追加",
+    "changeColor": "色",
+    "create": "作成",
+    "createNamed": "「{name}」を作成",
+    "deleteTitle": "タグを削除",
+    "deleteConfirm": "「{name}」を削除しますか？",
+    "deleteTagAria": "{name} を削除",
+    "newTagPlaceholder": "新しいタグ...",
+    "removeAria": "{name} を外す",
+    "searchOrCreate": "タグを検索・作成..."
   }
 }

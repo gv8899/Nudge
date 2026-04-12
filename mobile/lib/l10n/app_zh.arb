@@ -75,5 +75,53 @@
   "settingsLogoutConfirmTitle": "登出",
   "@settingsLogoutConfirmTitle": {},
   "settingsLogoutConfirmBody": "確定要登出嗎？",
-  "@settingsLogoutConfirmBody": {}
+  "@settingsLogoutConfirmBody": {},
+  "tagsAdd": "新增",
+  "@tagsAdd": {},
+  "tagsAddTag": "新增標籤",
+  "@tagsAddTag": {},
+  "tagsAddTagShort": "加標籤",
+  "@tagsAddTagShort": {},
+  "tagsChangeColor": "換色",
+  "@tagsChangeColor": {},
+  "tagsCreate": "建立",
+  "@tagsCreate": {},
+  "tagsCreateNamed": "建立「{name}」",
+  "@tagsCreateNamed": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsDeleteTitle": "刪除標籤",
+  "@tagsDeleteTitle": {},
+  "tagsDeleteConfirm": "確定要刪除「{name}」嗎？",
+  "@tagsDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsDeleteTagAria": "刪除 {name}",
+  "@tagsDeleteTagAria": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsNewTagPlaceholder": "新增標籤...",
+  "@tagsNewTagPlaceholder": {},
+  "tagsRemoveAria": "移除 {name}",
+  "@tagsRemoveAria": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsSearchOrCreate": "搜尋或建立標籤...",
+  "@tagsSearchOrCreate": {}
 }

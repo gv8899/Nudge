@@ -48,5 +48,19 @@
       "confirmTitle": "Log out",
       "confirmBody": "Log out now?"
     }
+  },
+  "tags": {
+    "add": "Add",
+    "addTag": "Add tag",
+    "addTagShort": "Add tag",
+    "changeColor": "Color",
+    "create": "Create",
+    "createNamed": "Create \"{name}\"",
+    "deleteTitle": "Delete tag",
+    "deleteConfirm": "Delete \"{name}\"?",
+    "deleteTagAria": "Delete {name}",
+    "newTagPlaceholder": "New tag...",
+    "removeAria": "Remove {name}",
+    "searchOrCreate": "Search or create tag..."
   }
 }

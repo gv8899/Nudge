@@ -32,7 +32,19 @@
     "settings.cleanUntitled.failed": "9e9c3a94430add2bca5a1fff1172d0943e6e2861ac5a5b6115cef5f4c203e309",
     "settings.logout.button": "057f31bc16c89da77115ac1e6f7523ea3d7d9c3a9eadace3c6ad9a674285c7d6",
     "settings.logout.confirmTitle": "057f31bc16c89da77115ac1e6f7523ea3d7d9c3a9eadace3c6ad9a674285c7d6",
-    "settings.logout.confirmBody": "2855688aeb72ebbcc0370a97ddca92d0ed6f7b29d88b2d1d4e4f8e6f13a6a525"
+    "settings.logout.confirmBody": "2855688aeb72ebbcc0370a97ddca92d0ed6f7b29d88b2d1d4e4f8e6f13a6a525",
+    "tags.add": "0006d696d8e1ec28a134667ab0b633e632f11501e4938a9c617ba7212e2e1bf3",
+    "tags.addTag": "bc49153ed445b3b3db2dba5f60ed3989b42b703347dc01c8b4b04e8ab2a2abac",
+    "tags.addTagShort": "cd22f29109cfe9b8d4ae06fd87cb8aef7d6ba73269ad5af20955d15d4c491657",
+    "tags.changeColor": "fc2fbaae335f9841d5a0dd676c68a15e473c8961571ac385eb10ff120e53f3ab",
+    "tags.create": "da34023b4bdaa4d8201bbbbfb34a621e161b887375be451128f5f0654b756ca9",
+    "tags.createNamed": "2e6958919927128e81aa29e4c6ee2fa26402b7cf644ba1afe6b67e4c25f2df41",
+    "tags.deleteTitle": "bceb1d843b538903dbef4512c0b00c83444c1eeffb895991c47cd9c21fd208e3",
+    "tags.deleteConfirm": "0edead27e4bc5399de126aa84b4baa529d04b0a08747e78d57845d6d826db5fe",
+    "tags.deleteTagAria": "0d38660448cfb163bfff6dc5a52a4bae60f35ec96fba28678d8edfc5d4db6cbc",
+    "tags.newTagPlaceholder": "9c8b2a19ebc2bfc4b0b1524f8e19d0bd646400f58a1228a194952d5016e226c4",
+    "tags.removeAria": "8a73a4332e20f1a2f2d8b34b96c1f59c24e8c66fb9aaa0dad6513cf9119285ab",
+    "tags.searchOrCreate": "9dbbbf81ff015819d6b61a02e02f4f8d584de27add89ac0358f52b6c4dd640a1"
   },
   "locked": {}
 }

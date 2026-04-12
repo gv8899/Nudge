@@ -75,5 +75,53 @@
   "settingsLogoutConfirmTitle": "ログアウト",
   "@settingsLogoutConfirmTitle": {},
   "settingsLogoutConfirmBody": "本当にログアウトしますか？",
-  "@settingsLogoutConfirmBody": {}
+  "@settingsLogoutConfirmBody": {},
+  "tagsAdd": "追加",
+  "@tagsAdd": {},
+  "tagsAddTag": "タグ追加",
+  "@tagsAddTag": {},
+  "tagsAddTagShort": "タグ追加",
+  "@tagsAddTagShort": {},
+  "tagsChangeColor": "色",
+  "@tagsChangeColor": {},
+  "tagsCreate": "作成",
+  "@tagsCreate": {},
+  "tagsCreateNamed": "「{name}」を作成",
+  "@tagsCreateNamed": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsDeleteTitle": "タグを削除",
+  "@tagsDeleteTitle": {},
+  "tagsDeleteConfirm": "「{name}」を削除しますか？",
+  "@tagsDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsDeleteTagAria": "{name} を削除",
+  "@tagsDeleteTagAria": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsNewTagPlaceholder": "新しいタグ...",
+  "@tagsNewTagPlaceholder": {},
+  "tagsRemoveAria": "{name} を外す",
+  "@tagsRemoveAria": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsSearchOrCreate": "タグを検索・作成...",
+  "@tagsSearchOrCreate": {}
 }

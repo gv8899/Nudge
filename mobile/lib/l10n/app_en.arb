@@ -75,5 +75,53 @@
   "settingsLogoutConfirmTitle": "Log out",
   "@settingsLogoutConfirmTitle": {},
   "settingsLogoutConfirmBody": "Log out now?",
-  "@settingsLogoutConfirmBody": {}
+  "@settingsLogoutConfirmBody": {},
+  "tagsAdd": "Add",
+  "@tagsAdd": {},
+  "tagsAddTag": "Add tag",
+  "@tagsAddTag": {},
+  "tagsAddTagShort": "Add tag",
+  "@tagsAddTagShort": {},
+  "tagsChangeColor": "Color",
+  "@tagsChangeColor": {},
+  "tagsCreate": "Create",
+  "@tagsCreate": {},
+  "tagsCreateNamed": "Create \"{name}\"",
+  "@tagsCreateNamed": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsDeleteTitle": "Delete tag",
+  "@tagsDeleteTitle": {},
+  "tagsDeleteConfirm": "Delete \"{name}\"?",
+  "@tagsDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsDeleteTagAria": "Delete {name}",
+  "@tagsDeleteTagAria": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsNewTagPlaceholder": "New tag...",
+  "@tagsNewTagPlaceholder": {},
+  "tagsRemoveAria": "Remove {name}",
+  "@tagsRemoveAria": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsSearchOrCreate": "Search or create tag...",
+  "@tagsSearchOrCreate": {}
 }
