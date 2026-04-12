@@ -154,7 +154,7 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                         crossAxisCount: 2,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
-                        childAspectRatio: 0.85,
+                        childAspectRatio: 1.25,
                       ),
                       itemCount: cards.length,
                       itemBuilder: (_, i) => CardGridItem(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../tags/tag_badge.dart';
 import 'models.dart';
@@ -12,7 +11,6 @@ class CardListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final updated = DateFormat('M/d').format(DateTime.parse(card.updatedAt));
     final preview = _stripHtml(card.description, 100);
 
     return GestureDetector(
@@ -20,35 +18,26 @@ class CardListItem extends StatelessWidget {
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(card.title,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.foreground),
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
-                  if (preview.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(preview,
-                        style: TextStyle(fontSize: 12, color: AppColors.textDim),
-                        maxLines: 2, overflow: TextOverflow.ellipsis),
-                  ],
-                  if (card.tags.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 4,
-                      runSpacing: 4,
-                      children: card.tags.map((t) => TagBadge(name: t.name, colorToken: t.color)).toList(),
-                    ),
-                  ],
-                ],
+            Text(card.title,
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.foreground),
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+            if (preview.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(preview,
+                  style: TextStyle(fontSize: 12, color: AppColors.textDim),
+                  maxLines: 2, overflow: TextOverflow.ellipsis),
+            ],
+            if (card.tags.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: card.tags.map((t) => TagBadge(name: t.name, colorToken: t.color)).toList(),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(updated, style: TextStyle(fontSize: 11, color: AppColors.textDim)),
+            ],
           ],
         ),
       ),

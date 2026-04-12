@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../tags/tag_badge.dart';
 import 'models.dart';
@@ -12,7 +11,6 @@ class CardGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final updated = DateFormat('M/d').format(DateTime.parse(card.updatedAt));
     final preview = _stripHtml(card.description, 60);
 
     return GestureDetector(
@@ -25,15 +23,18 @@ class CardGridItem extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(card.title,
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.foreground),
                 maxLines: 2, overflow: TextOverflow.ellipsis),
             if (preview.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text(preview,
-                  style: TextStyle(fontSize: 11, color: AppColors.textDim),
-                  maxLines: 3, overflow: TextOverflow.ellipsis),
+              Flexible(
+                child: Text(preview,
+                    style: TextStyle(fontSize: 11, color: AppColors.textDim),
+                    maxLines: 3, overflow: TextOverflow.ellipsis),
+              ),
             ],
             if (card.tags.isNotEmpty) ...[
               const SizedBox(height: 6),
@@ -43,11 +44,6 @@ class CardGridItem extends StatelessWidget {
                 children: card.tags.map((t) => TagBadge(name: t.name, colorToken: t.color)).toList(),
               ),
             ],
-            const Spacer(),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(updated, style: TextStyle(fontSize: 10, color: AppColors.textDim)),
-            ),
           ],
         ),
       ),

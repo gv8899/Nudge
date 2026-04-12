@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { tasks, tags, taskTags } from "@/lib/db/schema";
-import { and, eq, ne, lt, desc, or, like } from "drizzle-orm";
+import { and, eq, ne, lt, desc } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
 import { stripHtml } from "@/lib/strip-html";
 
@@ -22,24 +22,27 @@ export async function GET(request: NextRequest) {
     lt(tasks.updatedAt, cursor),
   ];
 
-  if (q) {
-    const pattern = `%${q}%`;
-    conditions.push(
-      or(like(tasks.title, pattern), like(tasks.description, pattern))!
-    );
-  }
+  // 搜尋時一次抓多點，改在 JS 側對 strip 後的內文做 case-insensitive 比對，
+  // 避免 HTML tag 夾在字中間導致 SQL LIKE 不匹配（例 <p>你好</p><p>世界</p>）
+  const fetchLimit = q ? 500 : limit + 1;
 
   const rows = await db
     .select()
     .from(tasks)
     .where(and(...conditions))
     .orderBy(desc(tasks.updatedAt))
-    .limit(limit + 1);
+    .limit(fetchLimit);
 
-  // 過濾 description strip 後是空白的（例如 <p></p>）
-  const filtered = rows.filter(
-    (r) => r.description && stripHtml(r.description).length > 0
-  );
+  const lq = q.toLowerCase();
+  const filtered = rows.filter((r) => {
+    if (!r.description) return false;
+    const plain = stripHtml(r.description);
+    if (plain.length === 0) return false;
+    if (!q) return true;
+    return (
+      r.title.toLowerCase().includes(lq) || plain.toLowerCase().includes(lq)
+    );
+  });
 
   const hasMore = filtered.length > limit;
   const cards = hasMore ? filtered.slice(0, limit) : filtered;
