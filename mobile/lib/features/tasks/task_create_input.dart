@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import '../../l10n/app_localizations.dart';
 
 class TaskCreateInput extends StatefulWidget {
   final ValueChanged<String> onSubmit;
@@ -28,6 +29,7 @@ class _TaskCreateInputState extends State<TaskCreateInput> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context)!;
     // Align text and underline with checkbox left edge (4px row padding + 13px checkbox center offset)
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 17),
@@ -37,7 +39,7 @@ class _TaskCreateInputState extends State<TaskCreateInput> {
         onSubmitted: (_) => _submit(),
         style: TextStyle(fontSize: 14, color: AppColors.foreground),
         decoration: InputDecoration(
-          hintText: '新增任務',
+          hintText: l.taskCreatePlaceholder,
           hintStyle: TextStyle(color: AppColors.textFaint, fontSize: 14),
           border: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.border)),
           enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.border)),

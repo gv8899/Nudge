@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
+import '../../l10n/app_localizations.dart';
 import 'models.dart';
 import 'task_status_picker.dart';
 
@@ -64,6 +65,7 @@ class _TaskCardState extends State<TaskCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context)!;
     final task = widget.assignment.task;
     final isDone = widget.assignment.isCompleted;
     final statusObj = TaskStatus.fromValue(task.status);
@@ -75,7 +77,7 @@ class _TaskCardState extends State<TaskCard> {
         children: [
           // Checkbox
           Semantics(
-            label: isDone ? '取消完成' : '完成任務',
+            label: isDone ? l.taskUncomplete : l.taskComplete,
             button: true,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -150,7 +152,7 @@ class _TaskCardState extends State<TaskCard> {
 
           // Detail icon — always visible
           Semantics(
-            label: '查看詳情',
+            label: l.taskViewDetails,
             button: true,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -170,7 +172,7 @@ class _TaskCardState extends State<TaskCard> {
 
           // Calendar icon
           Semantics(
-            label: '移到其他日期',
+            label: l.taskMoveToOtherDate,
             button: true,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
