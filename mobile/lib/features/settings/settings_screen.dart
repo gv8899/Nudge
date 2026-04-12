@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../../core/locale_provider.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
 import '../../l10n/app_localizations.dart';
@@ -43,6 +44,10 @@ class SettingsScreen extends ConsumerWidget {
               current: themeMode,
               onChanged: (mode) => ref.read(themeProvider.notifier).setTheme(mode),
             ),
+            const SizedBox(height: 24),
+
+            // 語言
+            const _LanguageSection(),
             const SizedBox(height: 24),
 
             // 標籤管理（TagManager 自己有標題）
@@ -362,5 +367,109 @@ class _CleanUntitledButtonState extends ConsumerState<_CleanUntitledButton> {
         ),
       ),
     );
+  }
+}
+
+/// 語言切換 segment。4 段：繁中 / EN / 日本語 / 自動。
+class _LanguageSection extends ConsumerWidget {
+  const _LanguageSection();
+
+  static const _options = <({String key, Locale? locale})>[
+    (key: 'zhTW', locale: Locale('zh', 'TW')),
+    (key: 'en', locale: Locale('en')),
+    (key: 'ja', locale: Locale('ja')),
+    (key: 'auto', locale: null),
+  ];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppL10n.of(context)!;
+    final current = ref.watch(localeProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            l.settingsLanguageSection,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textDim,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+        SegmentedButton<String>(
+          segments: _options.map((o) {
+            return ButtonSegment<String>(
+              value: o.key,
+              label: Text(_labelFor(o.key, l)),
+            );
+          }).toList(),
+          selected: {_selectedKey(current)},
+          showSelectedIcon: false,
+          onSelectionChanged: (set) => _handleChange(context, ref, set.first),
+          style: ButtonStyle(
+            textStyle: WidgetStateProperty.all(const TextStyle(fontSize: 12)),
+            padding: WidgetStateProperty.all(
+              const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _labelFor(String key, AppL10n l) {
+    switch (key) {
+      case 'zhTW':
+        return l.settingsLanguageZhTW;
+      case 'en':
+        return l.settingsLanguageEn;
+      case 'ja':
+        return l.settingsLanguageJa;
+      case 'auto':
+      default:
+        return l.settingsLanguageAuto;
+    }
+  }
+
+  String _selectedKey(Locale? current) {
+    if (current == null) return 'auto';
+    final tag = formatLocaleTag(current);
+    if (tag == 'zh-TW') return 'zhTW';
+    if (tag == 'en') return 'en';
+    if (tag == 'ja') return 'ja';
+    return 'auto';
+  }
+
+  Future<void> _handleChange(
+    BuildContext context,
+    WidgetRef ref,
+    String key,
+  ) async {
+    final option = _options.firstWhere((o) => o.key == key);
+    final tag = option.locale == null ? null : formatLocaleTag(option.locale!);
+
+    try {
+      await ref.read(apiClientProvider).dio.patch(
+        '/api/me/locale',
+        data: {'locale': tag},
+      );
+      if (option.locale == null) {
+        await ref.read(localeProvider.notifier).clearLocale();
+      } else {
+        await ref.read(localeProvider.notifier).setLocale(option.locale!);
+      }
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppL10n.of(context)!.settingsLanguageUpdateFailed),
+        ),
+      );
+    }
   }
 }
