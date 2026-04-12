@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../l10n/app_localizations.dart';
 
 class AppShell extends StatelessWidget {
   final int currentIndex;
@@ -15,6 +16,7 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context)!;
     return Scaffold(
       body: child,
       bottomNavigationBar: NavigationBar(
@@ -24,22 +26,22 @@ class AppShell extends StatelessWidget {
           NavigationDestination(
             icon: Icon(LucideIcons.checkSquare),
             selectedIcon: Icon(LucideIcons.checkSquare),
-            label: '行動',
+            label: l.navTasks,
           ),
           NavigationDestination(
             icon: Icon(LucideIcons.fileEdit),
             selectedIcon: Icon(LucideIcons.fileEdit),
-            label: '日誌',
+            label: l.navNotes,
           ),
           NavigationDestination(
             icon: Icon(LucideIcons.bookOpen),
             selectedIcon: Icon(LucideIcons.bookOpen),
-            label: '卡片',
+            label: l.navCards,
           ),
           NavigationDestination(
             icon: Icon(LucideIcons.settings),
             selectedIcon: Icon(LucideIcons.settings),
-            label: '設定',
+            label: l.navSettings,
           ),
         ],
       ),
