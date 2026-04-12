@@ -7,13 +7,9 @@ import { NoteEntry } from "./note-entry";
 import { useNotesFeed } from "@/hooks/use-notes-feed";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 
-interface NotesFeedPageProps {
-  today: string;
-}
-
-export function NotesFeedPage({ today }: NotesFeedPageProps) {
+export function NotesFeedPage() {
   const { notes, isLoading, isLoadingMore, hasMore, loadMore } =
-    useNotesFeed(today);
+    useNotesFeed();
 
   const handleLoadMore = useCallback(() => {
     if (!isLoadingMore && hasMore) loadMore();

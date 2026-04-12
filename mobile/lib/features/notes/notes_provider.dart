@@ -39,7 +39,7 @@ class NoteFeedItem {
       );
 }
 
-final notesFeedProvider = FutureProvider<List<NoteFeedItem>>((ref) async {
+final notesFeedProvider = FutureProvider.autoDispose<List<NoteFeedItem>>((ref) async {
   final apiClient = ref.read(apiClientProvider);
   final response = await apiClient.dio
       .get('/api/notes/feed', queryParameters: {'limit': '50'});

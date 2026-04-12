@@ -13,7 +13,7 @@ interface FeedPage {
   nextCursor: string | null;
 }
 
-export function useNotesFeed(excludeDate?: string) {
+export function useNotesFeed() {
   const getKey = (pageIndex: number, prev: FeedPage | null) => {
     if (prev && !prev.nextCursor) return null;
     const cursor = prev ? prev.nextCursor : undefined;
@@ -27,10 +27,7 @@ export function useNotesFeed(excludeDate?: string) {
       revalidateFirstPage: false,
     });
 
-  const allNotes = data ? data.flatMap((page) => page.notes) : [];
-  const notes = excludeDate
-    ? allNotes.filter((n) => n.date !== excludeDate)
-    : allNotes;
+  const notes = data ? data.flatMap((page) => page.notes) : [];
 
   const hasMore = data ? data[data.length - 1]?.nextCursor !== null : false;
   const isLoadingMore =
