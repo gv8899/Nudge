@@ -18,6 +18,15 @@ class AppL10nJa extends AppL10n {
   String get commonDelete => '削除';
 
   @override
+  String get commonLoading => '読み込み中...';
+
+  @override
+  String get commonLoadFailed => '読み込みに失敗しました';
+
+  @override
+  String get commonToday => '今日';
+
+  @override
   String get settingsTitle => '設定';
 
   @override
@@ -332,4 +341,188 @@ class AppL10nJa extends AppL10n {
 
   @override
   String get editorSlashDividerKeywords => 'hr|divider|separator|区切り';
+
+  @override
+  String get dailyEmptyToday => '今日のタスクはまだありません';
+
+  @override
+  String get dailyOverdueSectionAria => '以前のタスク';
+
+  @override
+  String dailyOverdueLabel(Object count) {
+    return '以前のタスク ($count)';
+  }
+
+  @override
+  String get dailyOverdueScheduleToday => '今日に移動';
+
+  @override
+  String dailyOverdueOriginalDateAria(Object date) {
+    return '元の日付：$date';
+  }
+
+  @override
+  String dailyOverdueArchiveAria(Object title) {
+    return 'タスクをアーカイブ：$title';
+  }
+
+  @override
+  String dailyOverdueIncompleteAria(Object title) {
+    return '$title：未完了';
+  }
+
+  @override
+  String get dailyArchiveTitle => 'タスクをアーカイブ';
+
+  @override
+  String dailyArchiveConfirmBody(Object title) {
+    return '「$title」をアーカイブしますか？アーカイブしたタスクは一覧に表示されません。';
+  }
+
+  @override
+  String get dailyArchiveButton => 'アーカイブ';
+
+  @override
+  String get dailyCalendarNavAria => '週カレンダー';
+
+  @override
+  String get dailyPrevWeekAria => '前の週';
+
+  @override
+  String get dailyNextWeekAria => '次の週';
+
+  @override
+  String dailyDateAria(Object month, Object day, Object weekday) {
+    return '$month月$day日 $weekday';
+  }
+
+  @override
+  String get dailyTodayButton => '今日';
+
+  @override
+  String get cardsCreateAria => '新しいカード';
+
+  @override
+  String get cardsCleanUntitledAria => '空白のカードを削除';
+
+  @override
+  String get cardsViewListAria => 'リスト表示';
+
+  @override
+  String get cardsViewGridAria => 'グリッド表示';
+
+  @override
+  String get cardsViewKanbanAria => 'カンバン表示';
+
+  @override
+  String get cardsSearchPlaceholder => 'カードを検索...';
+
+  @override
+  String get cardsSearchAria => 'カードを検索';
+
+  @override
+  String get cardsEmptyWithQuery => '該当するカードがありません';
+
+  @override
+  String get cardsEmptyNoCards => 'まだ内容のあるカードがありません';
+
+  @override
+  String get cardsEmptyMobile => 'まだカードがありません';
+
+  @override
+  String get cardsLoadMore => 'さらに読み込み中...';
+
+  @override
+  String get cardsNoMore => 'これ以上カードはありません';
+
+  @override
+  String get cardsCleanDialogTitle => '空白のカードを削除';
+
+  @override
+  String get cardsCleanDialogBody => 'タイトルのないすべてのカードを削除します。この操作は取り消せません。';
+
+  @override
+  String get cardsCleanConfirmButton => '削除を確認';
+
+  @override
+  String get cardsCleanLoading => '削除中...';
+
+  @override
+  String cardsToastCleaned(Object count) {
+    return '$count 件の空白カードを削除しました';
+  }
+
+  @override
+  String get cardsToastNothingToClean => '削除するカードがありません';
+
+  @override
+  String get cardsKanbanEmptyTitle => '最初のタグを作成してカンバンを使い始めましょう';
+
+  @override
+  String get cardsKanbanEmptySubtitle => '設定 → タグ管理からタグを追加できます';
+
+  @override
+  String get cardDetailBackToCards => 'カード一覧へ戻る';
+
+  @override
+  String get cardDetailNotFound => 'カードが見つかりません';
+
+  @override
+  String get cardDetailEditTitleAria => 'タイトルを編集';
+
+  @override
+  String get cardDetailEditorPlaceholder => '/ を入力して見出しやリストを挿入…';
+
+  @override
+  String get cardDetailTitleHint => 'タイトル';
+
+  @override
+  String cardDetailCreatedAt(Object date) {
+    return '作成 $date';
+  }
+
+  @override
+  String cardDetailUpdatedAt(Object date) {
+    return '更新 $date';
+  }
+
+  @override
+  String get notesBackToCanvasAria => '今日のキャンバスへ戻る';
+
+  @override
+  String get notesBackToCanvasTitle => '今日へ戻る';
+
+  @override
+  String get notesEmptyFeedPrompt => '過去の日記はまだありません。まずは今日から書いてみましょう。';
+
+  @override
+  String get notesEmptyFeedShort => '過去の日記はまだありません';
+
+  @override
+  String get notesGoToCanvas => '今日のキャンバスへ';
+
+  @override
+  String get notesGoToToday => '今日のジャーナルへ';
+
+  @override
+  String get notesNoMoreEntries => 'これ以上の日記はありません';
+
+  @override
+  String get notesCanvasPlaceholder => '何か書いてみましょう...';
+
+  @override
+  String get notesCanvasToggleFeedAria => 'フィードへ切り替え';
+
+  @override
+  String get notesCanvasToggleFeedTitle => 'フィードへ切り替え';
+
+  @override
+  String notesEntryAria(Object year, Object month, Object day) {
+    return '$year年$month月$day日のジャーナル';
+  }
+
+  @override
+  String notesMonthLabel(Object month) {
+    return '$month 月';
+  }
 }

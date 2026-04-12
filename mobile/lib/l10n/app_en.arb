@@ -6,6 +6,12 @@
   "@commonCancel": {},
   "commonDelete": "Delete",
   "@commonDelete": {},
+  "commonLoading": "Loading...",
+  "@commonLoading": {},
+  "commonLoadFailed": "Failed to load",
+  "@commonLoadFailed": {},
+  "commonToday": "Today",
+  "@commonToday": {},
   "settingsTitle": "Settings",
   "@settingsTitle": {},
   "settingsAccountSection": "Account",
@@ -260,5 +266,191 @@
   "editorSlashDividerDescription": "Horizontal divider line",
   "@editorSlashDividerDescription": {},
   "editorSlashDividerKeywords": "hr|divider|separator|line",
-  "@editorSlashDividerKeywords": {}
+  "@editorSlashDividerKeywords": {},
+  "dailyEmptyToday": "No tasks for today",
+  "@dailyEmptyToday": {},
+  "dailyOverdueSectionAria": "Tasks from previous days",
+  "@dailyOverdueSectionAria": {},
+  "dailyOverdueLabel": "From earlier ({count})",
+  "@dailyOverdueLabel": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyOverdueScheduleToday": "Move to today",
+  "@dailyOverdueScheduleToday": {},
+  "dailyOverdueOriginalDateAria": "Original date: {date}",
+  "@dailyOverdueOriginalDateAria": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyOverdueArchiveAria": "Archive task: {title}",
+  "@dailyOverdueArchiveAria": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyOverdueIncompleteAria": "{title}: not completed",
+  "@dailyOverdueIncompleteAria": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyArchiveTitle": "Archive task",
+  "@dailyArchiveTitle": {},
+  "dailyArchiveConfirmBody": "Archive \"{title}\"? Archived tasks will not appear in your task list.",
+  "@dailyArchiveConfirmBody": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyArchiveButton": "Archive",
+  "@dailyArchiveButton": {},
+  "dailyCalendarNavAria": "Weekly calendar",
+  "@dailyCalendarNavAria": {},
+  "dailyPrevWeekAria": "Previous week",
+  "@dailyPrevWeekAria": {},
+  "dailyNextWeekAria": "Next week",
+  "@dailyNextWeekAria": {},
+  "dailyDateAria": "{month}/{day} {weekday}",
+  "@dailyDateAria": {
+    "placeholders": {
+      "month": {
+        "type": "Object"
+      },
+      "day": {
+        "type": "Object"
+      },
+      "weekday": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyTodayButton": "Today",
+  "@dailyTodayButton": {},
+  "cardsCreateAria": "New card",
+  "@cardsCreateAria": {},
+  "cardsCleanUntitledAria": "Clean untitled cards",
+  "@cardsCleanUntitledAria": {},
+  "cardsViewListAria": "List view",
+  "@cardsViewListAria": {},
+  "cardsViewGridAria": "Grid view",
+  "@cardsViewGridAria": {},
+  "cardsViewKanbanAria": "Kanban view",
+  "@cardsViewKanbanAria": {},
+  "cardsSearchPlaceholder": "Search cards...",
+  "@cardsSearchPlaceholder": {},
+  "cardsSearchAria": "Search cards",
+  "@cardsSearchAria": {},
+  "cardsEmptyWithQuery": "No matching cards",
+  "@cardsEmptyWithQuery": {},
+  "cardsEmptyNoCards": "No cards with content yet",
+  "@cardsEmptyNoCards": {},
+  "cardsEmptyMobile": "No cards yet",
+  "@cardsEmptyMobile": {},
+  "cardsLoadMore": "Loading more...",
+  "@cardsLoadMore": {},
+  "cardsNoMore": "No more cards",
+  "@cardsNoMore": {},
+  "cardsCleanDialogTitle": "Clean untitled cards",
+  "@cardsCleanDialogTitle": {},
+  "cardsCleanDialogBody": "This will delete all cards without a title. This action cannot be undone.",
+  "@cardsCleanDialogBody": {},
+  "cardsCleanConfirmButton": "Confirm delete",
+  "@cardsCleanConfirmButton": {},
+  "cardsCleanLoading": "Cleaning...",
+  "@cardsCleanLoading": {},
+  "cardsToastCleaned": "Cleaned {count} untitled card(s)",
+  "@cardsToastCleaned": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "cardsToastNothingToClean": "No cards to clean",
+  "@cardsToastNothingToClean": {},
+  "cardsKanbanEmptyTitle": "Create your first tag to start using the board",
+  "@cardsKanbanEmptyTitle": {},
+  "cardsKanbanEmptySubtitle": "Go to Settings → Tag management to add tags",
+  "@cardsKanbanEmptySubtitle": {},
+  "cardDetailBackToCards": "Back to cards",
+  "@cardDetailBackToCards": {},
+  "cardDetailNotFound": "Card not found",
+  "@cardDetailNotFound": {},
+  "cardDetailEditTitleAria": "Edit title",
+  "@cardDetailEditTitleAria": {},
+  "cardDetailEditorPlaceholder": "Type / to insert headings, lists…",
+  "@cardDetailEditorPlaceholder": {},
+  "cardDetailTitleHint": "Title",
+  "@cardDetailTitleHint": {},
+  "cardDetailCreatedAt": "Created {date}",
+  "@cardDetailCreatedAt": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "cardDetailUpdatedAt": "Updated {date}",
+  "@cardDetailUpdatedAt": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "notesBackToCanvasAria": "Back to today's canvas",
+  "@notesBackToCanvasAria": {},
+  "notesBackToCanvasTitle": "Back to today",
+  "@notesBackToCanvasTitle": {},
+  "notesEmptyFeedPrompt": "No past journal entries yet. Start writing from today.",
+  "@notesEmptyFeedPrompt": {},
+  "notesEmptyFeedShort": "No past journal entries yet",
+  "@notesEmptyFeedShort": {},
+  "notesGoToCanvas": "Go to today's canvas",
+  "@notesGoToCanvas": {},
+  "notesGoToToday": "Go to today's journal",
+  "@notesGoToToday": {},
+  "notesNoMoreEntries": "No more entries",
+  "@notesNoMoreEntries": {},
+  "notesCanvasPlaceholder": "Write something...",
+  "@notesCanvasPlaceholder": {},
+  "notesCanvasToggleFeedAria": "Switch to feed",
+  "@notesCanvasToggleFeedAria": {},
+  "notesCanvasToggleFeedTitle": "Switch to feed",
+  "@notesCanvasToggleFeedTitle": {},
+  "notesEntryAria": "Journal for {month}/{day}/{year}",
+  "@notesEntryAria": {
+    "placeholders": {
+      "month": {
+        "type": "Object"
+      },
+      "day": {
+        "type": "Object"
+      },
+      "year": {
+        "type": "Object"
+      }
+    }
+  },
+  "notesMonthLabel": "{month}",
+  "@notesMonthLabel": {
+    "placeholders": {
+      "month": {
+        "type": "Object"
+      }
+    }
+  }
 }

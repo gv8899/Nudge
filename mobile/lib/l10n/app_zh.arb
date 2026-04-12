@@ -6,6 +6,12 @@
   "@commonCancel": {},
   "commonDelete": "刪除",
   "@commonDelete": {},
+  "commonLoading": "載入中...",
+  "@commonLoading": {},
+  "commonLoadFailed": "載入失敗",
+  "@commonLoadFailed": {},
+  "commonToday": "今天",
+  "@commonToday": {},
   "settingsTitle": "設定",
   "@settingsTitle": {},
   "settingsAccountSection": "帳號資料",
@@ -260,5 +266,191 @@
   "editorSlashDividerDescription": "插入水平分隔線",
   "@editorSlashDividerDescription": {},
   "editorSlashDividerKeywords": "hr|divider|separator|分隔|分隔線",
-  "@editorSlashDividerKeywords": {}
+  "@editorSlashDividerKeywords": {},
+  "dailyEmptyToday": "今天還沒有任務",
+  "@dailyEmptyToday": {},
+  "dailyOverdueSectionAria": "前幾天的任務",
+  "@dailyOverdueSectionAria": {},
+  "dailyOverdueLabel": "前幾天的 ({count})",
+  "@dailyOverdueLabel": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyOverdueScheduleToday": "排入今天",
+  "@dailyOverdueScheduleToday": {},
+  "dailyOverdueOriginalDateAria": "原始日期：{date}",
+  "@dailyOverdueOriginalDateAria": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyOverdueArchiveAria": "封存任務：{title}",
+  "@dailyOverdueArchiveAria": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyOverdueIncompleteAria": "{title}：未完成",
+  "@dailyOverdueIncompleteAria": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyArchiveTitle": "封存任務",
+  "@dailyArchiveTitle": {},
+  "dailyArchiveConfirmBody": "確定要封存「{title}」嗎？封存後不會出現在任務列表。",
+  "@dailyArchiveConfirmBody": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyArchiveButton": "封存",
+  "@dailyArchiveButton": {},
+  "dailyCalendarNavAria": "週曆導航",
+  "@dailyCalendarNavAria": {},
+  "dailyPrevWeekAria": "上一週",
+  "@dailyPrevWeekAria": {},
+  "dailyNextWeekAria": "下一週",
+  "@dailyNextWeekAria": {},
+  "dailyDateAria": "{month}月{day}日 {weekday}",
+  "@dailyDateAria": {
+    "placeholders": {
+      "month": {
+        "type": "Object"
+      },
+      "day": {
+        "type": "Object"
+      },
+      "weekday": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyTodayButton": "今天",
+  "@dailyTodayButton": {},
+  "cardsCreateAria": "新增卡片",
+  "@cardsCreateAria": {},
+  "cardsCleanUntitledAria": "清除空白的卡片",
+  "@cardsCleanUntitledAria": {},
+  "cardsViewListAria": "列表檢視",
+  "@cardsViewListAria": {},
+  "cardsViewGridAria": "網格檢視",
+  "@cardsViewGridAria": {},
+  "cardsViewKanbanAria": "看板檢視",
+  "@cardsViewKanbanAria": {},
+  "cardsSearchPlaceholder": "搜尋卡片...",
+  "@cardsSearchPlaceholder": {},
+  "cardsSearchAria": "搜尋卡片",
+  "@cardsSearchAria": {},
+  "cardsEmptyWithQuery": "沒有符合的卡片",
+  "@cardsEmptyWithQuery": {},
+  "cardsEmptyNoCards": "還沒有寫過內容的任務",
+  "@cardsEmptyNoCards": {},
+  "cardsEmptyMobile": "還沒有卡片",
+  "@cardsEmptyMobile": {},
+  "cardsLoadMore": "載入更多...",
+  "@cardsLoadMore": {},
+  "cardsNoMore": "沒有更多卡片了",
+  "@cardsNoMore": {},
+  "cardsCleanDialogTitle": "清除空白的卡片",
+  "@cardsCleanDialogTitle": {},
+  "cardsCleanDialogBody": "將刪除所有沒有標題的卡片，此操作無法復原。",
+  "@cardsCleanDialogBody": {},
+  "cardsCleanConfirmButton": "確定清除",
+  "@cardsCleanConfirmButton": {},
+  "cardsCleanLoading": "清除中...",
+  "@cardsCleanLoading": {},
+  "cardsToastCleaned": "已清除 {count} 張空白卡片",
+  "@cardsToastCleaned": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "cardsToastNothingToClean": "沒有需要清除的卡片",
+  "@cardsToastNothingToClean": {},
+  "cardsKanbanEmptyTitle": "建立第一個標籤來開始使用看板",
+  "@cardsKanbanEmptyTitle": {},
+  "cardsKanbanEmptySubtitle": "到設定 → 標籤管理新增標籤",
+  "@cardsKanbanEmptySubtitle": {},
+  "cardDetailBackToCards": "返回卡片",
+  "@cardDetailBackToCards": {},
+  "cardDetailNotFound": "找不到這張卡片",
+  "@cardDetailNotFound": {},
+  "cardDetailEditTitleAria": "編輯標題",
+  "@cardDetailEditTitleAria": {},
+  "cardDetailEditorPlaceholder": "打 / 插入標題、清單…",
+  "@cardDetailEditorPlaceholder": {},
+  "cardDetailTitleHint": "標題",
+  "@cardDetailTitleHint": {},
+  "cardDetailCreatedAt": "建立 {date}",
+  "@cardDetailCreatedAt": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "cardDetailUpdatedAt": "更新 {date}",
+  "@cardDetailUpdatedAt": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "notesBackToCanvasAria": "回到今天 canvas",
+  "@notesBackToCanvasAria": {},
+  "notesBackToCanvasTitle": "回到今天",
+  "@notesBackToCanvasTitle": {},
+  "notesEmptyFeedPrompt": "還沒有過去的日記。現在先從今天開始寫吧。",
+  "@notesEmptyFeedPrompt": {},
+  "notesEmptyFeedShort": "還沒有過去的日記",
+  "@notesEmptyFeedShort": {},
+  "notesGoToCanvas": "去今天的 canvas",
+  "@notesGoToCanvas": {},
+  "notesGoToToday": "去今天的日誌",
+  "@notesGoToToday": {},
+  "notesNoMoreEntries": "沒有更多日記了",
+  "@notesNoMoreEntries": {},
+  "notesCanvasPlaceholder": "寫點什麼⋯⋯",
+  "@notesCanvasPlaceholder": {},
+  "notesCanvasToggleFeedAria": "切換到 feed",
+  "@notesCanvasToggleFeedAria": {},
+  "notesCanvasToggleFeedTitle": "切換到 feed",
+  "@notesCanvasToggleFeedTitle": {},
+  "notesEntryAria": "{year}年{month}月{day}日的日記",
+  "@notesEntryAria": {
+    "placeholders": {
+      "year": {
+        "type": "Object"
+      },
+      "month": {
+        "type": "Object"
+      },
+      "day": {
+        "type": "Object"
+      }
+    }
+  },
+  "notesMonthLabel": "{month} 月",
+  "@notesMonthLabel": {
+    "placeholders": {
+      "month": {
+        "type": "Object"
+      }
+    }
+  }
 }

@@ -117,6 +117,24 @@ abstract class AppL10n {
   /// **'刪除'**
   String get commonDelete;
 
+  /// No description provided for @commonLoading.
+  ///
+  /// In zh, this message translates to:
+  /// **'載入中...'**
+  String get commonLoading;
+
+  /// No description provided for @commonLoadFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'載入失敗'**
+  String get commonLoadFailed;
+
+  /// No description provided for @commonToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天'**
+  String get commonToday;
+
   /// No description provided for @settingsTitle.
   ///
   /// In zh, this message translates to:
@@ -710,6 +728,330 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'hr|divider|separator|分隔|分隔線'**
   String get editorSlashDividerKeywords;
+
+  /// No description provided for @dailyEmptyToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天還沒有任務'**
+  String get dailyEmptyToday;
+
+  /// No description provided for @dailyOverdueSectionAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'前幾天的任務'**
+  String get dailyOverdueSectionAria;
+
+  /// No description provided for @dailyOverdueLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'前幾天的 ({count})'**
+  String dailyOverdueLabel(Object count);
+
+  /// No description provided for @dailyOverdueScheduleToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'排入今天'**
+  String get dailyOverdueScheduleToday;
+
+  /// No description provided for @dailyOverdueOriginalDateAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'原始日期：{date}'**
+  String dailyOverdueOriginalDateAria(Object date);
+
+  /// No description provided for @dailyOverdueArchiveAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'封存任務：{title}'**
+  String dailyOverdueArchiveAria(Object title);
+
+  /// No description provided for @dailyOverdueIncompleteAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'{title}：未完成'**
+  String dailyOverdueIncompleteAria(Object title);
+
+  /// No description provided for @dailyArchiveTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'封存任務'**
+  String get dailyArchiveTitle;
+
+  /// No description provided for @dailyArchiveConfirmBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'確定要封存「{title}」嗎？封存後不會出現在任務列表。'**
+  String dailyArchiveConfirmBody(Object title);
+
+  /// No description provided for @dailyArchiveButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'封存'**
+  String get dailyArchiveButton;
+
+  /// No description provided for @dailyCalendarNavAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'週曆導航'**
+  String get dailyCalendarNavAria;
+
+  /// No description provided for @dailyPrevWeekAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'上一週'**
+  String get dailyPrevWeekAria;
+
+  /// No description provided for @dailyNextWeekAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'下一週'**
+  String get dailyNextWeekAria;
+
+  /// No description provided for @dailyDateAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'{month}月{day}日 {weekday}'**
+  String dailyDateAria(Object month, Object day, Object weekday);
+
+  /// No description provided for @dailyTodayButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天'**
+  String get dailyTodayButton;
+
+  /// No description provided for @cardsCreateAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'新增卡片'**
+  String get cardsCreateAria;
+
+  /// No description provided for @cardsCleanUntitledAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除空白的卡片'**
+  String get cardsCleanUntitledAria;
+
+  /// No description provided for @cardsViewListAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'列表檢視'**
+  String get cardsViewListAria;
+
+  /// No description provided for @cardsViewGridAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'網格檢視'**
+  String get cardsViewGridAria;
+
+  /// No description provided for @cardsViewKanbanAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'看板檢視'**
+  String get cardsViewKanbanAria;
+
+  /// No description provided for @cardsSearchPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜尋卡片...'**
+  String get cardsSearchPlaceholder;
+
+  /// No description provided for @cardsSearchAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜尋卡片'**
+  String get cardsSearchAria;
+
+  /// No description provided for @cardsEmptyWithQuery.
+  ///
+  /// In zh, this message translates to:
+  /// **'沒有符合的卡片'**
+  String get cardsEmptyWithQuery;
+
+  /// No description provided for @cardsEmptyNoCards.
+  ///
+  /// In zh, this message translates to:
+  /// **'還沒有寫過內容的任務'**
+  String get cardsEmptyNoCards;
+
+  /// No description provided for @cardsEmptyMobile.
+  ///
+  /// In zh, this message translates to:
+  /// **'還沒有卡片'**
+  String get cardsEmptyMobile;
+
+  /// No description provided for @cardsLoadMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'載入更多...'**
+  String get cardsLoadMore;
+
+  /// No description provided for @cardsNoMore.
+  ///
+  /// In zh, this message translates to:
+  /// **'沒有更多卡片了'**
+  String get cardsNoMore;
+
+  /// No description provided for @cardsCleanDialogTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除空白的卡片'**
+  String get cardsCleanDialogTitle;
+
+  /// No description provided for @cardsCleanDialogBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'將刪除所有沒有標題的卡片，此操作無法復原。'**
+  String get cardsCleanDialogBody;
+
+  /// No description provided for @cardsCleanConfirmButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'確定清除'**
+  String get cardsCleanConfirmButton;
+
+  /// No description provided for @cardsCleanLoading.
+  ///
+  /// In zh, this message translates to:
+  /// **'清除中...'**
+  String get cardsCleanLoading;
+
+  /// No description provided for @cardsToastCleaned.
+  ///
+  /// In zh, this message translates to:
+  /// **'已清除 {count} 張空白卡片'**
+  String cardsToastCleaned(Object count);
+
+  /// No description provided for @cardsToastNothingToClean.
+  ///
+  /// In zh, this message translates to:
+  /// **'沒有需要清除的卡片'**
+  String get cardsToastNothingToClean;
+
+  /// No description provided for @cardsKanbanEmptyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'建立第一個標籤來開始使用看板'**
+  String get cardsKanbanEmptyTitle;
+
+  /// No description provided for @cardsKanbanEmptySubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'到設定 → 標籤管理新增標籤'**
+  String get cardsKanbanEmptySubtitle;
+
+  /// No description provided for @cardDetailBackToCards.
+  ///
+  /// In zh, this message translates to:
+  /// **'返回卡片'**
+  String get cardDetailBackToCards;
+
+  /// No description provided for @cardDetailNotFound.
+  ///
+  /// In zh, this message translates to:
+  /// **'找不到這張卡片'**
+  String get cardDetailNotFound;
+
+  /// No description provided for @cardDetailEditTitleAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'編輯標題'**
+  String get cardDetailEditTitleAria;
+
+  /// No description provided for @cardDetailEditorPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'打 / 插入標題、清單…'**
+  String get cardDetailEditorPlaceholder;
+
+  /// No description provided for @cardDetailTitleHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'標題'**
+  String get cardDetailTitleHint;
+
+  /// No description provided for @cardDetailCreatedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'建立 {date}'**
+  String cardDetailCreatedAt(Object date);
+
+  /// No description provided for @cardDetailUpdatedAt.
+  ///
+  /// In zh, this message translates to:
+  /// **'更新 {date}'**
+  String cardDetailUpdatedAt(Object date);
+
+  /// No description provided for @notesBackToCanvasAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'回到今天 canvas'**
+  String get notesBackToCanvasAria;
+
+  /// No description provided for @notesBackToCanvasTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'回到今天'**
+  String get notesBackToCanvasTitle;
+
+  /// No description provided for @notesEmptyFeedPrompt.
+  ///
+  /// In zh, this message translates to:
+  /// **'還沒有過去的日記。現在先從今天開始寫吧。'**
+  String get notesEmptyFeedPrompt;
+
+  /// No description provided for @notesEmptyFeedShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'還沒有過去的日記'**
+  String get notesEmptyFeedShort;
+
+  /// No description provided for @notesGoToCanvas.
+  ///
+  /// In zh, this message translates to:
+  /// **'去今天的 canvas'**
+  String get notesGoToCanvas;
+
+  /// No description provided for @notesGoToToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'去今天的日誌'**
+  String get notesGoToToday;
+
+  /// No description provided for @notesNoMoreEntries.
+  ///
+  /// In zh, this message translates to:
+  /// **'沒有更多日記了'**
+  String get notesNoMoreEntries;
+
+  /// No description provided for @notesCanvasPlaceholder.
+  ///
+  /// In zh, this message translates to:
+  /// **'寫點什麼⋯⋯'**
+  String get notesCanvasPlaceholder;
+
+  /// No description provided for @notesCanvasToggleFeedAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'切換到 feed'**
+  String get notesCanvasToggleFeedAria;
+
+  /// No description provided for @notesCanvasToggleFeedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'切換到 feed'**
+  String get notesCanvasToggleFeedTitle;
+
+  /// No description provided for @notesEntryAria.
+  ///
+  /// In zh, this message translates to:
+  /// **'{year}年{month}月{day}日的日記'**
+  String notesEntryAria(Object year, Object month, Object day);
+
+  /// No description provided for @notesMonthLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'{month} 月'**
+  String notesMonthLabel(Object month);
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

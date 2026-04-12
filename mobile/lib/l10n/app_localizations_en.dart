@@ -18,6 +18,15 @@ class AppL10nEn extends AppL10n {
   String get commonDelete => 'Delete';
 
   @override
+  String get commonLoading => 'Loading...';
+
+  @override
+  String get commonLoadFailed => 'Failed to load';
+
+  @override
+  String get commonToday => 'Today';
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -335,4 +344,192 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get editorSlashDividerKeywords => 'hr|divider|separator|line';
+
+  @override
+  String get dailyEmptyToday => 'No tasks for today';
+
+  @override
+  String get dailyOverdueSectionAria => 'Tasks from previous days';
+
+  @override
+  String dailyOverdueLabel(Object count) {
+    return 'From earlier ($count)';
+  }
+
+  @override
+  String get dailyOverdueScheduleToday => 'Move to today';
+
+  @override
+  String dailyOverdueOriginalDateAria(Object date) {
+    return 'Original date: $date';
+  }
+
+  @override
+  String dailyOverdueArchiveAria(Object title) {
+    return 'Archive task: $title';
+  }
+
+  @override
+  String dailyOverdueIncompleteAria(Object title) {
+    return '$title: not completed';
+  }
+
+  @override
+  String get dailyArchiveTitle => 'Archive task';
+
+  @override
+  String dailyArchiveConfirmBody(Object title) {
+    return 'Archive \"$title\"? Archived tasks will not appear in your task list.';
+  }
+
+  @override
+  String get dailyArchiveButton => 'Archive';
+
+  @override
+  String get dailyCalendarNavAria => 'Weekly calendar';
+
+  @override
+  String get dailyPrevWeekAria => 'Previous week';
+
+  @override
+  String get dailyNextWeekAria => 'Next week';
+
+  @override
+  String dailyDateAria(Object month, Object day, Object weekday) {
+    return '$month/$day $weekday';
+  }
+
+  @override
+  String get dailyTodayButton => 'Today';
+
+  @override
+  String get cardsCreateAria => 'New card';
+
+  @override
+  String get cardsCleanUntitledAria => 'Clean untitled cards';
+
+  @override
+  String get cardsViewListAria => 'List view';
+
+  @override
+  String get cardsViewGridAria => 'Grid view';
+
+  @override
+  String get cardsViewKanbanAria => 'Kanban view';
+
+  @override
+  String get cardsSearchPlaceholder => 'Search cards...';
+
+  @override
+  String get cardsSearchAria => 'Search cards';
+
+  @override
+  String get cardsEmptyWithQuery => 'No matching cards';
+
+  @override
+  String get cardsEmptyNoCards => 'No cards with content yet';
+
+  @override
+  String get cardsEmptyMobile => 'No cards yet';
+
+  @override
+  String get cardsLoadMore => 'Loading more...';
+
+  @override
+  String get cardsNoMore => 'No more cards';
+
+  @override
+  String get cardsCleanDialogTitle => 'Clean untitled cards';
+
+  @override
+  String get cardsCleanDialogBody =>
+      'This will delete all cards without a title. This action cannot be undone.';
+
+  @override
+  String get cardsCleanConfirmButton => 'Confirm delete';
+
+  @override
+  String get cardsCleanLoading => 'Cleaning...';
+
+  @override
+  String cardsToastCleaned(Object count) {
+    return 'Cleaned $count untitled card(s)';
+  }
+
+  @override
+  String get cardsToastNothingToClean => 'No cards to clean';
+
+  @override
+  String get cardsKanbanEmptyTitle =>
+      'Create your first tag to start using the board';
+
+  @override
+  String get cardsKanbanEmptySubtitle =>
+      'Go to Settings → Tag management to add tags';
+
+  @override
+  String get cardDetailBackToCards => 'Back to cards';
+
+  @override
+  String get cardDetailNotFound => 'Card not found';
+
+  @override
+  String get cardDetailEditTitleAria => 'Edit title';
+
+  @override
+  String get cardDetailEditorPlaceholder => 'Type / to insert headings, lists…';
+
+  @override
+  String get cardDetailTitleHint => 'Title';
+
+  @override
+  String cardDetailCreatedAt(Object date) {
+    return 'Created $date';
+  }
+
+  @override
+  String cardDetailUpdatedAt(Object date) {
+    return 'Updated $date';
+  }
+
+  @override
+  String get notesBackToCanvasAria => 'Back to today\'s canvas';
+
+  @override
+  String get notesBackToCanvasTitle => 'Back to today';
+
+  @override
+  String get notesEmptyFeedPrompt =>
+      'No past journal entries yet. Start writing from today.';
+
+  @override
+  String get notesEmptyFeedShort => 'No past journal entries yet';
+
+  @override
+  String get notesGoToCanvas => 'Go to today\'s canvas';
+
+  @override
+  String get notesGoToToday => 'Go to today\'s journal';
+
+  @override
+  String get notesNoMoreEntries => 'No more entries';
+
+  @override
+  String get notesCanvasPlaceholder => 'Write something...';
+
+  @override
+  String get notesCanvasToggleFeedAria => 'Switch to feed';
+
+  @override
+  String get notesCanvasToggleFeedTitle => 'Switch to feed';
+
+  @override
+  String notesEntryAria(Object year, Object month, Object day) {
+    return 'Journal for $month/$day/$year';
+  }
+
+  @override
+  String notesMonthLabel(Object month) {
+    return '$month';
+  }
 }

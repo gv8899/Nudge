@@ -2,7 +2,10 @@
   "common": {
     "save": "儲存",
     "cancel": "取消",
-    "delete": "刪除"
+    "delete": "刪除",
+    "loading": "載入中...",
+    "loadFailed": "載入失敗",
+    "today": "今天"
   },
   "settings": {
     "title": "設定",
@@ -128,5 +131,67 @@
     "slashDividerLabel": "分隔線",
     "slashDividerDescription": "插入水平分隔線",
     "slashDividerKeywords": "hr|divider|separator|分隔|分隔線"
+  },
+  "daily": {
+    "emptyToday": "今天還沒有任務",
+    "overdueSectionAria": "前幾天的任務",
+    "overdueLabel": "前幾天的 ({count})",
+    "overdueScheduleToday": "排入今天",
+    "overdueOriginalDateAria": "原始日期：{date}",
+    "overdueArchiveAria": "封存任務：{title}",
+    "overdueIncompleteAria": "{title}：未完成",
+    "archiveTitle": "封存任務",
+    "archiveConfirmBody": "確定要封存「{title}」嗎？封存後不會出現在任務列表。",
+    "archiveButton": "封存",
+    "calendarNavAria": "週曆導航",
+    "prevWeekAria": "上一週",
+    "nextWeekAria": "下一週",
+    "dateAria": "{month}月{day}日 {weekday}",
+    "todayButton": "今天"
+  },
+  "cards": {
+    "createAria": "新增卡片",
+    "cleanUntitledAria": "清除空白的卡片",
+    "viewListAria": "列表檢視",
+    "viewGridAria": "網格檢視",
+    "viewKanbanAria": "看板檢視",
+    "searchPlaceholder": "搜尋卡片...",
+    "searchAria": "搜尋卡片",
+    "emptyWithQuery": "沒有符合的卡片",
+    "emptyNoCards": "還沒有寫過內容的任務",
+    "emptyMobile": "還沒有卡片",
+    "loadMore": "載入更多...",
+    "noMore": "沒有更多卡片了",
+    "cleanDialogTitle": "清除空白的卡片",
+    "cleanDialogBody": "將刪除所有沒有標題的卡片，此操作無法復原。",
+    "cleanConfirmButton": "確定清除",
+    "cleanLoading": "清除中...",
+    "toastCleaned": "已清除 {count} 張空白卡片",
+    "toastNothingToClean": "沒有需要清除的卡片",
+    "kanbanEmptyTitle": "建立第一個標籤來開始使用看板",
+    "kanbanEmptySubtitle": "到設定 → 標籤管理新增標籤"
+  },
+  "cardDetail": {
+    "backToCards": "返回卡片",
+    "notFound": "找不到這張卡片",
+    "editTitleAria": "編輯標題",
+    "editorPlaceholder": "打 / 插入標題、清單…",
+    "titleHint": "標題",
+    "createdAt": "建立 {date}",
+    "updatedAt": "更新 {date}"
+  },
+  "notes": {
+    "backToCanvasAria": "回到今天 canvas",
+    "backToCanvasTitle": "回到今天",
+    "emptyFeedPrompt": "還沒有過去的日記。現在先從今天開始寫吧。",
+    "emptyFeedShort": "還沒有過去的日記",
+    "goToCanvas": "去今天的 canvas",
+    "goToToday": "去今天的日誌",
+    "noMoreEntries": "沒有更多日記了",
+    "canvasPlaceholder": "寫點什麼⋯⋯",
+    "canvasToggleFeedAria": "切換到 feed",
+    "canvasToggleFeedTitle": "切換到 feed",
+    "entryAria": "{year}年{month}月{day}日的日記",
+    "monthLabel": "{month} 月"
   }
 }

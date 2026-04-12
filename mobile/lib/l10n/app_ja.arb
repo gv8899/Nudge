@@ -6,6 +6,12 @@
   "@commonCancel": {},
   "commonDelete": "削除",
   "@commonDelete": {},
+  "commonLoading": "読み込み中...",
+  "@commonLoading": {},
+  "commonLoadFailed": "読み込みに失敗しました",
+  "@commonLoadFailed": {},
+  "commonToday": "今日",
+  "@commonToday": {},
   "settingsTitle": "設定",
   "@settingsTitle": {},
   "settingsAccountSection": "アカウント",
@@ -260,5 +266,191 @@
   "editorSlashDividerDescription": "水平区切り線を挿入",
   "@editorSlashDividerDescription": {},
   "editorSlashDividerKeywords": "hr|divider|separator|区切り",
-  "@editorSlashDividerKeywords": {}
+  "@editorSlashDividerKeywords": {},
+  "dailyEmptyToday": "今日のタスクはまだありません",
+  "@dailyEmptyToday": {},
+  "dailyOverdueSectionAria": "以前のタスク",
+  "@dailyOverdueSectionAria": {},
+  "dailyOverdueLabel": "以前のタスク ({count})",
+  "@dailyOverdueLabel": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyOverdueScheduleToday": "今日に移動",
+  "@dailyOverdueScheduleToday": {},
+  "dailyOverdueOriginalDateAria": "元の日付：{date}",
+  "@dailyOverdueOriginalDateAria": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyOverdueArchiveAria": "タスクをアーカイブ：{title}",
+  "@dailyOverdueArchiveAria": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyOverdueIncompleteAria": "{title}：未完了",
+  "@dailyOverdueIncompleteAria": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyArchiveTitle": "タスクをアーカイブ",
+  "@dailyArchiveTitle": {},
+  "dailyArchiveConfirmBody": "「{title}」をアーカイブしますか？アーカイブしたタスクは一覧に表示されません。",
+  "@dailyArchiveConfirmBody": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyArchiveButton": "アーカイブ",
+  "@dailyArchiveButton": {},
+  "dailyCalendarNavAria": "週カレンダー",
+  "@dailyCalendarNavAria": {},
+  "dailyPrevWeekAria": "前の週",
+  "@dailyPrevWeekAria": {},
+  "dailyNextWeekAria": "次の週",
+  "@dailyNextWeekAria": {},
+  "dailyDateAria": "{month}月{day}日 {weekday}",
+  "@dailyDateAria": {
+    "placeholders": {
+      "month": {
+        "type": "Object"
+      },
+      "day": {
+        "type": "Object"
+      },
+      "weekday": {
+        "type": "Object"
+      }
+    }
+  },
+  "dailyTodayButton": "今日",
+  "@dailyTodayButton": {},
+  "cardsCreateAria": "新しいカード",
+  "@cardsCreateAria": {},
+  "cardsCleanUntitledAria": "空白のカードを削除",
+  "@cardsCleanUntitledAria": {},
+  "cardsViewListAria": "リスト表示",
+  "@cardsViewListAria": {},
+  "cardsViewGridAria": "グリッド表示",
+  "@cardsViewGridAria": {},
+  "cardsViewKanbanAria": "カンバン表示",
+  "@cardsViewKanbanAria": {},
+  "cardsSearchPlaceholder": "カードを検索...",
+  "@cardsSearchPlaceholder": {},
+  "cardsSearchAria": "カードを検索",
+  "@cardsSearchAria": {},
+  "cardsEmptyWithQuery": "該当するカードがありません",
+  "@cardsEmptyWithQuery": {},
+  "cardsEmptyNoCards": "まだ内容のあるカードがありません",
+  "@cardsEmptyNoCards": {},
+  "cardsEmptyMobile": "まだカードがありません",
+  "@cardsEmptyMobile": {},
+  "cardsLoadMore": "さらに読み込み中...",
+  "@cardsLoadMore": {},
+  "cardsNoMore": "これ以上カードはありません",
+  "@cardsNoMore": {},
+  "cardsCleanDialogTitle": "空白のカードを削除",
+  "@cardsCleanDialogTitle": {},
+  "cardsCleanDialogBody": "タイトルのないすべてのカードを削除します。この操作は取り消せません。",
+  "@cardsCleanDialogBody": {},
+  "cardsCleanConfirmButton": "削除を確認",
+  "@cardsCleanConfirmButton": {},
+  "cardsCleanLoading": "削除中...",
+  "@cardsCleanLoading": {},
+  "cardsToastCleaned": "{count} 件の空白カードを削除しました",
+  "@cardsToastCleaned": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "cardsToastNothingToClean": "削除するカードがありません",
+  "@cardsToastNothingToClean": {},
+  "cardsKanbanEmptyTitle": "最初のタグを作成してカンバンを使い始めましょう",
+  "@cardsKanbanEmptyTitle": {},
+  "cardsKanbanEmptySubtitle": "設定 → タグ管理からタグを追加できます",
+  "@cardsKanbanEmptySubtitle": {},
+  "cardDetailBackToCards": "カード一覧へ戻る",
+  "@cardDetailBackToCards": {},
+  "cardDetailNotFound": "カードが見つかりません",
+  "@cardDetailNotFound": {},
+  "cardDetailEditTitleAria": "タイトルを編集",
+  "@cardDetailEditTitleAria": {},
+  "cardDetailEditorPlaceholder": "/ を入力して見出しやリストを挿入…",
+  "@cardDetailEditorPlaceholder": {},
+  "cardDetailTitleHint": "タイトル",
+  "@cardDetailTitleHint": {},
+  "cardDetailCreatedAt": "作成 {date}",
+  "@cardDetailCreatedAt": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "cardDetailUpdatedAt": "更新 {date}",
+  "@cardDetailUpdatedAt": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "notesBackToCanvasAria": "今日のキャンバスへ戻る",
+  "@notesBackToCanvasAria": {},
+  "notesBackToCanvasTitle": "今日へ戻る",
+  "@notesBackToCanvasTitle": {},
+  "notesEmptyFeedPrompt": "過去の日記はまだありません。まずは今日から書いてみましょう。",
+  "@notesEmptyFeedPrompt": {},
+  "notesEmptyFeedShort": "過去の日記はまだありません",
+  "@notesEmptyFeedShort": {},
+  "notesGoToCanvas": "今日のキャンバスへ",
+  "@notesGoToCanvas": {},
+  "notesGoToToday": "今日のジャーナルへ",
+  "@notesGoToToday": {},
+  "notesNoMoreEntries": "これ以上の日記はありません",
+  "@notesNoMoreEntries": {},
+  "notesCanvasPlaceholder": "何か書いてみましょう...",
+  "@notesCanvasPlaceholder": {},
+  "notesCanvasToggleFeedAria": "フィードへ切り替え",
+  "@notesCanvasToggleFeedAria": {},
+  "notesCanvasToggleFeedTitle": "フィードへ切り替え",
+  "@notesCanvasToggleFeedTitle": {},
+  "notesEntryAria": "{year}年{month}月{day}日のジャーナル",
+  "@notesEntryAria": {
+    "placeholders": {
+      "year": {
+        "type": "Object"
+      },
+      "month": {
+        "type": "Object"
+      },
+      "day": {
+        "type": "Object"
+      }
+    }
+  },
+  "notesMonthLabel": "{month} 月",
+  "@notesMonthLabel": {
+    "placeholders": {
+      "month": {
+        "type": "Object"
+      }
+    }
+  }
 }
