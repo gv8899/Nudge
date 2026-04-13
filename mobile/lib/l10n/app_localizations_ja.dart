@@ -262,6 +262,15 @@ class AppL10nJa extends AppL10n {
   String get editorSlashNoResults => '該当する項目がありません';
 
   @override
+  String get editorSlashTextLabel => 'テキスト';
+
+  @override
+  String get editorSlashTextDescription => '通常の段落テキスト';
+
+  @override
+  String get editorSlashTextKeywords => 'text|paragraph|body|テキスト|段落';
+
+  @override
   String get editorSlashH1Label => '見出し 1';
 
   @override

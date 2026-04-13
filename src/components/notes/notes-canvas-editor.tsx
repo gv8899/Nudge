@@ -93,7 +93,7 @@ export function NotesCanvasEditor({
       ref={containerRef}
       onClick={handleContainerClick}
       {...containerProps}
-      className="relative cursor-text min-h-[60vh] notes-canvas-editor md:pl-8 md:-ml-8"
+      className="relative cursor-text min-h-[60vh] notes-canvas-editor md:pl-6 md:-ml-6"
     >
       {hoveredBlock && (
         <BlockDragHandle

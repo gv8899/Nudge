@@ -261,6 +261,15 @@ class AppL10nZh extends AppL10n {
   String get editorSlashNoResults => '沒有符合的項目';
 
   @override
+  String get editorSlashTextLabel => '內文';
+
+  @override
+  String get editorSlashTextDescription => '普通段落文字';
+
+  @override
+  String get editorSlashTextKeywords => 'text|paragraph|body|內文|段落|普通';
+
+  @override
   String get editorSlashH1Label => '標題 1';
 
   @override

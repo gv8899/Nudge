@@ -79,7 +79,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogTitle className="text-lg font-semibold">{t("title")}</DialogTitle>
 
         <div className="divide-y divide-border">

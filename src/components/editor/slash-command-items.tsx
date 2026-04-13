@@ -1,4 +1,5 @@
 import {
+  Type,
   Heading1,
   Heading2,
   Heading3,
@@ -32,6 +33,13 @@ interface SlashCommandDef {
 }
 
 const SLASH_COMMAND_DEFS: SlashCommandDef[] = [
+  {
+    id: "text",
+    icon: Type,
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).setParagraph().run();
+    },
+  },
   {
     id: "h1",
     icon: Heading1,
@@ -100,6 +108,7 @@ const SLASH_COMMAND_DEFS: SlashCommandDef[] = [
 ];
 
 const ID_TO_KEY: Record<string, { label: string; description: string; keywords: string }> = {
+  text: { label: "slashTextLabel", description: "slashTextDescription", keywords: "slashTextKeywords" },
   h1: { label: "slashH1Label", description: "slashH1Description", keywords: "slashH1Keywords" },
   h2: { label: "slashH2Label", description: "slashH2Description", keywords: "slashH2Keywords" },
   h3: { label: "slashH3Label", description: "slashH3Description", keywords: "slashH3Keywords" },

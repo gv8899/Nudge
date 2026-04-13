@@ -264,6 +264,15 @@ class AppL10nEn extends AppL10n {
   String get editorSlashNoResults => 'No matching items';
 
   @override
+  String get editorSlashTextLabel => 'Text';
+
+  @override
+  String get editorSlashTextDescription => 'Plain paragraph text';
+
+  @override
+  String get editorSlashTextKeywords => 'text|paragraph|body|plain';
+
+  @override
   String get editorSlashH1Label => 'Heading 1';
 
   @override

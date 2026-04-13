@@ -567,6 +567,24 @@ abstract class AppL10n {
   /// **'沒有符合的項目'**
   String get editorSlashNoResults;
 
+  /// No description provided for @editorSlashTextLabel.
+  ///
+  /// In zh, this message translates to:
+  /// **'內文'**
+  String get editorSlashTextLabel;
+
+  /// No description provided for @editorSlashTextDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'普通段落文字'**
+  String get editorSlashTextDescription;
+
+  /// No description provided for @editorSlashTextKeywords.
+  ///
+  /// In zh, this message translates to:
+  /// **'text|paragraph|body|內文|段落|普通'**
+  String get editorSlashTextKeywords;
+
   /// No description provided for @editorSlashH1Label.
   ///
   /// In zh, this message translates to:

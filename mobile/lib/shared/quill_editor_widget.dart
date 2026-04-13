@@ -286,7 +286,7 @@ class _QuillEditorWidgetState extends State<QuillEditorWidget> {
                       null,
                     ),
                     quote: DefaultTextBlockStyle(
-                      TextStyle(color: AppColors.textMuted, fontSize: 16, height: 1.5, fontStyle: FontStyle.italic),
+                      TextStyle(color: AppColors.foreground, fontSize: 16, height: 1.5, fontStyle: FontStyle.italic),
                       const HorizontalSpacing(0, 0),
                       const VerticalSpacing(8, 8),
                       const VerticalSpacing(0, 0),
@@ -344,6 +344,7 @@ const _allSlashItems = [
   _SlashItem('Heading 3', LucideIcons.heading3, Attribute.h3),
   _SlashItem('Bullet List', LucideIcons.list, Attribute.ul),
   _SlashItem('Numbered List', LucideIcons.listOrdered, Attribute.ol),
+  _SlashItem('To-do List', LucideIcons.listTodo, Attribute.unchecked),
   _SlashItem('Quote', LucideIcons.quote, Attribute.blockQuote),
   _SlashItem('Code Block', LucideIcons.code, Attribute.codeBlock),
 ];
