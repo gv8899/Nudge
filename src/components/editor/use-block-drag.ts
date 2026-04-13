@@ -76,10 +76,7 @@ export function useBlockDrag(editor: Editor | null) {
 
       const topLevelPos = $pos.before(1);
       const dom = editor.view.nodeDOM(topLevelPos);
-      if (!dom || !(dom instanceof HTMLElement)) {
-        setHoveredBlock(null);
-        return;
-      }
+      if (!dom || !(dom instanceof HTMLElement)) return;
 
       const rect = dom.getBoundingClientRect();
       setHoveredBlock({
@@ -91,10 +88,6 @@ export function useBlockDrag(editor: Editor | null) {
     [editor, draggingFromPos]
   );
 
-  const handleMouseLeave = useCallback(() => {
-    if (draggingFromPos === null) setHoveredBlock(null);
-  }, [draggingFromPos]);
-
   /** 預算所有合法的 drop slot（排除會 no-op 的位置） */
   const computeSlots = useCallback(
     (sourcePos: number): DropSlot[] => {
@@ -103,7 +96,6 @@ export function useBlockDrag(editor: Editor | null) {
       const containerRect = containerRef.current.getBoundingClientRect();
       const sourceNode = doc.nodeAt(sourcePos);
       if (!sourceNode) return [];
-      const sourceEnd = sourcePos + sourceNode.nodeSize;
 
       const slots: DropSlot[] = [];
       let pos = 0;
@@ -250,7 +242,6 @@ export function useBlockDrag(editor: Editor | null) {
     isDragging: draggingFromPos !== null,
     containerProps: {
       onMouseMove: handleMouseMove,
-      onMouseLeave: handleMouseLeave,
       onDragOver: handleDragOver,
       onDrop: handleDrop,
     },
