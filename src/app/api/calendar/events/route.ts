@@ -80,10 +80,14 @@ export async function GET(req: NextRequest): Promise<NextResponse<EventsResponse
   const nameMap = new Map(allCalendars.map((c) => [c.id, c.summary]));
   const primaryCalId = allCalendars.find((c) => c.primary)?.id;
 
-  // 把 "primary" 別名正規化成真正的 calendar id，然後過濾掉 allowed list 以外的
-  const allowedSelectedIds = tokenResult.selectedIds
-    .map((id) => (id === "primary" && primaryCalId ? primaryCalId : id))
-    .filter((id) => nameMap.has(id));
+  // 把 "primary" 別名正規化成真正的 calendar id、去重、過濾掉 allowed list 以外的
+  const allowedSelectedIds = Array.from(
+    new Set(
+      tokenResult.selectedIds
+        .map((id) => (id === "primary" && primaryCalId ? primaryCalId : id))
+        .filter((id) => nameMap.has(id))
+    )
+  );
 
   // 並行抓 Workspace directory 做 email→姓名查表（失敗不影響主流程）
   let directoryNameMap: Map<string, string> | undefined;
