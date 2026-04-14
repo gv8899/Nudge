@@ -513,8 +513,9 @@ class _CalendarSection extends ConsumerWidget {
     } catch (_) {
       // 即使失敗也刷新，讓 UI 反映真實狀態
     }
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-    ref.invalidate(calendarEventsProvider(today));
+    // 清掉所有 calendarEventsProvider family keys（而不只 today）
+    // 以免 Tasks 頁面殘留其他日期的 cached state
+    ref.invalidate(calendarEventsProvider);
     ref.invalidate(calendarLinkedEmailProvider);
   }
 
