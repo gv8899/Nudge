@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getAccessToken } from "@/lib/google-calendar/tokens";
-import { listEvents, listCalendars } from "@/lib/google-calendar/api";
+import { listEvents, listCalendars, fetchDirectoryNameMap } from "@/lib/google-calendar/api";
 import type { EventsResponse, CalendarEvent } from "@/lib/google-calendar/types";
 
 function computeDayRange(dateStr: string, tz: string): { min: string; max: string } {
@@ -68,9 +68,19 @@ export async function GET(req: NextRequest): Promise<NextResponse<EventsResponse
 
   const nameMap = new Map(allCalendars.map((c) => [c.id, c.summary]));
 
+  // 並行抓 Workspace directory 做 email→姓名查表（失敗不影響主流程）
+  let directoryNameMap: Map<string, string> | undefined;
+  try {
+    directoryNameMap = await fetchDirectoryNameMap(tokenResult.accessToken);
+  } catch (e) {
+    console.warn("fetchDirectoryNameMap failed (attendees will fall back to email):", e);
+  }
+
   const results = await Promise.allSettled(
     tokenResult.selectedIds.map((id) =>
-      listEvents(tokenResult.accessToken, id, nameMap.get(id) || id, range.min, range.max)
+      listEvents(tokenResult.accessToken, id, nameMap.get(id) || id, range.min, range.max, {
+        directoryNameMap,
+      })
     )
   );
 

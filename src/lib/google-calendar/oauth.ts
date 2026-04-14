@@ -1,4 +1,6 @@
-const CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
+const CALENDAR_SCOPE =
+  "https://www.googleapis.com/auth/calendar.readonly " +
+  "https://www.googleapis.com/auth/directory.readonly";
 const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 
