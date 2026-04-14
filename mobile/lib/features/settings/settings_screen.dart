@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import '../../core/locale_provider.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
@@ -556,12 +556,17 @@ class _CalendarSection extends ConsumerWidget {
                 final url = await ref
                     .read(calendarRepositoryProvider)
                     .fetchMobileConnectUrl();
-                if (url != null) {
-                  await launchUrl(
-                    Uri.parse(url),
-                    mode: LaunchMode.externalApplication,
+                if (url == null) return;
+                try {
+                  await FlutterWebAuth2.authenticate(
+                    url: url,
+                    callbackUrlScheme: 'nudge',
                   );
+                } catch (_) {
+                  // 使用者取消或失敗
                 }
+                ref.invalidate(calendarEventsProvider);
+                ref.invalidate(calendarLinkedEmailProvider);
               },
               child: Text(l.calendarConnectButton),
             ),

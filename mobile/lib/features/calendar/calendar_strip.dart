@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import '../../core/theme.dart';
 import '../../l10n/app_localizations.dart';
 import 'calendar_event_tile.dart';
@@ -137,16 +137,22 @@ class _CalendarStripState extends ConsumerState<CalendarStrip>
     return GestureDetector(
       onTap: () async {
         if (isCta) {
-          // 點 CTA 橫幅 → 先跟後端換一張短效 ticket，再打開系統瀏覽器
+          // 點 CTA 橫幅 → 用 ASWebAuthenticationSession（in-app browser）
+          // 跑 OAuth，callback 回到 nudge:// 時會自動關閉並切回 app
           final url = await ref
               .read(calendarRepositoryProvider)
               .fetchMobileConnectUrl();
-          if (url != null) {
-            await launchUrl(
-              Uri.parse(url),
-              mode: LaunchMode.externalApplication,
+          if (url == null) return;
+          try {
+            await FlutterWebAuth2.authenticate(
+              url: url,
+              callbackUrlScheme: 'nudge',
             );
+          } catch (_) {
+            // 使用者取消或失敗：不顯示錯誤訊息
           }
+          ref.invalidate(calendarEventsProvider);
+          ref.invalidate(calendarLinkedEmailProvider);
           return;
         }
         ref.read(calendarCollapsedProvider.notifier).toggle();
