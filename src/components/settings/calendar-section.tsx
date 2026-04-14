@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { fetcher } from "@/lib/fetcher";
 import type { CalendarsResponse } from "@/lib/google-calendar/types";
 
-export function CalendarSection({ userEmail }: { userEmail: string }) {
+export function CalendarSection() {
   const t = useTranslations("calendar");
   const { data, isLoading, mutate } = useSWR<
     CalendarsResponse | { error: string }
@@ -17,19 +17,10 @@ export function CalendarSection({ userEmail }: { userEmail: string }) {
   const isConnected =
     data !== undefined && "calendars" in data && Array.isArray(data.calendars);
 
-  async function toggleCalendar(id: string, selected: boolean) {
-    if (!isConnected) return;
-    const current = new Set((data as CalendarsResponse).selectedIds);
-    if (selected) current.add(id);
-    else current.delete(id);
-    const next = Array.from(current);
-    await fetch("/api/calendar/calendars", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ selectedIds: next }),
-    });
-    mutate({ ...(data as CalendarsResponse), selectedIds: next }, { revalidate: false });
-  }
+  // 使用 primary calendar 的 id（就是日曆擁有者的 email）
+  const linkedEmail = isConnected
+    ? (data as CalendarsResponse).calendars.find((c) => c.primary)?.id ?? ""
+    : "";
 
   async function disconnect() {
     await fetch("/api/calendar/disconnect", { method: "POST" });
@@ -60,41 +51,7 @@ export function CalendarSection({ userEmail }: { userEmail: string }) {
       {isConnected && (
         <div className="space-y-3">
           <div className="text-xs text-text-dim">
-            {t("connectedAs", { email: userEmail })}
-          </div>
-
-          <div>
-            <div className="text-xs text-text-faint uppercase tracking-wide mb-1">
-              {t("subCalendars")}
-            </div>
-            <div className="space-y-1">
-              {(data as CalendarsResponse).calendars.map((cal) => {
-                const selectedIds = (data as CalendarsResponse).selectedIds;
-                // "primary" 是 Google API 的別名，對應到 primary calendar 的實際 id
-                const checked =
-                  selectedIds.includes(cal.id) ||
-                  (cal.primary && selectedIds.includes("primary"));
-                return (
-                  <label
-                    key={cal.id}
-                    className="flex items-center gap-2 text-sm text-foreground cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e) => toggleCalendar(cal.id, e.target.checked)}
-                    />
-                    {cal.backgroundColor && (
-                      <span
-                        className="inline-block w-3 h-3 rounded-sm"
-                        style={{ background: cal.backgroundColor }}
-                      />
-                    )}
-                    <span>{cal.summary}</span>
-                  </label>
-                );
-              })}
-            </div>
+            {t("connectedAs", { email: linkedEmail })}
           </div>
 
           {!confirmDisconnect ? (

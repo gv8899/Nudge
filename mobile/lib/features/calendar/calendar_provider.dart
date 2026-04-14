@@ -9,6 +9,13 @@ final calendarEventsProvider =
   return repo.fetchEvents(date);
 });
 
+/// 回傳已連結的 Google Calendar 帳號 email（primary calendar 的 id），
+/// 未連結或失敗時回 null。
+final calendarLinkedEmailProvider = FutureProvider<String?>((ref) async {
+  final repo = ref.read(calendarRepositoryProvider);
+  return repo.fetchLinkedEmail();
+});
+
 /// 收合/展開狀態，跨 app 啟動保持
 final calendarCollapsedProvider =
     NotifierProvider<CalendarCollapsedNotifier, bool>(

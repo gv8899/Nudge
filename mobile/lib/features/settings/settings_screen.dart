@@ -515,6 +515,7 @@ class _CalendarSection extends ConsumerWidget {
     }
     final today = DateTime.now().toIso8601String().substring(0, 10);
     ref.invalidate(calendarEventsProvider(today));
+    ref.invalidate(calendarLinkedEmailProvider);
   }
 
   @override
@@ -522,10 +523,15 @@ class _CalendarSection extends ConsumerWidget {
     final l = AppL10n.of(context)!;
     final today = DateTime.now().toIso8601String().substring(0, 10);
     final eventsAsync = ref.watch(calendarEventsProvider(today));
+    final linkedEmailAsync = ref.watch(calendarLinkedEmailProvider);
 
     final connected = eventsAsync.maybeWhen(
       data: (r) => r.connected,
       orElse: () => false,
+    );
+    final linkedEmail = linkedEmailAsync.maybeWhen(
+      data: (e) => e,
+      orElse: () => null,
     );
 
     return Column(
@@ -556,7 +562,7 @@ class _CalendarSection extends ConsumerWidget {
           )
         else ...[
           Text(
-            l.calendarPanelTitle,
+            l.calendarConnectedAs(linkedEmail ?? ''),
             style: TextStyle(fontSize: 12, color: AppColors.textDim),
           ),
           const SizedBox(height: 8),

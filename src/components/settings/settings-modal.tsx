@@ -213,7 +213,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           </section>
 
           {/* 日曆連接 */}
-          <CalendarSection userEmail={me?.email ?? ""} />
+          <CalendarSection />
 
           {/* 標籤管理 */}
           <section className="py-4">
