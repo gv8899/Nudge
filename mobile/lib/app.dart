@@ -64,20 +64,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/notes',
-                builder: (context, state) => const NotesScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'feed',
-                    builder: (context, state) => const NotesFeedScreen(),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
                 path: '/cards',
                 builder: (context, state) => const CardsScreen(),
                 routes: [
@@ -86,6 +72,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => CardDetailScreen(
                       taskId: state.pathParameters['id']!,
                     ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/notes',
+                builder: (context, state) => const NotesScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'feed',
+                    builder: (context, state) => const NotesFeedScreen(),
                   ),
                 ],
               ),
