@@ -90,7 +90,7 @@ export function OverdueSection({
                 </span>
               </div>
 
-              {/* 右側操作區：排入今天 → 日曆 → 封存 */}
+              {/* 右側操作區 */}
               <button
                 onClick={() => onReschedule(a.id, currentDate)}
                 className="text-xs px-2 py-1 rounded text-primary hover:bg-muted-foreground/10 transition-colors shrink-0"
@@ -106,7 +106,7 @@ export function OverdueSection({
               <button
                 onClick={() => setArchiveTarget({ assignmentId: a.id, taskId: a.taskId, title: a.task.title })}
                 aria-label={t("overdueArchiveAria", { title: a.task.title })}
-                className="w-7 h-7 rounded-md hover:bg-white/10 text-text-faint hover:text-muted-foreground transition-colors shrink-0 cursor-pointer flex items-center justify-center"
+                className="text-text-faint hover:text-muted-foreground transition-colors shrink-0 cursor-pointer p-2 rounded"
               >
                 <Archive className="h-4 w-4" />
               </button>

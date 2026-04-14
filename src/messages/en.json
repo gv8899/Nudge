@@ -157,7 +157,6 @@
     "cleanUntitledAria": "Clean untitled cards",
     "viewListAria": "List view",
     "viewGridAria": "Grid view",
-    "viewKanbanAria": "Kanban view",
     "searchPlaceholder": "Search cards...",
     "searchAria": "Search cards",
     "emptyWithQuery": "No matching cards",
@@ -170,9 +169,7 @@
     "cleanConfirmButton": "Confirm delete",
     "cleanLoading": "Cleaning...",
     "toastCleaned": "Cleaned {count} untitled card(s)",
-    "toastNothingToClean": "No cards to clean",
-    "kanbanEmptyTitle": "Create your first tag to start using the board",
-    "kanbanEmptySubtitle": "Go to Settings → Tag management to add tags"
+    "toastNothingToClean": "No cards to clean"
   },
   "cardDetail": {
     "backToCards": "Back to cards",

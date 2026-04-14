@@ -3,7 +3,6 @@
 import { useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { TiptapEditor } from "./tiptap-editor";
-import { StatusBadge } from "./status-badge";
 import { TagPicker } from "@/components/tags/tag-picker";
 import { Maximize2, X } from "lucide-react";
 import type { Task } from "@/lib/types";
@@ -126,15 +125,9 @@ export function TaskDetailModal({
         {/* 頂部列 */}
         <div className="sticky top-0 z-10 px-6 py-4 bg-popover border-b border-border rounded-t-xl">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h2 id="task-detail-title" className="text-lg font-semibold text-foreground">
-                {task.title}
-              </h2>
-              <StatusBadge
-                status={task.status as TaskStatus}
-                onStatusChange={onStatusChange}
-              />
-            </div>
+            <h2 id="task-detail-title" className="text-lg font-semibold text-foreground">
+              {task.title}
+            </h2>
             <div className="flex items-center gap-1">
             <a
               href={`/cards/${task.id}`}

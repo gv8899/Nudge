@@ -2,16 +2,13 @@
 
 import useSWRInfinite from "swr/infinite";
 import { fetcher } from "@/lib/fetcher";
-import type { TaskStatus } from "@/lib/constants";
 
 export interface CardItem {
   id: string;
   title: string;
   description: string;
-  status: TaskStatus;
   createdAt: string;
   updatedAt: string;
-  completedAt: string | null;
   tags: Array<{ id: string; name: string; color: string }>;
 }
 

@@ -157,7 +157,6 @@
     "cleanUntitledAria": "清除空白的卡片",
     "viewListAria": "列表檢視",
     "viewGridAria": "網格檢視",
-    "viewKanbanAria": "看板檢視",
     "searchPlaceholder": "搜尋卡片...",
     "searchAria": "搜尋卡片",
     "emptyWithQuery": "沒有符合的卡片",
@@ -170,9 +169,7 @@
     "cleanConfirmButton": "確定清除",
     "cleanLoading": "清除中...",
     "toastCleaned": "已清除 {count} 張空白卡片",
-    "toastNothingToClean": "沒有需要清除的卡片",
-    "kanbanEmptyTitle": "建立第一個標籤來開始使用看板",
-    "kanbanEmptySubtitle": "到設定 → 標籤管理新增標籤"
+    "toastNothingToClean": "沒有需要清除的卡片"
   },
   "cardDetail": {
     "backToCards": "返回卡片",

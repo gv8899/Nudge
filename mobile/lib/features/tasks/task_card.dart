@@ -4,7 +4,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme.dart';
 import '../../l10n/app_localizations.dart';
 import 'models.dart';
-import 'task_status_picker.dart';
 
 class TaskCard extends StatefulWidget {
   final TaskAssignment assignment;
@@ -68,9 +67,6 @@ class _TaskCardState extends State<TaskCard> {
     final l = AppL10n.of(context)!;
     final task = widget.assignment.task;
     final isDone = widget.assignment.isCompleted;
-    final statusObj = TaskStatus.fromValue(task.status);
-    final statusColor = AppColors.statusColor(task.status);
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Row(
@@ -184,26 +180,6 @@ class _TaskCardState extends State<TaskCard> {
             ),
           ),
 
-          // Status dot
-          Semantics(
-            label: '狀態：${statusObj.label}',
-            button: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => showStatusPicker(context, task.status, widget.onStatusChange),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );

@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { StatusBadge } from "./status-badge";
 import { MoveTaskPopover } from "./move-task-popover";
 import { TaskDetailModal } from "./task-detail-modal";
 import { FileText, GripVertical } from "lucide-react";
@@ -159,6 +158,12 @@ export function TaskCard({
           </button>
         )}
 
+        {/* 移動日期 */}
+        <MoveTaskPopover
+          currentDate={currentDate}
+          onMove={(targetDate) => onMoveToDate(assignment.id, targetDate)}
+        />
+
         {/* 展開內文 */}
         <button
           onClick={() => setIsModalOpen(true)}
@@ -171,18 +176,6 @@ export function TaskCard({
         >
           <FileText className="h-4 w-4" />
         </button>
-
-        {/* 移動日期 */}
-        <MoveTaskPopover
-          currentDate={currentDate}
-          onMove={(targetDate) => onMoveToDate(assignment.id, targetDate)}
-        />
-
-        {/* 狀態 */}
-        <StatusBadge
-          status={task.status as TaskStatus}
-          onStatusChange={(s) => onStatusChange(task.id, s)}
-        />
       </div>
 
       <TaskDetailModal

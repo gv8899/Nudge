@@ -7,7 +7,6 @@ import useSWR, { mutate as globalMutate } from "swr";
 import { format, parseISO } from "date-fns";
 import { ArrowLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
-import { type TaskStatus } from "@/lib/constants";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
 import { TagPicker } from "@/components/tags/tag-picker";
 import { useTags } from "@/hooks/use-tags";
@@ -20,10 +19,8 @@ interface CardData {
   id: string;
   title: string;
   description: string | null;
-  status: TaskStatus;
   createdAt: string;
   updatedAt: string;
-  completedAt: string | null;
   tags?: Array<{ id: string; name: string; color: string }>;
 }
 

@@ -157,7 +157,6 @@
     "cleanUntitledAria": "空白のカードを削除",
     "viewListAria": "リスト表示",
     "viewGridAria": "グリッド表示",
-    "viewKanbanAria": "カンバン表示",
     "searchPlaceholder": "カードを検索...",
     "searchAria": "カードを検索",
     "emptyWithQuery": "該当するカードがありません",
@@ -170,9 +169,7 @@
     "cleanConfirmButton": "削除を確認",
     "cleanLoading": "削除中...",
     "toastCleaned": "{count} 件の空白カードを削除しました",
-    "toastNothingToClean": "削除するカードがありません",
-    "kanbanEmptyTitle": "最初のタグを作成してカンバンを使い始めましょう",
-    "kanbanEmptySubtitle": "設定 → タグ管理からタグを追加できます"
+    "toastNothingToClean": "削除するカードがありません"
   },
   "cardDetail": {
     "backToCards": "カード一覧へ戻る",
