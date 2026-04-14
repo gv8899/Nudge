@@ -10,7 +10,7 @@ function envOrThrow(name: string): string {
 
 export function buildAuthUrl(state: string): string {
   const params = new URLSearchParams({
-    client_id: envOrThrow("GOOGLE_CLIENT_ID"),
+    client_id: envOrThrow("AUTH_GOOGLE_ID"),
     redirect_uri: envOrThrow("GOOGLE_CALENDAR_REDIRECT_URI"),
     response_type: "code",
     scope: CALENDAR_SCOPE,
@@ -30,8 +30,8 @@ export interface ExchangeResult {
 export async function exchangeCode(code: string): Promise<ExchangeResult> {
   const body = new URLSearchParams({
     code,
-    client_id: envOrThrow("GOOGLE_CLIENT_ID"),
-    client_secret: envOrThrow("GOOGLE_CLIENT_SECRET"),
+    client_id: envOrThrow("AUTH_GOOGLE_ID"),
+    client_secret: envOrThrow("AUTH_GOOGLE_SECRET"),
     redirect_uri: envOrThrow("GOOGLE_CALENDAR_REDIRECT_URI"),
     grant_type: "authorization_code",
   });
@@ -65,8 +65,8 @@ export interface RefreshResult {
 export async function refreshAccessToken(refreshToken: string): Promise<RefreshResult> {
   const body = new URLSearchParams({
     refresh_token: refreshToken,
-    client_id: envOrThrow("GOOGLE_CLIENT_ID"),
-    client_secret: envOrThrow("GOOGLE_CLIENT_SECRET"),
+    client_id: envOrThrow("AUTH_GOOGLE_ID"),
+    client_secret: envOrThrow("AUTH_GOOGLE_SECRET"),
     grant_type: "refresh_token",
   });
 

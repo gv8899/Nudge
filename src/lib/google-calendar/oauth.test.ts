@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { buildAuthUrl, exchangeCode, refreshAccessToken } from "./oauth";
 
 beforeEach(() => {
-  process.env.GOOGLE_CLIENT_ID = "test-client-id";
-  process.env.GOOGLE_CLIENT_SECRET = "test-client-secret";
+  process.env.AUTH_GOOGLE_ID = "test-client-id";
+  process.env.AUTH_GOOGLE_SECRET = "test-client-secret";
   process.env.GOOGLE_CALENDAR_REDIRECT_URI = "http://localhost:3000/api/calendar/callback";
   vi.restoreAllMocks();
 });
