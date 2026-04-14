@@ -1185,6 +1185,12 @@ abstract class AppL10n {
   /// **'在 Google Calendar 開啟'**
   String get calendarEventOpenInGoogle;
 
+  /// No description provided for @calendarEventJoinMeet.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用 Google Meet 加入會議'**
+  String get calendarEventJoinMeet;
+
   /// No description provided for @calendarMobileCollapsedCount.
   ///
   /// In zh, this message translates to:

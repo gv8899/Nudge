@@ -503,6 +503,8 @@
   "@calendarEventDescription": {},
   "calendarEventOpenInGoogle": "在 Google Calendar 開啟",
   "@calendarEventOpenInGoogle": {},
+  "calendarEventJoinMeet": "使用 Google Meet 加入會議",
+  "@calendarEventJoinMeet": {},
   "calendarMobileCollapsedCount": "今日行程 · {count} 件",
   "@calendarMobileCollapsedCount": {
     "placeholders": {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { ExternalLink, ChevronDown, ChevronUp, MapPin, Video } from "lucide-react";
 import type { CalendarEvent } from "@/lib/google-calendar/types";
 
 interface Props {
@@ -42,6 +42,12 @@ export function CalendarEventItem({ event, expanded, onToggle, past }: Props) {
         <div className="flex-1 min-w-0">
           <div className="text-xs text-text-dim">{timeLabel}</div>
           <div className="truncate text-foreground">{event.title}</div>
+          {event.location && (
+            <div className="mt-0.5 flex items-center gap-1 text-[11px] text-text-dim">
+              <MapPin size={10} className="shrink-0" />
+              <span className="truncate">{event.location}</span>
+            </div>
+          )}
         </div>
         {canExpand && (
           <span className="text-text-dim">
@@ -78,17 +84,30 @@ export function CalendarEventItem({ event, expanded, onToggle, past }: Props) {
               </div>
             </div>
           )}
-          {event.htmlLink && (
-            <a
-              href={event.htmlLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-primary hover:underline"
-            >
-              <ExternalLink size={12} />
-              {t("eventOpenInGoogle")}
-            </a>
-          )}
+          <div className="flex flex-col gap-1 pt-1">
+            {event.hangoutLink && (
+              <a
+                href={event.hangoutLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-primary hover:underline"
+              >
+                <Video size={12} />
+                {t("eventJoinMeet")}
+              </a>
+            )}
+            {event.htmlLink && (
+              <a
+                href={event.htmlLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-primary hover:underline"
+              >
+                <ExternalLink size={12} />
+                {t("eventOpenInGoogle")}
+              </a>
+            )}
+          </div>
         </div>
       )}
     </div>

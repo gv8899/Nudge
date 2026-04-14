@@ -14,6 +14,8 @@ export interface CalendarEvent {
   attendees: string[];
   /** Google Calendar 事件網頁連結 */
   htmlLink: string;
+  /** Google Meet / Hangout 連結，無則空字串 */
+  hangoutLink: string;
   /** 是否為 private / busy-only（沒有細節可顯示） */
   busyOnly: boolean;
 }

@@ -217,6 +217,7 @@
     "eventAttendees": "Attendees",
     "eventDescription": "Description",
     "eventOpenInGoogle": "Open in Google Calendar",
+    "eventJoinMeet": "Join with Google Meet",
     "mobileCollapsedCount": "Today · {count} events",
     "mobileCollapsedEmpty": "Nothing today",
     "mobileConnectPrompt": "Connect Google Calendar →"

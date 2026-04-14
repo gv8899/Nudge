@@ -65,6 +65,23 @@ class CalendarEventTile extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                          if (event.location != null) ...[
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Icon(Icons.place_outlined, size: 10, color: AppColors.textDim),
+                                const SizedBox(width: 2),
+                                Expanded(
+                                  child: Text(
+                                    event.location!,
+                                    style: TextStyle(fontSize: 10, color: AppColors.textDim),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -99,6 +116,24 @@ class CalendarEventTile extends StatelessWidget {
                         label: l10n.calendarEventDescription,
                         value: event.description!,
                         maxLines: 6,
+                      ),
+                    if (event.hangoutLink.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: InkWell(
+                          onTap: () => launchUrl(Uri.parse(event.hangoutLink)),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.videocam_outlined, size: 12, color: AppColors.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                l10n.calendarEventJoinMeet,
+                                style: TextStyle(fontSize: 11, color: AppColors.primary),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     if (event.htmlLink.isNotEmpty)
                       Padding(

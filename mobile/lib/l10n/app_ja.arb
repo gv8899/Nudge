@@ -503,6 +503,8 @@
   "@calendarEventDescription": {},
   "calendarEventOpenInGoogle": "Google カレンダーで開く",
   "@calendarEventOpenInGoogle": {},
+  "calendarEventJoinMeet": "Google Meet で参加",
+  "@calendarEventJoinMeet": {},
   "calendarMobileCollapsedCount": "今日の予定 · {count} 件",
   "@calendarMobileCollapsedCount": {
     "placeholders": {

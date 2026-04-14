@@ -595,6 +595,9 @@ class AppL10nJa extends AppL10n {
   String get calendarEventOpenInGoogle => 'Google カレンダーで開く';
 
   @override
+  String get calendarEventJoinMeet => 'Google Meet で参加';
+
+  @override
   String calendarMobileCollapsedCount(Object count) {
     return '今日の予定 · $count 件';
   }

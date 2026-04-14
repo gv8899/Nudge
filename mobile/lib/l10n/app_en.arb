@@ -503,6 +503,8 @@
   "@calendarEventDescription": {},
   "calendarEventOpenInGoogle": "Open in Google Calendar",
   "@calendarEventOpenInGoogle": {},
+  "calendarEventJoinMeet": "Join with Google Meet",
+  "@calendarEventJoinMeet": {},
   "calendarMobileCollapsedCount": "Today · {count} events",
   "@calendarMobileCollapsedCount": {
     "placeholders": {

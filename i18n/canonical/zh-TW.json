@@ -217,6 +217,7 @@
     "eventAttendees": "與會者",
     "eventDescription": "描述",
     "eventOpenInGoogle": "在 Google Calendar 開啟",
+    "eventJoinMeet": "使用 Google Meet 加入會議",
     "mobileCollapsedCount": "今日行程 · {count} 件",
     "mobileCollapsedEmpty": "今日無行程",
     "mobileConnectPrompt": "連結 Google Calendar →"

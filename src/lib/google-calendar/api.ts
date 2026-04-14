@@ -46,10 +46,17 @@ interface GoogleEventsResp {
     end?: { dateTime?: string; date?: string; timeZone?: string };
     location?: string;
     description?: string;
-    attendees?: Array<{ email?: string; displayName?: string }>;
+    attendees?: Array<{ email?: string; displayName?: string; self?: boolean; organizer?: boolean }>;
     htmlLink?: string;
+    hangoutLink?: string;
     visibility?: string;
   }>;
+}
+
+/** 把 email 轉成較友善的暱稱（取 @ 前面的部分，dot/underscore 換空格） */
+function emailToNickname(email: string): string {
+  const local = email.split("@")[0] || email;
+  return local.replace(/[._]+/g, " ");
 }
 
 export async function listEvents(
@@ -91,8 +98,12 @@ export async function listEvents(
         description: busyOnly ? null : e.description ?? null,
         attendees: busyOnly
           ? []
-          : (e.attendees ?? []).map((a) => a.displayName || a.email || "").filter(Boolean),
+          : (e.attendees ?? [])
+              .filter((a) => !a.self) // 把自己過濾掉
+              .map((a) => a.displayName || (a.email ? emailToNickname(a.email) : ""))
+              .filter(Boolean),
         htmlLink: e.htmlLink ?? "",
+        hangoutLink: e.hangoutLink ?? "",
         busyOnly,
       };
     });

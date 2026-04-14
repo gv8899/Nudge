@@ -10,6 +10,7 @@ class CalendarEvent {
   final String? description;
   final List<String> attendees;
   final String htmlLink;
+  final String hangoutLink;
   final bool busyOnly;
 
   CalendarEvent({
@@ -24,6 +25,7 @@ class CalendarEvent {
     required this.description,
     required this.attendees,
     required this.htmlLink,
+    required this.hangoutLink,
     required this.busyOnly,
   });
 
@@ -42,6 +44,7 @@ class CalendarEvent {
           .map((e) => e.toString())
           .toList(),
       htmlLink: json['htmlLink'] as String? ?? '',
+      hangoutLink: json['hangoutLink'] as String? ?? '',
       busyOnly: json['busyOnly'] as bool? ?? false,
     );
   }

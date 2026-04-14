@@ -217,6 +217,7 @@
     "eventAttendees": "参加者",
     "eventDescription": "詳細",
     "eventOpenInGoogle": "Google カレンダーで開く",
+    "eventJoinMeet": "Google Meet で参加",
     "mobileCollapsedCount": "今日の予定 · {count} 件",
     "mobileCollapsedEmpty": "今日は予定なし",
     "mobileConnectPrompt": "Google カレンダーを連携 →"
