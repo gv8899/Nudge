@@ -146,7 +146,21 @@ class _TaskCardState extends State<TaskCard> {
 
           const SizedBox(width: 4),
 
-          // Detail icon — always visible
+          // Calendar icon
+          Semantics(
+            label: l.taskMoveToOtherDate,
+            button: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: widget.onMoveDate,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Icon(LucideIcons.calendar, size: 16, color: AppColors.textDim),
+              ),
+            ),
+          ),
+
+          // Detail icon
           Semantics(
             label: l.taskViewDetails,
             button: true,
@@ -162,20 +176,6 @@ class _TaskCardState extends State<TaskCard> {
                       ? AppColors.foreground
                       : AppColors.textFaint,
                 ),
-              ),
-            ),
-          ),
-
-          // Calendar icon
-          Semantics(
-            label: l.taskMoveToOtherDate,
-            button: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: widget.onMoveDate,
-              child: Padding(
-                padding: EdgeInsets.all(12),
-                child: Icon(LucideIcons.calendar, size: 16, color: AppColors.textDim),
               ),
             ),
           ),

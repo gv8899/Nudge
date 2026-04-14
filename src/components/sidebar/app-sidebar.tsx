@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/routing";
-import { CheckSquare, NotebookPen, BookOpen, Settings } from "lucide-react";
+import { CheckSquare, NotebookPen, Settings } from "lucide-react";
+
+function CardsIcon({ className }: { className?: string }) {
+  return <span className={`cards-icon ${className ?? ""}`} role="img" aria-hidden="true" />;
+}
 import { SettingsModal } from "@/components/settings/settings-modal";
 
 // 注意：Tasks 連到 / —— `src/app/page.tsx` 是 server component，會 redirect
@@ -22,16 +26,16 @@ const navItems: {
     labelKey: "tasks",
   },
   {
+    href: "/cards",
+    match: "/cards",
+    icon: CardsIcon,
+    labelKey: "cards",
+  },
+  {
     href: "/notes",
     match: "/notes",
     icon: NotebookPen,
     labelKey: "notes",
-  },
-  {
-    href: "/cards",
-    match: "/cards",
-    icon: BookOpen,
-    labelKey: "cards",
   },
 ];
 

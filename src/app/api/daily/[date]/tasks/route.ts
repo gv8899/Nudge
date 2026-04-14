@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { dailyTaskAssignments, tasks, statusHistory } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, min } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getUser } from "@/lib/get-user";
+
+async function getTopSortOrder(date: string) {
+  const [row] = await db
+    .select({ minOrder: min(dailyTaskAssignments.sortOrder) })
+    .from(dailyTaskAssignments)
+    .where(eq(dailyTaskAssignments.date, date));
+  return (row?.minOrder ?? 0) - 1;
+}
 
 export async function POST(
   request: NextRequest,
@@ -59,12 +67,13 @@ export async function POST(
 
   if (existing) return NextResponse.json(existing);
 
+  const topOrder = await getTopSortOrder(date);
   const assignment = {
     id: nanoid(),
     taskId,
     date,
     isCompleted: false,
-    sortOrder: body.sortOrder || 0,
+    sortOrder: topOrder,
   };
 
   await db.insert(dailyTaskAssignments).values(assignment);
@@ -107,19 +116,25 @@ export async function PATCH(request: NextRequest) {
         )
         .limit(1);
 
-      if (!alreadyExists) {
+      const topOrder = await getTopSortOrder(moveToDate);
+      if (alreadyExists) {
+        // 目標日期已有 assignment，確保為未完成且排到最上方
+        await db.update(dailyTaskAssignments)
+          .set({ isCompleted: false, sortOrder: topOrder })
+          .where(eq(dailyTaskAssignments.id, alreadyExists.id));
+      } else {
         await db.insert(dailyTaskAssignments)
           .values({
             id: nanoid(),
             taskId: existing.taskId,
             date: moveToDate,
             isCompleted: false,
-            sortOrder: 0,
+            sortOrder: topOrder,
           });
       }
 
-      await db.update(dailyTaskAssignments)
-        .set({ isCompleted: true })
+      // 刪除原始 assignment，避免同一任務出現在多個日期
+      await db.delete(dailyTaskAssignments)
         .where(eq(dailyTaskAssignments.id, assignmentId));
     }
 

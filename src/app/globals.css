@@ -222,6 +222,21 @@
   animation: landing-draw-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
 }
 
+/* Cards icon — CSS mask 避免 inline style hydration mismatch */
+.cards-icon {
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask-image: url("/icons/cards.svg");
+  mask-image: url("/icons/cards.svg");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  mask-mode: luminance;
+}
+
 /* 墨點閃爍 — 輕微的 opacity 與 scale 脈動 */
 @keyframes landing-twinkle {
   0%,
