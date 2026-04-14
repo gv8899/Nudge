@@ -861,12 +861,6 @@ abstract class AppL10n {
   /// **'網格檢視'**
   String get cardsViewGridAria;
 
-  /// No description provided for @cardsViewKanbanAria.
-  ///
-  /// In zh, this message translates to:
-  /// **'看板檢視'**
-  String get cardsViewKanbanAria;
-
   /// No description provided for @cardsSearchPlaceholder.
   ///
   /// In zh, this message translates to:
@@ -944,18 +938,6 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'沒有需要清除的卡片'**
   String get cardsToastNothingToClean;
-
-  /// No description provided for @cardsKanbanEmptyTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'建立第一個標籤來開始使用看板'**
-  String get cardsKanbanEmptyTitle;
-
-  /// No description provided for @cardsKanbanEmptySubtitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'到設定 → 標籤管理新增標籤'**
-  String get cardsKanbanEmptySubtitle;
 
   /// No description provided for @cardDetailBackToCards.
   ///
@@ -1070,6 +1052,156 @@ abstract class AppL10n {
   /// In zh, this message translates to:
   /// **'{month} 月'**
   String notesMonthLabel(Object month);
+
+  /// No description provided for @calendarSection.
+  ///
+  /// In zh, this message translates to:
+  /// **'行事曆'**
+  String get calendarSection;
+
+  /// No description provided for @calendarConnectTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'連結 Google Calendar'**
+  String get calendarConnectTitle;
+
+  /// No description provided for @calendarConnectDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'看看今天有哪些會議'**
+  String get calendarConnectDescription;
+
+  /// No description provided for @calendarConnectButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'連結'**
+  String get calendarConnectButton;
+
+  /// No description provided for @calendarDisconnectButton.
+  ///
+  /// In zh, this message translates to:
+  /// **'中斷連結'**
+  String get calendarDisconnectButton;
+
+  /// No description provided for @calendarDisconnectConfirmTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'中斷連結'**
+  String get calendarDisconnectConfirmTitle;
+
+  /// No description provided for @calendarDisconnectConfirmBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'確定要中斷 Google Calendar 連結嗎？'**
+  String get calendarDisconnectConfirmBody;
+
+  /// No description provided for @calendarConnectedAs.
+  ///
+  /// In zh, this message translates to:
+  /// **'已連結：{email}'**
+  String calendarConnectedAs(Object email);
+
+  /// No description provided for @calendarSubCalendars.
+  ///
+  /// In zh, this message translates to:
+  /// **'顯示哪些日曆'**
+  String get calendarSubCalendars;
+
+  /// No description provided for @calendarPanelTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日行程'**
+  String get calendarPanelTitle;
+
+  /// No description provided for @calendarPanelEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'今天沒有行程'**
+  String get calendarPanelEmpty;
+
+  /// No description provided for @calendarPanelLoading.
+  ///
+  /// In zh, this message translates to:
+  /// **'載入中…'**
+  String get calendarPanelLoading;
+
+  /// No description provided for @calendarPanelError.
+  ///
+  /// In zh, this message translates to:
+  /// **'無法載入行事曆'**
+  String get calendarPanelError;
+
+  /// No description provided for @calendarPanelRetry.
+  ///
+  /// In zh, this message translates to:
+  /// **'重試'**
+  String get calendarPanelRetry;
+
+  /// No description provided for @calendarPanelReauth.
+  ///
+  /// In zh, this message translates to:
+  /// **'授權過期，請重新連結'**
+  String get calendarPanelReauth;
+
+  /// No description provided for @calendarPanelRefresh.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新整理'**
+  String get calendarPanelRefresh;
+
+  /// No description provided for @calendarEventAllDay.
+  ///
+  /// In zh, this message translates to:
+  /// **'整日'**
+  String get calendarEventAllDay;
+
+  /// No description provided for @calendarEventBusy.
+  ///
+  /// In zh, this message translates to:
+  /// **'忙碌'**
+  String get calendarEventBusy;
+
+  /// No description provided for @calendarEventLocation.
+  ///
+  /// In zh, this message translates to:
+  /// **'地點'**
+  String get calendarEventLocation;
+
+  /// No description provided for @calendarEventAttendees.
+  ///
+  /// In zh, this message translates to:
+  /// **'與會者'**
+  String get calendarEventAttendees;
+
+  /// No description provided for @calendarEventDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'描述'**
+  String get calendarEventDescription;
+
+  /// No description provided for @calendarEventOpenInGoogle.
+  ///
+  /// In zh, this message translates to:
+  /// **'在 Google Calendar 開啟'**
+  String get calendarEventOpenInGoogle;
+
+  /// No description provided for @calendarMobileCollapsedCount.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日行程 · {count} 件'**
+  String calendarMobileCollapsedCount(Object count);
+
+  /// No description provided for @calendarMobileCollapsedEmpty.
+  ///
+  /// In zh, this message translates to:
+  /// **'今日無行程'**
+  String get calendarMobileCollapsedEmpty;
+
+  /// No description provided for @calendarMobileConnectPrompt.
+  ///
+  /// In zh, this message translates to:
+  /// **'連結 Google Calendar →'**
+  String get calendarMobileConnectPrompt;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

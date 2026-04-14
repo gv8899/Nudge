@@ -193,5 +193,32 @@
     "canvasToggleFeedTitle": "切換到 feed",
     "entryAria": "{year}年{month}月{day}日的日記",
     "monthLabel": "{month} 月"
+  },
+  "calendar": {
+    "section": "行事曆",
+    "connectTitle": "連結 Google Calendar",
+    "connectDescription": "看看今天有哪些會議",
+    "connectButton": "連結",
+    "disconnectButton": "中斷連結",
+    "disconnectConfirmTitle": "中斷連結",
+    "disconnectConfirmBody": "確定要中斷 Google Calendar 連結嗎？",
+    "connectedAs": "已連結：{email}",
+    "subCalendars": "顯示哪些日曆",
+    "panelTitle": "今日行程",
+    "panelEmpty": "今天沒有行程",
+    "panelLoading": "載入中…",
+    "panelError": "無法載入行事曆",
+    "panelRetry": "重試",
+    "panelReauth": "授權過期，請重新連結",
+    "panelRefresh": "重新整理",
+    "eventAllDay": "整日",
+    "eventBusy": "忙碌",
+    "eventLocation": "地點",
+    "eventAttendees": "與會者",
+    "eventDescription": "描述",
+    "eventOpenInGoogle": "在 Google Calendar 開啟",
+    "mobileCollapsedCount": "今日行程 · {count} 件",
+    "mobileCollapsedEmpty": "今日無行程",
+    "mobileConnectPrompt": "連結 Google Calendar →"
   }
 }

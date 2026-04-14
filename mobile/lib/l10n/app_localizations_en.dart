@@ -424,9 +424,6 @@ class AppL10nEn extends AppL10n {
   String get cardsViewGridAria => 'Grid view';
 
   @override
-  String get cardsViewKanbanAria => 'Kanban view';
-
-  @override
   String get cardsSearchPlaceholder => 'Search cards...';
 
   @override
@@ -467,14 +464,6 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get cardsToastNothingToClean => 'No cards to clean';
-
-  @override
-  String get cardsKanbanEmptyTitle =>
-      'Create your first tag to start using the board';
-
-  @override
-  String get cardsKanbanEmptySubtitle =>
-      'Go to Settings → Tag management to add tags';
 
   @override
   String get cardDetailBackToCards => 'Back to cards';
@@ -541,4 +530,84 @@ class AppL10nEn extends AppL10n {
   String notesMonthLabel(Object month) {
     return '$month';
   }
+
+  @override
+  String get calendarSection => 'Calendar';
+
+  @override
+  String get calendarConnectTitle => 'Connect Google Calendar';
+
+  @override
+  String get calendarConnectDescription => 'See your meetings for today';
+
+  @override
+  String get calendarConnectButton => 'Connect';
+
+  @override
+  String get calendarDisconnectButton => 'Disconnect';
+
+  @override
+  String get calendarDisconnectConfirmTitle => 'Disconnect';
+
+  @override
+  String get calendarDisconnectConfirmBody =>
+      'Disconnect from Google Calendar?';
+
+  @override
+  String calendarConnectedAs(Object email) {
+    return 'Connected as $email';
+  }
+
+  @override
+  String get calendarSubCalendars => 'Calendars to show';
+
+  @override
+  String get calendarPanelTitle => 'Today';
+
+  @override
+  String get calendarPanelEmpty => 'Nothing scheduled today';
+
+  @override
+  String get calendarPanelLoading => 'Loading…';
+
+  @override
+  String get calendarPanelError => 'Couldn\'t load calendar';
+
+  @override
+  String get calendarPanelRetry => 'Retry';
+
+  @override
+  String get calendarPanelReauth => 'Authorization expired, reconnect';
+
+  @override
+  String get calendarPanelRefresh => 'Refresh';
+
+  @override
+  String get calendarEventAllDay => 'All day';
+
+  @override
+  String get calendarEventBusy => 'Busy';
+
+  @override
+  String get calendarEventLocation => 'Location';
+
+  @override
+  String get calendarEventAttendees => 'Attendees';
+
+  @override
+  String get calendarEventDescription => 'Description';
+
+  @override
+  String get calendarEventOpenInGoogle => 'Open in Google Calendar';
+
+  @override
+  String calendarMobileCollapsedCount(Object count) {
+    return 'Today · $count events';
+  }
+
+  @override
+  String get calendarMobileCollapsedEmpty => 'Nothing today';
+
+  @override
+  String get calendarMobileConnectPrompt => 'Connect Google Calendar →';
 }

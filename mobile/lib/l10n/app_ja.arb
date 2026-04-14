@@ -353,8 +353,6 @@
   "@cardsViewListAria": {},
   "cardsViewGridAria": "グリッド表示",
   "@cardsViewGridAria": {},
-  "cardsViewKanbanAria": "カンバン表示",
-  "@cardsViewKanbanAria": {},
   "cardsSearchPlaceholder": "カードを検索...",
   "@cardsSearchPlaceholder": {},
   "cardsSearchAria": "カードを検索",
@@ -387,10 +385,6 @@
   },
   "cardsToastNothingToClean": "削除するカードがありません",
   "@cardsToastNothingToClean": {},
-  "cardsKanbanEmptyTitle": "最初のタグを作成してカンバンを使い始めましょう",
-  "@cardsKanbanEmptyTitle": {},
-  "cardsKanbanEmptySubtitle": "設定 → タグ管理からタグを追加できます",
-  "@cardsKanbanEmptySubtitle": {},
   "cardDetailBackToCards": "カード一覧へ戻る",
   "@cardDetailBackToCards": {},
   "cardDetailNotFound": "カードが見つかりません",
@@ -458,5 +452,67 @@
         "type": "Object"
       }
     }
-  }
+  },
+  "calendarSection": "カレンダー",
+  "@calendarSection": {},
+  "calendarConnectTitle": "Google カレンダーを連携",
+  "@calendarConnectTitle": {},
+  "calendarConnectDescription": "今日の予定を確認できます",
+  "@calendarConnectDescription": {},
+  "calendarConnectButton": "連携する",
+  "@calendarConnectButton": {},
+  "calendarDisconnectButton": "連携解除",
+  "@calendarDisconnectButton": {},
+  "calendarDisconnectConfirmTitle": "連携解除",
+  "@calendarDisconnectConfirmTitle": {},
+  "calendarDisconnectConfirmBody": "Google カレンダーとの連携を解除しますか？",
+  "@calendarDisconnectConfirmBody": {},
+  "calendarConnectedAs": "連携中：{email}",
+  "@calendarConnectedAs": {
+    "placeholders": {
+      "email": {
+        "type": "Object"
+      }
+    }
+  },
+  "calendarSubCalendars": "表示するカレンダー",
+  "@calendarSubCalendars": {},
+  "calendarPanelTitle": "今日の予定",
+  "@calendarPanelTitle": {},
+  "calendarPanelEmpty": "今日は予定がありません",
+  "@calendarPanelEmpty": {},
+  "calendarPanelLoading": "読み込み中…",
+  "@calendarPanelLoading": {},
+  "calendarPanelError": "カレンダーを読み込めませんでした",
+  "@calendarPanelError": {},
+  "calendarPanelRetry": "再試行",
+  "@calendarPanelRetry": {},
+  "calendarPanelReauth": "認証が切れました。再連携してください",
+  "@calendarPanelReauth": {},
+  "calendarPanelRefresh": "更新",
+  "@calendarPanelRefresh": {},
+  "calendarEventAllDay": "終日",
+  "@calendarEventAllDay": {},
+  "calendarEventBusy": "ビジー",
+  "@calendarEventBusy": {},
+  "calendarEventLocation": "場所",
+  "@calendarEventLocation": {},
+  "calendarEventAttendees": "参加者",
+  "@calendarEventAttendees": {},
+  "calendarEventDescription": "詳細",
+  "@calendarEventDescription": {},
+  "calendarEventOpenInGoogle": "Google カレンダーで開く",
+  "@calendarEventOpenInGoogle": {},
+  "calendarMobileCollapsedCount": "今日の予定 · {count} 件",
+  "@calendarMobileCollapsedCount": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "calendarMobileCollapsedEmpty": "今日は予定なし",
+  "@calendarMobileCollapsedEmpty": {},
+  "calendarMobileConnectPrompt": "Google カレンダーを連携 →",
+  "@calendarMobileConnectPrompt": {}
 }

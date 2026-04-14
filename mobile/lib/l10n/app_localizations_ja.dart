@@ -421,9 +421,6 @@ class AppL10nJa extends AppL10n {
   String get cardsViewGridAria => 'グリッド表示';
 
   @override
-  String get cardsViewKanbanAria => 'カンバン表示';
-
-  @override
   String get cardsSearchPlaceholder => 'カードを検索...';
 
   @override
@@ -463,12 +460,6 @@ class AppL10nJa extends AppL10n {
 
   @override
   String get cardsToastNothingToClean => '削除するカードがありません';
-
-  @override
-  String get cardsKanbanEmptyTitle => '最初のタグを作成してカンバンを使い始めましょう';
-
-  @override
-  String get cardsKanbanEmptySubtitle => '設定 → タグ管理からタグを追加できます';
 
   @override
   String get cardDetailBackToCards => 'カード一覧へ戻る';
@@ -534,4 +525,83 @@ class AppL10nJa extends AppL10n {
   String notesMonthLabel(Object month) {
     return '$month 月';
   }
+
+  @override
+  String get calendarSection => 'カレンダー';
+
+  @override
+  String get calendarConnectTitle => 'Google カレンダーを連携';
+
+  @override
+  String get calendarConnectDescription => '今日の予定を確認できます';
+
+  @override
+  String get calendarConnectButton => '連携する';
+
+  @override
+  String get calendarDisconnectButton => '連携解除';
+
+  @override
+  String get calendarDisconnectConfirmTitle => '連携解除';
+
+  @override
+  String get calendarDisconnectConfirmBody => 'Google カレンダーとの連携を解除しますか？';
+
+  @override
+  String calendarConnectedAs(Object email) {
+    return '連携中：$email';
+  }
+
+  @override
+  String get calendarSubCalendars => '表示するカレンダー';
+
+  @override
+  String get calendarPanelTitle => '今日の予定';
+
+  @override
+  String get calendarPanelEmpty => '今日は予定がありません';
+
+  @override
+  String get calendarPanelLoading => '読み込み中…';
+
+  @override
+  String get calendarPanelError => 'カレンダーを読み込めませんでした';
+
+  @override
+  String get calendarPanelRetry => '再試行';
+
+  @override
+  String get calendarPanelReauth => '認証が切れました。再連携してください';
+
+  @override
+  String get calendarPanelRefresh => '更新';
+
+  @override
+  String get calendarEventAllDay => '終日';
+
+  @override
+  String get calendarEventBusy => 'ビジー';
+
+  @override
+  String get calendarEventLocation => '場所';
+
+  @override
+  String get calendarEventAttendees => '参加者';
+
+  @override
+  String get calendarEventDescription => '詳細';
+
+  @override
+  String get calendarEventOpenInGoogle => 'Google カレンダーで開く';
+
+  @override
+  String calendarMobileCollapsedCount(Object count) {
+    return '今日の予定 · $count 件';
+  }
+
+  @override
+  String get calendarMobileCollapsedEmpty => '今日は予定なし';
+
+  @override
+  String get calendarMobileConnectPrompt => 'Google カレンダーを連携 →';
 }

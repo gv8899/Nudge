@@ -420,9 +420,6 @@ class AppL10nZh extends AppL10n {
   String get cardsViewGridAria => '網格檢視';
 
   @override
-  String get cardsViewKanbanAria => '看板檢視';
-
-  @override
   String get cardsSearchPlaceholder => '搜尋卡片...';
 
   @override
@@ -462,12 +459,6 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get cardsToastNothingToClean => '沒有需要清除的卡片';
-
-  @override
-  String get cardsKanbanEmptyTitle => '建立第一個標籤來開始使用看板';
-
-  @override
-  String get cardsKanbanEmptySubtitle => '到設定 → 標籤管理新增標籤';
 
   @override
   String get cardDetailBackToCards => '返回卡片';
@@ -533,4 +524,83 @@ class AppL10nZh extends AppL10n {
   String notesMonthLabel(Object month) {
     return '$month 月';
   }
+
+  @override
+  String get calendarSection => '行事曆';
+
+  @override
+  String get calendarConnectTitle => '連結 Google Calendar';
+
+  @override
+  String get calendarConnectDescription => '看看今天有哪些會議';
+
+  @override
+  String get calendarConnectButton => '連結';
+
+  @override
+  String get calendarDisconnectButton => '中斷連結';
+
+  @override
+  String get calendarDisconnectConfirmTitle => '中斷連結';
+
+  @override
+  String get calendarDisconnectConfirmBody => '確定要中斷 Google Calendar 連結嗎？';
+
+  @override
+  String calendarConnectedAs(Object email) {
+    return '已連結：$email';
+  }
+
+  @override
+  String get calendarSubCalendars => '顯示哪些日曆';
+
+  @override
+  String get calendarPanelTitle => '今日行程';
+
+  @override
+  String get calendarPanelEmpty => '今天沒有行程';
+
+  @override
+  String get calendarPanelLoading => '載入中…';
+
+  @override
+  String get calendarPanelError => '無法載入行事曆';
+
+  @override
+  String get calendarPanelRetry => '重試';
+
+  @override
+  String get calendarPanelReauth => '授權過期，請重新連結';
+
+  @override
+  String get calendarPanelRefresh => '重新整理';
+
+  @override
+  String get calendarEventAllDay => '整日';
+
+  @override
+  String get calendarEventBusy => '忙碌';
+
+  @override
+  String get calendarEventLocation => '地點';
+
+  @override
+  String get calendarEventAttendees => '與會者';
+
+  @override
+  String get calendarEventDescription => '描述';
+
+  @override
+  String get calendarEventOpenInGoogle => '在 Google Calendar 開啟';
+
+  @override
+  String calendarMobileCollapsedCount(Object count) {
+    return '今日行程 · $count 件';
+  }
+
+  @override
+  String get calendarMobileCollapsedEmpty => '今日無行程';
+
+  @override
+  String get calendarMobileConnectPrompt => '連結 Google Calendar →';
 }
