@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/locale_provider.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../auth/auth_provider.dart';
+import '../calendar/calendar_provider.dart';
 import '../cards/cards_provider.dart';
 import '../tags/tag_manager.dart';
 
@@ -48,6 +50,10 @@ class SettingsScreen extends ConsumerWidget {
 
             // 語言
             const _LanguageSection(),
+            const SizedBox(height: 24),
+
+            // 行事曆
+            const _CalendarSection(),
             const SizedBox(height: 24),
 
             // 標籤管理（TagManager 自己有標題）
@@ -475,5 +481,55 @@ class _LanguageSection extends ConsumerWidget {
         ),
       );
     }
+  }
+}
+
+class _CalendarSection extends ConsumerWidget {
+  const _CalendarSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppL10n.of(context)!;
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final eventsAsync = ref.watch(calendarEventsProvider(today));
+
+    final connected = eventsAsync.maybeWhen(
+      data: (r) => r.connected,
+      orElse: () => false,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l.calendarSection,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.foreground,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (!connected)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () {
+                final base = ref.read(apiClientProvider).dio.options.baseUrl;
+                launchUrl(
+                  Uri.parse('$base/settings'),
+                  mode: LaunchMode.externalApplication,
+                );
+              },
+              child: Text(l.calendarConnectButton),
+            ),
+          )
+        else
+          Text(
+            l.calendarPanelTitle,
+            style: TextStyle(fontSize: 12, color: AppColors.textDim),
+          ),
+      ],
+    );
   }
 }
