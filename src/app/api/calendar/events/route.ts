@@ -93,17 +93,18 @@ export async function GET(req: NextRequest): Promise<NextResponse<EventsResponse
     return a.start.localeCompare(b.start);
   });
 
-  // 使用 AccountChooser 包一層 htmlLink，讓瀏覽器即使沒登入正確帳號
-  // 也會被引導到 Google 帳號選擇器再跳到事件
-  const email = session.user.email;
-  if (email) {
+  // 用 primary calendar 的 id（它就是日曆擁有者的 email）組 AccountChooser URL，
+  // 這樣即使 Nudge 登入的 Google 帳號 ≠ 日曆連結的 Google 帳號也能正確開啟
+  const primaryCal = allCalendars.find((c) => c.primary);
+  const calendarEmail = primaryCal?.id || session.user.email || undefined;
+  if (calendarEmail) {
     for (const e of events) {
       if (e.htmlLink) {
         const sepA = e.htmlLink.includes("?") ? "&" : "?";
-        const withAuth = `${e.htmlLink}${sepA}authuser=${encodeURIComponent(email)}`;
+        const withAuth = `${e.htmlLink}${sepA}authuser=${encodeURIComponent(calendarEmail)}`;
         e.htmlLink =
           `https://accounts.google.com/AccountChooser?` +
-          `Email=${encodeURIComponent(email)}` +
+          `Email=${encodeURIComponent(calendarEmail)}` +
           `&continue=${encodeURIComponent(withAuth)}`;
       }
     }
