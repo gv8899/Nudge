@@ -69,7 +69,11 @@ export function CalendarSection({ userEmail }: { userEmail: string }) {
             </div>
             <div className="space-y-1">
               {(data as CalendarsResponse).calendars.map((cal) => {
-                const checked = (data as CalendarsResponse).selectedIds.includes(cal.id);
+                const selectedIds = (data as CalendarsResponse).selectedIds;
+                // "primary" 是 Google API 的別名，對應到 primary calendar 的實際 id
+                const checked =
+                  selectedIds.includes(cal.id) ||
+                  (cal.primary && selectedIds.includes("primary"));
                 return (
                   <label
                     key={cal.id}

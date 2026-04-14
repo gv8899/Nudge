@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { exchangeCode } from "@/lib/google-calendar/oauth";
 import { encrypt } from "@/lib/google-calendar/crypto";
+import { listCalendars } from "@/lib/google-calendar/api";
 
 function errorRedirect(reason: string) {
   const url = new URL("/", process.env.NEXTAUTH_URL || "http://localhost:3000");
@@ -31,13 +32,22 @@ export async function GET(req: NextRequest) {
 
   try {
     const tokens = await exchangeCode(code);
+    // 找出真正的 primary calendar id（就是使用者的 email），存實際 id 而不是 "primary" 字面
+    let defaultSelected: string[] = ["primary"];
+    try {
+      const cals = await listCalendars(tokens.accessToken);
+      const primary = cals.find((c) => c.primary);
+      if (primary) defaultSelected = [primary.id];
+    } catch (e) {
+      console.warn("callback listCalendars failed, falling back to 'primary' alias:", e);
+    }
     await db
       .update(users)
       .set({
         googleCalendarAccessToken: encrypt(tokens.accessToken),
         googleCalendarRefreshToken: encrypt(tokens.refreshToken),
         googleCalendarTokenExpires: tokens.expiresAt.toISOString(),
-        googleCalendarSelectedIds: JSON.stringify(["primary"]),
+        googleCalendarSelectedIds: JSON.stringify(defaultSelected),
       })
       .where(eq(users.id, session.user.id));
   } catch (e) {
