@@ -517,7 +517,7 @@ class _CalendarSection extends ConsumerWidget {
               onPressed: () {
                 final base = ref.read(apiClientProvider).dio.options.baseUrl;
                 launchUrl(
-                  Uri.parse('$base/settings'),
+                  Uri.parse('$base/api/calendar/connect'),
                   mode: LaunchMode.externalApplication,
                 );
               },
