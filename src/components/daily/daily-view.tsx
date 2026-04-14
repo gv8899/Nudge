@@ -9,6 +9,7 @@ import { TaskCreate } from "@/components/task/task-create";
 import { CalendarNav } from "@/components/calendar/calendar-nav";
 import { DateHeading } from "@/components/calendar/date-heading";
 import { OverdueSection } from "@/components/daily/overdue-section";
+import { CalendarPanel } from "@/components/calendar/calendar-panel";
 import type { TaskStatus } from "@/lib/constants";
 import {
   DndContext,
@@ -244,59 +245,62 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-3xl px-4 md:px-6 pb-8">
-        <div className="pt-6 mb-2">
-          <h1 className="text-2xl font-bold text-foreground">{tNav("tasks")}</h1>
-        </div>
-        <div className="pb-1">
-          <DateHeading date={currentDate} />
-        </div>
+    <>
+      <CalendarPanel date={currentDate} />
+      <div className="min-h-screen bg-background md:pl-[260px]">
+        <div className="mx-auto max-w-3xl px-4 md:px-6 pb-8">
+          <div className="pt-6 mb-2">
+            <h1 className="text-2xl font-bold text-foreground">{tNav("tasks")}</h1>
+          </div>
+          <div className="pb-1">
+            <DateHeading date={currentDate} />
+          </div>
 
-        <div className="sticky top-0 z-10 py-2 bg-background">
-          <CalendarNav date={currentDate} onDateChange={setCurrentDate} />
-        </div>
+          <div className="sticky top-0 z-10 py-2 bg-background">
+            <CalendarNav date={currentDate} onDateChange={setCurrentDate} />
+          </div>
 
-        <div className="space-y-0 pt-2">
-          <OverdueSection
-            overdueTasks={data?.overdueTasks || []}
-            currentDate={currentDate}
-            onToggleComplete={handleOverdueToggleComplete}
-            onReschedule={handleReschedule}
-            onArchive={handleArchive}
-          />
-          <TaskCreate onSubmit={handleCreateTask} />
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={assignments.map((a) => a.id)}
-              strategy={verticalListSortingStrategy}
+          <div className="space-y-0 pt-2">
+            <OverdueSection
+              overdueTasks={data?.overdueTasks || []}
+              currentDate={currentDate}
+              onToggleComplete={handleOverdueToggleComplete}
+              onReschedule={handleReschedule}
+              onArchive={handleArchive}
+            />
+            <TaskCreate onSubmit={handleCreateTask} />
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
             >
-              {assignments.map((a) => (
-                <TaskCard
-                  key={a.id}
-                  assignment={a}
-                  currentDate={currentDate}
-                  onToggleComplete={handleToggleComplete}
-                  onStatusChange={handleStatusChange}
-                  onMoveToDate={handleMoveToDate}
-                  onUpdateTask={handleUpdateTask}
-                />
-              ))}
-            </SortableContext>
-          </DndContext>
+              <SortableContext
+                items={assignments.map((a) => a.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {assignments.map((a) => (
+                  <TaskCard
+                    key={a.id}
+                    assignment={a}
+                    currentDate={currentDate}
+                    onToggleComplete={handleToggleComplete}
+                    onStatusChange={handleStatusChange}
+                    onMoveToDate={handleMoveToDate}
+                    onUpdateTask={handleUpdateTask}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
 
-          {assignments.length === 0 && (
-            <p className="text-sm text-text-dim py-4 text-center">
-              {t("emptyToday")}
-            </p>
-          )}
+            {assignments.length === 0 && (
+              <p className="text-sm text-text-dim py-4 text-center">
+                {t("emptyToday")}
+              </p>
+            )}
 
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
