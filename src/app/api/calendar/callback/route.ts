@@ -7,7 +7,7 @@ import { exchangeCode } from "@/lib/google-calendar/oauth";
 import { encrypt } from "@/lib/google-calendar/crypto";
 
 function errorRedirect(reason: string) {
-  const url = new URL("/settings", process.env.NEXTAUTH_URL || "http://localhost:3000");
+  const url = new URL("/", process.env.NEXTAUTH_URL || "http://localhost:3000");
   url.searchParams.set("calendar", "error");
   url.searchParams.set("reason", reason);
   return NextResponse.redirect(url);
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
     return errorRedirect("exchange_failed");
   }
 
-  const url = new URL("/settings", process.env.NEXTAUTH_URL || "http://localhost:3000");
+  const url = new URL("/", process.env.NEXTAUTH_URL || "http://localhost:3000");
   url.searchParams.set("calendar", "connected");
   const res = NextResponse.redirect(url);
   res.cookies.delete("calendar_oauth_state");
