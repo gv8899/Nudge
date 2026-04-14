@@ -33,38 +33,114 @@ interface DirectoryPersonResp {
   nextPageToken?: string;
 }
 
+interface PeopleConnectionsResp {
+  connections?: Array<{
+    names?: Array<{ displayName?: string; unstructuredName?: string }>;
+    emailAddresses?: Array<{ value?: string }>;
+  }>;
+  nextPageToken?: string;
+}
+
+interface OtherContactsResp {
+  otherContacts?: Array<{
+    names?: Array<{ displayName?: string; unstructuredName?: string }>;
+    emailAddresses?: Array<{ value?: string }>;
+  }>;
+  nextPageToken?: string;
+}
+
+function mergeInto(
+  map: Map<string, string>,
+  people: Array<{
+    names?: Array<{ displayName?: string; unstructuredName?: string }>;
+    emailAddresses?: Array<{ value?: string }>;
+  }>
+) {
+  for (const p of people) {
+    const name = p.names?.[0]?.displayName || p.names?.[0]?.unstructuredName || "";
+    if (!name) continue;
+    for (const e of p.emailAddresses ?? []) {
+      if (e.value && !map.has(e.value.toLowerCase())) {
+        map.set(e.value.toLowerCase(), name);
+      }
+    }
+  }
+}
+
 /**
- * 取得使用者 Workspace directory 裡所有人的 email→顯示名稱 對照表。
- * 用來補齊 Calendar API 沒給 displayName 的 attendee。
+ * 組合多個 People API 來源建 email→顯示名稱對照表。
+ * 依優先序：Workspace directory → 使用者聯絡人 → 其他聯絡人（自動記錄的）。
+ * 任何一支失敗都不會擋主流程，只會少一些名字。
  */
 export async function fetchDirectoryNameMap(
   accessToken: string
 ): Promise<Map<string, string>> {
   const map = new Map<string, string>();
-  let pageToken: string | undefined;
-  // 最多抓 3 頁（3000 人）避免大公司拖慢 response
-  for (let page = 0; page < 3; page++) {
-    const qs = new URLSearchParams({
-      readMask: "names,emailAddresses",
-      sources: "DIRECTORY_SOURCE_TYPE_DOMAIN_PROFILE",
-      pageSize: "1000",
-    });
-    if (pageToken) qs.set("pageToken", pageToken);
-    const json = await callPeople<DirectoryPersonResp>(
-      accessToken,
-      `/people:listDirectoryPeople?${qs}`
-    );
-    for (const p of json.people ?? []) {
-      const name =
-        p.names?.[0]?.displayName || p.names?.[0]?.unstructuredName || "";
-      if (!name) continue;
-      for (const e of p.emailAddresses ?? []) {
-        if (e.value) map.set(e.value.toLowerCase(), name);
-      }
+
+  // 1) Workspace directory（只有 Workspace 帳號可用）
+  try {
+    let pageToken: string | undefined;
+    for (let page = 0; page < 3; page++) {
+      const qs = new URLSearchParams({
+        readMask: "names,emailAddresses",
+        sources: "DIRECTORY_SOURCE_TYPE_DOMAIN_PROFILE",
+        pageSize: "1000",
+      });
+      if (pageToken) qs.set("pageToken", pageToken);
+      const json = await callPeople<DirectoryPersonResp>(
+        accessToken,
+        `/people:listDirectoryPeople?${qs}`
+      );
+      mergeInto(map, json.people ?? []);
+      if (!json.nextPageToken) break;
+      pageToken = json.nextPageToken;
     }
-    if (!json.nextPageToken) break;
-    pageToken = json.nextPageToken;
+  } catch (e) {
+    console.warn("listDirectoryPeople failed:", e);
   }
+
+  // 2) 使用者聯絡人
+  try {
+    let pageToken: string | undefined;
+    for (let page = 0; page < 3; page++) {
+      const qs = new URLSearchParams({
+        personFields: "names,emailAddresses",
+        pageSize: "1000",
+      });
+      if (pageToken) qs.set("pageToken", pageToken);
+      const json = await callPeople<PeopleConnectionsResp>(
+        accessToken,
+        `/people/me/connections?${qs}`
+      );
+      mergeInto(map, json.connections ?? []);
+      if (!json.nextPageToken) break;
+      pageToken = json.nextPageToken;
+    }
+  } catch (e) {
+    console.warn("listConnections failed:", e);
+  }
+
+  // 3) 其他聯絡人（Google 自動記錄的）
+  try {
+    let pageToken: string | undefined;
+    for (let page = 0; page < 3; page++) {
+      const qs = new URLSearchParams({
+        readMask: "names,emailAddresses",
+        pageSize: "1000",
+      });
+      if (pageToken) qs.set("pageToken", pageToken);
+      const json = await callPeople<OtherContactsResp>(
+        accessToken,
+        `/otherContacts?${qs}`
+      );
+      mergeInto(map, json.otherContacts ?? []);
+      if (!json.nextPageToken) break;
+      pageToken = json.nextPageToken;
+    }
+  } catch (e) {
+    console.warn("listOtherContacts failed:", e);
+  }
+
   return map;
 }
 
