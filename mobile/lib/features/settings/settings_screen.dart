@@ -487,6 +487,36 @@ class _LanguageSection extends ConsumerWidget {
 class _CalendarSection extends ConsumerWidget {
   const _CalendarSection();
 
+  Future<void> _disconnect(BuildContext context, WidgetRef ref) async {
+    final l = AppL10n.of(context)!;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.calendarDisconnectConfirmTitle),
+        content: Text(l.calendarDisconnectConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l.commonCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
+            child: Text(l.calendarDisconnectButton),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(apiClientProvider).dio.post('/api/calendar/disconnect');
+    } catch (_) {
+      // 即使失敗也刷新，讓 UI 反映真實狀態
+    }
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    ref.invalidate(calendarEventsProvider(today));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppL10n.of(context)!;
@@ -524,11 +554,24 @@ class _CalendarSection extends ConsumerWidget {
               child: Text(l.calendarConnectButton),
             ),
           )
-        else
+        else ...[
           Text(
             l.calendarPanelTitle,
             style: TextStyle(fontSize: 12, color: AppColors.textDim),
           ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => _disconnect(context, ref),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.destructive,
+                side: BorderSide(color: AppColors.destructiveBorder),
+              ),
+              child: Text(l.calendarDisconnectButton),
+            ),
+          ),
+        ],
       ],
     );
   }
