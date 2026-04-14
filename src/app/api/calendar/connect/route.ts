@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/get-user";
 import { buildAuthUrl } from "@/lib/google-calendar/oauth";
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.redirect(new URL("/login", process.env.NEXTAUTH_URL || "http://localhost:3000"));
   }
 

@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/get-user";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { clearNameMapCache } from "@/lib/google-calendar/api";
 
 export async function POST() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -19,9 +19,9 @@ export async function POST() {
       googleCalendarTokenExpires: null,
       googleCalendarSelectedIds: null,
     })
-    .where(eq(users.id, session.user.id));
+    .where(eq(users.id, user.id));
 
-  clearNameMapCache(session.user.id);
+  clearNameMapCache(user.id);
 
   return NextResponse.json({ connected: false });
 }

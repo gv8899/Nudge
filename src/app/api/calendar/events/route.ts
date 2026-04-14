@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/get-user";
 import { getAccessToken } from "@/lib/google-calendar/tokens";
 import { listEvents, listCalendars, fetchDirectoryNameMap } from "@/lib/google-calendar/api";
 import type { EventsResponse, CalendarEvent } from "@/lib/google-calendar/types";
@@ -38,8 +38,8 @@ function getTzOffsetString(tz: string, date: Date): string {
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse<EventsResponse | { error: string }>> {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<EventsResponse
     return NextResponse.json({ error: "Invalid endDate" }, { status: 400 });
   }
 
-  const tokenResult = await getAccessToken(session.user.id);
+  const tokenResult = await getAccessToken(user.id);
   if (tokenResult.status === "not_connected") {
     return NextResponse.json({ connected: false } as EventsResponse);
   }
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<EventsResponse
   // 並行抓 Workspace directory 做 email→姓名查表（失敗不影響主流程）
   let directoryNameMap: Map<string, string> | undefined;
   try {
-    directoryNameMap = await fetchDirectoryNameMap(tokenResult.accessToken, session.user.id);
+    directoryNameMap = await fetchDirectoryNameMap(tokenResult.accessToken, user.id);
   } catch (e) {
     console.warn("fetchDirectoryNameMap failed (attendees will fall back to email):", e);
   }
@@ -127,7 +127,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<EventsResponse
   // 用 primary calendar 的 id（它就是日曆擁有者的 email）組 AccountChooser URL，
   // 這樣即使 Nudge 登入的 Google 帳號 ≠ 日曆連結的 Google 帳號也能正確開啟
   const primaryCal = allCalendars.find((c) => c.primary);
-  const calendarEmail = primaryCal?.id || session.user.email || undefined;
+  const calendarEmail = primaryCal?.id || user.email || undefined;
   if (calendarEmail) {
     for (const e of events) {
       if (e.htmlLink) {

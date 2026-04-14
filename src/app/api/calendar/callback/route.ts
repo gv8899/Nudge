@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/get-user";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { exchangeCode } from "@/lib/google-calendar/oauth";
@@ -15,8 +15,8 @@ function errorRedirect(reason: string) {
 }
 
 export async function GET(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user) {
     return NextResponse.redirect(
       new URL("/login", process.env.NEXTAUTH_URL || "http://localhost:3000")
     );
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
         googleCalendarTokenExpires: tokens.expiresAt.toISOString(),
         googleCalendarSelectedIds: JSON.stringify(defaultSelected),
       })
-      .where(eq(users.id, session.user.id));
+      .where(eq(users.id, user.id));
   } catch (e) {
     console.error("calendar callback exchange failed:", e);
     return errorRedirect("exchange_failed");
