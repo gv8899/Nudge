@@ -13,6 +13,7 @@ import { useTheme, type Theme } from "@/components/providers/theme-provider";
 import { useRouter, usePathname, type Locale } from "@/i18n/routing";
 import { fetcher } from "@/lib/fetcher";
 import { TagManager } from "@/components/tags/tag-manager";
+import { CalendarSection } from "./calendar-section";
 import { format, parseISO } from "date-fns";
 
 interface SettingsModalProps {
@@ -210,6 +211,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               </button>
             </div>
           </section>
+
+          {/* 日曆連接 */}
+          <CalendarSection userEmail={me?.email ?? ""} />
 
           {/* 標籤管理 */}
           <section className="py-4">
