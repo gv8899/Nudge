@@ -16,8 +16,31 @@ class CalendarStrip extends ConsumerStatefulWidget {
   ConsumerState<CalendarStrip> createState() => _CalendarStripState();
 }
 
-class _CalendarStripState extends ConsumerState<CalendarStrip> {
+class _CalendarStripState extends ConsumerState<CalendarStrip>
+    with WidgetsBindingObserver {
   String? _expandedEventKey;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // App 從背景回前景時 invalidate，這樣使用者在外部 Safari 完成 OAuth
+    // 回到 app 時會看到最新連結狀態 / 事件列表
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(calendarEventsProvider);
+      ref.invalidate(calendarLinkedEmailProvider);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

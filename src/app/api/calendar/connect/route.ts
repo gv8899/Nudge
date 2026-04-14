@@ -49,5 +49,15 @@ export async function GET(req: NextRequest) {
     path: "/api/calendar",
     maxAge: 600,
   });
+  // 若是 mobile ticket 流程，callback 要回靜態成功頁而非 redirect 到 /
+  if (ticket) {
+    response.cookies.set("calendar_oauth_source", "mobile", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/api/calendar",
+      maxAge: 600,
+    });
+  }
   return response;
 }
