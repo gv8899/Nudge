@@ -93,13 +93,18 @@ export async function GET(req: NextRequest): Promise<NextResponse<EventsResponse
     return a.start.localeCompare(b.start);
   });
 
-  // 附上 authuser 參數，避免多帳號登入時點連結跑錯帳號
+  // 使用 AccountChooser 包一層 htmlLink，讓瀏覽器即使沒登入正確帳號
+  // 也會被引導到 Google 帳號選擇器再跳到事件
   const email = session.user.email;
   if (email) {
     for (const e of events) {
       if (e.htmlLink) {
-        const sep = e.htmlLink.includes("?") ? "&" : "?";
-        e.htmlLink = `${e.htmlLink}${sep}authuser=${encodeURIComponent(email)}`;
+        const sepA = e.htmlLink.includes("?") ? "&" : "?";
+        const withAuth = `${e.htmlLink}${sepA}authuser=${encodeURIComponent(email)}`;
+        e.htmlLink =
+          `https://accounts.google.com/AccountChooser?` +
+          `Email=${encodeURIComponent(email)}` +
+          `&continue=${encodeURIComponent(withAuth)}`;
       }
     }
   }
