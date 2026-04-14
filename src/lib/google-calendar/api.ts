@@ -1,0 +1,99 @@
+import type { CalendarEvent, CalendarListItem } from "./types";
+
+const BASE = "https://www.googleapis.com/calendar/v3";
+
+async function callGoogle<T>(accessToken: string, path: string): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Google API ${res.status}: ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
+interface GoogleCalendarListResp {
+  items: Array<{
+    id: string;
+    summary: string;
+    backgroundColor?: string;
+    primary?: boolean;
+  }>;
+}
+
+export async function listCalendars(
+  accessToken: string
+): Promise<CalendarListItem[]> {
+  const json = await callGoogle<GoogleCalendarListResp>(
+    accessToken,
+    "/users/me/calendarList?minAccessRole=reader"
+  );
+  return (json.items || []).map((c) => ({
+    id: c.id,
+    summary: c.summary,
+    backgroundColor: c.backgroundColor || null,
+    primary: c.primary === true,
+  }));
+}
+
+interface GoogleEventsResp {
+  items: Array<{
+    id: string;
+    status?: string;
+    summary?: string;
+    start?: { dateTime?: string; date?: string; timeZone?: string };
+    end?: { dateTime?: string; date?: string; timeZone?: string };
+    location?: string;
+    description?: string;
+    attendees?: Array<{ email?: string; displayName?: string }>;
+    htmlLink?: string;
+    visibility?: string;
+  }>;
+}
+
+export async function listEvents(
+  accessToken: string,
+  calendarId: string,
+  calendarName: string,
+  timeMinIso: string,
+  timeMaxIso: string
+): Promise<CalendarEvent[]> {
+  const qs = new URLSearchParams({
+    timeMin: timeMinIso,
+    timeMax: timeMaxIso,
+    singleEvents: "true",
+    orderBy: "startTime",
+    maxResults: "100",
+    showDeleted: "false",
+  });
+  const json = await callGoogle<GoogleEventsResp>(
+    accessToken,
+    `/calendars/${encodeURIComponent(calendarId)}/events?${qs}`
+  );
+
+  return (json.items || [])
+    .filter((e) => e.status !== "cancelled")
+    .map((e) => {
+      const allDay = !!e.start?.date && !e.start?.dateTime;
+      const start = e.start?.dateTime ?? e.start?.date ?? "";
+      const end = e.end?.dateTime ?? e.end?.date ?? "";
+      const busyOnly = e.visibility === "private" || e.visibility === "confidential";
+      return {
+        id: e.id,
+        calendarId,
+        calendarName,
+        title: busyOnly ? "忙碌" : e.summary ?? "(No title)",
+        start,
+        end,
+        allDay,
+        location: busyOnly ? null : e.location ?? null,
+        description: busyOnly ? null : e.description ?? null,
+        attendees: busyOnly
+          ? []
+          : (e.attendees ?? []).map((a) => a.displayName || a.email || "").filter(Boolean),
+        htmlLink: e.htmlLink ?? "",
+        busyOnly,
+      };
+    });
+}
