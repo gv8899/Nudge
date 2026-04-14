@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ComponentType } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/routing";
 import { CheckSquare, NotebookPen, Settings } from "lucide-react";
@@ -16,7 +16,7 @@ import { SettingsModal } from "@/components/settings/settings-modal";
 const navItems: {
   href: string;
   match: string;
-  icon: typeof CheckSquare;
+  icon: ComponentType<{ className?: string }>;
   labelKey: "tasks" | "notes" | "cards";
 }[] = [
   {
@@ -47,7 +47,7 @@ function NavLink({
 }: {
   href: string;
   active: boolean;
-  icon: typeof CheckSquare;
+  icon: ComponentType<{ className?: string }>;
   label: string;
 }) {
   return (
