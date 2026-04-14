@@ -79,6 +79,10 @@ export async function GET(req: NextRequest): Promise<NextResponse<EventsResponse
 
   const nameMap = new Map(allCalendars.map((c) => [c.id, c.summary]));
 
+  // 只 fetch 在 allowed list 裡的 selectedIds（listCalendars 已過濾過），
+  // 避免使用者殘留的非 owner 日曆 id 被拿來抓 Google
+  const allowedSelectedIds = tokenResult.selectedIds.filter((id) => nameMap.has(id));
+
   // 並行抓 Workspace directory 做 email→姓名查表（失敗不影響主流程）
   let directoryNameMap: Map<string, string> | undefined;
   try {
@@ -88,7 +92,7 @@ export async function GET(req: NextRequest): Promise<NextResponse<EventsResponse
   }
 
   const results = await Promise.allSettled(
-    tokenResult.selectedIds.map((id) =>
+    allowedSelectedIds.map((id) =>
       listEvents(tokenResult.accessToken, id, nameMap.get(id) || id, range.min, range.max, {
         directoryNameMap,
       })

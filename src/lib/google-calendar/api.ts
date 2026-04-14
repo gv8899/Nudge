@@ -171,6 +171,7 @@ interface GoogleCalendarListResp {
     summary: string;
     backgroundColor?: string;
     primary?: boolean;
+    accessRole?: string;
   }>;
 }
 
@@ -181,12 +182,16 @@ export async function listCalendars(
     accessToken,
     "/users/me/calendarList?minAccessRole=reader"
   );
-  return (json.items || []).map((c) => ({
-    id: c.id,
-    summary: c.summary,
-    backgroundColor: c.backgroundColor || null,
-    primary: c.primary === true,
-  }));
+  return (json.items || [])
+    // 只保留使用者「擁有」的日曆（primary + 使用者自建的），
+    // 排除從同事/組織訂閱的個人日曆（accessRole: reader）
+    .filter((c) => c.accessRole === "owner")
+    .map((c) => ({
+      id: c.id,
+      summary: c.summary,
+      backgroundColor: c.backgroundColor || null,
+      primary: c.primary === true,
+    }));
 }
 
 interface GoogleEventsResp {
