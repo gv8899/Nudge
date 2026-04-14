@@ -34,6 +34,17 @@ class CalendarRepository {
       return null;
     }
   }
+
+  /// 透過 Bearer JWT 換一張短效 ticket，回傳可在系統瀏覽器開啟的 OAuth 起始 URL。
+  Future<String?> fetchMobileConnectUrl() async {
+    try {
+      final response = await _api.dio.get('/api/calendar/mobile-start');
+      final data = response.data as Map<String, dynamic>;
+      return data['url'] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 final calendarRepositoryProvider = Provider<CalendarRepository>((ref) {

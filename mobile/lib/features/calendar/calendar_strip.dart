@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme.dart';
 import '../../l10n/app_localizations.dart';
-import '../auth/auth_provider.dart';
 import 'calendar_event_tile.dart';
 import 'calendar_models.dart';
 import 'calendar_provider.dart';
+import 'calendar_repository.dart';
 
 class CalendarStrip extends ConsumerStatefulWidget {
   final String date;
@@ -112,14 +112,18 @@ class _CalendarStripState extends ConsumerState<CalendarStrip> {
     bool isCta = false,
   }) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         if (isCta) {
-          // 點 CTA 橫幅 → 直接打開 web OAuth 流程
-          final base = ref.read(apiClientProvider).dio.options.baseUrl;
-          launchUrl(
-            Uri.parse('$base/api/calendar/connect'),
-            mode: LaunchMode.externalApplication,
-          );
+          // 點 CTA 橫幅 → 先跟後端換一張短效 ticket，再打開系統瀏覽器
+          final url = await ref
+              .read(calendarRepositoryProvider)
+              .fetchMobileConnectUrl();
+          if (url != null) {
+            await launchUrl(
+              Uri.parse(url),
+              mode: LaunchMode.externalApplication,
+            );
+          }
           return;
         }
         ref.read(calendarCollapsedProvider.notifier).toggle();

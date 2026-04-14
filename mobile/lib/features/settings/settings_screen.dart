@@ -9,6 +9,7 @@ import '../../core/theme_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../auth/auth_provider.dart';
 import '../calendar/calendar_provider.dart';
+import '../calendar/calendar_repository.dart';
 import '../cards/cards_provider.dart';
 import '../tags/tag_manager.dart';
 
@@ -551,12 +552,16 @@ class _CalendarSection extends ConsumerWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () {
-                final base = ref.read(apiClientProvider).dio.options.baseUrl;
-                launchUrl(
-                  Uri.parse('$base/api/calendar/connect'),
-                  mode: LaunchMode.externalApplication,
-                );
+              onPressed: () async {
+                final url = await ref
+                    .read(calendarRepositoryProvider)
+                    .fetchMobileConnectUrl();
+                if (url != null) {
+                  await launchUrl(
+                    Uri.parse(url),
+                    mode: LaunchMode.externalApplication,
+                  );
+                }
               },
               child: Text(l.calendarConnectButton),
             ),
