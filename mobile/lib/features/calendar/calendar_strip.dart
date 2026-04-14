@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../auth/auth_provider.dart';
 import 'calendar_event_tile.dart';
 import 'calendar_models.dart';
 import 'calendar_provider.dart';
@@ -112,7 +114,12 @@ class _CalendarStripState extends ConsumerState<CalendarStrip> {
     return GestureDetector(
       onTap: () {
         if (isCta) {
-          // CTA button: do nothing here; settings screen handles navigation
+          // 點 CTA 橫幅 → 直接打開 web OAuth 流程
+          final base = ref.read(apiClientProvider).dio.options.baseUrl;
+          launchUrl(
+            Uri.parse('$base/api/calendar/connect'),
+            mode: LaunchMode.externalApplication,
+          );
           return;
         }
         ref.read(calendarCollapsedProvider.notifier).toggle();
