@@ -7,7 +7,7 @@ import { encrypt } from "@/lib/google-calendar/crypto";
 import { listCalendars } from "@/lib/google-calendar/api";
 
 function errorRedirect(reason: string) {
-  const url = new URL("/", process.env.NEXTAUTH_URL || "http://localhost:3000");
+  const url = new URL("/", process.env.AUTH_URL || "http://localhost:3000");
   url.searchParams.set("calendar", "error");
   url.searchParams.set("reason", reason);
   return NextResponse.redirect(url);
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Web 流程 → 導回首頁
-  const url = new URL("/", process.env.NEXTAUTH_URL || "http://localhost:3000");
+  const url = new URL("/", process.env.AUTH_URL || "http://localhost:3000");
   url.searchParams.set("calendar", "connected");
   const res = NextResponse.redirect(url);
   res.cookies.delete("calendar_oauth_state");

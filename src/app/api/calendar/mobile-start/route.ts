@@ -18,7 +18,7 @@ export async function GET() {
     "5m"
   );
 
-  const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const base = process.env.AUTH_URL || "http://localhost:3000";
   const connectUrl = `${base}/api/calendar/connect?ticket=${encodeURIComponent(ticket)}`;
 
   return NextResponse.json({ url: connectUrl });

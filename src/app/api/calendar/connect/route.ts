@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     const user = await getUser();
     if (!user) {
       return NextResponse.redirect(
-        new URL("/login", process.env.NEXTAUTH_URL || "http://localhost:3000")
+        new URL("/login", process.env.AUTH_URL || "http://localhost:3000")
       );
     }
     userId = user.id;
