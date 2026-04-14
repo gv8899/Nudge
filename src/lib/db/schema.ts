@@ -7,6 +7,11 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   locale: text("locale"),
   createdAt: text("created_at").notNull(),
+  // Google Calendar integration
+  googleCalendarAccessToken: text("google_calendar_access_token"),
+  googleCalendarRefreshToken: text("google_calendar_refresh_token"),
+  googleCalendarTokenExpires: text("google_calendar_token_expires"),
+  googleCalendarSelectedIds: text("google_calendar_selected_ids"),
 });
 
 export const tasks = pgTable("tasks", {

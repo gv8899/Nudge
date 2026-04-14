@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import '../../core/locale_provider.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../auth/auth_provider.dart';
+import '../calendar/calendar_provider.dart';
+import '../calendar/calendar_repository.dart';
 import '../cards/cards_provider.dart';
 import '../tags/tag_manager.dart';
 
@@ -48,6 +51,10 @@ class SettingsScreen extends ConsumerWidget {
 
             // 語言
             const _LanguageSection(),
+            const SizedBox(height: 24),
+
+            // 行事曆
+            const _CalendarSection(),
             const SizedBox(height: 24),
 
             // 標籤管理（TagManager 自己有標題）
@@ -475,5 +482,114 @@ class _LanguageSection extends ConsumerWidget {
         ),
       );
     }
+  }
+}
+
+class _CalendarSection extends ConsumerWidget {
+  const _CalendarSection();
+
+  Future<void> _disconnect(BuildContext context, WidgetRef ref) async {
+    final l = AppL10n.of(context)!;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.calendarDisconnectConfirmTitle),
+        content: Text(l.calendarDisconnectConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l.commonCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
+            child: Text(l.calendarDisconnectButton),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(apiClientProvider).dio.post('/api/calendar/disconnect');
+    } catch (_) {
+      // 即使失敗也刷新，讓 UI 反映真實狀態
+    }
+    // 清掉所有 calendarEventsProvider family keys（而不只 today）
+    // 以免 Tasks 頁面殘留其他日期的 cached state
+    ref.invalidate(calendarEventsProvider);
+    ref.invalidate(calendarLinkedEmailProvider);
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppL10n.of(context)!;
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final eventsAsync = ref.watch(calendarEventsProvider(today));
+    final linkedEmailAsync = ref.watch(calendarLinkedEmailProvider);
+
+    final connected = eventsAsync.maybeWhen(
+      data: (r) => r.connected,
+      orElse: () => false,
+    );
+    final linkedEmail = linkedEmailAsync.maybeWhen(
+      data: (e) => e,
+      orElse: () => null,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l.calendarSection,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.foreground,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (!connected)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () async {
+                final url = await ref
+                    .read(calendarRepositoryProvider)
+                    .fetchMobileConnectUrl();
+                if (url == null) return;
+                try {
+                  await FlutterWebAuth2.authenticate(
+                    url: url,
+                    callbackUrlScheme: 'nudge',
+                  );
+                } catch (_) {
+                  // 使用者取消或失敗
+                }
+                ref.invalidate(calendarEventsProvider);
+                ref.invalidate(calendarLinkedEmailProvider);
+              },
+              child: Text(l.calendarConnectButton),
+            ),
+          )
+        else ...[
+          Text(
+            l.calendarConnectedAs(linkedEmail ?? ''),
+            style: TextStyle(fontSize: 12, color: AppColors.textDim),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => _disconnect(context, ref),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.destructive,
+                side: BorderSide(color: AppColors.destructiveBorder),
+              ),
+              child: Text(l.calendarDisconnectButton),
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }

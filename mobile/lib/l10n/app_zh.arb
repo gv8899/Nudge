@@ -353,8 +353,6 @@
   "@cardsViewListAria": {},
   "cardsViewGridAria": "網格檢視",
   "@cardsViewGridAria": {},
-  "cardsViewKanbanAria": "看板檢視",
-  "@cardsViewKanbanAria": {},
   "cardsSearchPlaceholder": "搜尋卡片...",
   "@cardsSearchPlaceholder": {},
   "cardsSearchAria": "搜尋卡片",
@@ -387,10 +385,6 @@
   },
   "cardsToastNothingToClean": "沒有需要清除的卡片",
   "@cardsToastNothingToClean": {},
-  "cardsKanbanEmptyTitle": "建立第一個標籤來開始使用看板",
-  "@cardsKanbanEmptyTitle": {},
-  "cardsKanbanEmptySubtitle": "到設定 → 標籤管理新增標籤",
-  "@cardsKanbanEmptySubtitle": {},
   "cardDetailBackToCards": "返回卡片",
   "@cardDetailBackToCards": {},
   "cardDetailNotFound": "找不到這張卡片",
@@ -458,5 +452,69 @@
         "type": "Object"
       }
     }
-  }
+  },
+  "calendarSection": "行事曆",
+  "@calendarSection": {},
+  "calendarConnectTitle": "連結 Google Calendar",
+  "@calendarConnectTitle": {},
+  "calendarConnectDescription": "看看今天有哪些會議",
+  "@calendarConnectDescription": {},
+  "calendarConnectButton": "連結",
+  "@calendarConnectButton": {},
+  "calendarDisconnectButton": "中斷連結",
+  "@calendarDisconnectButton": {},
+  "calendarDisconnectConfirmTitle": "中斷連結",
+  "@calendarDisconnectConfirmTitle": {},
+  "calendarDisconnectConfirmBody": "確定要中斷 Google Calendar 連結嗎？",
+  "@calendarDisconnectConfirmBody": {},
+  "calendarConnectedAs": "已連結：{email}",
+  "@calendarConnectedAs": {
+    "placeholders": {
+      "email": {
+        "type": "Object"
+      }
+    }
+  },
+  "calendarSubCalendars": "顯示哪些日曆",
+  "@calendarSubCalendars": {},
+  "calendarPanelTitle": "今日行程",
+  "@calendarPanelTitle": {},
+  "calendarPanelEmpty": "今天沒有行程",
+  "@calendarPanelEmpty": {},
+  "calendarPanelLoading": "載入中…",
+  "@calendarPanelLoading": {},
+  "calendarPanelError": "無法載入行事曆",
+  "@calendarPanelError": {},
+  "calendarPanelRetry": "重試",
+  "@calendarPanelRetry": {},
+  "calendarPanelReauth": "授權過期，請重新連結",
+  "@calendarPanelReauth": {},
+  "calendarPanelRefresh": "重新整理",
+  "@calendarPanelRefresh": {},
+  "calendarEventAllDay": "整日",
+  "@calendarEventAllDay": {},
+  "calendarEventBusy": "忙碌",
+  "@calendarEventBusy": {},
+  "calendarEventLocation": "地點",
+  "@calendarEventLocation": {},
+  "calendarEventAttendees": "與會者",
+  "@calendarEventAttendees": {},
+  "calendarEventDescription": "描述",
+  "@calendarEventDescription": {},
+  "calendarEventOpenInGoogle": "在 Google Calendar 開啟",
+  "@calendarEventOpenInGoogle": {},
+  "calendarEventJoinMeet": "使用 Google Meet 加入會議",
+  "@calendarEventJoinMeet": {},
+  "calendarMobileCollapsedCount": "今日行程 · {count} 件",
+  "@calendarMobileCollapsedCount": {
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "calendarMobileCollapsedEmpty": "今日無行程",
+  "@calendarMobileCollapsedEmpty": {},
+  "calendarMobileConnectPrompt": "連結 Google Calendar →",
+  "@calendarMobileConnectPrompt": {}
 }

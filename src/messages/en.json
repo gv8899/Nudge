@@ -193,5 +193,33 @@
     "canvasToggleFeedTitle": "Switch to feed",
     "entryAria": "Journal for {month}/{day}/{year}",
     "monthLabel": "{month}"
+  },
+  "calendar": {
+    "section": "Calendar",
+    "connectTitle": "Connect Google Calendar",
+    "connectDescription": "See your meetings for today",
+    "connectButton": "Connect",
+    "disconnectButton": "Disconnect",
+    "disconnectConfirmTitle": "Disconnect",
+    "disconnectConfirmBody": "Disconnect from Google Calendar?",
+    "connectedAs": "Connected as {email}",
+    "subCalendars": "Calendars to show",
+    "panelTitle": "Today",
+    "panelEmpty": "Nothing scheduled today",
+    "panelLoading": "Loading…",
+    "panelError": "Couldn't load calendar",
+    "panelRetry": "Retry",
+    "panelReauth": "Authorization expired, reconnect",
+    "panelRefresh": "Refresh",
+    "eventAllDay": "All day",
+    "eventBusy": "Busy",
+    "eventLocation": "Location",
+    "eventAttendees": "Attendees",
+    "eventDescription": "Description",
+    "eventOpenInGoogle": "Open in Google Calendar",
+    "eventJoinMeet": "Join with Google Meet",
+    "mobileCollapsedCount": "Today · {count} events",
+    "mobileCollapsedEmpty": "Nothing today",
+    "mobileConnectPrompt": "Connect Google Calendar →"
   }
 }

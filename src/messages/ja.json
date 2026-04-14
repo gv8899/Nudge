@@ -193,5 +193,33 @@
     "canvasToggleFeedTitle": "フィードへ切り替え",
     "entryAria": "{year}年{month}月{day}日のジャーナル",
     "monthLabel": "{month} 月"
+  },
+  "calendar": {
+    "section": "カレンダー",
+    "connectTitle": "Google カレンダーを連携",
+    "connectDescription": "今日の予定を確認できます",
+    "connectButton": "連携する",
+    "disconnectButton": "連携解除",
+    "disconnectConfirmTitle": "連携解除",
+    "disconnectConfirmBody": "Google カレンダーとの連携を解除しますか？",
+    "connectedAs": "連携中：{email}",
+    "subCalendars": "表示するカレンダー",
+    "panelTitle": "今日の予定",
+    "panelEmpty": "今日は予定がありません",
+    "panelLoading": "読み込み中…",
+    "panelError": "カレンダーを読み込めませんでした",
+    "panelRetry": "再試行",
+    "panelReauth": "認証が切れました。再連携してください",
+    "panelRefresh": "更新",
+    "eventAllDay": "終日",
+    "eventBusy": "ビジー",
+    "eventLocation": "場所",
+    "eventAttendees": "参加者",
+    "eventDescription": "詳細",
+    "eventOpenInGoogle": "Google カレンダーで開く",
+    "eventJoinMeet": "Google Meet で参加",
+    "mobileCollapsedCount": "今日の予定 · {count} 件",
+    "mobileCollapsedEmpty": "今日は予定なし",
+    "mobileConnectPrompt": "Google カレンダーを連携 →"
   }
 }
