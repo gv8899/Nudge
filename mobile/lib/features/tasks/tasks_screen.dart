@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../calendar/calendar_strip.dart';
 import 'tasks_provider.dart';
 import 'calendar_bar.dart';
 import 'task_create_input.dart';
@@ -41,6 +42,7 @@ class TasksScreen extends ConsumerWidget {
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: CalendarBar(),
             ),
+            CalendarStrip(date: selectedDate),
             Expanded(
               child: dailyAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
