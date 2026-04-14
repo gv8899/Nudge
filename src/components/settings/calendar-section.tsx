@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import useSWR from "swr";
+import useSWR, { mutate as globalMutate } from "swr";
 import { useTranslations } from "next-intl";
 import { fetcher } from "@/lib/fetcher";
 import type { CalendarsResponse } from "@/lib/google-calendar/types";
 
 export function CalendarSection() {
   const t = useTranslations("calendar");
-  const { data, isLoading, mutate } = useSWR<
+  const { data, isLoading } = useSWR<
     CalendarsResponse | { error: string }
   >("/api/calendar/calendars", fetcher, { shouldRetryOnError: false });
 
@@ -25,7 +25,12 @@ export function CalendarSection() {
   async function disconnect() {
     await fetch("/api/calendar/disconnect", { method: "POST" });
     setConfirmDisconnect(false);
-    mutate();
+    // 清掉所有 /api/calendar/* SWR cache（settings + Tasks 頁面的 CalendarPanel）
+    globalMutate(
+      (key) => typeof key === "string" && key.startsWith("/api/calendar"),
+      undefined,
+      { revalidate: true }
+    );
   }
 
   return (
