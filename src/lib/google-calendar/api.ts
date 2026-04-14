@@ -67,14 +67,35 @@ function mergeInto(
   }
 }
 
+// In-memory cache per user for People API name map (rarely changes)
+const NAME_MAP_TTL_MS = 15 * 60 * 1000;
+const nameMapCache = new Map<string, { map: Map<string, string>; expiresAt: number }>();
+
 /**
  * 組合多個 People API 來源建 email→顯示名稱對照表。
  * 依優先序：Workspace directory → 使用者聯絡人 → 其他聯絡人（自動記錄的）。
  * 任何一支失敗都不會擋主流程，只會少一些名字。
+ * 每個 userId 會 cache 15 分鐘避免重複打 People API。
  */
 export async function fetchDirectoryNameMap(
-  accessToken: string
+  accessToken: string,
+  userId: string
 ): Promise<Map<string, string>> {
+  const cached = nameMapCache.get(userId);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.map;
+  }
+  const map = await buildNameMap(accessToken);
+  nameMapCache.set(userId, { map, expiresAt: Date.now() + NAME_MAP_TTL_MS });
+  return map;
+}
+
+/** Disconnect / re-auth 時呼叫，清掉使用者的 name map cache */
+export function clearNameMapCache(userId: string) {
+  nameMapCache.delete(userId);
+}
+
+async function buildNameMap(accessToken: string): Promise<Map<string, string>> {
   const map = new Map<string, string>();
 
   // 1) Workspace directory（只有 Workspace 帳號可用）

@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
+import { clearNameMapCache } from "@/lib/google-calendar/api";
 
 export async function POST() {
   const session = await auth();
@@ -19,6 +20,8 @@ export async function POST() {
       googleCalendarSelectedIds: null,
     })
     .where(eq(users.id, session.user.id));
+
+  clearNameMapCache(session.user.id);
 
   return NextResponse.json({ connected: false });
 }
