@@ -93,5 +93,16 @@ export async function GET(req: NextRequest): Promise<NextResponse<EventsResponse
     return a.start.localeCompare(b.start);
   });
 
+  // 附上 authuser 參數，避免多帳號登入時點連結跑錯帳號
+  const email = session.user.email;
+  if (email) {
+    for (const e of events) {
+      if (e.htmlLink) {
+        const sep = e.htmlLink.includes("?") ? "&" : "?";
+        e.htmlLink = `${e.htmlLink}${sep}authuser=${encodeURIComponent(email)}`;
+      }
+    }
+  }
+
   return NextResponse.json({ connected: true, events } as EventsResponse);
 }
