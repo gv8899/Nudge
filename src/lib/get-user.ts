@@ -44,6 +44,10 @@ export async function getUser() {
       avatarUrl: session.user.image || null,
       locale: null,
       createdAt: now,
+      googleCalendarAccessToken: null,
+      googleCalendarRefreshToken: null,
+      googleCalendarTokenExpires: null,
+      googleCalendarSelectedIds: null,
     };
     await db.insert(users).values(newUser);
     user = newUser;
