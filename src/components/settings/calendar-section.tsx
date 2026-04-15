@@ -3,11 +3,13 @@
 import { useState } from "react";
 import useSWR, { mutate as globalMutate } from "swr";
 import { useTranslations } from "next-intl";
+import { X } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import type { CalendarsResponse } from "@/lib/google-calendar/types";
 
 export function CalendarSection() {
   const t = useTranslations("calendar");
+  const tCommon = useTranslations("common");
   const { data, isLoading } = useSWR<
     CalendarsResponse | { error: string }
   >("/api/calendar/calendars", fetcher, { shouldRetryOnError: false });
@@ -44,9 +46,10 @@ export function CalendarSection() {
       {!isLoading && !isConnected && (
         <div>
           <div className="text-xs text-text-dim mb-2">{t("connectDescription")}</div>
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/api/calendar/connect"
-            className="inline-block rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
+            className="inline-block rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             {t("connectButton")}
           </a>
@@ -63,7 +66,7 @@ export function CalendarSection() {
             <button
               type="button"
               onClick={() => setConfirmDisconnect(true)}
-              className="text-sm text-destructive hover:underline"
+              className="text-sm text-destructive hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 rounded"
             >
               {t("disconnectButton")}
             </button>
@@ -74,16 +77,17 @@ export function CalendarSection() {
                 <button
                   type="button"
                   onClick={disconnect}
-                  className="rounded-md bg-destructive px-3 py-1 text-sm text-primary-foreground"
+                  className="rounded-md bg-destructive px-3 py-1 text-sm text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   {t("disconnectButton")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setConfirmDisconnect(false)}
-                  className="rounded-md border border-border px-3 py-1 text-sm"
+                  aria-label={tCommon("cancel")}
+                  className="flex items-center justify-center rounded-md border border-border w-8 h-8 text-text-dim hover:text-foreground hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 >
-                  ×
+                  <X size={14} />
                 </button>
               </div>
             </div>

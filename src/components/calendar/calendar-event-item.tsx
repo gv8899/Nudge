@@ -24,33 +24,35 @@ export function CalendarEventItem({ event, expanded, onToggle, past }: Props) {
   const t = useTranslations("calendar");
   const timeLabel = formatTimeRange(event.start, event.end, event.allDay, t("eventAllDay"));
   const canExpand = !event.busyOnly;
+  // Dim title/location color for past events instead of container opacity
+  // to avoid compound contrast failure on already-dim text tokens.
+  const titleColor = past ? "text-text-dim" : "text-foreground";
+  const subtitleColor = past ? "text-text-faint" : "text-text-dim";
 
   return (
-    <div
-      className={`rounded-md border border-border bg-card text-sm ${
-        past ? "opacity-60" : ""
-      }`}
-    >
+    <div className="rounded-md border border-border bg-card text-sm">
       <button
         type="button"
         onClick={canExpand ? onToggle : undefined}
-        className={`w-full px-3 py-2 text-left flex items-center gap-2 ${
+        className={`w-full px-3 py-2 text-left flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset rounded-md ${
           canExpand ? "cursor-pointer hover:bg-surface-hover" : "cursor-default"
         }`}
         aria-expanded={canExpand ? expanded : undefined}
       >
         <div className="flex-1 min-w-0">
-          <div className="text-xs text-text-dim">{timeLabel}</div>
-          <div className="truncate text-foreground">{event.title}</div>
+          <div className={`text-xs ${subtitleColor}`}>{timeLabel}</div>
+          <div className={`truncate ${titleColor}`} title={event.title}>
+            {event.title}
+          </div>
           {event.location && (
-            <div className="mt-0.5 flex items-center gap-1 text-[11px] text-text-dim">
+            <div className={`mt-0.5 flex items-center gap-1 text-xs ${subtitleColor}`}>
               <MapPin size={10} className="shrink-0" />
               <span className="truncate">{event.location}</span>
             </div>
           )}
         </div>
         {canExpand && (
-          <span className="text-text-dim">
+          <span className={subtitleColor}>
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </span>
         )}
@@ -60,7 +62,7 @@ export function CalendarEventItem({ event, expanded, onToggle, past }: Props) {
         <div className="border-t border-border px-3 py-2 space-y-2 text-xs">
           {event.location && (
             <div>
-              <div className="uppercase tracking-wide text-text-faint text-[10px]">
+              <div className="uppercase tracking-wide text-text-faint text-xs font-medium">
                 {t("eventLocation")}
               </div>
               <div className="text-foreground">{event.location}</div>
@@ -68,7 +70,7 @@ export function CalendarEventItem({ event, expanded, onToggle, past }: Props) {
           )}
           {event.attendees.length > 0 && (
             <div>
-              <div className="uppercase tracking-wide text-text-faint text-[10px]">
+              <div className="uppercase tracking-wide text-text-faint text-xs font-medium">
                 {t("eventAttendees")}
               </div>
               <div className="text-foreground">{event.attendees.join(" · ")}</div>
@@ -76,7 +78,7 @@ export function CalendarEventItem({ event, expanded, onToggle, past }: Props) {
           )}
           {event.description && (
             <div>
-              <div className="uppercase tracking-wide text-text-faint text-[10px]">
+              <div className="uppercase tracking-wide text-text-faint text-xs font-medium">
                 {t("eventDescription")}
               </div>
               <div className="text-text-dim whitespace-pre-wrap line-clamp-6">
@@ -90,7 +92,7 @@ export function CalendarEventItem({ event, expanded, onToggle, past }: Props) {
                 href={event.hangoutLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-primary hover:underline"
+                className="inline-flex w-fit items-center gap-1 rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 <Video size={12} />
                 {t("eventJoinMeet")}
@@ -101,7 +103,7 @@ export function CalendarEventItem({ event, expanded, onToggle, past }: Props) {
                 href={event.htmlLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-primary hover:underline"
+                className="inline-flex w-fit items-center gap-1 rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 <ExternalLink size={12} />
                 {t("eventOpenInGoogle")}

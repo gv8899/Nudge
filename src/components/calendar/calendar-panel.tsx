@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { RefreshCw } from "lucide-react";
 import { useCalendarEvents } from "@/hooks/use-calendar-events";
@@ -15,8 +15,13 @@ export function CalendarPanel({ date }: Props) {
   const t = useTranslations("calendar");
   const { data, error, isLoading, refresh } = useCalendarEvents(date);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const now = Date.now();
+  // Tick every minute so past-event dimming stays fresh without
+  // reading Date.now() during render (which React Compiler flags as impure).
+  const [now, setNow] = useState<number>(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <aside
@@ -33,7 +38,7 @@ export function CalendarPanel({ date }: Props) {
           onClick={refresh}
           aria-label={t("panelRefresh")}
           title={t("panelRefresh")}
-          className="rounded-md p-1 text-text-dim hover:bg-surface-hover hover:text-foreground"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-text-dim hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
         >
           <RefreshCw size={14} />
         </button>
@@ -53,11 +58,12 @@ export function CalendarPanel({ date }: Props) {
 
         {/* Loading skeleton */}
         {isLoading && !data && (
-          <>
+          <div role="status" aria-busy="true" aria-label={t("panelLoading")} className="space-y-2">
             <div className="h-12 rounded-md bg-muted animate-pulse" />
             <div className="h-12 rounded-md bg-muted animate-pulse" />
             <div className="h-12 rounded-md bg-muted animate-pulse" />
-          </>
+            <span className="sr-only">{t("panelLoading")}</span>
+          </div>
         )}
 
         {/* Connected with events */}
