@@ -58,39 +58,45 @@ export function CalendarSection() {
 
       {isConnected && (
         <div className="space-y-3">
-          <div className="text-xs text-text-dim">
-            {t("connectedAs", { email: linkedEmail })}
-          </div>
-
           {!confirmDisconnect ? (
-            <button
-              type="button"
-              onClick={() => setConfirmDisconnect(true)}
-              className="text-sm text-destructive hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 rounded"
-            >
-              {t("disconnectButton")}
-            </button>
-          ) : (
-            <div className="rounded-md border border-border p-3 space-y-2">
-              <div className="text-sm text-foreground">{t("disconnectConfirmBody")}</div>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={disconnect}
-                  className="rounded-md bg-destructive px-3 py-1 text-sm text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                >
-                  {t("disconnectButton")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setConfirmDisconnect(false)}
-                  aria-label={tCommon("cancel")}
-                  className="flex items-center justify-center rounded-md border border-border w-8 h-8 text-text-dim hover:text-foreground hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                >
-                  <X size={14} />
-                </button>
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-xs text-text-dim min-w-0 truncate">
+                {t("connectedAs", { email: linkedEmail })}
               </div>
+              <button
+                type="button"
+                onClick={() => setConfirmDisconnect(true)}
+                className="shrink-0 text-sm text-destructive hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 rounded"
+              >
+                {t("disconnectButton")}
+              </button>
             </div>
+          ) : (
+            <>
+              <div className="text-xs text-text-dim truncate">
+                {t("connectedAs", { email: linkedEmail })}
+              </div>
+              <div className="rounded-md border border-border p-3 space-y-2">
+                <div className="text-sm text-foreground">{t("disconnectConfirmBody")}</div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={disconnect}
+                    className="rounded-md bg-destructive px-3 py-1 text-sm text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    {t("disconnectButton")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDisconnect(false)}
+                    aria-label={tCommon("cancel")}
+                    className="flex items-center justify-center rounded-md border border-border w-8 h-8 text-text-dim hover:text-foreground hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </div>
       )}

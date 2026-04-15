@@ -48,16 +48,16 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
   const goToToday = () => goTo(new Date());
 
   return (
-    <nav aria-label={t("calendarNavAria")} className="bg-card rounded-xl px-2 md:px-3 py-2 flex items-center justify-center gap-0.5 md:gap-1">
+    <nav aria-label={t("calendarNavAria")} className="bg-card rounded-md px-2 md:px-3 py-1.5 flex items-center gap-0.5 md:gap-1">
       <button
         onClick={goToPrevWeek}
         aria-label={t("prevWeekAria")}
-        className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-white/10 transition-colors shrink-0"
+        className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-surface-hover transition-colors shrink-0"
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
 
-      <div className="flex items-center gap-0 md:gap-0.5 flex-1 md:flex-initial">
+      <div className="flex items-center justify-center gap-0 md:gap-0.5 flex-1">
         {weekDays.map((day) => {
           const isSelected = isSameDay(day, dateObj);
           const dayStr = format(day, "yyyy-MM-dd");
@@ -71,11 +71,11 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
               aria-current={isSelected ? "date" : undefined}
               className={`
                 relative flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1.5
-                flex-1 md:flex-initial md:w-16 py-1.5 md:py-1.5 rounded-full text-sm transition-all
+                flex-1 py-1.5 md:py-1.5 rounded-md text-sm transition-all
                 ${
                   isSelected
                     ? "bg-primary text-primary-foreground font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/10"
+                    : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
                 }
               `}
             >
@@ -96,7 +96,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
       <button
         onClick={goToNextWeek}
         aria-label={t("nextWeekAria")}
-        className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-white/10 transition-colors shrink-0"
+        className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-surface-hover transition-colors shrink-0"
       >
         <ChevronRight className="h-4 w-4" />
       </button>
@@ -104,7 +104,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
       <div className="w-px h-5 bg-border mx-0.5 md:mx-1 shrink-0" aria-hidden="true" />
       <button
         onClick={goToToday}
-        className="text-xs md:text-sm text-foreground px-1.5 md:px-2.5 py-1.5 rounded-full hover:bg-white/10 hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
+        className="text-xs md:text-sm text-foreground px-1.5 md:px-2.5 py-1.5 rounded-md hover:bg-surface-hover hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
       >
         {tCommon("today")}
       </button>

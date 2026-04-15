@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { RefreshCw } from "lucide-react";
 import { useCalendarEvents } from "@/hooks/use-calendar-events";
 import { CalendarEventItem } from "./calendar-event-item";
 import { CalendarEmptyState } from "./calendar-empty-state";
@@ -26,22 +25,12 @@ export function CalendarPanel({ date }: Props) {
   return (
     <aside
       aria-label={t("panelTitle")}
-      className="hidden md:flex fixed left-14 top-0 bottom-0 z-30 w-[260px] flex-col border-r border-border bg-background"
+      className="hidden lg:flex fixed left-14 top-0 bottom-0 z-30 w-[300px] flex-col bg-background"
     >
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <div>
-          <div className="text-sm font-semibold text-foreground">{t("panelTitle")}</div>
-          <div className="text-xs text-text-dim">Google Calendar</div>
+      <div className="px-4 pt-6 pb-3">
+        <div className="text-[16px] font-semibold tracking-tight text-foreground">
+          {t("panelTitle")}
         </div>
-        <button
-          type="button"
-          onClick={refresh}
-          aria-label={t("panelRefresh")}
-          title={t("panelRefresh")}
-          className="flex h-8 w-8 items-center justify-center rounded-md text-text-dim hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-        >
-          <RefreshCw size={14} />
-        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-2">

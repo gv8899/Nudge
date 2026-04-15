@@ -1,8 +1,8 @@
-const CALENDAR_SCOPE =
-  "https://www.googleapis.com/auth/calendar.readonly " +
-  "https://www.googleapis.com/auth/directory.readonly " +
-  "https://www.googleapis.com/auth/contacts.readonly " +
-  "https://www.googleapis.com/auth/contacts.other.readonly";
+// 只留 calendar.readonly 一個 scope，讓 Google 驗證流程簡單快速。
+// directory.readonly 是 restricted 級別，需要每年第三方安全稽核；
+// contacts.* 是 sensitive，雖然驗證比 restricted 輕但仍增加複雜度。
+// 代價：attendee 的中文姓名無法靠 People API 查表，只能 fallback 到 email 前綴。
+const CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
 const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/lib/get-user";
 import { getAccessToken } from "@/lib/google-calendar/tokens";
-import { listEvents, listCalendars, fetchDirectoryNameMap } from "@/lib/google-calendar/api";
+import { listEvents, listCalendars } from "@/lib/google-calendar/api";
 import type { EventsResponse, CalendarEvent } from "@/lib/google-calendar/types";
 
 function computeRange(
@@ -89,19 +89,9 @@ export async function GET(req: NextRequest): Promise<NextResponse<EventsResponse
     )
   );
 
-  // 並行抓 Workspace directory 做 email→姓名查表（失敗不影響主流程）
-  let directoryNameMap: Map<string, string> | undefined;
-  try {
-    directoryNameMap = await fetchDirectoryNameMap(tokenResult.accessToken, user.id);
-  } catch (e) {
-    console.warn("fetchDirectoryNameMap failed (attendees will fall back to email):", e);
-  }
-
   const results = await Promise.allSettled(
     allowedSelectedIds.map((id) =>
-      listEvents(tokenResult.accessToken, id, nameMap.get(id) || id, range.min, range.max, {
-        directoryNameMap,
-      })
+      listEvents(tokenResult.accessToken, id, nameMap.get(id) || id, range.min, range.max)
     )
   );
 

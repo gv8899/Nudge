@@ -247,7 +247,9 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   return (
     <>
       <CalendarPanel date={currentDate} />
-      <div className="min-h-screen bg-background md:pl-[260px]">
+      {/* lg:pl 映射到 calendar panel 寬度、lg:pr 映射到 panel+icon rail，
+          讓內容在 lg+ viewport 是真正的置中（而不是置中在「面板右邊那塊」） */}
+      <div className="min-h-screen bg-background lg:pl-[300px] lg:pr-[356px]">
         <div className="mx-auto max-w-3xl px-4 md:px-6 pb-8">
           <div className="pt-6 mb-2">
             <h1 className="text-2xl font-bold text-foreground">{tNav("tasks")}</h1>

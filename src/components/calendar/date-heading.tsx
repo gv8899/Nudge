@@ -16,8 +16,11 @@ export function DateHeading({ date }: DateHeadingProps) {
   const locale = useLocale();
   const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
   const dateObj = new Date(date + "T00:00:00");
-  const dayOfWeek = format(dateObj, "EEEE", { locale: dateFnsLocale });
-  const dateFormatted = `${dateObj.getMonth() + 1}/${dateObj.getDate()}, ${dateObj.getFullYear()}`;
+  const valid = !Number.isNaN(dateObj.getTime());
+  const dayOfWeek = valid ? format(dateObj, "EEEE", { locale: dateFnsLocale }) : "—";
+  const dateFormatted = valid
+    ? `${dateObj.getMonth() + 1}/${dateObj.getDate()}, ${dateObj.getFullYear()}`
+    : date;
 
   return (
     <div className="space-y-1 pt-2">
