@@ -84,6 +84,8 @@ export function ThemeProvider({
     }
     // 紙感同步 cookie（即使 SSR 已套上 class）
     setCookie(PAPER_COOKIE, initialPaperTexture);
+    // 時區 cookie 供 server-side 日期計算使用
+    setCookie("nudge:tz", Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, [initialResolvedTheme, initialPaperTexture]);
 
   // 監聽 system 偏好變化

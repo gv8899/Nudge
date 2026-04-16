@@ -21,8 +21,12 @@ export function LandingFooterCta({ signInAction }: LandingFooterCtaProps) {
         <SignInForm action={signInAction} variant="solid" />
       </div>
 
-      <footer className="max-w-4xl mx-auto mt-24 pt-8 border-t border-foreground/10 text-xs text-text-dim text-center">
-        © 2026 Nudge
+      <footer className="max-w-4xl mx-auto mt-24 pt-8 border-t border-foreground/10 text-xs text-text-dim text-center flex items-center justify-center gap-4">
+        <span>© 2026 Nudge</span>
+        <span className="text-foreground/20" aria-hidden="true">·</span>
+        <a href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</a>
+        <span className="text-foreground/20" aria-hidden="true">·</span>
+        <a href="/terms" className="hover:text-foreground transition-colors">Terms of Service</a>
       </footer>
     </section>
   );

@@ -1,7 +1,7 @@
-import { format } from "date-fns";
+import { getToday } from "@/lib/today";
 import { NotesCanvas } from "@/components/notes/notes-canvas";
 
-export default function NotesPage() {
-  const today = format(new Date(), "yyyy-MM-dd");
+export default async function NotesPage() {
+  const today = await getToday();
   return <NotesCanvas date={today} isToday />;
 }
