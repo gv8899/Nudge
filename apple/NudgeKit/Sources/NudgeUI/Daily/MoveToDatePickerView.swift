@@ -13,45 +13,46 @@ public struct MoveToDatePickerView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("task.moveToOtherDate", bundle: .module)
-                .font(.headline)
-                .foregroundStyle(Color.nudgeForeground)
+        NavigationStack {
+            VStack(spacing: 0) {
+                DatePicker(
+                    "",
+                    selection: $pickedDate,
+                    displayedComponents: [.date]
+                )
+                .labelsHidden()
+                .datePickerStyle(.graphical)
+                .tint(Color.nudgePrimary)
+                .environment(\.calendar, Calendar(identifier: .gregorian))
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
 
-            DatePicker(
-                "",
-                selection: $pickedDate,
-                displayedComponents: [.date]
-            )
-            .labelsHidden()
-            .datePickerStyle(.graphical)
-            .tint(Color.nudgePrimary)
-            .environment(\.calendar, Calendar(identifier: .gregorian))
-
-            HStack {
-                Button(action: onCancel) {
-                    Text("common.cancel", bundle: .module)
-                        .foregroundStyle(Color.nudgeTextDim)
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.nudgeBackground)
+            .navigationTitle(Text("task.moveToOtherDate", bundle: .module))
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(action: onCancel) {
+                        Text("common.cancel", bundle: .module)
+                            .foregroundStyle(Color.nudgeTextDim)
+                    }
                 }
-                .buttonStyle(.plain)
-
-                Spacer()
-
-                Button(action: {
-                    onPick(DateFormatters.isoDate(pickedDate))
-                }) {
-                    Text("common.save", bundle: .module)
-                        .fontWeight(.medium)
-                        .foregroundStyle(Color.nudgePrimary)
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(action: {
+                        onPick(DateFormatters.isoDate(pickedDate))
+                    }) {
+                        Text("common.save", bundle: .module)
+                            .fontWeight(.medium)
+                            .foregroundStyle(Color.nudgePrimary)
+                    }
                 }
-                .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 24)
-        .padding(.bottom, 20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.nudgeBackground)
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
     }
