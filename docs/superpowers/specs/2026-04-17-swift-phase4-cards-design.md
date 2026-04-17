@@ -178,11 +178,11 @@ public extension String {
 | Update title | `PATCH /api/tasks/{id}` | `{title}` | `{}` |
 | Get detail | `GET /api/tasks/{id}` | — | full task (Phase 2 `TaskDTO` 涵蓋；cards 需 `description` + `tags`) |
 
-**⚠️ `GET /api/cards` 與 `GET /api/tasks/{id}` 的 response shape**：
+**Response shape（已驗證）**：
 - `GET /api/cards` 每筆含 `tags: [{id, name, color}]`
-- `GET /api/tasks/{id}` 可能不含 tags — 需要確認 Web 現狀。若沒有，detail view 的 tag chips 靠 list view 傳進來的 `CardDTO.tags`，不必二次打 API。
+- `GET /api/tasks/{id}` 回 raw task row — **不含 tags**
 
-**Phase 4 實作前確認**：Web 的 `GET /api/tasks/{id}` 有沒有 tags 欄位？有就 `CardDetailView` 單獨 fetch；沒有就從 list 傳 `card: CardDTO` 整包進 detail，`@State` copy 內容做本地編輯。
+**決策**：List view 把完整 `CardDTO`（含 tags）傳進 detail view，detail 不再打 `GET /api/tasks/{id}`。只有新增卡片後的空白 detail 才會沒 `CardDTO` — 這種情況 tags 本來就為空。Detail 內容用 `@State` copy 做本地編輯；save 透過 PATCH 送出；list refresh 時拿新結果覆蓋。
 
 ---
 
