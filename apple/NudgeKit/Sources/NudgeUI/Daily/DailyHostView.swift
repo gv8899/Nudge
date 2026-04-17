@@ -54,8 +54,9 @@ public struct DailyHostView: View {
                         )
                         OverdueSectionView(
                             overdueTasks: dailyData?.overdueTasks ?? [],
+                            currentDate: selectedDate,
                             onToggleComplete: toggleComplete,
-                            onScheduleToday: { scheduleOverdueToToday($0) },
+                            onReschedule: { task, date in moveAssignment(task, to: date) },
                             onMoveTo: { moveSheetAssignment = $0 },
                             onArchive: { archiveTask($0) }
                         )
@@ -134,8 +135,9 @@ public struct DailyHostView: View {
                     VStack(spacing: 0) {
                         OverdueSectionView(
                             overdueTasks: dailyData?.overdueTasks ?? [],
+                            currentDate: selectedDate,
                             onToggleComplete: toggleComplete,
-                            onScheduleToday: { scheduleOverdueToToday($0) },
+                            onReschedule: { task, date in moveAssignment(task, to: date) },
                             onMoveTo: { moveSheetAssignment = $0 },
                             onArchive: { archiveTask($0) }
                         )
@@ -301,8 +303,9 @@ public struct DailyHostView: View {
     }
 
     private func scheduleOverdueToToday(_ assignment: DailyAssignmentDTO) {
-        let today = DateFormatters.isoDate(Date())
-        moveAssignment(assignment, to: today)
+        // Matches Web's onReschedule(a.id, currentDate): "today" from the
+        // user's POV is the date they're viewing, not the wall-clock today.
+        moveAssignment(assignment, to: selectedDate)
     }
 
     private func archiveTask(_ assignment: DailyAssignmentDTO) {
