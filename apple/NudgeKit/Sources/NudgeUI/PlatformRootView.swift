@@ -33,7 +33,7 @@ struct IOSTabRoot: View {
             PlaceholderTab(title: "日誌", systemImage: "book")
                 .tabItem { Label { Text("nav.notes", bundle: .module) } icon: { Image(systemName: "book") } }
 
-            PlaceholderTab(title: "卡片", systemImage: "square.stack")
+            CardsHostView()
                 .tabItem { Label { Text("nav.cards", bundle: .module) } icon: { Image(systemName: "square.stack") } }
 
             SettingsView(auth: auth)
@@ -74,7 +74,7 @@ struct MacSidebarRoot: View {
             switch selection ?? .today {
             case .today: DailyHostView()
             case .notes: PlaceholderTab(title: "日誌", systemImage: "book")
-            case .cards: PlaceholderTab(title: "卡片", systemImage: "square.stack")
+            case .cards: CardsHostView()
             case .settings: SettingsView(auth: auth)
             }
         } detail: {
