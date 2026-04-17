@@ -13,8 +13,10 @@ public struct PlatformRootView: View {
     public var body: some View {
         #if os(iOS)
         IOSTabRoot(auth: auth)
+            .tint(Color.nudgePrimary)
         #else
         MacSidebarRoot(auth: auth)
+            .tint(Color.nudgePrimary)
         #endif
     }
 }
@@ -37,6 +39,7 @@ struct IOSTabRoot: View {
             SettingsView(auth: auth)
                 .tabItem { Label { Text("nav.settings", bundle: .module) } icon: { Image(systemName: "gearshape") } }
         }
+        .tint(Color.nudgePrimary)
     }
 }
 #else
