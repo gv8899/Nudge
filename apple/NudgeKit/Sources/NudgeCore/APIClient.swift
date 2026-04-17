@@ -7,7 +7,8 @@ public final class APIClient: Sendable {
     private let configuration: APIConfiguration
     private let session: URLSession
     private let tokenProvider: TokenProvider?
-    private let unauthorizedHandler: UnauthorizedHandler?
+    private let handlerLock = NSLock()
+    private nonisolated(unsafe) var _unauthorizedHandler: UnauthorizedHandler?
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
 
@@ -20,7 +21,7 @@ public final class APIClient: Sendable {
         self.configuration = configuration
         self.session = session
         self.tokenProvider = tokenProvider
-        self.unauthorizedHandler = unauthorizedHandler
+        self._unauthorizedHandler = unauthorizedHandler
 
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -65,7 +66,21 @@ public final class APIClient: Sendable {
         let _: Empty = try await perform(request)
     }
 
+    // MARK: - Public setter
+
+    public func setUnauthorizedHandler(_ handler: UnauthorizedHandler?) {
+        handlerLock.lock()
+        defer { handlerLock.unlock() }
+        _unauthorizedHandler = handler
+    }
+
     // MARK: - Private
+
+    private func currentUnauthorizedHandler() -> UnauthorizedHandler? {
+        handlerLock.lock()
+        defer { handlerLock.unlock() }
+        return _unauthorizedHandler
+    }
 
     private func buildRequest<Body: Encodable>(
         method: String,
@@ -114,7 +129,7 @@ public final class APIClient: Sendable {
                 throw APIError.decoding(underlying: error)
             }
         case 401:
-            await unauthorizedHandler?()
+            if let handler = currentUnauthorizedHandler() { await handler() }
             throw APIError.unauthorized
         default:
             let message = (try? decoder.decode(ErrorPayload.self, from: data))?.error

@@ -85,6 +85,38 @@ import Foundation
         }
     }
 
+    @Test func setUnauthorizedHandlerOverridesInit() async throws {
+        MockURLProtocol.handler = { request in
+            let response = HTTPURLResponse(url: request.url!, statusCode: 401, httpVersion: nil, headerFields: nil)!
+            return (Data(), response)
+        }
+
+        actor CallCounter {
+            var count = 0
+            func increment() { count += 1 }
+        }
+        let counter = CallCounter()
+
+        let client = APIClient(
+            configuration: APIConfiguration(baseURL: URL(string: "https://test.local")!),
+            session: .mocked()
+        )
+        client.setUnauthorizedHandler {
+            await counter.increment()
+        }
+
+        struct P: Codable { let x: String }
+        do {
+            let _: P = try await client.get("/api/me")
+        } catch {
+            // expected: unauthorized
+        }
+
+        try await Task.sleep(for: .milliseconds(50))
+        let count = await counter.count
+        #expect(count == 1)
+    }
+
     @Test func postRequestSendsJSONBody() async throws {
         MockURLProtocol.handler = { request in
             #expect(request.httpMethod == "POST")
