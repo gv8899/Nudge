@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 import SwiftData
-import NudgeData
+import NudgeCore
 
 @Observable
 @MainActor
