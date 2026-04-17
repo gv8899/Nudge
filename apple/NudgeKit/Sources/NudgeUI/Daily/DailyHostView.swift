@@ -64,7 +64,9 @@ public struct DailyHostView: View {
                             onToggleComplete: toggleComplete,
                             onTap: { navigationPath.append($0) },
                             onDetailTap: { navigationPath.append($0) },
-                            onMove: handleMove
+                            onMove: handleMove,
+                            onArchive: { archiveTask($0) },
+                            onMoveTo: { moveSheetAssignment = $0 }
                         )
                         .frame(minHeight: 300)
                     }
@@ -141,7 +143,9 @@ public struct DailyHostView: View {
                             onToggleComplete: toggleComplete,
                             onTap: { selectedAssignmentForDetail = $0 },
                             onDetailTap: { selectedAssignmentForDetail = $0 },
-                            onMove: handleMove
+                            onMove: handleMove,
+                            onArchive: { archiveTask($0) },
+                            onMoveTo: { moveSheetAssignment = $0 }
                         )
                         .frame(minHeight: 300)
                     }

@@ -6,17 +6,23 @@ public struct TaskRowView: View {
     public let onToggleComplete: () -> Void
     public let onTap: () -> Void
     public let onDetailTap: () -> Void
+    public let onMoveTo: () -> Void
+    public let onArchive: () -> Void
 
     public init(
         assignment: DailyAssignmentDTO,
         onToggleComplete: @escaping () -> Void,
         onTap: @escaping () -> Void,
-        onDetailTap: @escaping () -> Void
+        onDetailTap: @escaping () -> Void,
+        onMoveTo: @escaping () -> Void,
+        onArchive: @escaping () -> Void
     ) {
         self.assignment = assignment
         self.onToggleComplete = onToggleComplete
         self.onTap = onTap
         self.onDetailTap = onDetailTap
+        self.onMoveTo = onMoveTo
+        self.onArchive = onArchive
     }
 
     public var body: some View {
@@ -53,5 +59,38 @@ public struct TaskRowView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .background(Color.nudgeBackground)
+        #if os(macOS)
+        .draggable(assignment.id)
+        #endif
+        .contextMenu {
+            Button(action: onToggleComplete) {
+                Label {
+                    Text(verbatim: assignment.isCompleted ? "Uncomplete" : "Complete")
+                } icon: {
+                    Image(systemName: assignment.isCompleted ? "circle" : "checkmark.circle")
+                }
+            }
+            Button(action: onMoveTo) {
+                Label {
+                    Text("task.moveToOtherDate", bundle: .module)
+                } icon: {
+                    Image(systemName: "calendar")
+                }
+            }
+            Button(role: .destructive, action: onArchive) {
+                Label {
+                    Text("daily.archiveButton", bundle: .module)
+                } icon: {
+                    Image(systemName: "archivebox")
+                }
+            }
+            Button(action: onDetailTap) {
+                Label {
+                    Text(verbatim: "Edit")
+                } icon: {
+                    Image(systemName: "pencil")
+                }
+            }
+        }
     }
 }
