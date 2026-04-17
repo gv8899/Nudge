@@ -25,17 +25,17 @@ struct IOSTabRoot: View {
 
     var body: some View {
         TabView {
-            PlaceholderTab(title: "行動", systemImage: "checkmark.circle")
-                .tabItem { Label("行動", systemImage: "checkmark.circle") }
+            DailyHostView()
+                .tabItem { Label(text: Text("nav.tasks", bundle: .module), systemImage: "checkmark.circle") }
 
             PlaceholderTab(title: "日誌", systemImage: "book")
-                .tabItem { Label("日誌", systemImage: "book") }
+                .tabItem { Label(text: Text("nav.notes", bundle: .module), systemImage: "book") }
 
             PlaceholderTab(title: "卡片", systemImage: "square.stack")
-                .tabItem { Label("卡片", systemImage: "square.stack") }
+                .tabItem { Label(text: Text("nav.cards", bundle: .module), systemImage: "square.stack") }
 
-            SettingsPlaceholder(auth: auth)
-                .tabItem { Label("設定", systemImage: "gearshape") }
+            SettingsView(auth: auth)
+                .tabItem { Label(text: Text("nav.settings", bundle: .module), systemImage: "gearshape") }
         }
     }
 }
@@ -47,24 +47,32 @@ struct MacSidebarRoot: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selection) {
-                Section("今日") {
-                    NavigationLink(value: SidebarItem.today) { Label("今天", systemImage: "sun.max") }
-                }
-                Section("內容") {
-                    NavigationLink(value: SidebarItem.notes) { Label("日誌", systemImage: "book") }
-                    NavigationLink(value: SidebarItem.cards) { Label("卡片", systemImage: "square.stack") }
+                Section {
+                    NavigationLink(value: SidebarItem.today) {
+                        Label(title: { Text("nav.tasks", bundle: .module) }, icon: { Image(systemName: "sun.max") })
+                    }
                 }
                 Section {
-                    NavigationLink(value: SidebarItem.settings) { Label("設定", systemImage: "gearshape") }
+                    NavigationLink(value: SidebarItem.notes) {
+                        Label(title: { Text("nav.notes", bundle: .module) }, icon: { Image(systemName: "book") })
+                    }
+                    NavigationLink(value: SidebarItem.cards) {
+                        Label(title: { Text("nav.cards", bundle: .module) }, icon: { Image(systemName: "square.stack") })
+                    }
+                }
+                Section {
+                    NavigationLink(value: SidebarItem.settings) {
+                        Label(title: { Text("nav.settings", bundle: .module) }, icon: { Image(systemName: "gearshape") })
+                    }
                 }
             }
             .navigationTitle("Nudge")
         } content: {
             switch selection ?? .today {
-            case .today: PlaceholderTab(title: "今天", systemImage: "sun.max")
+            case .today: DailyHostView()
             case .notes: PlaceholderTab(title: "日誌", systemImage: "book")
             case .cards: PlaceholderTab(title: "卡片", systemImage: "square.stack")
-            case .settings: SettingsPlaceholder(auth: auth)
+            case .settings: SettingsView(auth: auth)
             }
         } detail: {
             Text("選擇項目")
@@ -95,26 +103,5 @@ struct PlaceholderTab: View {
                 .foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-struct SettingsPlaceholder: View {
-    @Bindable var auth: AuthRepository
-
-    var body: some View {
-        List {
-            Section("帳號") {
-                if let user = auth.currentUser {
-                    LabeledContent("Email", value: user.email)
-                    LabeledContent("名稱", value: user.name ?? "—")
-                }
-                Button("登出", role: .destructive) {
-                    Task { await auth.logout() }
-                }
-            }
-        }
-        #if os(macOS)
-        .formStyle(.grouped)
-        #endif
     }
 }
