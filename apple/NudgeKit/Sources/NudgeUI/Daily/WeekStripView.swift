@@ -52,7 +52,7 @@ public struct WeekStripView: View {
     private var header: some View {
         #if os(iOS)
         Text(formattedSelectedDate())
-            .font(.largeTitle.weight(.bold))
+            .font(.title2.weight(.semibold))
             .foregroundStyle(Color.nudgeForeground)
             .frame(maxWidth: .infinity, alignment: .center)
         #else
@@ -65,7 +65,7 @@ public struct WeekStripView: View {
             Spacer()
 
             Text(formattedSelectedDate())
-                .font(.title.weight(.bold))
+                .font(.title2.weight(.semibold))
                 .foregroundStyle(Color.nudgeForeground)
 
             Spacer()
@@ -106,19 +106,23 @@ public struct WeekStripView: View {
             VStack(spacing: 4) {
                 Text(weekdayKey(date), bundle: .module)
                     .font(.caption2)
-                    .foregroundStyle(Color.nudgeTextDim)
+                    .foregroundStyle(isSelected ? Color.nudgePrimary : Color.nudgeTextDim)
+
                 Text(dayNumber)
                     .font(.headline)
                     .foregroundStyle(isSelected ? Color.nudgePrimaryForeground : Color.nudgeForeground)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        Circle()
+                            .fill(isSelected ? Color.nudgePrimary : Color.clear)
+                    )
 
                 Circle()
                     .fill(hasTasks ? Color.nudgePrimary : Color.clear)
                     .frame(width: 4, height: 4)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-            .background(isSelected ? Color.nudgePrimary : Color.clear)
-            .cornerRadius(8)
+            .padding(.vertical, 4)
         }
         .buttonStyle(.plain)
     }
