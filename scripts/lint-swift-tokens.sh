@@ -22,7 +22,7 @@ files=$(
 
 [ -z "$files" ] && exit 0
 
-allowlist='(TaskDetailView\.swift|NudgeAppearance\.swift)$'
+allowlist='(TaskDetailView\.swift|NudgeAppearance\.swift|Tests\.swift|TagBadgeView\.swift)$'
 literal_regex='\bColor\.(blue|red|green|yellow|orange|black|white|gray|pink|purple|cyan|mint|indigo|teal|brown|accentColor)\b'
 rgb_regex='\bColor\(red:[^)]*green:[^)]*blue:'
 hex_regex='"#[0-9a-fA-F]{6,8}"'

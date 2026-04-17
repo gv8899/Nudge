@@ -11,7 +11,7 @@ import Foundation
           "description": "<p>Hello</p>",
           "updatedAt": "2026-04-17T10:00:00.000Z",
           "tags": [
-            {"id": "t1", "name": "Work", "color": "#5a7050", "sortOrder": 0} // nudge:allow-color
+            {"id": "t1", "name": "Work", "color": "#5a7050", "sortOrder": 0}
           ]
         }
         """.data(using: .utf8)!
