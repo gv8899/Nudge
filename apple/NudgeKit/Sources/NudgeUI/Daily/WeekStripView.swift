@@ -5,48 +5,24 @@ public struct WeekStripView: View {
     public let selectedDate: String       // "YYYY-MM-DD"
     public let datesWithTasks: Set<String>
     public let onSelectDate: (String) -> Void
-    public let onTapToday: () -> Void
     public let onWeekOffset: (Int) -> Void
 
     public init(
         selectedDate: String,
         datesWithTasks: Set<String>,
         onSelectDate: @escaping (String) -> Void,
-        onTapToday: @escaping () -> Void,
         onWeekOffset: @escaping (Int) -> Void
     ) {
         self.selectedDate = selectedDate
         self.datesWithTasks = datesWithTasks
         self.onSelectDate = onSelectDate
-        self.onTapToday = onTapToday
         self.onWeekOffset = onWeekOffset
     }
 
     public var body: some View {
         VStack(spacing: 8) {
-            HStack {
-                Button(action: { onWeekOffset(-1) }) {
-                    Image(systemName: "chevron.left")
-                }
-                .buttonStyle(.plain)
-
-                Spacer()
-
-                Button(action: onTapToday) {
-                    Text("daily.todayButton", bundle: .module)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(Color.nudgePrimary)
-                }
-                .buttonStyle(.plain)
-
-                Spacer()
-
-                Button(action: { onWeekOffset(1) }) {
-                    Image(systemName: "chevron.right")
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 16)
+            header
+                .padding(.horizontal, 16)
 
             HStack(spacing: 4) {
                 ForEach(currentWeekDates(), id: \.self) { dateString in
@@ -54,9 +30,61 @@ public struct WeekStripView: View {
                 }
             }
             .padding(.horizontal, 8)
+            #if os(iOS)
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 30)
+                    .onEnded { value in
+                        if value.translation.width > 50 {
+                            onWeekOffset(-1)
+                        } else if value.translation.width < -50 {
+                            onWeekOffset(1)
+                        }
+                    }
+            )
+            #endif
         }
         .padding(.vertical, 12)
         .background(Color.nudgeBackground)
+    }
+
+    @ViewBuilder
+    private var header: some View {
+        #if os(iOS)
+        Text(formattedSelectedDate())
+            .font(.headline)
+            .foregroundStyle(Color.nudgeForeground)
+            .frame(maxWidth: .infinity, alignment: .center)
+        #else
+        HStack {
+            Button(action: { onWeekOffset(-1) }) {
+                Image(systemName: "chevron.left")
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Text(formattedSelectedDate())
+                .font(.headline)
+                .foregroundStyle(Color.nudgeForeground)
+
+            Spacer()
+
+            Button(action: { onWeekOffset(1) }) {
+                Image(systemName: "chevron.right")
+            }
+            .buttonStyle(.plain)
+        }
+        #endif
+    }
+
+    private func formattedSelectedDate() -> String {
+        guard let date = DateFormatters.parseISODate(selectedDate) else { return selectedDate }
+        let cal = Calendar(identifier: .gregorian)
+        let m = cal.component(.month, from: date)
+        let d = cal.component(.day, from: date)
+        let y = cal.component(.year, from: date)
+        return "\(m)/\(d), \(y)"
     }
 
     private func currentWeekDates() -> [String] {

@@ -43,7 +43,6 @@ public struct DailyHostView: View {
                     selectedDate: selectedDate,
                     datesWithTasks: weekDates,
                     onSelectDate: { selectedDate = $0 },
-                    onTapToday: { selectedDate = DateFormatters.isoDate(Date()) },
                     onWeekOffset: offsetWeek
                 )
                 ScrollView {
@@ -127,7 +126,6 @@ public struct DailyHostView: View {
                     selectedDate: selectedDate,
                     datesWithTasks: weekDates,
                     onSelectDate: { selectedDate = $0 },
-                    onTapToday: { selectedDate = DateFormatters.isoDate(Date()) },
                     onWeekOffset: offsetWeek
                 )
                 ScrollView {
