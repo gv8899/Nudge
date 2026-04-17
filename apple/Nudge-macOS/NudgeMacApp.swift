@@ -15,6 +15,8 @@ struct NudgeMacApp: App {
     private let googleSignIn: GoogleSignInServiceMacOS
 
     init() {
+        NudgeAppearance.configure()
+
         let keychain = KeychainStorage(service: "tw.nudge.mac")
         let tokenProvider: APIClient.TokenProvider = {
             try? keychain.get(for: "token")
