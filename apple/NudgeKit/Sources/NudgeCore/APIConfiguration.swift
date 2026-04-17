@@ -15,12 +15,6 @@ public struct APIConfiguration: Sendable {
         baseURL: URL(string: "http://localhost:3000")!
     )
 
-    /// Debug build 用 development，release build 用 production。
-    public static var `default`: APIConfiguration {
-        #if DEBUG
-        return .development
-        #else
-        return .production
-        #endif
-    }
+    /// Debug + release 都打 production；dev 機器開 npm run dev 也不會影響 app。
+    public static var `default`: APIConfiguration { .production }
 }
