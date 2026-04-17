@@ -44,7 +44,7 @@ public struct OverdueSectionView: View {
                             overdueTasks.count
                         ))
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(Color.nudgeChart5)
+                            .foregroundStyle(Color.nudgePrimary)
                         Spacer()
                     }
                     .contentShape(Rectangle())

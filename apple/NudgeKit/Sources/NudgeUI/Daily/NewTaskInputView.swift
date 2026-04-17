@@ -13,27 +13,26 @@ public struct NewTaskInputView: View {
     }
 
     public var body: some View {
-        HStack {
+        VStack(spacing: 6) {
             TextField(text: $text) {
                 Text("task.createPlaceholder", bundle: .module)
             }
             .focused($isFocused)
             .textFieldStyle(.plain)
+            .foregroundStyle(Color.nudgeForeground)
             .onSubmit {
                 let trimmed = text.trimmingCharacters(in: .whitespaces)
                 guard !trimmed.isEmpty else { return }
                 onSubmit(trimmed)
                 text = ""
             }
-            .padding(12)
-            .background(Color.nudgeBackground)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.nudgeBorder, lineWidth: 1)
-            )
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+
+            Rectangle()
+                .fill(Color.nudgeBorder)
+                .frame(height: 1)
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
         .background(Color.nudgeBackground)
     }
 }

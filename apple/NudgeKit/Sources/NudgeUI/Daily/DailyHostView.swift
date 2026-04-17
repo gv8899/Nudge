@@ -60,6 +60,7 @@ public struct DailyHostView: View {
                             onMoveTo: { moveSheetAssignment = $0 },
                             onArchive: { archiveTask($0) }
                         )
+                        NewTaskInputView(onSubmit: createTask)
                         TaskListView(
                             assignments: dailyData?.assignments ?? [],
                             onToggleComplete: toggleComplete,
@@ -72,7 +73,6 @@ public struct DailyHostView: View {
                         .frame(minHeight: 300)
                     }
                 }
-                NewTaskInputView(onSubmit: createTask)
             }
             .background(Color.nudgeBackground)
             .navigationDestination(for: DailyAssignmentDTO.self) { assignment in
@@ -137,6 +137,7 @@ public struct DailyHostView: View {
                             onMoveTo: { moveSheetAssignment = $0 },
                             onArchive: { archiveTask($0) }
                         )
+                        NewTaskInputView(onSubmit: createTask)
                         TaskListView(
                             assignments: dailyData?.assignments ?? [],
                             onToggleComplete: toggleComplete,
@@ -149,7 +150,6 @@ public struct DailyHostView: View {
                         .frame(minHeight: 300)
                     }
                 }
-                NewTaskInputView(onSubmit: createTask)
             }
         }
         .background(Color.nudgeBackground)
