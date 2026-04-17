@@ -22,8 +22,39 @@ public struct PlatformRootView: View {
 }
 
 #if os(iOS)
+import UIKit
+
 struct IOSTabRoot: View {
     @Bindable var auth: AuthRepository
+
+    init(auth: AuthRepository) {
+        self.auth = auth
+        Self.configureTabBarAppearance()
+    }
+
+    private static func configureTabBarAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        if let bg = UIColor(named: "nudge.background", in: .module, compatibleWith: nil) {
+            appearance.backgroundColor = bg
+        }
+
+        let primary = UIColor(named: "nudge.primary", in: .module, compatibleWith: nil) ?? .systemOrange
+        let dim = UIColor(named: "nudge.textDim", in: .module, compatibleWith: nil) ?? .secondaryLabel
+
+        let item = UITabBarItemAppearance()
+        item.normal.iconColor = dim
+        item.normal.titleTextAttributes = [.foregroundColor: dim]
+        item.selected.iconColor = primary
+        item.selected.titleTextAttributes = [.foregroundColor: primary]
+
+        appearance.stackedLayoutAppearance = item
+        appearance.inlineLayoutAppearance = item
+        appearance.compactInlineLayoutAppearance = item
+
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
 
     var body: some View {
         TabView {
