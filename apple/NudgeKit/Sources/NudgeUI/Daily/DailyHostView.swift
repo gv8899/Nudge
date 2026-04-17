@@ -54,6 +54,7 @@ public struct DailyHostView: View {
                         )
                         OverdueSectionView(
                             overdueTasks: dailyData?.overdueTasks ?? [],
+                            onToggleComplete: toggleComplete,
                             onScheduleToday: { scheduleOverdueToToday($0) },
                             onMoveTo: { moveSheetAssignment = $0 },
                             onArchive: { archiveTask($0) }
@@ -133,6 +134,7 @@ public struct DailyHostView: View {
                     VStack(spacing: 0) {
                         OverdueSectionView(
                             overdueTasks: dailyData?.overdueTasks ?? [],
+                            onToggleComplete: toggleComplete,
                             onScheduleToday: { scheduleOverdueToToday($0) },
                             onMoveTo: { moveSheetAssignment = $0 },
                             onArchive: { archiveTask($0) }
@@ -276,6 +278,13 @@ public struct DailyHostView: View {
     }
 
     private func moveAssignment(_ assignment: DailyAssignmentDTO, to newDate: String) {
+        // Guard: server's PATCH treats from==to as update+delete on the same
+        // row, which ends up deleting the task entirely. No-op on the client
+        // when the task is already on the requested date.
+        if assignment.date == newDate {
+            print("[DailyHostView] moveAssignment skipped: already on \(newDate)")
+            return
+        }
         print("[DailyHostView] moveAssignment id=\(assignment.id) from=\(assignment.date) to=\(newDate)")
         Task {
             do {

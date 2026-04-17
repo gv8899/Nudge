@@ -3,6 +3,7 @@ import NudgeCore
 
 public struct OverdueSectionView: View {
     public let overdueTasks: [DailyAssignmentDTO]
+    public let onToggleComplete: (DailyAssignmentDTO) -> Void
     public let onScheduleToday: (DailyAssignmentDTO) -> Void
     public let onMoveTo: (DailyAssignmentDTO) -> Void
     public let onArchive: (DailyAssignmentDTO) -> Void
@@ -11,11 +12,13 @@ public struct OverdueSectionView: View {
 
     public init(
         overdueTasks: [DailyAssignmentDTO],
+        onToggleComplete: @escaping (DailyAssignmentDTO) -> Void,
         onScheduleToday: @escaping (DailyAssignmentDTO) -> Void,
         onMoveTo: @escaping (DailyAssignmentDTO) -> Void,
         onArchive: @escaping (DailyAssignmentDTO) -> Void
     ) {
         self.overdueTasks = overdueTasks
+        self.onToggleComplete = onToggleComplete
         self.onScheduleToday = onScheduleToday
         self.onMoveTo = onMoveTo
         self.onArchive = onArchive
@@ -63,13 +66,21 @@ public struct OverdueSectionView: View {
 
     @ViewBuilder
     private func overdueRow(_ task: DailyAssignmentDTO) -> some View {
-        HStack {
-            Circle()
-                .fill(Color.nudgeChart5)
-                .frame(width: 4, height: 4)
+        HStack(spacing: 12) {
+            Button(action: { onToggleComplete(task) }) {
+                Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundStyle(task.isCompleted ? Color.nudgePrimary : Color.nudgeTextDim)
+            }
+            .buttonStyle(.plain)
+
             Text(task.task.title)
-                .foregroundStyle(Color.nudgeForeground)
+                .foregroundStyle(task.isCompleted ? Color.nudgeTextDim : Color.nudgeForeground)
+                .strikethrough(task.isCompleted)
+                .lineLimit(1)
+
             Spacer()
+
             Menu {
                 Button(action: { onScheduleToday(task) }) {
                     Text("daily.overdueScheduleToday", bundle: .module)
@@ -85,6 +96,6 @@ public struct OverdueSectionView: View {
                     .foregroundStyle(Color.nudgeTextDim)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
 }
