@@ -49,16 +49,19 @@ public struct CardsHostView: View {
     }
 
     private var inlineHeader: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
+        HStack(spacing: 8) {
             Text("nav.cards", bundle: .module)
                 .font(.largeTitle.weight(.bold))
                 .foregroundStyle(Color.nudgeForeground)
-            IconButton(
-                systemName: "plus",
-                accessibilityLabel: "cards.createAria",
-                foreground: .nudgePrimary,
-                action: createCard
-            )
+            Button(action: createCard) {
+                Image(systemName: "plus")
+                    .font(.title3.weight(.medium))
+                    .foregroundStyle(Color.nudgePrimary)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("cards.createAria", bundle: .module))
             Spacer()
         }
         .padding(.horizontal, 16)
@@ -179,6 +182,9 @@ public struct CardsHostView: View {
                             Task { await loadMore() }
                         }
                     }
+                    Divider()
+                        .background(Color.nudgeBorderLight)
+                        .padding(.leading, 16)
                 }
                 if isLoadingMore {
                     Text("cards.loadMore", bundle: .module)
