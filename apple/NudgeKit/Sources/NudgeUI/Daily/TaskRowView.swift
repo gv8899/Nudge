@@ -28,7 +28,7 @@ public struct TaskRowView: View {
     public var body: some View {
         HStack(spacing: 12) {
             Button(action: onToggleComplete) {
-                Image(systemName: assignment.isCompleted ? "checkmark.circle.fill" : "circle")
+                Image(systemName: assignment.isCompleted ? "checkmark.square.fill" : "square")
                     .font(.title3)
                     .foregroundStyle(assignment.isCompleted ? Color.nudgePrimary : Color.nudgeTextDim)
             }

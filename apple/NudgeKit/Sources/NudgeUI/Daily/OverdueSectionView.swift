@@ -66,7 +66,7 @@ public struct OverdueSectionView: View {
     private func overdueRow(_ task: DailyAssignmentDTO) -> some View {
         HStack(spacing: 12) {
             Button(action: { onToggleComplete(task) }) {
-                Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                Image(systemName: task.isCompleted ? "checkmark.square.fill" : "square")
                     .font(.title3)
                     .foregroundStyle(task.isCompleted ? Color.nudgePrimary : Color.nudgeTextDim)
             }

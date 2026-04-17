@@ -13,11 +13,12 @@ public struct MoveToDatePickerView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             Text("task.moveToOtherDate", bundle: .module)
                 .font(.headline)
                 .foregroundStyle(Color.nudgeForeground)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 8)
 
             DatePicker(
                 "",
@@ -46,8 +47,10 @@ public struct MoveToDatePickerView: View {
                 }
                 .buttonStyle(.plain)
             }
+            .padding(.bottom, 8)
         }
-        .padding(20)
+        .padding(.horizontal, 24)
+        .padding(.vertical, 20)
         .background(Color.nudgeBackground)
         .presentationDetents([.medium, .large])
     }

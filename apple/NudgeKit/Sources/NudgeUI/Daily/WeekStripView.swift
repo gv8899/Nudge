@@ -52,7 +52,7 @@ public struct WeekStripView: View {
     private var header: some View {
         #if os(iOS)
         Text(formattedSelectedDate())
-            .font(.headline)
+            .font(.largeTitle.weight(.bold))
             .foregroundStyle(Color.nudgeForeground)
             .frame(maxWidth: .infinity, alignment: .center)
         #else
@@ -65,7 +65,7 @@ public struct WeekStripView: View {
             Spacer()
 
             Text(formattedSelectedDate())
-                .font(.headline)
+                .font(.title.weight(.bold))
                 .foregroundStyle(Color.nudgeForeground)
 
             Spacer()
