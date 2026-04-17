@@ -78,12 +78,8 @@ public struct DailyHostView: View {
             .navigationDestination(for: DailyAssignmentDTO.self) { assignment in
                 TaskDetailView(
                     assignment: assignment,
-                    tags: [],  // Phase 2: tag resolution deferred
                     onUpdateTitle: { updateTitle(assignment: assignment, title: $0) },
-                    onUpdateDescription: { updateDescription(assignment: assignment, description: $0) },
-                    onScheduleToday: { scheduleOverdueToToday(assignment) },
-                    onMoveTo: { moveSheetAssignment = assignment },
-                    onArchive: { archiveTask(assignment) }
+                    onUpdateDescription: { updateDescription(assignment: assignment, description: $0) }
                 )
             }
             .sheet(item: $moveSheetAssignment) { assignment in
@@ -160,12 +156,8 @@ public struct DailyHostView: View {
         .sheet(item: $selectedAssignmentForDetail) { assignment in
             TaskDetailView(
                 assignment: assignment,
-                tags: [],
                 onUpdateTitle: { updateTitle(assignment: assignment, title: $0) },
-                onUpdateDescription: { updateDescription(assignment: assignment, description: $0) },
-                onScheduleToday: { scheduleOverdueToToday(assignment) },
-                onMoveTo: { moveSheetAssignment = assignment },
-                onArchive: { archiveTask(assignment) }
+                onUpdateDescription: { updateDescription(assignment: assignment, description: $0) }
             )
             .frame(minWidth: 500, minHeight: 400)
         }

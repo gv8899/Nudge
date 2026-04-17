@@ -42,19 +42,11 @@ public struct TaskRowView: View {
                 .contentShape(Rectangle())
                 .onTapGesture(perform: onTap)
 
-            if !assignment.task.description.isEmpty {
-                Button(action: onDetailTap) {
-                    Image(systemName: "text.alignleft")
-                        .foregroundStyle(Color.nudgePrimary)
-                }
-                .buttonStyle(.plain)
-            } else {
-                Button(action: onDetailTap) {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(Color.nudgeTextDim)
-                }
-                .buttonStyle(.plain)
+            Button(action: onMoveTo) {
+                Image(systemName: "calendar")
+                    .foregroundStyle(Color.nudgeTextDim)
             }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
