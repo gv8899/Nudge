@@ -19,4 +19,11 @@ public extension Color {
     static let nudgeStatusWaiting = Color("nudge.statusWaiting", bundle: .module)
     static let nudgeStatusDone = Color("nudge.statusDone", bundle: .module)
     static let nudgeStatusArchived = Color("nudge.statusArchived", bundle: .module)
+
+    // MARK: - Semantic status tokens (prefer these over chart.* for status paint)
+
+    static let nudgeDestructive = Color("nudge.destructive", bundle: .module)
+    static let nudgeSuccess = Color("nudge.success", bundle: .module)
+    static let nudgeWarning = Color("nudge.warning", bundle: .module)
+    static let nudgeInfo = Color("nudge.info", bundle: .module)
 }
