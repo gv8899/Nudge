@@ -31,12 +31,21 @@ public struct CardsHostView: View {
     private var iOSLayout: some View {
         NavigationStack(path: $navigationPath) {
             VStack(spacing: 0) {
-                inlineHeader
                 searchBar
                 content
             }
             .background(Color.nudgeBackground)
-            .toolbar(.hidden, for: .navigationBar)
+            .navigationTitle(Text("nav.cards", bundle: .module))
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    IconButton(
+                        systemName: "plus",
+                        accessibilityLabel: "cards.createAria",
+                        foreground: .nudgePrimary,
+                        action: createCard
+                    )
+                }
+            }
             .navigationDestination(for: CardDTO.self) { card in
                 CardDetailView(
                     card: card,
@@ -46,26 +55,6 @@ public struct CardsHostView: View {
         }
         .task(id: debouncedQuery) { await firstPage() }
         .task(id: query) { await debounceQuery() }
-    }
-
-    private var inlineHeader: some View {
-        HStack(spacing: 8) {
-            Text("nav.cards", bundle: .module)
-                .font(.largeTitle.weight(.bold))
-                .foregroundStyle(Color.nudgeForeground)
-            Button(action: createCard) {
-                Image(systemName: "plus")
-                    .font(.title3.weight(.medium))
-                    .foregroundStyle(Color.nudgePrimary)
-                    .frame(width: 32, height: 32)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("cards.createAria", bundle: .module))
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
     }
     #endif
 
