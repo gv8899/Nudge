@@ -182,31 +182,41 @@ public struct DailyHostView: View {
     // MARK: - Data loading
 
     private func reload() async {
+        let requestedDate = selectedDate
+        // Clear prior-date data so the UI never shows another day's rows
+        // while the new fetch is in flight (or if it fails).
+        dailyData = nil
+        events = []
+
         do {
-            let data = try await taskRepo.dailyData(date: selectedDate)
+            let data = try await taskRepo.dailyData(date: requestedDate)
+            guard requestedDate == selectedDate else { return }
             dailyData = data
             lastUpdated = Self.currentTimeString()
             isOffline = false
         } catch APIError.network {
-            isOffline = true
+            if requestedDate == selectedDate { isOffline = true }
         } catch {
-            // Other errors: treat as offline for now so banner shows
-            isOffline = true
+            if requestedDate == selectedDate { isOffline = true }
         }
 
         // Week summary
-        if let date = DateFormatters.parseISODate(selectedDate) {
+        if let date = DateFormatters.parseISODate(requestedDate) {
             let start = DateFormatters.isoDate(DateFormatters.startOfWeek(date))
             let calendar = Calendar(identifier: .gregorian)
             let endDate = calendar.date(byAdding: .day, value: 6, to: DateFormatters.startOfWeek(date)) ?? date
             let end = DateFormatters.isoDate(endDate)
-            if let summary = try? await taskRepo.weekSummary(start: start, end: end) {
+            if let summary = try? await taskRepo.weekSummary(start: start, end: end),
+               requestedDate == selectedDate {
                 weekDates = Set(summary.datesWithTasks)
             }
         }
 
         // Calendar events
-        events = (try? await calendarRepo.events(date: selectedDate)) ?? []
+        let fetchedEvents = (try? await calendarRepo.events(date: requestedDate)) ?? []
+        if requestedDate == selectedDate {
+            events = fetchedEvents
+        }
     }
 
     private static func currentTimeString() -> String {
