@@ -25,7 +25,7 @@ public struct OverdueSectionView: View {
         self.onReschedule = onReschedule
         self.onMoveTo = onMoveTo
         self.onArchive = onArchive
-        // 六日預設收合（對照 Web: !isWeekend(parseISO(currentDate))）
+        // 六日預設收合 — 用 currentDate（對照 Web）
         let parsed = DateFormatters.parseISODate(currentDate) ?? Date()
         _isExpanded = State(initialValue: !DateFormatters.isWeekend(parsed))
     }
@@ -34,8 +34,23 @@ public struct OverdueSectionView: View {
         if overdueTasks.isEmpty {
             EmptyView()
         } else {
-            VStack(alignment: .leading, spacing: 0) {
-                header
+            VStack(alignment: .leading, spacing: 8) {
+                Button(action: { isExpanded.toggle() }) {
+                    HStack {
+                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                            .font(.caption)
+                        Text(String(
+                            format: NSLocalizedString("daily.overdueLabel", bundle: .module, comment: ""),
+                            overdueTasks.count
+                        ))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.nudgeChart5)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
                 if isExpanded {
                     ForEach(overdueTasks, id: \.id) { task in
                         overdueRow(task)
@@ -43,83 +58,42 @@ public struct OverdueSectionView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 4)
+            .padding(.vertical, 12)
         }
-    }
-
-    private var header: some View {
-        Button(action: { isExpanded.toggle() }) {
-            HStack(spacing: 8) {
-                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(Color.nudgePrimary)
-                Image(systemName: "clock.badge.exclamationmark")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.nudgePrimary)
-                Text(String(
-                    format: NSLocalizedString("daily.overdueLabel", bundle: .module, comment: ""),
-                    overdueTasks.count
-                ))
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(Color.nudgePrimary)
-                Spacer()
-            }
-            .contentShape(Rectangle())
-            .padding(.vertical, 6)
-        }
-        .buttonStyle(.plain)
     }
 
     @ViewBuilder
     private func overdueRow(_ task: DailyAssignmentDTO) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 12) {
             Button(action: { onToggleComplete(task) }) {
-                Image(systemName: "square")
-                    .font(.body)
-                    .foregroundStyle(Color.nudgeTextDim)
+                Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundStyle(task.isCompleted ? Color.nudgePrimary : Color.nudgeTextDim)
             }
             .buttonStyle(.plain)
 
             Text(task.task.title)
-                .font(.subheadline)
-                .foregroundStyle(Color.nudgeForeground)
+                .foregroundStyle(task.isCompleted ? Color.nudgeTextDim : Color.nudgeForeground)
+                .strikethrough(task.isCompleted)
                 .lineLimit(1)
-
-            Text(shortDate(task.date))
-                .font(.caption)
-                .foregroundStyle(Color.nudgeTextDim)
 
             Spacer()
 
-            Button(action: { onReschedule(task, currentDate) }) {
-                Text("daily.overdueScheduleToday", bundle: .module)
-                    .font(.caption)
-                    .foregroundStyle(Color.nudgePrimary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-            }
-            .buttonStyle(.plain)
-
-            Button(action: { onMoveTo(task) }) {
-                Image(systemName: "calendar")
-                    .font(.subheadline)
+            Menu {
+                Button(action: { onReschedule(task, currentDate) }) {
+                    Text("daily.overdueScheduleToday", bundle: .module)
+                }
+                Button(action: { onMoveTo(task) }) {
+                    Text("task.moveToOtherDate", bundle: .module)
+                }
+                Button(role: .destructive, action: { onArchive(task) }) {
+                    Text("daily.archiveButton", bundle: .module)
+                }
+            } label: {
+                Image(systemName: "ellipsis")
                     .foregroundStyle(Color.nudgeTextDim)
             }
-            .buttonStyle(.plain)
-
-            Button(action: { onArchive(task) }) {
-                Image(systemName: "archivebox")
-                    .font(.subheadline)
-                    .foregroundStyle(Color.nudgeTextDim)
-            }
-            .buttonStyle(.plain)
         }
         .padding(.vertical, 6)
-    }
-
-    private func shortDate(_ iso: String) -> String {
-        guard let date = DateFormatters.parseISODate(iso) else { return iso }
-        let cal = Calendar(identifier: .gregorian)
-        return "\(cal.component(.month, from: date))/\(cal.component(.day, from: date))"
     }
 }
