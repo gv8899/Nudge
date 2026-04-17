@@ -10,13 +10,13 @@ public struct ErrorBannerView: View {
     public var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "exclamationmark.triangle")
-                .foregroundStyle(Color.nudgeChart5)
+                .foregroundStyle(Color.nudgeDestructive)
             Text("error.unknown", bundle: .module)
                 .font(.footnote)
                 .foregroundStyle(Color.nudgeForeground)
             Spacer()
             Button(action: onRetry) {
-                Text(verbatim: "↻")
+                Image(systemName: "arrow.clockwise")
                     .font(.footnote.weight(.medium))
                     .foregroundStyle(Color.nudgePrimary)
                     .frame(minWidth: 44, minHeight: 36)
@@ -26,6 +26,6 @@ public struct ErrorBannerView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color.nudgeChart5.opacity(0.1))
+        .background(Color.nudgeDestructive.opacity(0.12))
     }
 }

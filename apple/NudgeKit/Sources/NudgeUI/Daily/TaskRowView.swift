@@ -24,15 +24,11 @@ public struct TaskRowView: View {
 
     public var body: some View {
         HStack(spacing: 8) {
-            Button(action: onToggleComplete) {
-                Image(systemName: assignment.isCompleted ? "checkmark.square.fill" : "square")
-                    .font(.title3)
-                    .foregroundStyle(assignment.isCompleted ? Color.nudgePrimary : Color.nudgeTextDim)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text(assignment.isCompleted ? "task.uncomplete" : "task.complete", bundle: .module))
+            NudgeCheckbox(
+                isChecked: assignment.isCompleted,
+                accessibilityLabel: assignment.isCompleted ? "task.uncomplete" : "task.complete",
+                action: onToggleComplete
+            )
 
             Text(assignment.task.title)
                 .strikethrough(assignment.isCompleted)

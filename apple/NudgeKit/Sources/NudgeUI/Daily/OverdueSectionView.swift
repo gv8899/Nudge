@@ -79,15 +79,11 @@ public struct OverdueSectionView: View {
     @ViewBuilder
     private func overdueRow(_ task: DailyAssignmentDTO) -> some View {
         HStack(spacing: 8) {
-            Button(action: { onToggleComplete(task) }) {
-                Image(systemName: task.isCompleted ? "checkmark.square.fill" : "square")
-                    .font(.title3)
-                    .foregroundStyle(task.isCompleted ? Color.nudgePrimary : Color.nudgeTextDim)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text(task.isCompleted ? "task.uncomplete" : "task.complete", bundle: .module))
+            NudgeCheckbox(
+                isChecked: task.isCompleted,
+                accessibilityLabel: task.isCompleted ? "task.uncomplete" : "task.complete",
+                action: { onToggleComplete(task) }
+            )
 
             Text(task.task.title)
                 .foregroundStyle(task.isCompleted ? Color.nudgeTextDim : Color.nudgeForeground)

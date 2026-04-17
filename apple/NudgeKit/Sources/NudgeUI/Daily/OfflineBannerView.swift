@@ -11,7 +11,7 @@ public struct OfflineBannerView: View {
     public var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "wifi.slash")
-                .foregroundStyle(Color.nudgeTextDim)
+                .foregroundStyle(Color.nudgeWarning)
             Text(verbatim: String(
                 format: NSLocalizedString("offline.banner", bundle: .module, comment: ""),
                 lastUpdated
@@ -22,6 +22,6 @@ public struct OfflineBannerView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color.nudgeBorderLight.opacity(0.3))
+        .background(Color.nudgeWarning.opacity(0.12))
     }
 }

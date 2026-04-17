@@ -46,19 +46,9 @@ public struct MoveToDatePickerView: View {
             .safeAreaInset(edge: .bottom) {
                 HStack {
                     Spacer()
-                    Button(action: {
+                    NudgeButton("common.confirm") {
                         onPick(DateFormatters.isoDate(pickedDate))
-                    }) {
-                        Text("common.confirm", bundle: .module)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(Color.nudgePrimaryForeground)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 10)
-                            .background(
-                                Capsule().fill(Color.nudgePrimary)
-                            )
                     }
-                    .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
