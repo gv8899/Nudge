@@ -54,8 +54,8 @@ public struct DailyHostView: View {
                         )
                         OverdueSectionView(
                             overdueTasks: dailyData?.overdueTasks ?? [],
+                            onToggleComplete: toggleComplete,
                             onScheduleToday: { scheduleOverdueToToday($0) },
-                            onMoveTo: { moveSheetAssignment = $0 },
                             onArchive: { archiveTask($0) }
                         )
                         TaskListView(
@@ -132,8 +132,8 @@ public struct DailyHostView: View {
                     VStack(spacing: 0) {
                         OverdueSectionView(
                             overdueTasks: dailyData?.overdueTasks ?? [],
+                            onToggleComplete: toggleComplete,
                             onScheduleToday: { scheduleOverdueToToday($0) },
-                            onMoveTo: { moveSheetAssignment = $0 },
                             onArchive: { archiveTask($0) }
                         )
                         TaskListView(

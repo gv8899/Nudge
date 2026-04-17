@@ -16,47 +16,59 @@ public struct CalendarSectionView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("calendar.panelTitle", bundle: .module)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(Color.nudgeTextDim)
-                Spacer()
-                if isConnected && !events.isEmpty {
-                    Button(action: { isExpanded.toggle() }) {
-                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+            if isConnected {
+                HStack {
+                    Text("calendar.panelTitle", bundle: .module)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.nudgeTextDim)
+                    Spacer()
+                    if !events.isEmpty {
+                        Button(action: { isExpanded.toggle() }) {
+                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                .foregroundStyle(Color.nudgeTextDim)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                if events.isEmpty {
+                    Text("calendar.panelEmpty", bundle: .module)
+                        .font(.footnote)
+                        .foregroundStyle(Color.nudgeTextDim)
+                } else if isExpanded {
+                    ForEach(events, id: \.id) { event in
+                        eventRow(event)
+                    }
+                } else {
+                    Text(verbatim: String(
+                        format: NSLocalizedString("calendar.mobileCollapsedCount", bundle: .module, comment: ""),
+                        events.count
+                    ))
+                        .font(.footnote)
+                        .foregroundStyle(Color.nudgeTextDim)
+                }
+            } else {
+                Button(action: onConnectTapped) {
+                    HStack(spacing: 12) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.nudgePrimary)
+                            .frame(width: 16, height: 16)
+                        Text("calendar.connectTitle", bundle: .module)
+                            .foregroundStyle(Color.nudgeForeground)
+                        Spacer()
+                        Image(systemName: "arrow.right")
                             .foregroundStyle(Color.nudgeTextDim)
                     }
-                    .buttonStyle(.plain)
-                }
-            }
-
-            if !isConnected {
-                Button(action: onConnectTapped) {
-                    HStack {
-                        Image(systemName: "calendar.badge.plus")
-                        Text("calendar.connectTitle", bundle: .module)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.nudgePrimary.opacity(0.1))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color.nudgePrimary.opacity(0.08))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.nudgeBorderLight, lineWidth: 1)
+                    )
                     .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
-            } else if events.isEmpty {
-                Text("calendar.panelEmpty", bundle: .module)
-                    .font(.footnote)
-                    .foregroundStyle(Color.nudgeTextDim)
-            } else if isExpanded {
-                ForEach(events, id: \.id) { event in
-                    eventRow(event)
-                }
-            } else {
-                Text(verbatim: String(
-                    format: NSLocalizedString("calendar.mobileCollapsedCount", bundle: .module, comment: ""),
-                    events.count
-                ))
-                    .font(.footnote)
-                    .foregroundStyle(Color.nudgeTextDim)
             }
         }
         .padding(.horizontal, 16)

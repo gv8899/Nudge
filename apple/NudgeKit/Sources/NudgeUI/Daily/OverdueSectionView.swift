@@ -3,21 +3,21 @@ import NudgeCore
 
 public struct OverdueSectionView: View {
     public let overdueTasks: [DailyAssignmentDTO]
+    public let onToggleComplete: (DailyAssignmentDTO) -> Void
     public let onScheduleToday: (DailyAssignmentDTO) -> Void
-    public let onMoveTo: (DailyAssignmentDTO) -> Void
     public let onArchive: (DailyAssignmentDTO) -> Void
 
     @State private var isExpanded: Bool = true
 
     public init(
         overdueTasks: [DailyAssignmentDTO],
+        onToggleComplete: @escaping (DailyAssignmentDTO) -> Void,
         onScheduleToday: @escaping (DailyAssignmentDTO) -> Void,
-        onMoveTo: @escaping (DailyAssignmentDTO) -> Void,
         onArchive: @escaping (DailyAssignmentDTO) -> Void
     ) {
         self.overdueTasks = overdueTasks
+        self.onToggleComplete = onToggleComplete
         self.onScheduleToday = onScheduleToday
-        self.onMoveTo = onMoveTo
         self.onArchive = onArchive
     }
 
@@ -25,33 +25,23 @@ public struct OverdueSectionView: View {
         if overdueTasks.isEmpty {
             EmptyView()
         } else {
-            VStack(alignment: .leading, spacing: 8) {
-                Button(action: { isExpanded.toggle() }) {
-                    HStack {
-                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                            .font(.caption)
-                        Text(String(
-                            format: NSLocalizedString("daily.overdueLabel", bundle: .module, comment: ""),
-                            overdueTasks.count
-                        ))
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(Color.nudgeChart5)
-                        Spacer()
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+            VStack(alignment: .leading, spacing: 0) {
+                header
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
 
                 if isExpanded {
-                    ForEach(overdueTasks, id: \.id) { task in
+                    ForEach(Array(overdueTasks.enumerated()), id: \.element.id) { index, task in
                         overdueRow(task)
+                        if index < overdueTasks.count - 1 {
+                            Divider()
+                                .background(Color.nudgeBorderLight)
+                                .padding(.leading, 56)
+                        }
                     }
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
             .onAppear {
-                // Default collapse on weekends
                 let today = DateFormatters.isoDate(Date())
                 if let date = DateFormatters.parseISODate(today),
                    DateFormatters.isWeekend(date) {
@@ -61,30 +51,57 @@ public struct OverdueSectionView: View {
         }
     }
 
+    private var header: some View {
+        Button(action: { isExpanded.toggle() }) {
+            HStack(spacing: 8) {
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(Color.nudgeTextDim)
+                Image(systemName: "clock.badge.exclamationmark")
+                    .foregroundStyle(Color.nudgePrimary)
+                Text(String(
+                    format: NSLocalizedString("daily.overdueLabel", bundle: .module, comment: ""),
+                    overdueTasks.count
+                ))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.nudgePrimary)
+                Spacer()
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
     @ViewBuilder
     private func overdueRow(_ task: DailyAssignmentDTO) -> some View {
-        HStack {
-            Circle()
-                .fill(Color.nudgeChart5)
-                .frame(width: 4, height: 4)
+        HStack(spacing: 16) {
+            Button(action: { onToggleComplete(task) }) {
+                Image(systemName: task.isCompleted ? "checkmark.square.fill" : "square")
+                    .font(.title3)
+                    .foregroundStyle(task.isCompleted ? Color.nudgePrimary : Color.nudgeTextDim)
+            }
+            .buttonStyle(.plain)
+
             Text(task.task.title)
-                .foregroundStyle(Color.nudgeForeground)
-            Spacer()
-            Menu {
-                Button(action: { onScheduleToday(task) }) {
-                    Text("daily.overdueScheduleToday", bundle: .module)
-                }
-                Button(action: { onMoveTo(task) }) {
-                    Text("task.moveToOtherDate", bundle: .module)
-                }
-                Button(role: .destructive, action: { onArchive(task) }) {
-                    Text("daily.archiveButton", bundle: .module)
-                }
-            } label: {
-                Image(systemName: "ellipsis")
+                .foregroundStyle(task.isCompleted ? Color.nudgeTextDim : Color.nudgeForeground)
+                .strikethrough(task.isCompleted)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button(action: { onScheduleToday(task) }) {
+                Image(systemName: "calendar")
                     .foregroundStyle(Color.nudgeTextDim)
             }
+            .buttonStyle(.plain)
+
+            Button(action: { onArchive(task) }) {
+                Image(systemName: "archivebox")
+                    .foregroundStyle(Color.nudgeTextDim)
+            }
+            .buttonStyle(.plain)
         }
-        .padding(.vertical, 4)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
     }
 }
