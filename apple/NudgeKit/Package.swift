@@ -15,7 +15,13 @@ let package = Package(
     targets: [
         .target(name: "NudgeCore"),
         .target(name: "NudgeData", dependencies: ["NudgeCore"]),
-        .target(name: "NudgeUI", dependencies: ["NudgeCore", "NudgeData"]),
+        .target(
+            name: "NudgeUI",
+            dependencies: ["NudgeCore", "NudgeData"],
+            resources: [
+                .process("Resources/Assets.xcassets")
+            ]
+        ),
         .testTarget(name: "NudgeCoreTests", dependencies: ["NudgeCore"]),
     ]
 )
