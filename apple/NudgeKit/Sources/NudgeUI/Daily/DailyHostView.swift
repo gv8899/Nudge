@@ -16,6 +16,11 @@ public struct DailyHostView: View {
     @State private var selectedAssignmentForDetail: DailyAssignmentDTO?
     @State private var moveSheetAssignment: DailyAssignmentDTO?
 
+    // Haptic feedback triggers (iOS 17+)
+    @State private var completionTicker: Int = 0
+    @State private var archiveTicker: Int = 0
+    @State private var moveTicker: Int = 0
+
     #if os(iOS)
     @State private var navigationPath = NavigationPath()
     #endif
@@ -82,6 +87,11 @@ public struct DailyHostView: View {
             }
             .background(Color.nudgeBackground)
             .animation(.easeOut(duration: 0.2), value: loadState)
+            #if os(iOS)
+            .sensoryFeedback(.success, trigger: completionTicker)
+            .sensoryFeedback(.impact(weight: .medium), trigger: archiveTicker)
+            .sensoryFeedback(.selection, trigger: moveTicker)
+            #endif
             .navigationDestination(for: DailyAssignmentDTO.self) { assignment in
                 TaskDetailView(
                     assignment: assignment,
@@ -267,6 +277,7 @@ extension DailyHostView {
     }
 
     func toggleComplete(_ assignment: DailyAssignmentDTO) {
+        if !assignment.isCompleted { completionTicker &+= 1 }
         Task {
             do {
                 try await taskRepo.toggleComplete(
@@ -299,6 +310,7 @@ extension DailyHostView {
         if assignment.date == newDate {
             return
         }
+        moveTicker &+= 1
         Task {
             do {
                 try await taskRepo.moveToDate(
@@ -314,6 +326,7 @@ extension DailyHostView {
     }
 
     func archiveTask(_ assignment: DailyAssignmentDTO) {
+        archiveTicker &+= 1
         Task {
             do {
                 try await taskRepo.archive(taskId: assignment.task.id)
