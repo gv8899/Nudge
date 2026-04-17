@@ -28,6 +28,25 @@ public struct MoveToDatePickerView: View {
                 .padding(.top, 8)
 
                 Spacer(minLength: 0)
+
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        onPick(DateFormatters.isoDate(pickedDate))
+                    }) {
+                        Text("common.save", bundle: .module)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.nudgePrimaryForeground)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(
+                                Capsule().fill(Color.nudgePrimary)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.nudgeBackground)
@@ -38,17 +57,8 @@ public struct MoveToDatePickerView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(action: onCancel) {
-                        Text("common.cancel", bundle: .module)
+                        Image(systemName: "xmark")
                             .foregroundStyle(Color.nudgeTextDim)
-                    }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(action: {
-                        onPick(DateFormatters.isoDate(pickedDate))
-                    }) {
-                        Text("common.save", bundle: .module)
-                            .fontWeight(.medium)
-                            .foregroundStyle(Color.nudgePrimary)
                     }
                 }
             }
