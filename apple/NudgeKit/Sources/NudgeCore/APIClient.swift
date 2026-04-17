@@ -61,6 +61,22 @@ public final class APIClient: Sendable {
         return try await perform(request)
     }
 
+    public func patchVoid<Body: Encodable>(
+        _ path: String,
+        body: Body
+    ) async throws {
+        let request = try buildRequest(method: "PATCH", path: path, body: body)
+        let _: Empty = try await perform(request)
+    }
+
+    public func putVoid<Body: Encodable>(
+        _ path: String,
+        body: Body
+    ) async throws {
+        let request = try buildRequest(method: "PUT", path: path, body: body)
+        let _: Empty = try await perform(request)
+    }
+
     public func delete(_ path: String) async throws {
         let request = try buildRequest(method: "DELETE", path: path, body: nil as Empty?)
         let _: Empty = try await perform(request)
