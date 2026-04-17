@@ -13,18 +13,14 @@ let package = Package(
         .library(name: "NudgeUI", targets: ["NudgeUI"]),
     ],
     targets: [
-        .target(
-            name: "NudgeCore",
-            resources: [
-                .process("Resources/Localizable.xcstrings")
-            ]
-        ),
+        .target(name: "NudgeCore"),
         .target(name: "NudgeData", dependencies: ["NudgeCore"]),
         .target(
             name: "NudgeUI",
             dependencies: ["NudgeCore", "NudgeData"],
             resources: [
-                .process("Resources/Assets.xcassets")
+                .process("Resources/Assets.xcassets"),
+                .process("Resources/Localizable.xcstrings")
             ]
         ),
         .testTarget(name: "NudgeCoreTests", dependencies: ["NudgeCore", "NudgeData"]),
