@@ -2,12 +2,12 @@ import Foundation
 import SwiftData
 
 public enum NudgeModelContainer {
-    /// Phase 1: 空 schema。Phase 2 起把 @Model 型別加進 models 陣列。
+    /// Phase 2: TaskItem + DailyAssignment schema.
     ///
     /// 用法：在 App entry 做 `.modelContainer(NudgeModelContainer.make())`
     @MainActor
     public static func make() -> ModelContainer {
-        let schema = Schema([])
+        let schema = Schema([TaskItem.self, DailyAssignment.self])
         let configuration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false
@@ -21,7 +21,7 @@ public enum NudgeModelContainer {
 
     @MainActor
     public static func makeInMemory() -> ModelContainer {
-        let schema = Schema([])
+        let schema = Schema([TaskItem.self, DailyAssignment.self])
         let configuration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: true

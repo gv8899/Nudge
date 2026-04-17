@@ -27,6 +27,6 @@ let package = Package(
                 .process("Resources/Assets.xcassets")
             ]
         ),
-        .testTarget(name: "NudgeCoreTests", dependencies: ["NudgeCore"]),
+        .testTarget(name: "NudgeCoreTests", dependencies: ["NudgeCore", "NudgeData"]),
     ]
 )
