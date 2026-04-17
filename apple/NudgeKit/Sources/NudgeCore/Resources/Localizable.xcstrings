@@ -23,6 +23,28 @@
         }
       }
     },
+    "calendar.mobileCollapsedCount" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today · %lld events"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日の予定 · %lld 件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日行程 · %lld 件"
+          }
+        }
+      }
+    },
     "calendar.panelEmpty" : {
       "localizations" : {
         "en" : {
