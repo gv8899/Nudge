@@ -2,6 +2,10 @@ import Foundation
 
 /// URLSession 的 mock，攔截 request 回傳指定 response。
 ///
+/// **注意**：`handler` 是 global static，跨 suite 不隔離。跑完整 `swift test` 時
+/// 請加 `--no-parallel` 避免多 suite 同時用 handler 造成 race。Per-filter 跑
+/// 單一 suite 沒問題。
+///
 /// 使用方式：
 /// ```swift
 /// let config = URLSessionConfiguration.ephemeral
