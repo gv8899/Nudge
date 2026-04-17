@@ -26,16 +26,16 @@ struct IOSTabRoot: View {
     var body: some View {
         TabView {
             DailyHostView()
-                .tabItem { Label(text: Text("nav.tasks", bundle: .module), systemImage: "checkmark.circle") }
+                .tabItem { Label { Text("nav.tasks", bundle: .module) } icon: { Image(systemName: "checkmark.circle") } }
 
             PlaceholderTab(title: "日誌", systemImage: "book")
-                .tabItem { Label(text: Text("nav.notes", bundle: .module), systemImage: "book") }
+                .tabItem { Label { Text("nav.notes", bundle: .module) } icon: { Image(systemName: "book") } }
 
             PlaceholderTab(title: "卡片", systemImage: "square.stack")
-                .tabItem { Label(text: Text("nav.cards", bundle: .module), systemImage: "square.stack") }
+                .tabItem { Label { Text("nav.cards", bundle: .module) } icon: { Image(systemName: "square.stack") } }
 
             SettingsView(auth: auth)
-                .tabItem { Label(text: Text("nav.settings", bundle: .module), systemImage: "gearshape") }
+                .tabItem { Label { Text("nav.settings", bundle: .module) } icon: { Image(systemName: "gearshape") } }
         }
     }
 }
