@@ -71,8 +71,8 @@
 - 確認本機已安裝 **Xcode 16** 以上（iOS 18 SDK / macOS 15 SDK 必須）
 - 確認有 Apple Developer Program 帳號（Developer ID 簽章需要）
 - Google Cloud Console 建立 OAuth 2.0 Client ID：
-  - **iOS client**：Bundle ID `tw.nudge.ios`
-  - **macOS client**：Bundle ID `tw.nudge.mac`
+  - **iOS client**：Bundle ID `tw.nudge.app`（沿用舊 Flutter app 的 OAuth client，不新建）
+  - **macOS client**：Bundle ID `tw.nudge.mac`（需新建）
   - 記下兩個 client ID（Phase 1 會用到）
   - Web 版已有的 OAuth client 不變動
 - 確認 `nudge.tw`（production）和 `http://localhost:3000`（dev）的 `/api/auth/mobile` endpoint 有跑
@@ -157,7 +157,7 @@ Expected: 空資料夾建立成功。
 填寫：
 - Product Name: `Nudge-iOS`
 - Team: 你的 Apple Developer team
-- Organization Identifier: `tw.nudge`（最終 Bundle ID 會是 `tw.nudge.ios`，但 iOS target 用 `Nudge-iOS`，請改 bundle ID 為 `tw.nudge.ios`）
+- Organization Identifier: `tw.nudge`（最終 Bundle ID 會是 `tw.nudge.app`，但 iOS target 用 `Nudge-iOS`，請改 bundle ID 為 `tw.nudge.app`）
 - Interface: **SwiftUI**
 - Language: **Swift**
 - Storage: **None**（先不用 SwiftData，Phase 1 再加）
@@ -442,7 +442,7 @@ Xcode workspace → `Nudge-iOS` project → `Nudge-iOS` target → Signing & Cap
 
 設定：
 - Team: 你的 Apple Developer team
-- Bundle Identifier: `tw.nudge.ios`
+- Bundle Identifier: `tw.nudge.app`
 - Automatically manage signing: 勾選
 
 Expected: Provisioning profile 自動產生，沒紅字錯誤。
@@ -489,7 +489,7 @@ git add apple/
 git commit -m "$(cat <<'EOF'
 feat(apple): configure bundle IDs, signing, entitlements
 
-- iOS: tw.nudge.ios, automatic signing
+- iOS: tw.nudge.app, automatic signing
 - macOS: tw.nudge.mac, app sandbox + outgoing network
 - iOS ATS: allow local networking for dev
 
@@ -2362,7 +2362,7 @@ struct NudgeiOSApp: App {
     private let googleSignIn: GoogleSignInServiceIOS
 
     init() {
-        let keychain = KeychainStorage(service: "tw.nudge.ios")
+        let keychain = KeychainStorage(service: "tw.nudge.app")
         let tokenProvider: APIClient.TokenProvider = {
             try? keychain.get(for: "token")
         }
