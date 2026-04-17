@@ -13,7 +13,12 @@ let package = Package(
         .library(name: "NudgeUI", targets: ["NudgeUI"]),
     ],
     targets: [
-        .target(name: "NudgeCore"),
+        .target(
+            name: "NudgeCore",
+            resources: [
+                .process("Resources/Localizable.xcstrings")
+            ]
+        ),
         .target(name: "NudgeData", dependencies: ["NudgeCore"]),
         .target(
             name: "NudgeUI",
