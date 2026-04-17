@@ -5,7 +5,8 @@
     "delete": "刪除",
     "loading": "載入中...",
     "loadFailed": "載入失敗",
-    "today": "今天"
+    "today": "今天",
+    "confirm": "確認"
   },
   "settings": {
     "title": "設定",

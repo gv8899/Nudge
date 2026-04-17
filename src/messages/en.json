@@ -5,7 +5,8 @@
     "delete": "Delete",
     "loading": "Loading...",
     "loadFailed": "Failed to load",
-    "today": "Today"
+    "today": "Today",
+    "confirm": "Confirm"
   },
   "settings": {
     "title": "Settings",
