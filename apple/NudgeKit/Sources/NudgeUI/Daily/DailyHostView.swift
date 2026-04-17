@@ -79,6 +79,7 @@ public struct DailyHostView: View {
                     tags: [],  // Phase 2: tag resolution deferred
                     onUpdateTitle: { updateTitle(assignment: assignment, title: $0) },
                     onUpdateDescription: { updateDescription(assignment: assignment, description: $0) },
+                    onScheduleToday: { scheduleOverdueToToday(assignment) },
                     onMoveTo: { moveSheetAssignment = assignment },
                     onArchive: { archiveTask(assignment) }
                 )
@@ -158,6 +159,7 @@ public struct DailyHostView: View {
                 tags: [],
                 onUpdateTitle: { updateTitle(assignment: assignment, title: $0) },
                 onUpdateDescription: { updateDescription(assignment: assignment, description: $0) },
+                onScheduleToday: { scheduleOverdueToToday(assignment) },
                 onMoveTo: { moveSheetAssignment = assignment },
                 onArchive: { archiveTask(assignment) }
             )
@@ -235,18 +237,26 @@ public struct DailyHostView: View {
 
     private func createTask(_ title: String) {
         Task {
-            _ = try? await taskRepo.createTask(date: selectedDate, title: title)
+            do {
+                _ = try await taskRepo.createTask(date: selectedDate, title: title)
+            } catch {
+                print("[DailyHostView] createTask failed: \(error)")
+            }
             await reload()
         }
     }
 
     private func toggleComplete(_ assignment: DailyAssignmentDTO) {
         Task {
-            try? await taskRepo.toggleComplete(
-                assignmentId: assignment.id,
-                isCompleted: !assignment.isCompleted,
-                onDate: assignment.date
-            )
+            do {
+                try await taskRepo.toggleComplete(
+                    assignmentId: assignment.id,
+                    isCompleted: !assignment.isCompleted,
+                    onDate: assignment.date
+                )
+            } catch {
+                print("[DailyHostView] toggleComplete failed: \(error)")
+            }
             await reload()
         }
     }
@@ -256,18 +266,27 @@ public struct DailyHostView: View {
         assignments.move(fromOffsets: indices, toOffset: newOffset)
         let ids = assignments.map(\.id)
         Task {
-            try? await taskRepo.reorder(date: selectedDate, orderedIds: ids)
+            do {
+                try await taskRepo.reorder(date: selectedDate, orderedIds: ids)
+            } catch {
+                print("[DailyHostView] reorder failed: \(error)")
+            }
             await reload()
         }
     }
 
     private func moveAssignment(_ assignment: DailyAssignmentDTO, to newDate: String) {
+        print("[DailyHostView] moveAssignment id=\(assignment.id) from=\(assignment.date) to=\(newDate)")
         Task {
-            try? await taskRepo.moveToDate(
-                assignmentId: assignment.id,
-                from: assignment.date,
-                to: newDate
-            )
+            do {
+                try await taskRepo.moveToDate(
+                    assignmentId: assignment.id,
+                    from: assignment.date,
+                    to: newDate
+                )
+            } catch {
+                print("[DailyHostView] moveToDate failed: \(error)")
+            }
             await reload()
         }
     }
@@ -278,21 +297,34 @@ public struct DailyHostView: View {
     }
 
     private func archiveTask(_ assignment: DailyAssignmentDTO) {
+        print("[DailyHostView] archiveTask taskId=\(assignment.task.id)")
         Task {
-            try? await taskRepo.archive(taskId: assignment.task.id)
+            do {
+                try await taskRepo.archive(taskId: assignment.task.id)
+            } catch {
+                print("[DailyHostView] archive failed: \(error)")
+            }
             await reload()
         }
     }
 
     private func updateTitle(assignment: DailyAssignmentDTO, title: String) {
         Task {
-            try? await taskRepo.updateTitle(taskId: assignment.task.id, title: title)
+            do {
+                try await taskRepo.updateTitle(taskId: assignment.task.id, title: title)
+            } catch {
+                print("[DailyHostView] updateTitle failed: \(error)")
+            }
         }
     }
 
     private func updateDescription(assignment: DailyAssignmentDTO, description: String) {
         Task {
-            try? await taskRepo.updateDescription(taskId: assignment.task.id, description: description)
+            do {
+                try await taskRepo.updateDescription(taskId: assignment.task.id, description: description)
+            } catch {
+                print("[DailyHostView] updateDescription failed: \(error)")
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ public struct TaskDetailView: View {
     public let tags: [TagDTO]
     public let onUpdateTitle: (String) -> Void
     public let onUpdateDescription: (String) -> Void
+    public let onScheduleToday: () -> Void
     public let onMoveTo: () -> Void
     public let onArchive: () -> Void
 
@@ -17,6 +18,7 @@ public struct TaskDetailView: View {
         tags: [TagDTO],
         onUpdateTitle: @escaping (String) -> Void,
         onUpdateDescription: @escaping (String) -> Void,
+        onScheduleToday: @escaping () -> Void,
         onMoveTo: @escaping () -> Void,
         onArchive: @escaping () -> Void
     ) {
@@ -24,6 +26,7 @@ public struct TaskDetailView: View {
         self.tags = tags
         self.onUpdateTitle = onUpdateTitle
         self.onUpdateDescription = onUpdateDescription
+        self.onScheduleToday = onScheduleToday
         self.onMoveTo = onMoveTo
         self.onArchive = onArchive
         _title = State(initialValue: assignment.task.title)
@@ -61,6 +64,14 @@ public struct TaskDetailView: View {
                         }
                     }
                 }
+
+                Button(action: onScheduleToday) {
+                    HStack {
+                        Image(systemName: "sun.max")
+                        Text("daily.overdueScheduleToday", bundle: .module)
+                    }
+                }
+                .buttonStyle(.bordered)
 
                 Button(action: onMoveTo) {
                     HStack {
