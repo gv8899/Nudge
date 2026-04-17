@@ -221,5 +221,13 @@
     "mobileCollapsedCount": "今日の予定 · {count} 件",
     "mobileCollapsedEmpty": "今日は予定なし",
     "mobileConnectPrompt": "Google カレンダーを連携 →"
+  },
+  "offline": {
+    "banner": "オフライン。最終更新: {time}"
+  },
+  "error": {
+    "network": "ネットワークエラー",
+    "unauthorized": "再度サインインしてください",
+    "unknown": "エラーが発生しました"
   }
 }

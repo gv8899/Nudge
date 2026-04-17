@@ -221,5 +221,13 @@
     "mobileCollapsedCount": "今日行程 · {count} 件",
     "mobileCollapsedEmpty": "今日無行程",
     "mobileConnectPrompt": "連結 Google Calendar →"
+  },
+  "offline": {
+    "banner": "離線中。上次更新於 {time}"
+  },
+  "error": {
+    "network": "網路錯誤",
+    "unauthorized": "請重新登入",
+    "unknown": "發生錯誤"
   }
 }

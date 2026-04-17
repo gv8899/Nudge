@@ -221,5 +221,13 @@
     "mobileCollapsedCount": "Today · {count} events",
     "mobileCollapsedEmpty": "Nothing today",
     "mobileConnectPrompt": "Connect Google Calendar →"
+  },
+  "offline": {
+    "banner": "Offline. Last updated at {time}."
+  },
+  "error": {
+    "network": "Network error",
+    "unauthorized": "Please sign in again",
+    "unknown": "Something went wrong"
   }
 }
