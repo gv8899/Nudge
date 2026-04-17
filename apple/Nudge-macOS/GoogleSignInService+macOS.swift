@@ -26,9 +26,13 @@ final class GoogleSignInServiceMacOS: GoogleSignInService {
                 throw GoogleSignInError.missingIdToken
             }
             return idToken
-        } catch let error as NSError where error.code == GIDSignInError.Code.canceled.rawValue {
-            throw GoogleSignInError.canceled
         } catch {
+            let nsError = error as NSError
+            print("[GoogleSignIn macOS] failed: domain=\(nsError.domain) code=\(nsError.code) userInfo=\(nsError.userInfo)")
+            if nsError.domain == "com.google.GIDSignIn"
+                && nsError.code == GIDSignInError.Code.canceled.rawValue {
+                throw GoogleSignInError.canceled
+            }
             throw GoogleSignInError.platform(underlying: error)
         }
     }
