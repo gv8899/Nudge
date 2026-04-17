@@ -123,16 +123,21 @@ public final class APIClient: Sendable {
     }
 
     private func perform<Response: Decodable>(_ request: URLRequest) async throws -> Response {
+        let urlString = request.url?.absoluteString ?? "<nil>"
         let (data, urlResponse): (Data, URLResponse)
         do {
             (data, urlResponse) = try await session.data(for: request)
         } catch {
+            print("[APIClient] \(request.httpMethod ?? "?") \(urlString) network error: \(error.localizedDescription)")
             throw APIError.network(underlying: error)
         }
 
         guard let httpResponse = urlResponse as? HTTPURLResponse else {
+            print("[APIClient] \(request.httpMethod ?? "?") \(urlString) invalid response type")
             throw APIError.invalidResponse
         }
+
+        print("[APIClient] \(request.httpMethod ?? "?") \(urlString) -> \(httpResponse.statusCode) (\(data.count) bytes)")
 
         switch httpResponse.statusCode {
         case 200..<300:
@@ -142,6 +147,8 @@ public final class APIClient: Sendable {
             do {
                 return try decoder.decode(Response.self, from: data)
             } catch {
+                let body = String(data: data.prefix(300), encoding: .utf8) ?? "<binary>"
+                print("[APIClient] decode failed for \(Response.self): \(error)\n  body: \(body)")
                 throw APIError.decoding(underlying: error)
             }
         case 401:
