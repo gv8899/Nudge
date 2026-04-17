@@ -55,4 +55,10 @@ public final class CardRepository {
             tags: []
         )
     }
+
+    /// PATCHes the title of an existing card.
+    public func updateTitle(cardId: String, title: String) async throws {
+        struct Body: Codable { let title: String }
+        try await client.patchVoid("/api/tasks/\(cardId)", body: Body(title: title))
+    }
 }
