@@ -30,31 +30,28 @@ public struct CardsHostView: View {
     #if os(iOS)
     private var iOSLayout: some View {
         NavigationStack(path: $navigationPath) {
-            content
-                .background(Color.nudgeBackground)
-                .navigationTitle(Text("nav.cards", bundle: .module))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        IconButton(
-                            systemName: "plus",
-                            accessibilityLabel: "cards.createAria",
-                            foreground: .nudgePrimary,
-                            action: createCard
-                        )
-                    }
-                }
-                .navigationDestination(for: CardDTO.self) { card in
-                    CardDetailView(
-                        card: card,
-                        onUpdateTitle: { updateTitle(cardId: card.id, title: $0) }
+            VStack(spacing: 0) {
+                searchBar
+                content
+            }
+            .background(Color.nudgeBackground)
+            .navigationTitle(Text("nav.cards", bundle: .module))
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    IconButton(
+                        systemName: "plus",
+                        accessibilityLabel: "cards.createAria",
+                        foreground: .nudgePrimary,
+                        action: createCard
                     )
                 }
-                .searchable(
-                    text: $query,
-                    placement: .navigationBarDrawer(displayMode: .always),
-                    prompt: Text("cards.searchPlaceholder", bundle: .module)
+            }
+            .navigationDestination(for: CardDTO.self) { card in
+                CardDetailView(
+                    card: card,
+                    onUpdateTitle: { updateTitle(cardId: card.id, title: $0) }
                 )
+            }
         }
         .task(id: debouncedQuery) { await firstPage() }
         .task(id: query) { await debounceQuery() }
@@ -64,24 +61,23 @@ public struct CardsHostView: View {
     #if os(macOS)
     private var macOSLayout: some View {
         NavigationSplitView {
-            content
-                .background(Color.nudgeBackground)
-                .navigationTitle(Text("nav.cards", bundle: .module))
-                .searchable(
-                    text: $query,
-                    prompt: Text("cards.searchPlaceholder", bundle: .module)
-                )
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        IconButton(
-                            systemName: "plus",
-                            accessibilityLabel: "cards.createAria",
-                            foreground: .nudgePrimary,
-                            action: createCard
-                        )
-                    }
+            VStack(spacing: 0) {
+                searchBar
+                content
+            }
+            .background(Color.nudgeBackground)
+            .navigationTitle(Text("nav.cards", bundle: .module))
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    IconButton(
+                        systemName: "plus",
+                        accessibilityLabel: "cards.createAria",
+                        foreground: .nudgePrimary,
+                        action: createCard
+                    )
                 }
-                .frame(minWidth: 300)
+            }
+            .frame(minWidth: 300)
         } detail: {
             if let card = pushedCard {
                 CardDetailView(
@@ -99,6 +95,42 @@ public struct CardsHostView: View {
         .task(id: query) { await debounceQuery() }
     }
     #endif
+
+    // MARK: - Custom search bar (replaces .searchable so there's only one ✕)
+
+    private var searchBar: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(Color.nudgeTextDim)
+            TextField(text: $query) {
+                Text("cards.searchPlaceholder", bundle: .module)
+            }
+            .textFieldStyle(.plain)
+            .foregroundStyle(Color.nudgeForeground)
+            .submitLabel(.search)
+
+            if !query.isEmpty {
+                Button {
+                    query = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(Color.nudgeTextDim)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("common.cancel", bundle: .module))
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.nudgeBorderLight.opacity(0.3))
+        )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+    }
 
     @ViewBuilder
     private var content: some View {
