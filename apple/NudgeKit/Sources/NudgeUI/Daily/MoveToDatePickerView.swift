@@ -36,8 +36,11 @@ public struct MoveToDatePickerView: View {
                         Image(systemName: "xmark")
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(Color.nudgeTextDim)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(Text("common.cancel", bundle: .module))
                 }
             }
             .safeAreaInset(edge: .bottom) {

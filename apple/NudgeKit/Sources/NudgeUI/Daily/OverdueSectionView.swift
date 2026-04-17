@@ -25,9 +25,12 @@ public struct OverdueSectionView: View {
         self.onReschedule = onReschedule
         self.onMoveTo = onMoveTo
         self.onArchive = onArchive
-        // 六日預設收合 — 用 currentDate（對照 Web）
-        let parsed = DateFormatters.parseISODate(currentDate) ?? Date()
-        _isExpanded = State(initialValue: !DateFormatters.isWeekend(parsed))
+        _isExpanded = State(initialValue: Self.defaultExpanded(for: currentDate))
+    }
+
+    private static func defaultExpanded(for dateString: String) -> Bool {
+        let parsed = DateFormatters.parseISODate(dateString) ?? Date()
+        return !DateFormatters.isWeekend(parsed)
     }
 
     public var body: some View {
@@ -35,22 +38,7 @@ public struct OverdueSectionView: View {
             EmptyView()
         } else {
             VStack(alignment: .leading, spacing: 8) {
-                Button(action: { isExpanded.toggle() }) {
-                    HStack {
-                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                            .font(.caption)
-                        Text(String(
-                            format: NSLocalizedString("daily.overdueLabel", bundle: .module, comment: ""),
-                            overdueTasks.count
-                        ))
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(Color.nudgePrimary)
-                        Spacer()
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-
+                header
                 if isExpanded {
                     ForEach(overdueTasks, id: \.id) { task in
                         overdueRow(task)
@@ -59,18 +47,47 @@ public struct OverdueSectionView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
+            .animation(.easeOut(duration: 0.2), value: isExpanded)
+            .onChange(of: currentDate) { _, newValue in
+                isExpanded = Self.defaultExpanded(for: newValue)
+            }
         }
+    }
+
+    private var header: some View {
+        Button(action: { isExpanded.toggle() }) {
+            HStack(spacing: 6) {
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    .font(.caption)
+                Text(String(
+                    format: NSLocalizedString("daily.overdueLabel", bundle: .module, comment: ""),
+                    overdueTasks.count
+                ))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.nudgePrimary)
+                Spacer()
+            }
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("daily.overdueSectionAria", bundle: .module))
+        .accessibilityValue(Text(isExpanded ? "expanded" : "collapsed"))
+        .accessibilityAddTraits(.isHeader)
     }
 
     @ViewBuilder
     private func overdueRow(_ task: DailyAssignmentDTO) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             Button(action: { onToggleComplete(task) }) {
                 Image(systemName: task.isCompleted ? "checkmark.square.fill" : "square")
                     .font(.title3)
                     .foregroundStyle(task.isCompleted ? Color.nudgePrimary : Color.nudgeTextDim)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(Text(task.isCompleted ? "task.uncomplete" : "task.complete", bundle: .module))
 
             Text(task.task.title)
                 .foregroundStyle(task.isCompleted ? Color.nudgeTextDim : Color.nudgeForeground)
@@ -92,8 +109,9 @@ public struct OverdueSectionView: View {
             } label: {
                 Image(systemName: "ellipsis")
                     .foregroundStyle(Color.nudgeTextDim)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
         }
-        .padding(.vertical, 6)
     }
 }

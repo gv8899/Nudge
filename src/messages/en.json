@@ -6,7 +6,8 @@
     "loading": "Loading...",
     "loadFailed": "Failed to load",
     "today": "Today",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "edit": "Edit"
   },
   "settings": {
     "title": "Settings",

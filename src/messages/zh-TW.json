@@ -6,7 +6,8 @@
     "loading": "載入中...",
     "loadFailed": "載入失敗",
     "today": "今天",
-    "confirm": "確認"
+    "confirm": "確認",
+    "edit": "編輯"
   },
   "settings": {
     "title": "設定",

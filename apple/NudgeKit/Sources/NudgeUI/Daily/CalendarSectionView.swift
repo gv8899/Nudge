@@ -6,7 +6,7 @@ public struct CalendarSectionView: View {
     public let isConnected: Bool
     public let onConnectTapped: () -> Void
 
-    @State private var isExpanded: Bool = false
+    @SceneStorage("calendar.panel.expanded") private var isExpanded: Bool = false
 
     public init(events: [CalendarEventDTO], isConnected: Bool, onConnectTapped: @escaping () -> Void) {
         self.events = events
@@ -16,21 +16,42 @@ public struct CalendarSectionView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("calendar.panelTitle", bundle: .module)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(Color.nudgeTextDim)
-                Spacer()
-                if isConnected && !events.isEmpty {
-                    Button(action: { isExpanded.toggle() }) {
-                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                            .foregroundStyle(Color.nudgeTextDim)
+            if isConnected {
+                HStack {
+                    Text("calendar.panelTitle", bundle: .module)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.nudgeTextDim)
+                    Spacer()
+                    if !events.isEmpty {
+                        Button(action: { isExpanded.toggle() }) {
+                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                                .foregroundStyle(Color.nudgeTextDim)
+                                .frame(minWidth: 44, minHeight: 44)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("calendar.panelTitle", bundle: .module))
+                        .accessibilityValue(Text(isExpanded ? "expanded" : "collapsed"))
                     }
-                    .buttonStyle(.plain)
                 }
-            }
 
-            if !isConnected {
+                if events.isEmpty {
+                    Text("calendar.panelEmpty", bundle: .module)
+                        .font(.footnote)
+                        .foregroundStyle(Color.nudgeTextDim)
+                } else if isExpanded {
+                    ForEach(events, id: \.id) { event in
+                        eventRow(event)
+                    }
+                } else {
+                    Text(verbatim: String(
+                        format: NSLocalizedString("calendar.mobileCollapsedCount", bundle: .module, comment: ""),
+                        events.count
+                    ))
+                        .font(.footnote)
+                        .foregroundStyle(Color.nudgeTextDim)
+                }
+            } else {
                 Button(action: onConnectTapped) {
                     HStack {
                         Image(systemName: "calendar.badge.plus")
@@ -42,26 +63,11 @@ public struct CalendarSectionView: View {
                     .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
-            } else if events.isEmpty {
-                Text("calendar.panelEmpty", bundle: .module)
-                    .font(.footnote)
-                    .foregroundStyle(Color.nudgeTextDim)
-            } else if isExpanded {
-                ForEach(events, id: \.id) { event in
-                    eventRow(event)
-                }
-            } else {
-                Text(verbatim: String(
-                    format: NSLocalizedString("calendar.mobileCollapsedCount", bundle: .module, comment: ""),
-                    events.count
-                ))
-                    .font(.footnote)
-                    .foregroundStyle(Color.nudgeTextDim)
             }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(Color.nudgeBackground)
+        .animation(.easeOut(duration: 0.2), value: isExpanded)
     }
 
     @ViewBuilder

@@ -2,7 +2,7 @@ import SwiftUI
 import NudgeCore
 
 public struct WeekStripView: View {
-    public let selectedDate: String       // "YYYY-MM-DD"
+    public let selectedDate: String
     public let datesWithTasks: Set<String>
     public let onSelectDate: (String) -> Void
     public let onWeekOffset: (Int) -> Void
@@ -45,7 +45,7 @@ public struct WeekStripView: View {
             #endif
         }
         .padding(.vertical, 12)
-        .background(Color.nudgeBackground)
+        .animation(.easeOut(duration: 0.2), value: selectedDate)
     }
 
     @ViewBuilder
@@ -57,10 +57,11 @@ public struct WeekStripView: View {
             .frame(maxWidth: .infinity, alignment: .center)
         #else
         HStack {
-            Button(action: { onWeekOffset(-1) }) {
-                Image(systemName: "chevron.left")
-            }
-            .buttonStyle(.plain)
+            IconButton(
+                systemName: "chevron.left",
+                accessibilityLabel: "daily.prevWeekAria",
+                action: { onWeekOffset(-1) }
+            )
 
             Spacer()
 
@@ -70,10 +71,11 @@ public struct WeekStripView: View {
 
             Spacer()
 
-            Button(action: { onWeekOffset(1) }) {
-                Image(systemName: "chevron.right")
-            }
-            .buttonStyle(.plain)
+            IconButton(
+                systemName: "chevron.right",
+                accessibilityLabel: "daily.nextWeekAria",
+                action: { onWeekOffset(1) }
+            )
         }
         #endif
     }
@@ -121,17 +123,19 @@ public struct WeekStripView: View {
                     .fill(hasTasks ? Color.nudgePrimary : Color.clear)
                     .frame(width: 4, height: 4)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, minHeight: 56)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(verbatim: dayNumber))
+        .accessibilityValue(Text(weekdayKey(date), bundle: .module))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private func weekdayKey(_ dateString: String) -> LocalizedStringKey {
         guard let date = DateFormatters.parseISODate(dateString) else { return "weekday.mon" }
         let calendar = Calendar(identifier: .gregorian)
         let weekday = calendar.component(.weekday, from: date)
-        // 1 = Sun, 2 = Mon, ..., 7 = Sat
         let keys: [LocalizedStringKey] = [
             "weekday.sun", "weekday.mon", "weekday.tue", "weekday.wed",
             "weekday.thu", "weekday.fri", "weekday.sat"

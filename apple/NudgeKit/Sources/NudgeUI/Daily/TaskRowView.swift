@@ -4,35 +4,35 @@ import NudgeCore
 public struct TaskRowView: View {
     public let assignment: DailyAssignmentDTO
     public let onToggleComplete: () -> Void
-    public let onTap: () -> Void
-    public let onDetailTap: () -> Void
+    public let onOpen: () -> Void
     public let onMoveTo: () -> Void
     public let onArchive: () -> Void
 
     public init(
         assignment: DailyAssignmentDTO,
         onToggleComplete: @escaping () -> Void,
-        onTap: @escaping () -> Void,
-        onDetailTap: @escaping () -> Void,
+        onOpen: @escaping () -> Void,
         onMoveTo: @escaping () -> Void,
         onArchive: @escaping () -> Void
     ) {
         self.assignment = assignment
         self.onToggleComplete = onToggleComplete
-        self.onTap = onTap
-        self.onDetailTap = onDetailTap
+        self.onOpen = onOpen
         self.onMoveTo = onMoveTo
         self.onArchive = onArchive
     }
 
     public var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             Button(action: onToggleComplete) {
                 Image(systemName: assignment.isCompleted ? "checkmark.square.fill" : "square")
                     .font(.title3)
                     .foregroundStyle(assignment.isCompleted ? Color.nudgePrimary : Color.nudgeTextDim)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(Text(assignment.isCompleted ? "task.uncomplete" : "task.complete", bundle: .module))
 
             Text(assignment.task.title)
                 .strikethrough(assignment.isCompleted)
@@ -40,16 +40,15 @@ public struct TaskRowView: View {
                 .opacity(assignment.isCompleted ? 0.6 : 1.0)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
-                .onTapGesture(perform: onTap)
+                .onTapGesture(perform: onOpen)
 
-            Button(action: onMoveTo) {
-                Image(systemName: "calendar")
-                    .foregroundStyle(Color.nudgeTextDim)
-            }
-            .buttonStyle(.plain)
+            IconButton(
+                systemName: "calendar",
+                accessibilityLabel: "task.moveToOtherDate",
+                action: onMoveTo
+            )
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
         .background(Color.nudgeBackground)
         #if os(macOS)
         .draggable(assignment.id)
@@ -57,7 +56,7 @@ public struct TaskRowView: View {
         .contextMenu {
             Button(action: onToggleComplete) {
                 Label {
-                    Text(verbatim: assignment.isCompleted ? "Uncomplete" : "Complete")
+                    Text(assignment.isCompleted ? "task.uncomplete" : "task.complete", bundle: .module)
                 } icon: {
                     Image(systemName: assignment.isCompleted ? "circle" : "checkmark.circle")
                 }
@@ -76,9 +75,9 @@ public struct TaskRowView: View {
                     Image(systemName: "archivebox")
                 }
             }
-            Button(action: onDetailTap) {
+            Button(action: onOpen) {
                 Label {
-                    Text(verbatim: "Edit")
+                    Text("common.edit", bundle: .module)
                 } icon: {
                     Image(systemName: "pencil")
                 }

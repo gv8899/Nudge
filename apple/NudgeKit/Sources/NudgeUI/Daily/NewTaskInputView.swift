@@ -5,11 +5,9 @@ public struct NewTaskInputView: View {
     @State private var text: String = ""
     @FocusState private var isFocused: Bool
     public let onSubmit: (String) -> Void
-    public let focusTrigger: () -> Bool?
 
-    public init(onSubmit: @escaping (String) -> Void, focusTrigger: @escaping () -> Bool? = { nil }) {
+    public init(onSubmit: @escaping (String) -> Void) {
         self.onSubmit = onSubmit
-        self.focusTrigger = focusTrigger
     }
 
     public var body: some View {
@@ -20,12 +18,7 @@ public struct NewTaskInputView: View {
             .focused($isFocused)
             .textFieldStyle(.plain)
             .foregroundStyle(Color.nudgeForeground)
-            .onSubmit {
-                let trimmed = text.trimmingCharacters(in: .whitespaces)
-                guard !trimmed.isEmpty else { return }
-                onSubmit(trimmed)
-                text = ""
-            }
+            .onSubmit(submit)
 
             Rectangle()
                 .fill(Color.nudgeBorder)
@@ -33,6 +26,12 @@ public struct NewTaskInputView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color.nudgeBackground)
+    }
+
+    private func submit() {
+        let trimmed = text.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        onSubmit(trimmed)
+        text = ""
     }
 }

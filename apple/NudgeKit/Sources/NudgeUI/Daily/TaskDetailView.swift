@@ -24,10 +24,12 @@ public struct TaskDetailView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                TextField("", text: $title)
-                    .font(.title2.weight(.semibold))
-                    .textFieldStyle(.plain)
-                    .onSubmit { onUpdateTitle(title) }
+                TextField(text: $title) {
+                    Text("task.createPlaceholder", bundle: .module)
+                }
+                .font(.title2.weight(.semibold))
+                .textFieldStyle(.plain)
+                .onSubmit { onUpdateTitle(title) }
 
                 Divider()
                     .background(Color.nudgeBorderLight)
@@ -35,7 +37,6 @@ public struct TaskDetailView: View {
                 TextEditor(text: $description)
                     .font(.body)
                     .scrollContentBackground(.hidden)
-                    .background(Color.nudgeBackground)
                     .frame(minHeight: 200)
                     .onChange(of: description) { _, newValue in
                         onUpdateDescription(newValue)

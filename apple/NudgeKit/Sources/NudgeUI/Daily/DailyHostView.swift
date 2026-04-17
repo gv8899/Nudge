@@ -11,7 +11,7 @@ public struct DailyHostView: View {
     @State private var dailyData: DailyDataDTO?
     @State private var events: [CalendarEventDTO] = []
     @State private var weekDates: Set<String> = []
-    @State private var isOffline: Bool = false
+    @State private var loadState: LoadState = .idle
     @State private var lastUpdated: String = ""
     @State private var selectedAssignmentForDetail: DailyAssignmentDTO?
     @State private var moveSheetAssignment: DailyAssignmentDTO?
@@ -21,6 +21,14 @@ public struct DailyHostView: View {
     #endif
 
     public init() {}
+
+    enum LoadState: Equatable {
+        case idle
+        case loading
+        case loaded
+        case offline
+        case error
+    }
 
     public var body: some View {
         #if os(iOS)
@@ -36,9 +44,7 @@ public struct DailyHostView: View {
     private var iOSLayout: some View {
         NavigationStack(path: $navigationPath) {
             VStack(spacing: 0) {
-                if isOffline {
-                    OfflineBannerView(lastUpdated: lastUpdated)
-                }
+                statusBanner
                 WeekStripView(
                     selectedDate: selectedDate,
                     datesWithTasks: weekDates,
@@ -50,22 +56,22 @@ public struct DailyHostView: View {
                         CalendarSectionView(
                             events: events,
                             isConnected: calendarRepo.isConnected,
-                            onConnectTapped: {}  // Task 23 wires to OAuth flow
+                            onConnectTapped: {}
                         )
                         OverdueSectionView(
                             overdueTasks: dailyData?.overdueTasks ?? [],
                             currentDate: selectedDate,
                             onToggleComplete: toggleComplete,
-                            onReschedule: { task, date in moveAssignment(task, to: date) },
+                            onReschedule: { moveAssignment($0, to: $1) },
                             onMoveTo: { moveSheetAssignment = $0 },
                             onArchive: { archiveTask($0) }
                         )
                         NewTaskInputView(onSubmit: createTask)
                         TaskListView(
                             assignments: dailyData?.assignments ?? [],
+                            isLoading: loadState == .loading,
                             onToggleComplete: toggleComplete,
-                            onTap: { navigationPath.append($0) },
-                            onDetailTap: { navigationPath.append($0) },
+                            onOpen: { navigationPath.append($0) },
                             onMove: handleMove,
                             onArchive: { archiveTask($0) },
                             onMoveTo: { moveSheetAssignment = $0 }
@@ -75,6 +81,7 @@ public struct DailyHostView: View {
                 }
             }
             .background(Color.nudgeBackground)
+            .animation(.easeOut(duration: 0.2), value: loadState)
             .navigationDestination(for: DailyAssignmentDTO.self) { assignment in
                 TaskDetailView(
                     assignment: assignment,
@@ -102,7 +109,6 @@ public struct DailyHostView: View {
     #if os(macOS)
     private var macOSLayout: some View {
         HStack(spacing: 0) {
-            // Left pane: calendar section (~300pt wide)
             VStack(spacing: 0) {
                 CalendarSectionView(
                     events: events,
@@ -116,11 +122,8 @@ public struct DailyHostView: View {
 
             Divider()
 
-            // Right pane: week strip + lists + input
             VStack(spacing: 0) {
-                if isOffline {
-                    OfflineBannerView(lastUpdated: lastUpdated)
-                }
+                statusBanner
                 WeekStripView(
                     selectedDate: selectedDate,
                     datesWithTasks: weekDates,
@@ -133,16 +136,16 @@ public struct DailyHostView: View {
                             overdueTasks: dailyData?.overdueTasks ?? [],
                             currentDate: selectedDate,
                             onToggleComplete: toggleComplete,
-                            onReschedule: { task, date in moveAssignment(task, to: date) },
+                            onReschedule: { moveAssignment($0, to: $1) },
                             onMoveTo: { moveSheetAssignment = $0 },
                             onArchive: { archiveTask($0) }
                         )
                         NewTaskInputView(onSubmit: createTask)
                         TaskListView(
                             assignments: dailyData?.assignments ?? [],
+                            isLoading: loadState == .loading,
                             onToggleComplete: toggleComplete,
-                            onTap: { selectedAssignmentForDetail = $0 },
-                            onDetailTap: { selectedAssignmentForDetail = $0 },
+                            onOpen: { selectedAssignmentForDetail = $0 },
                             onMove: handleMove,
                             onArchive: { archiveTask($0) },
                             onMoveTo: { moveSheetAssignment = $0 }
@@ -153,6 +156,7 @@ public struct DailyHostView: View {
             }
         }
         .background(Color.nudgeBackground)
+        .animation(.easeOut(duration: 0.2), value: loadState)
         .sheet(item: $selectedAssignmentForDetail) { assignment in
             TaskDetailView(
                 assignment: assignment,
@@ -175,44 +179,66 @@ public struct DailyHostView: View {
     }
     #endif
 
-    // MARK: - Data loading
+    @ViewBuilder
+    private var statusBanner: some View {
+        switch loadState {
+        case .offline:
+            OfflineBannerView(lastUpdated: lastUpdated)
+        case .error:
+            ErrorBannerView(onRetry: { Task { await reload() } })
+        default:
+            EmptyView()
+        }
+    }
+}
 
-    private func reload() async {
+// MARK: - Actions
+
+extension DailyHostView {
+    func reload() async {
         let requestedDate = selectedDate
-        // Clear prior-date data so the UI never shows another day's rows
-        // while the new fetch is in flight (or if it fails).
+        loadState = .loading
         dailyData = nil
         events = []
 
+        // Parallelize the three fetches. Daily data is authoritative for
+        // loadState; week summary and calendar events are best-effort.
+        async let daily = taskRepo.dailyData(date: requestedDate)
+        async let weekSummary = weekSummaryFor(date: requestedDate)
+        async let calendarEvents = (try? calendarRepo.events(date: requestedDate)) ?? []
+
         do {
-            let data = try await taskRepo.dailyData(date: requestedDate)
+            let data = try await daily
             guard requestedDate == selectedDate else { return }
             dailyData = data
             lastUpdated = Self.currentTimeString()
-            isOffline = false
+            loadState = .loaded
         } catch APIError.network {
-            if requestedDate == selectedDate { isOffline = true }
+            if requestedDate == selectedDate { loadState = .offline }
         } catch {
-            if requestedDate == selectedDate { isOffline = true }
+            print("[DailyHostView] dailyData failed: \(error)")
+            if requestedDate == selectedDate { loadState = .error }
         }
 
-        // Week summary
-        if let date = DateFormatters.parseISODate(requestedDate) {
-            let start = DateFormatters.isoDate(DateFormatters.startOfWeek(date))
-            let calendar = Calendar(identifier: .gregorian)
-            let endDate = calendar.date(byAdding: .day, value: 6, to: DateFormatters.startOfWeek(date)) ?? date
-            let end = DateFormatters.isoDate(endDate)
-            if let summary = try? await taskRepo.weekSummary(start: start, end: end),
-               requestedDate == selectedDate {
-                weekDates = Set(summary.datesWithTasks)
-            }
+        if let summary = await weekSummary, requestedDate == selectedDate {
+            weekDates = Set(summary.datesWithTasks)
         }
 
-        // Calendar events
-        let fetchedEvents = (try? await calendarRepo.events(date: requestedDate)) ?? []
+        let fetchedEvents = await calendarEvents
         if requestedDate == selectedDate {
             events = fetchedEvents
         }
+    }
+
+    private func weekSummaryFor(date: String) async -> WeekSummaryDTO? {
+        guard let parsed = DateFormatters.parseISODate(date) else { return nil }
+        let start = DateFormatters.isoDate(DateFormatters.startOfWeek(parsed))
+        let calendar = Calendar(identifier: .gregorian)
+        guard let endDate = calendar.date(byAdding: .day, value: 6, to: DateFormatters.startOfWeek(parsed)) else {
+            return nil
+        }
+        let end = DateFormatters.isoDate(endDate)
+        return try? await taskRepo.weekSummary(start: start, end: end)
     }
 
     private static func currentTimeString() -> String {
@@ -221,9 +247,7 @@ public struct DailyHostView: View {
         return formatter.string(from: Date())
     }
 
-    // MARK: - Actions
-
-    private func offsetWeek(_ delta: Int) {
+    func offsetWeek(_ delta: Int) {
         guard let date = DateFormatters.parseISODate(selectedDate) else { return }
         let calendar = Calendar(identifier: .gregorian)
         if let newDate = calendar.date(byAdding: .day, value: 7 * delta, to: date) {
@@ -231,7 +255,7 @@ public struct DailyHostView: View {
         }
     }
 
-    private func createTask(_ title: String) {
+    func createTask(_ title: String) {
         Task {
             do {
                 _ = try await taskRepo.createTask(date: selectedDate, title: title)
@@ -242,7 +266,7 @@ public struct DailyHostView: View {
         }
     }
 
-    private func toggleComplete(_ assignment: DailyAssignmentDTO) {
+    func toggleComplete(_ assignment: DailyAssignmentDTO) {
         Task {
             do {
                 try await taskRepo.toggleComplete(
@@ -257,8 +281,8 @@ public struct DailyHostView: View {
         }
     }
 
-    private func handleMove(_ indices: IndexSet, _ newOffset: Int) {
-        guard var assignments = dailyData?.assignments else { return }
+    func handleMove(_ indices: IndexSet, _ newOffset: Int) {
+        guard var assignments = dailyData?.assignments, !indices.isEmpty else { return }
         assignments.move(fromOffsets: indices, toOffset: newOffset)
         let ids = assignments.map(\.id)
         Task {
@@ -271,15 +295,10 @@ public struct DailyHostView: View {
         }
     }
 
-    private func moveAssignment(_ assignment: DailyAssignmentDTO, to newDate: String) {
-        // Guard: server's PATCH treats from==to as update+delete on the same
-        // row, which ends up deleting the task entirely. No-op on the client
-        // when the task is already on the requested date.
+    func moveAssignment(_ assignment: DailyAssignmentDTO, to newDate: String) {
         if assignment.date == newDate {
-            print("[DailyHostView] moveAssignment skipped: already on \(newDate)")
             return
         }
-        print("[DailyHostView] moveAssignment id=\(assignment.id) from=\(assignment.date) to=\(newDate)")
         Task {
             do {
                 try await taskRepo.moveToDate(
@@ -294,14 +313,7 @@ public struct DailyHostView: View {
         }
     }
 
-    private func scheduleOverdueToToday(_ assignment: DailyAssignmentDTO) {
-        // Matches Web's onReschedule(a.id, currentDate): "today" from the
-        // user's POV is the date they're viewing, not the wall-clock today.
-        moveAssignment(assignment, to: selectedDate)
-    }
-
-    private func archiveTask(_ assignment: DailyAssignmentDTO) {
-        print("[DailyHostView] archiveTask taskId=\(assignment.task.id)")
+    func archiveTask(_ assignment: DailyAssignmentDTO) {
         Task {
             do {
                 try await taskRepo.archive(taskId: assignment.task.id)
@@ -312,7 +324,7 @@ public struct DailyHostView: View {
         }
     }
 
-    private func updateTitle(assignment: DailyAssignmentDTO, title: String) {
+    func updateTitle(assignment: DailyAssignmentDTO, title: String) {
         Task {
             do {
                 try await taskRepo.updateTitle(taskId: assignment.task.id, title: title)
@@ -322,7 +334,7 @@ public struct DailyHostView: View {
         }
     }
 
-    private func updateDescription(assignment: DailyAssignmentDTO, description: String) {
+    func updateDescription(assignment: DailyAssignmentDTO, description: String) {
         Task {
             do {
                 try await taskRepo.updateDescription(taskId: assignment.task.id, description: description)
@@ -333,9 +345,6 @@ public struct DailyHostView: View {
     }
 }
 
-// Needed for sheet(item:) and navigationDestination(for:).
-// DailyAssignmentDTO has `id: String`, so Identifiable is satisfied.
-// Hashable is combined from `id` (unique per assignment) so NavigationPath can append.
 extension DailyAssignmentDTO: Identifiable {}
 
 extension DailyAssignmentDTO: Hashable {
