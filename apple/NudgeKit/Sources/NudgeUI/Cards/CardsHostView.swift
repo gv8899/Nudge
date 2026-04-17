@@ -31,21 +31,12 @@ public struct CardsHostView: View {
     private var iOSLayout: some View {
         NavigationStack(path: $navigationPath) {
             VStack(spacing: 0) {
+                inlineHeader
                 searchBar
                 content
             }
             .background(Color.nudgeBackground)
-            .navigationTitle(Text("nav.cards", bundle: .module))
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    IconButton(
-                        systemName: "plus",
-                        accessibilityLabel: "cards.createAria",
-                        foreground: .nudgePrimary,
-                        action: createCard
-                    )
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: CardDTO.self) { card in
                 CardDetailView(
                     card: card,
@@ -55,6 +46,23 @@ public struct CardsHostView: View {
         }
         .task(id: debouncedQuery) { await firstPage() }
         .task(id: query) { await debounceQuery() }
+    }
+
+    private var inlineHeader: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text("nav.cards", bundle: .module)
+                .font(.largeTitle.weight(.bold))
+                .foregroundStyle(Color.nudgeForeground)
+            IconButton(
+                systemName: "plus",
+                accessibilityLabel: "cards.createAria",
+                foreground: .nudgePrimary,
+                action: createCard
+            )
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
     }
     #endif
 
@@ -171,9 +179,6 @@ public struct CardsHostView: View {
                             Task { await loadMore() }
                         }
                     }
-                    Divider()
-                        .background(Color.nudgeBorderLight)
-                        .padding(.leading, 16)
                 }
                 if isLoadingMore {
                     Text("cards.loadMore", bundle: .module)
