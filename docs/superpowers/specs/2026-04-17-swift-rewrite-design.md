@@ -114,7 +114,7 @@ View ──write──> Repository ──> API ──ok──> update SwiftData 
 ```swift
 @Observable
 public final class TaskRepository {
-    public func tasksForDate(_ date: Date) -> [Task]
+    public func tasksForDate(_ date: Date) -> [TaskItem]
     public func createTask(_ input: NewTaskInput) async throws -> Task
     public func updateStatus(_ id: String, _ status: TaskStatus) async throws
     public func reorder(_ ids: [String], date: Date) async throws
@@ -193,7 +193,7 @@ Phase 5: 設定 + Google Calendar 整合
    ↓
 Phase 6: Apple 平台專屬深耕（iOS Widget / Live Activities / App Intents；macOS MenuBarExtra / hotkey / 多視窗）
    ↓
-Phase 7: 上架（iOS + macOS 分別送審）
+Phase 7: 上架（iOS → App Store；macOS → Developer ID + notarization + DMG 直發）
 ```
 
 ### 為什麼這樣排
@@ -221,7 +221,7 @@ Phase 7: 上架（iOS + macOS 分別送審）
 | 4. 卡片 | 3-5 天 | Kanban 拖曳在 macOS 的鍵盤 / 滑鼠互動 |
 | 5. 設定 + Calendar | 2-3 天 | OAuth redirect 在 macOS 與 iOS 不同 |
 | 6. Apple 專屬 | 5-7 天 | Live Activities / MenuBarExtra 學習曲線 |
-| 7. 上架 | 2-3 天 | App Review（特別 Google OAuth 審查） |
+| 7. 上架 | 2-3 天 | iOS App Review（特別 Google OAuth 審查）；macOS 只做 Developer ID 簽章 + notarization + DMG |
 | **合計** | **約 3-4 週** | |
 
 ## 風險與 Mitigation
@@ -232,7 +232,8 @@ Phase 7: 上架（iOS + macOS 分別送審）
 | SwiftData 在 macOS 多視窗共享 store | 中 | 中 | 用 `ModelContainer` singleton + 每 view 自己 `ModelContext`。先跑小 PoC 確認 multi-window 寫入不打架 |
 | 拖曳排序跨平台 | 中 | 中 | iOS `.onMove`、macOS `.draggable`/`.dropDestination`——不強求共用，各平台各寫一套但共用 reorder callback |
 | Google OAuth on macOS（`ASWebAuthenticationSession` 行為和 iOS 不同）| 中 | 高 | Phase 1 最先驗證；fallback：開預設瀏覽器 + custom URL scheme |
-| App Review 駁回（Google OAuth + 日本市場）| 中 | 高 | Privacy manifest、App Privacy 填完整、OAuth 只拿最小 scope。iOS 和 macOS 分別送審要排雙倍時間 |
+| iOS App Review 駁回（Google OAuth + 日本市場）| 中 | 高 | Privacy manifest、App Privacy 填完整、OAuth 只拿最小 scope。macOS 走 Developer ID 不受 App Review 影響，風險只在 iOS 端 |
+| Developer ID notarization 失敗 | 低 | 中 | Phase 0 就先設好簽章 + entitlements；首次 notarize 常因簽章設定漏失敗，盡早驗證 |
 | Live Activities / Widget 複雜度 | 低 | 中 | Phase 6 才做，無法做也不擋上架 |
 | 日文排版（行高、標點） | 低 | 低 | `.xcstrings` + 日文 tester 實機看 |
 
@@ -252,12 +253,16 @@ Phase 7: 上架（iOS + macOS 分別送審）
 - Apple 內建：**MetricKit** + **OSLog** + Xcode Organizer 看 crash 和效能
 - 錯誤上報：server 5xx 本機 log，不自動上傳
 
-## Open Questions（進 plan 前需補）
+## 已決定事項（原 Open Questions）
 
-- `/apple/` 資料夾位置是否真要在 repo 根（或另起 repo）？spec 預設放 monorepo，待 plan 階段再次確認
-- 日文市場的日曆格式（週起始日、節日顯示）是否需要 locale-aware 調整
-- macOS App Store 送審是否走 Mac App Store 或 Developer ID 直發（此 spec 預設 Mac App Store）
-- Swift 域模型命名：`Task` 與 Swift Concurrency 的 `_Concurrency.Task` 衝突，必須改名。候選：`TaskItem` / `TodoItem` / `NudgeTask`。此 spec 的 Repository 範例暫用 `Task` 示意，plan 階段統一更名
+- **專案位置**：`/apple/` 放在 monorepo 根（和 `src/`、`mobile/` 平行），不另起 repo
+- **Swift 域模型命名**：`Task` → **`TaskItem`**（避開 `_Concurrency.Task` 衝突）。Repository 範例和後續 code 一律用 `TaskItem`
+- **macOS 發佈**：Phase 7 **不走 Mac App Store**，改用 **Developer ID 簽章 + notarization + DMG 直發**（從 landing 下載），先求上線；Mac App Store 之後再考慮
+- **日曆 locale**：週起始日跟 system locale（日本 / 北歐 / 台灣都是週一），日期格式跟 system locale（`DateFormatter` 自動）；**不做**節日標記、不做和暦 / 元号顯示。定位是任務工具，不是日曆 app
+
+## 仍待解決
+
+（無；全部在 plan 階段之前已釐清）
 
 ## Definition of Done（整個 Swift 重寫計畫）
 
