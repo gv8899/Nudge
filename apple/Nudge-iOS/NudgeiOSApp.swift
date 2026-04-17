@@ -11,6 +11,7 @@ struct NudgeiOSApp: App {
     @State private var taskRepo: TaskRepository
     @State private var tagRepo: TagRepository
     @State private var calendarRepo: CalendarRepository
+    @State private var cardRepo: CardRepository
     private let container: ModelContainer
     private let googleSignIn: GoogleSignInServiceIOS
 
@@ -30,6 +31,7 @@ struct NudgeiOSApp: App {
         let taskRepo = TaskRepository(client: client, container: container)
         let tagRepo = TagRepository(client: client)
         let calRepo = CalendarRepository(client: client)
+        let cardRepo = CardRepository(client: client)
 
         // Wire 401 handler after repos are live
         client.setUnauthorizedHandler { [weak authRepo] in
@@ -40,6 +42,7 @@ struct NudgeiOSApp: App {
         self._taskRepo = State(initialValue: taskRepo)
         self._tagRepo = State(initialValue: tagRepo)
         self._calendarRepo = State(initialValue: calRepo)
+        self._cardRepo = State(initialValue: cardRepo)
         self.container = container
         self.googleSignIn = GoogleSignInServiceIOS.fromInfoPlist()
     }
@@ -54,6 +57,7 @@ struct NudgeiOSApp: App {
                     .environment(taskRepo)
                     .environment(tagRepo)
                     .environment(calendarRepo)
+                    .environment(cardRepo)
             }
             .task {
                 await auth.restoreSession()
