@@ -51,16 +51,12 @@ next-env.d.ts
 # memory
 /memory
 
-# Flutter
-mobile/.dart_tool/
-mobile/.packages
-mobile/build/
-mobile/.flutter-plugins
-mobile/.flutter-plugins-dependencies
-mobile/ios/Pods/
-mobile/ios/.symlinks/
-mobile/android/.gradle/
-mobile/android/local.properties
-mobile/android/app/debug/
-mobile/android/app/profile/
-mobile/android/app/release/
+# Apple / Swift
+# Xcode project is generated from apple/project.yml via xcodegen
+apple/*.xcodeproj
+apple/*.xcworkspace
+apple/**/xcuserdata/
+apple/**/*.xcuserstate
+apple/**/.build/
+apple/**/.swiftpm/
+apple/**/DerivedData/
