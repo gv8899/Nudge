@@ -99,13 +99,16 @@ public struct CardsHostView: View {
     // MARK: - Custom search bar (replaces .searchable so there's only one ✕)
 
     private var searchBar: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
+                .font(.subheadline)
                 .foregroundStyle(Color.nudgeTextDim)
             TextField(text: $query) {
                 Text("cards.searchPlaceholder", bundle: .module)
+                    .foregroundStyle(Color.nudgeTextDim)
             }
             .textFieldStyle(.plain)
+            .font(.subheadline)
             .foregroundStyle(Color.nudgeForeground)
             .submitLabel(.search)
 
@@ -114,22 +117,18 @@ public struct CardsHostView: View {
                     query = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
+                        .font(.subheadline)
                         .foregroundStyle(Color.nudgeTextDim)
-                        .frame(minWidth: 44, minHeight: 44)
+                        .frame(minWidth: 32, minHeight: 32)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(Text("common.cancel", bundle: .module))
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.nudgeBorderLight.opacity(0.3))
-        )
         .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.top, 4)
+        .padding(.bottom, 12)
     }
 
     @ViewBuilder
@@ -161,7 +160,7 @@ public struct CardsHostView: View {
 
     private var list: some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
+            LazyVStack(spacing: 4) {
                 ForEach(cards) { card in
                     CardListItemView(card: card) {
                         openDetail(card)
@@ -171,9 +170,6 @@ public struct CardsHostView: View {
                             Task { await loadMore() }
                         }
                     }
-                    Divider()
-                        .background(Color.nudgeBorderLight)
-                        .padding(.leading, 16)
                 }
                 if isLoadingMore {
                     Text("cards.loadMore", bundle: .module)
@@ -187,6 +183,8 @@ public struct CardsHostView: View {
                         .padding(12)
                 }
             }
+            .padding(.top, 4)
+            .padding(.bottom, 16)
         }
     }
 
