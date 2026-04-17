@@ -24,10 +24,13 @@ struct CalendarRepositoryTests {
         #expect(repo.isConnected == true)
     }
 
-    @Test func eventsSetsNotConnectedOn400() async throws {
+    @Test func eventsSetsNotConnectedOnDisconnectedResponse() async throws {
+        // Real server shape when Google Calendar is not linked: 200 OK with
+        // {connected:false, reason:...}; repo should flip isConnected=false
+        // and return empty events (no throw).
         MockURLProtocol.handler = { request in
-            let data = "{\"error\":\"not_connected\"}".data(using: .utf8)!
-            let response = HTTPURLResponse(url: request.url!, statusCode: 400, httpVersion: nil, headerFields: nil)!
+            let data = "{\"connected\":false,\"reason\":\"reauth_required\"}".data(using: .utf8)!
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
             return (data, response)
         }
         let client = APIClient(
@@ -35,7 +38,8 @@ struct CalendarRepositoryTests {
             session: .mocked()
         )
         let repo = CalendarRepository(client: client)
-        _ = try? await repo.events(date: "2026-04-17")
+        let events = try await repo.events(date: "2026-04-17")
+        #expect(events.isEmpty)
         #expect(repo.isConnected == false)
     }
 }
