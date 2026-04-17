@@ -1,0 +1,58 @@
+import Foundation
+import Observation
+
+@Observable
+@MainActor
+public final class CardRepository {
+    private let client: APIClient
+
+    public init(client: APIClient) {
+        self.client = client
+    }
+
+    /// Fetches one page of cards. Pass `cursor = nil` for the first page.
+    /// Empty `query` omits the `q=` query parameter.
+    public func list(query: String, cursor: String?, limit: Int = 20) async throws -> CardListDTO {
+        // Build query string manually so values are fully percent-encoded
+        // (URLComponents leaves colons and other RFC-allowed chars unencoded).
+        var allowed = CharacterSet.urlQueryAllowed
+        allowed.remove(charactersIn: ":@!$&'()*+,;=")
+        func encode(_ value: String) -> String {
+            value.addingPercentEncoding(withAllowedCharacters: allowed) ?? value
+        }
+        var pairs: [String] = ["limit=\(limit)"]
+        if !query.isEmpty {
+            pairs.append("q=\(encode(query))")
+        }
+        if let cursor, !cursor.isEmpty {
+            pairs.append("cursor=\(encode(cursor))")
+        }
+        let path = "/api/cards?" + pairs.joined(separator: "&")
+        return try await client.get(path)
+    }
+
+    /// Creates a new empty card (POST /api/tasks). Returns it as a
+    /// CardDTO so the caller can push the detail view immediately.
+    public func create() async throws -> CardDTO {
+        struct Body: Codable {
+            let title: String
+            let description: String
+            let status: String
+        }
+        struct TaskShim: Codable {
+            let id: String
+            let title: String
+            let description: String?
+            let updatedAt: Date
+        }
+        let body = Body(title: "", description: "<p></p>", status: "inbox")
+        let shim: TaskShim = try await client.post("/api/tasks", body: body)
+        return CardDTO(
+            id: shim.id,
+            title: shim.title,
+            description: shim.description ?? "",
+            updatedAt: shim.updatedAt,
+            tags: []
+        )
+    }
+}

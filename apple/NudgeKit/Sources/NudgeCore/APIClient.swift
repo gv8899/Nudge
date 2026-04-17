@@ -29,6 +29,7 @@ public final class APIClient: Sendable {
 
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.withoutEscapingSlashes]
         self.encoder = encoder
     }
 
