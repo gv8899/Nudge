@@ -53,7 +53,7 @@ iOS 和 macOS 同等重要，每個 feature 在兩個平台都跑過完整流程
 | 項目 | 決策 | 理由 |
 |------|------|------|
 | macOS sidebar | 沿用 Phase 1：靜態 tab（行動 / 日誌 / 卡片 / 設定），**不**用日期樹 | 和 iOS TabView 對稱，程式碼分歧少 |
-| 「今天」tab 名稱 | 改叫 **「行動」**（新 i18n key `nav.action`）| 使用者指定 |
+| 「今天」tab 名稱 | 沿用 Web 的 `nav.tasks`（zh-Hant: 行動 / en: Tasks / ja: アクション）| Web 已有 key，不開新 key |
 | iOS 任務 detail | NavigationStack push 全頁（不用 sheet）| 使用者指定 |
 | macOS 新增任務 | ⌘N 在任務列頂端插空 row + focus（Reminders 風格）| Mac-native |
 | macOS task detail | NavigationSplitView detail pane | 善用既有三欄 |
@@ -413,20 +413,29 @@ public extension Color {
 }
 ```
 
-**Key 命名**：完全對齊 Web `src/messages/zh-TW.json` 的 dot-path key（例：`common.save`、`settings.account.section`）。
+**Key 命名規則**：
+- **只使用 Web `src/messages/*.json` 既有 key**，不自創新 key
+- 如果 Phase 2 的 UI 文案對應不到現有 key，**先回頭加到 Web 的三個 JSON**（zh-TW / en / ja），再對應到 `.xcstrings`
+- Swift 端的 xcstrings 只是 Web JSON 的 mirror；Web 是 source of truth
 
-**Phase 2 必要 key 批次**（從 Web 複製對應的）：
+**Phase 2 會用到的現有 Web key**（從 `src/messages/zh-TW.json` 實際 path）：
 - `common.save` / `common.cancel` / `common.delete` / `common.loading` / `common.today`
-- `nav.action`（新 key：行動 / Action / 行動）
-- `nav.notes` / `nav.cards` / `nav.settings`
-- `daily.newTaskPlaceholder`（例：「新增任務」）
-- `daily.overdueSection` / `daily.calendarSection` / `daily.todayButton`
-- `daily.emptyState`
-- `offline.banner`（例：「離線中。上次更新於 {time}」）
-- `task.archive` / `task.moveTo` / `task.completed`
-- `calendar.connectCTA`
-- `error.network` / `error.unauthorized` / `error.unknown`
-- `weekday.mon ~ weekday.sun`
+- `nav.tasks`（行動 / Tasks / アクション）、`nav.notes`、`nav.cards`、`nav.settings`
+- `daily.tasks.emptyToday`、`daily.tasks.todayButton`
+- `daily.tasks.overdueScheduleToday`（「排入今天」）
+- `calendar.panelTitle`（「今日行程」）、`calendar.panelEmpty`（「今天沒有行程」）
+- `calendar.mobileCollapsedCount`（「今日行程 · {count} 件」）
+- `calendar.connectDescription`（「看看今天有哪些會議」）
+- …（開 plan 時逐一核對，缺的 key 先補到 Web）
+
+**哪些會用 Web 既有 key 查不到 → 要先加到 Web**（Phase 2 自己的新字串）：
+- 離線 banner 文字（如 `offline.banner`）
+- 新增任務 placeholder（例 `daily.tasks.newPlaceholder`）
+
+**每加一個新 key 的流程**：
+1. 加到 `src/messages/zh-TW.json`（台灣是設計語言基準）
+2. 翻到 `src/messages/en.json` 和 `ja.json`
+3. 同步到 `NudgeKit/Sources/.../Localizable.xcstrings`
 
 **使用**：
 ```swift
