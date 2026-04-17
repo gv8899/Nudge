@@ -61,4 +61,12 @@ public final class CardRepository {
         struct Body: Codable { let title: String }
         try await client.patchVoid("/api/tasks/\(cardId)", body: Body(title: title))
     }
+
+    /// PATCHes the rich-text description of an existing card.
+    /// `html` is the same HTML string Web's TipTap editor emits; empty content
+    /// is normalized to `""` (matches Web's card-detail.tsx behavior).
+    public func updateDescription(cardId: String, html: String) async throws {
+        struct Body: Codable { let description: String }
+        try await client.patchVoid("/api/tasks/\(cardId)", body: Body(description: html))
+    }
 }

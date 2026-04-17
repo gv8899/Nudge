@@ -31,30 +31,39 @@ public struct CardsHostView: View {
     private var iOSLayout: some View {
         NavigationStack(path: $navigationPath) {
             VStack(spacing: 0) {
+                inlineHeader
                 searchBar
                 content
             }
             .background(Color.nudgeBackground)
-            .navigationTitle(Text("nav.cards", bundle: .module))
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    IconButton(
-                        systemName: "plus",
-                        accessibilityLabel: "cards.createAria",
-                        foreground: .nudgePrimary,
-                        action: createCard
-                    )
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: CardDTO.self) { card in
                 CardDetailView(
                     card: card,
-                    onUpdateTitle: { updateTitle(cardId: card.id, title: $0) }
+                    onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
+                    onUpdateDescription: { updateDescription(cardId: card.id, html: $0) }
                 )
             }
         }
         .task(id: debouncedQuery) { await firstPage() }
         .task(id: query) { await debounceQuery() }
+    }
+
+    private var inlineHeader: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text("nav.cards", bundle: .module)
+                .font(.largeTitle.weight(.bold))
+                .foregroundStyle(Color.nudgeForeground)
+            IconButton(
+                systemName: "plus",
+                accessibilityLabel: "cards.createAria",
+                foreground: .nudgePrimary,
+                action: createCard
+            )
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
     }
     #endif
 
@@ -82,7 +91,8 @@ public struct CardsHostView: View {
             if let card = pushedCard {
                 CardDetailView(
                     card: card,
-                    onUpdateTitle: { updateTitle(cardId: card.id, title: $0) }
+                    onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
+                    onUpdateDescription: { updateDescription(cardId: card.id, html: $0) }
                 )
             } else {
                 Text(verbatim: "—")
@@ -262,6 +272,27 @@ public struct CardsHostView: View {
                 try await cardRepo.updateTitle(cardId: cardId, title: title)
             } catch {
                 print("[CardsHostView] updateTitle failed: \(error)")
+            }
+        }
+    }
+
+    private func updateDescription(cardId: String, html: String) {
+        if let idx = cards.firstIndex(where: { $0.id == cardId }) {
+            let c = cards[idx]
+            cards[idx] = CardDTO(
+                id: c.id,
+                title: c.title,
+                description: html,
+                updatedAt: c.updatedAt,
+                tags: c.tags
+            )
+        }
+
+        Task {
+            do {
+                try await cardRepo.updateDescription(cardId: cardId, html: html)
+            } catch {
+                print("[CardsHostView] updateDescription failed: \(error)")
             }
         }
     }

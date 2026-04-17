@@ -4,15 +4,24 @@ import NudgeCore
 public struct CardDetailView: View {
     public let initialCard: CardDTO
     public let onUpdateTitle: (String) -> Void
+    public let onUpdateDescription: (String) -> Void
 
     @State private var title: String
-    @State private var saveWorkItem: DispatchWorkItem?
+    @State private var descriptionHTML: String
+    @State private var titleSaveWorkItem: DispatchWorkItem?
+    @State private var descriptionSaveWorkItem: DispatchWorkItem?
     @FocusState private var titleFocused: Bool
 
-    public init(card: CardDTO, onUpdateTitle: @escaping (String) -> Void) {
+    public init(
+        card: CardDTO,
+        onUpdateTitle: @escaping (String) -> Void,
+        onUpdateDescription: @escaping (String) -> Void
+    ) {
         self.initialCard = card
         self.onUpdateTitle = onUpdateTitle
+        self.onUpdateDescription = onUpdateDescription
         _title = State(initialValue: card.title)
+        _descriptionHTML = State(initialValue: card.description)
     }
 
     public var body: some View {
@@ -32,14 +41,18 @@ public struct CardDetailView: View {
                 Divider()
                     .background(Color.nudgeBorderLight)
 
-                Text(strippedDescription)
-                    .font(.body)
-                    .foregroundStyle(
-                        isDescriptionEmpty
-                            ? Color.nudgeTextDim
-                            : Color.nudgeForeground
+                RichTextEditor(
+                    html: $descriptionHTML,
+                    placeholder: NSLocalizedString(
+                        "cardDetail.editorPlaceholder",
+                        bundle: .module,
+                        comment: ""
                     )
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .onChange(of: descriptionHTML) { _, newValue in
+                    debouncedSaveDescription(newValue)
+                }
 
                 if !initialCard.tags.isEmpty {
                     HStack(spacing: 6) {
@@ -61,21 +74,17 @@ public struct CardDetailView: View {
         }
     }
 
-    private var isDescriptionEmpty: Bool {
-        initialCard.description.strippedHTML().isEmpty
-    }
-
-    private var strippedDescription: String {
-        let stripped = initialCard.description.strippedHTML()
-        return stripped.isEmpty
-            ? NSLocalizedString("cardDetail.editorPlaceholder", bundle: .module, comment: "")
-            : stripped
-    }
-
     private func debouncedSaveTitle(_ newValue: String) {
-        saveWorkItem?.cancel()
+        titleSaveWorkItem?.cancel()
         let work = DispatchWorkItem { onUpdateTitle(newValue) }
-        saveWorkItem = work
+        titleSaveWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
+    }
+
+    private func debouncedSaveDescription(_ newValue: String) {
+        descriptionSaveWorkItem?.cancel()
+        let work = DispatchWorkItem { onUpdateDescription(newValue) }
+        descriptionSaveWorkItem = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
     }
 }

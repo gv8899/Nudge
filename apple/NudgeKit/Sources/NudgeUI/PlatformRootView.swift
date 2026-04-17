@@ -30,11 +30,11 @@ struct IOSTabRoot: View {
             DailyHostView()
                 .tabItem { Label { Text("nav.tasks", bundle: .module) } icon: { Image(systemName: "checkmark.circle") } }
 
-            PlaceholderTab(title: "日誌", systemImage: "book")
-                .tabItem { Label { Text("nav.notes", bundle: .module) } icon: { Image(systemName: "book") } }
-
             CardsHostView()
                 .tabItem { Label { Text("nav.cards", bundle: .module) } icon: { Image(systemName: "square.stack") } }
+
+            PlaceholderTab(title: "日誌", systemImage: "book")
+                .tabItem { Label { Text("nav.notes", bundle: .module) } icon: { Image(systemName: "book") } }
 
             SettingsView(auth: auth)
                 .tabItem { Label { Text("nav.settings", bundle: .module) } icon: { Image(systemName: "gearshape") } }
@@ -56,11 +56,11 @@ struct MacSidebarRoot: View {
                     }
                 }
                 Section {
-                    NavigationLink(value: SidebarItem.notes) {
-                        Label(title: { Text("nav.notes", bundle: .module) }, icon: { Image(systemName: "book") })
-                    }
                     NavigationLink(value: SidebarItem.cards) {
                         Label(title: { Text("nav.cards", bundle: .module) }, icon: { Image(systemName: "square.stack") })
+                    }
+                    NavigationLink(value: SidebarItem.notes) {
+                        Label(title: { Text("nav.notes", bundle: .module) }, icon: { Image(systemName: "book") })
                     }
                 }
                 Section {

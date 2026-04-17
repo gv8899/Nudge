@@ -16,7 +16,9 @@ settings:
     # 自動簽章；使用者在 Xcode 首次開啟時選 Team
     CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "1"
+    # Flutter 版在 tw.nudge.app 用過較低 build；從 100 起跳避免 ASC
+    # 因 build number 不夠大拒絕 upload。之後每次 TestFlight +1 即可。
+    CURRENT_PROJECT_VERSION: "100"
 
 packages:
   NudgeKit:
