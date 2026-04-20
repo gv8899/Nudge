@@ -33,6 +33,8 @@
 	<string>1</string>
 	<key>GoogleIOSClientID</key>
 	<string>465373997523-qk21bth6e1ob034ie7hmsa9sa4gfe0ed.apps.googleusercontent.com</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

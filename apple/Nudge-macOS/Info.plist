@@ -33,5 +33,7 @@
 	<string>1</string>
 	<key>GoogleMacClientID</key>
 	<string>465373997523-a8lvq0359tapo93h77nka2820ip84ot2.apps.googleusercontent.com</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

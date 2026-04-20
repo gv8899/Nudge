@@ -13,8 +13,9 @@ settings:
     SWIFT_VERSION: "6.0"
     ENABLE_USER_SCRIPT_SANDBOXING: YES
     SWIFT_STRICT_CONCURRENCY: complete
-    # 自動簽章；使用者在 Xcode 首次開啟時選 Team
+    # 自動簽章；Team ID 寫在 project.yml 避免 xcodegen 重生後被清掉
     CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: B9NC8LR2HQ
     MARKETING_VERSION: "1.0.0"
     # Flutter 版在 tw.nudge.app 用過較低 build；從 100 起跳避免 ASC
     # 因 build number 不夠大拒絕 upload。之後每次 TestFlight +1 即可。
@@ -63,6 +64,8 @@ targets:
       path: Nudge-iOS/Info.plist
       properties:
         GoogleIOSClientID: "465373997523-qk21bth6e1ob034ie7hmsa9sa4gfe0ed.apps.googleusercontent.com"
+        # 只用 HTTPS + 系統內建加密，不自行實作密碼學 → 豁免 export compliance
+        ITSAppUsesNonExemptEncryption: false
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLName: google-oauth
@@ -104,6 +107,8 @@ targets:
       path: Nudge-macOS/Info.plist
       properties:
         GoogleMacClientID: "465373997523-a8lvq0359tapo93h77nka2820ip84ot2.apps.googleusercontent.com"
+        # 只用 HTTPS + 系統內建加密，不自行實作密碼學 → 豁免 export compliance
+        ITSAppUsesNonExemptEncryption: false
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLName: google-oauth

@@ -60,3 +60,5 @@ apple/**/*.xcuserstate
 apple/**/.build/
 apple/**/.swiftpm/
 apple/**/DerivedData/
+# Archive / IPA output from `xcodebuild archive + exportArchive`
+apple/build/
