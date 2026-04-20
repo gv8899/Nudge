@@ -25,9 +25,30 @@ public final class CalendarRepository {
         return response.events ?? []
     }
 
+    /// Requests a one-time connect URL from the server. The caller opens this
+    /// URL in `ASWebAuthenticationSession` with callback scheme `nudge`.
+    public func mobileStart() async throws -> URL {
+        let response: MobileStartResponse = try await client.get("/api/calendar/mobile-start")
+        guard let url = URL(string: response.url) else {
+            throw APIError.invalidResponse
+        }
+        return url
+    }
+
+    /// Re-checks connection status by calling events for today.
+    /// Called after OAuth success to flip `isConnected` true immediately.
+    public func refreshConnectionStatus() async {
+        let today = DateFormatters.isoDate(Date())
+        _ = try? await events(date: today)
+    }
+
     private struct EventsResponse: Codable {
         let events: [CalendarEventDTO]?
         let connected: Bool?
         let reason: String?
+    }
+
+    private struct MobileStartResponse: Codable {
+        let url: String
     }
 }

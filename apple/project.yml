@@ -71,6 +71,10 @@ targets:
             CFBundleURLName: google-oauth
             CFBundleURLSchemes:
               - com.googleusercontent.apps.465373997523-qk21bth6e1ob034ie7hmsa9sa4gfe0ed
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: nudge-deep-link
+            CFBundleURLSchemes:
+              - nudge
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
 
@@ -114,3 +118,7 @@ targets:
             CFBundleURLName: google-oauth
             CFBundleURLSchemes:
               - com.googleusercontent.apps.465373997523-a8lvq0359tapo93h77nka2820ip84ot2
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: nudge-deep-link
+            CFBundleURLSchemes:
+              - nudge

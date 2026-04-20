@@ -74,20 +74,25 @@ import Foundation
         let json = #"""
         {
           "id": "ev1",
-          "summary": "Meeting",
-          "start": "2026-04-17T09:00:00Z",
-          "end": "2026-04-17T10:00:00Z",
+          "calendarId": "cal@example.com",
+          "calendarName": "Primary",
+          "title": "Meeting",
+          "start": "2026-04-17T09:00:00+08:00",
+          "end": "2026-04-17T10:00:00+08:00",
+          "allDay": false,
           "location": "Room 1",
+          "description": null,
           "attendees": ["alice@x.com"],
-          "hangoutLink": null,
-          "htmlLink": "https://cal.google.com/..."
+          "htmlLink": "https://cal.google.com/...",
+          "hangoutLink": "",
+          "busyOnly": false
         }
         """#.data(using: .utf8)!
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        let ev = try decoder.decode(CalendarEventDTO.self, from: json)
+        let ev = try JSONDecoder().decode(CalendarEventDTO.self, from: json)
         #expect(ev.id == "ev1")
+        #expect(ev.title == "Meeting")
         #expect(ev.attendees.count == 1)
+        #expect(ev.allDay == false)
     }
 
     @Test func tagDTODecodes() throws {

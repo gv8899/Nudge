@@ -21,6 +21,9 @@ public struct DailyHostView: View {
     @State private var archiveTicker: Int = 0
     @State private var moveTicker: Int = 0
 
+    @State private var oauth = CalendarOAuthCoordinator()
+    @State private var isConnectingCalendar = false
+
     #if os(iOS)
     @State private var navigationPath = NavigationPath()
     #endif
@@ -61,7 +64,7 @@ public struct DailyHostView: View {
                         CalendarSectionView(
                             events: events,
                             isConnected: calendarRepo.isConnected,
-                            onConnectTapped: {}
+                            onConnectTapped: connectCalendar
                         )
                         OverdueSectionView(
                             overdueTasks: dailyData?.overdueTasks ?? [],
@@ -123,7 +126,7 @@ public struct DailyHostView: View {
                 CalendarSectionView(
                     events: events,
                     isConnected: calendarRepo.isConnected,
-                    onConnectTapped: {}
+                    onConnectTapped: connectCalendar
                 )
                 Spacer()
             }
@@ -198,6 +201,23 @@ public struct DailyHostView: View {
             ErrorBannerView(onRetry: { Task { await reload() } })
         default:
             EmptyView()
+        }
+    }
+
+    func connectCalendar() {
+        guard !isConnectingCalendar else { return }
+        isConnectingCalendar = true
+        Task {
+            defer { isConnectingCalendar = false }
+            do {
+                let url = try await calendarRepo.mobileStart()
+                try await oauth.present(connectURL: url)
+                await reload()
+            } catch CalendarOAuthCoordinator.ConnectError.userCancelled {
+                // silent
+            } catch {
+                print("[Calendar] connect failed: \(error)")
+            }
         }
     }
 }

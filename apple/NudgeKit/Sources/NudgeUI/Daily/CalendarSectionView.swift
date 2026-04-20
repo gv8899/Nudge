@@ -17,10 +17,15 @@ public struct CalendarSectionView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if isConnected {
-                HStack {
+                HStack(spacing: 6) {
                     Text("calendar.panelTitle", bundle: .module)
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.nudgeTextDim)
+                    if !events.isEmpty {
+                        Text(verbatim: "· \(events.count)")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.nudgeTextDim)
+                    }
                     Spacer()
                     if !events.isEmpty {
                         Button(action: { isExpanded.toggle() }) {
@@ -43,13 +48,6 @@ public struct CalendarSectionView: View {
                     ForEach(events, id: \.id) { event in
                         eventRow(event)
                     }
-                } else {
-                    Text(verbatim: String(
-                        format: NSLocalizedString("calendar.mobileCollapsedCount", bundle: .module, comment: ""),
-                        events.count
-                    ))
-                        .font(.footnote)
-                        .foregroundStyle(Color.nudgeTextDim)
                 }
             } else {
                 Button(action: onConnectTapped) {
@@ -74,14 +72,14 @@ public struct CalendarSectionView: View {
     private func eventRow(_ event: CalendarEventDTO) -> some View {
         HStack {
             VStack(alignment: .leading) {
-                Text(event.summary)
+                Text(event.title)
                     .font(.body)
                     .foregroundStyle(Color.nudgeForeground)
                 HStack {
                     Text(timeRange(event))
                         .font(.caption)
                         .foregroundStyle(Color.nudgeTextDim)
-                    if let location = event.location {
+                    if let location = event.location, !location.isEmpty {
                         Text("·")
                             .foregroundStyle(Color.nudgeTextDim)
                         Text(location)
@@ -97,8 +95,17 @@ public struct CalendarSectionView: View {
     }
 
     private func timeRange(_ event: CalendarEventDTO) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return "\(formatter.string(from: event.start)) - \(formatter.string(from: event.end))"
+        if event.allDay { return "All day" }
+        return "\(shortTime(event.start)) - \(shortTime(event.end))"
+    }
+
+    /// Extracts HH:mm from an ISO-8601 string like `2026-04-21T11:30:00+08:00`.
+    /// Uses the event's own timezone; avoids conversion through `Date`
+    /// which would re-anchor to the phone's timezone.
+    private func shortTime(_ iso: String) -> String {
+        guard let tIndex = iso.firstIndex(of: "T") else { return iso }
+        let afterT = iso.index(after: tIndex)
+        let rest = iso[afterT...]
+        return String(rest.prefix(5))
     }
 }

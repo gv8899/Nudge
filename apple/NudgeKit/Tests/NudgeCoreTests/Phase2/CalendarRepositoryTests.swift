@@ -7,7 +7,7 @@ struct CalendarRepositoryTests {
     @Test func eventsDecodesListResponse() async throws {
         MockURLProtocol.handler = { request in
             let body = """
-            {"events":[{"id":"e1","summary":"Meeting","start":"2026-04-17T09:00:00Z","end":"2026-04-17T10:00:00Z","location":null,"attendees":[],"hangoutLink":null,"htmlLink":null}]}
+            {"connected":true,"events":[{"id":"e1","calendarId":"cal@example.com","calendarName":"Primary","title":"Meeting","start":"2026-04-17T09:00:00+08:00","end":"2026-04-17T10:00:00+08:00","allDay":false,"location":null,"description":null,"attendees":[],"htmlLink":"https://example.com/e1","hangoutLink":"","busyOnly":false}]}
             """
             let data = body.data(using: .utf8)!
             let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
@@ -20,7 +20,7 @@ struct CalendarRepositoryTests {
         let repo = CalendarRepository(client: client)
         let events = try await repo.events(date: "2026-04-17")
         #expect(events.count == 1)
-        #expect(events.first?.summary == "Meeting")
+        #expect(events.first?.title == "Meeting")
         #expect(repo.isConnected == true)
     }
 
