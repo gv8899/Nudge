@@ -69,4 +69,12 @@ public final class CardRepository {
         struct Body: Codable { let description: String }
         try await client.patchVoid("/api/tasks/\(cardId)", body: Body(description: html))
     }
+
+    /// Deletes every card whose title is empty or whitespace-only.
+    /// Returns the number of cards deleted.
+    public func deleteUntitled() async throws -> Int {
+        struct Response: Codable { let deleted: Int }
+        let response: Response = try await client.deleteReturning("/api/cards/untitled")
+        return response.deleted
+    }
 }

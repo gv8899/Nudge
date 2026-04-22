@@ -1,5 +1,19 @@
 import Foundation
 
+public struct CalendarListItemDTO: Codable, Equatable, Sendable {
+    public let id: String
+    public let summary: String
+    public let primary: Bool
+    public let backgroundColor: String?
+
+    public init(id: String, summary: String, primary: Bool, backgroundColor: String?) {
+        self.id = id
+        self.summary = summary
+        self.primary = primary
+        self.backgroundColor = backgroundColor
+    }
+}
+
 public struct CalendarEventDTO: Codable, Equatable, Sendable {
     public let id: String
     public let calendarId: String

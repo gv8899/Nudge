@@ -49,23 +49,25 @@ struct NudgeMacApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AuthGateView(
-                auth: auth,
-                onLoginRequested: performLogin
-            ) {
-                PlatformRootView(auth: auth)
-                    .environment(taskRepo)
-                    .environment(tagRepo)
-                    .environment(calendarRepo)
-                    .environment(cardRepo)
+            NudgePreferencesApplier {
+                AuthGateView(
+                    auth: auth,
+                    onLoginRequested: performLogin
+                ) {
+                    PlatformRootView(auth: auth)
+                        .environment(taskRepo)
+                        .environment(tagRepo)
+                        .environment(calendarRepo)
+                        .environment(cardRepo)
+                }
+                .task {
+                    await auth.restoreSession()
+                }
+                .onOpenURL { url in
+                    _ = GIDSignIn.sharedInstance.handle(url)
+                }
+                .frame(minWidth: 900, minHeight: 600)
             }
-            .task {
-                await auth.restoreSession()
-            }
-            .onOpenURL { url in
-                _ = GIDSignIn.sharedInstance.handle(url)
-            }
-            .frame(minWidth: 900, minHeight: 600)
         }
         .modelContainer(container)
         .commands {

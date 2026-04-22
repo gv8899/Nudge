@@ -83,6 +83,11 @@ public final class APIClient: Sendable {
         let _: Empty = try await perform(request)
     }
 
+    public func deleteReturning<Response: Decodable>(_ path: String) async throws -> Response {
+        let request = try buildRequest(method: "DELETE", path: path, body: nil as Empty?)
+        return try await perform(request)
+    }
+
     // MARK: - Public setter
 
     public func setUnauthorizedHandler(_ handler: UnauthorizedHandler?) {

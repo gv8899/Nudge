@@ -6,6 +6,9 @@ import Observation
 public final class CalendarRepository {
     private let client: APIClient
     public private(set) var isConnected: Bool = true
+    /// Email of the connected Google account (= primary calendar id).
+    /// Empty string when not connected or not yet fetched.
+    public private(set) var connectedEmail: String = ""
 
     public init(client: APIClient) {
         self.client = client
@@ -37,9 +40,31 @@ public final class CalendarRepository {
 
     /// Re-checks connection status by calling events for today.
     /// Called after OAuth success to flip `isConnected` true immediately.
+    /// Also refreshes `connectedEmail` via the calendars endpoint.
     public func refreshConnectionStatus() async {
         let today = DateFormatters.isoDate(Date())
         _ = try? await events(date: today)
+        if isConnected {
+            _ = try? await listCalendars()
+        }
+    }
+
+    /// Lists the user's Google calendars. Primary calendar's id is the
+    /// user's email, which we surface via `connectedEmail`.
+    @discardableResult
+    public func listCalendars() async throws -> [CalendarListItemDTO] {
+        let response: CalendarsResponse = try await client.get("/api/calendar/calendars")
+        let primary = response.calendars.first(where: { $0.primary })
+        connectedEmail = primary?.id ?? ""
+        return response.calendars
+    }
+
+    /// Revokes the stored Google Calendar tokens server-side and flips
+    /// local state to disconnected. Safe to call even if already disconnected.
+    public func disconnect() async throws {
+        try await client.postVoid("/api/calendar/disconnect", body: EmptyBody())
+        isConnected = false
+        connectedEmail = ""
     }
 
     private struct EventsResponse: Codable {
@@ -51,4 +76,10 @@ public final class CalendarRepository {
     private struct MobileStartResponse: Codable {
         let url: String
     }
+
+    private struct CalendarsResponse: Codable {
+        let calendars: [CalendarListItemDTO]
+    }
+
+    private struct EmptyBody: Codable {}
 }

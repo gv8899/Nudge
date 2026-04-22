@@ -45,9 +45,12 @@ public struct CalendarSectionView: View {
                         .font(.footnote)
                         .foregroundStyle(Color.nudgeTextDim)
                 } else if isExpanded {
-                    ForEach(events, id: \.id) { event in
-                        eventRow(event)
+                    VStack(spacing: 0) {
+                        ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
+                            eventRow(event, isLast: index == events.count - 1)
+                        }
                     }
+                    .padding(.top, 4)
                 }
             } else {
                 Button(action: onConnectTapped) {
@@ -69,34 +72,77 @@ public struct CalendarSectionView: View {
     }
 
     @ViewBuilder
-    private func eventRow(_ event: CalendarEventDTO) -> some View {
-        HStack {
-            VStack(alignment: .leading) {
-                Text(event.title)
-                    .font(.body)
-                    .foregroundStyle(Color.nudgeForeground)
-                HStack {
-                    Text(timeRange(event))
-                        .font(.caption)
-                        .foregroundStyle(Color.nudgeTextDim)
-                    if let location = event.location, !location.isEmpty {
-                        Text("·")
-                            .foregroundStyle(Color.nudgeTextDim)
-                        Text(location)
-                            .font(.caption)
-                            .foregroundStyle(Color.nudgeTextDim)
-                            .lineLimit(1)
-                    }
+    private func eventRow(_ event: CalendarEventDTO, isLast: Bool) -> some View {
+        let accent = calendarAccent(for: event.calendarId)
+
+        HStack(alignment: .top, spacing: 14) {
+            // Timeline column — mirrors web note-entry.tsx:
+            // short line above, dot, then a flexible line that connects
+            // to the next event's dot (omitted on last row).
+            VStack(spacing: 0) {
+                Rectangle()
+                    .fill(Color.nudgeBorder)
+                    .frame(width: 1, height: 10)
+                Circle()
+                    .fill(accent)
+                    .frame(width: 10, height: 10)
+                if !isLast {
+                    Rectangle()
+                        .fill(Color.nudgeBorder)
+                        .frame(width: 1)
+                        .frame(maxHeight: .infinity)
+                } else {
+                    Spacer(minLength: 0)
                 }
             }
-            Spacer()
+            .frame(width: 12)
+
+            // Content row — time and title align on first text baseline
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Group {
+                    if event.allDay {
+                        Text("calendar.eventAllDay", bundle: .module)
+                            .font(.footnote.weight(.heavy))
+                    } else {
+                        Text(shortTime(event.start))
+                            .font(.title3.weight(.heavy))
+                            .monospacedDigit()
+                    }
+                }
+                .foregroundStyle(Color.nudgeForeground)
+                .frame(width: 60, alignment: .leading)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(event.title)
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(Color.nudgeForeground)
+                        .lineLimit(2)
+
+                    if let location = event.location, !location.isEmpty {
+                        HStack(spacing: 4) {
+                            Image(systemName: "mappin.and.ellipse")
+                                .font(.caption2)
+                            Text(location)
+                                .font(.caption)
+                                .lineLimit(1)
+                        }
+                        .foregroundStyle(Color.nudgeTextDim)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.bottom, isLast ? 0 : 18)
         }
-        .padding(.vertical, 4)
     }
 
-    private func timeRange(_ event: CalendarEventDTO) -> String {
-        if event.allDay { return "All day" }
-        return "\(shortTime(event.start)) - \(shortTime(event.end))"
+    /// Deterministic color per calendar — uses nudgeChart1..5 tokens
+    /// so events from the same calendar always get the same accent.
+    private func calendarAccent(for calendarId: String) -> Color {
+        let palette: [Color] = [
+            .nudgeChart2, .nudgeChart5, .nudgeChart3, .nudgeChart4, .nudgeChart1
+        ]
+        let hash = abs(calendarId.hashValue)
+        return palette[hash % palette.count]
     }
 
     /// Extracts HH:mm from an ISO-8601 string like `2026-04-21T11:30:00+08:00`.

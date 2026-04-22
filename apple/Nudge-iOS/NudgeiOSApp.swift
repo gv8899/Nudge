@@ -49,21 +49,23 @@ struct NudgeiOSApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AuthGateView(
-                auth: auth,
-                onLoginRequested: performLogin
-            ) {
-                PlatformRootView(auth: auth)
-                    .environment(taskRepo)
-                    .environment(tagRepo)
-                    .environment(calendarRepo)
-                    .environment(cardRepo)
-            }
-            .task {
-                await auth.restoreSession()
-            }
-            .onOpenURL { url in
-                _ = GIDSignIn.sharedInstance.handle(url)
+            NudgePreferencesApplier {
+                AuthGateView(
+                    auth: auth,
+                    onLoginRequested: performLogin
+                ) {
+                    PlatformRootView(auth: auth)
+                        .environment(taskRepo)
+                        .environment(tagRepo)
+                        .environment(calendarRepo)
+                        .environment(cardRepo)
+                }
+                .task {
+                    await auth.restoreSession()
+                }
+                .onOpenURL { url in
+                    _ = GIDSignIn.sharedInstance.handle(url)
+                }
             }
         }
         .modelContainer(container)

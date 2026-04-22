@@ -1,6 +1,50 @@
 {
   "sourceLanguage" : "zh-Hant",
   "strings" : {
+    "calendar.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カレンダー"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "行事曆"
+          }
+        }
+      }
+    },
+    "calendar.connectedAs %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected as %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連携中：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已連結：%@"
+          }
+        }
+      }
+    },
     "calendar.connectTitle" : {
       "localizations" : {
         "en" : {
@@ -41,6 +85,94 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今日行程 · %lld 件"
+          }
+        }
+      }
+    },
+    "calendar.disconnectButton" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連携解除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中斷連結"
+          }
+        }
+      }
+    },
+    "calendar.disconnectConfirmBody" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect from Google Calendar?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Google カレンダーとの連携を解除しますか？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "確定要中斷 Google Calendar 連結嗎？"
+          }
+        }
+      }
+    },
+    "calendar.disconnectConfirmTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連携解除"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中斷連結"
+          }
+        }
+      }
+    },
+    "calendar.eventAllDay" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All day"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "終日"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "整日"
           }
         }
       }
@@ -965,6 +1097,294 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "二"
+          }
+        }
+      }
+    },
+    "settings.appearance.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外観"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外觀"
+          }
+        }
+      }
+    },
+    "settings.theme.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Theme"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "テーマ"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主題"
+          }
+        }
+      }
+    },
+    "settings.theme.light" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Light" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ライト" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "淺色" } }
+      }
+    },
+    "settings.theme.dark" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Dark" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ダーク" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "深色" } }
+      }
+    },
+    "settings.theme.system" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "System" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "システム" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "跟隨系統" } }
+      }
+    },
+    "settings.language.section" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Language" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "言語" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "語言" } }
+      }
+    },
+    "settings.language.zhTW" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "繁中" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "繁中" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "繁中" } }
+      }
+    },
+    "settings.language.en" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "EN" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "EN" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "EN" } }
+      }
+    },
+    "settings.language.ja" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "日本語" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "日本語" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "日本語" } }
+      }
+    },
+    "settings.language.auto" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Auto" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "自動" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "自動" } }
+      }
+    },
+    "settings.cleanUntitled.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Clean up empty cards" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "空白カードを削除" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "清除空白卡片" } }
+      }
+    },
+    "settings.cleanUntitled.labelLoading" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cleaning…" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "削除中…" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "清除中…" } }
+      }
+    },
+    "settings.cleanUntitled.confirmTitle" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Clean up empty cards" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "空白カードを削除" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "清除空白卡片" } }
+      }
+    },
+    "settings.cleanUntitled.confirmBody" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This deletes every untitled card. Are you sure?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "タイトル未入力のカードがすべて削除されます。よろしいですか？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "這會刪除所有沒有標題的卡片，確定嗎？" } }
+      }
+    },
+    "settings.cleanUntitled.confirmOk" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "削除する" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "確定清除" } }
+      }
+    },
+    "settings.cleanUntitled.successWithCount" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cleaned %lld empty card(s)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "%lld 件の空白カードを削除しました" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "已清除 %lld 張空白卡片" } }
+      }
+    },
+    "settings.cleanUntitled.successEmpty" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Nothing to clean" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "削除対象がありません" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "沒有需要清除的卡片" } }
+      }
+    },
+    "settings.cleanUntitled.failed" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Clean up failed" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "削除に失敗しました" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "清除失敗" } }
+      }
+    },
+    "settings.account.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アカウント"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帳號資料"
+          }
+        }
+      }
+    },
+    "settings.account.unnamed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unnamed"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "名称未設定"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未命名"
+          }
+        }
+      }
+    },
+    "settings.logout.button" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log out"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ログアウト"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登出"
+          }
+        }
+      }
+    },
+    "settings.logout.confirmBody" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log out now?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本当にログアウトしますか？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "確定要登出嗎？"
+          }
+        }
+      }
+    },
+    "settings.logout.confirmTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log out"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ログアウト"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登出"
+          }
+        }
+      }
+    },
+    "settings.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定"
           }
         }
       }

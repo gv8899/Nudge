@@ -42,20 +42,19 @@ public struct MoveToDatePickerView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text("common.cancel", bundle: .module))
                 }
-            }
-            .safeAreaInset(edge: .bottom) {
-                HStack {
-                    Spacer()
-                    NudgeButton("common.confirm") {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
                         onPick(DateFormatters.isoDate(pickedDate))
+                    } label: {
+                        Text("common.confirm", bundle: .module)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.nudgePrimary)
                     }
+                    .accessibilityLabel(Text("common.confirm", bundle: .module))
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .background(Color.nudgeBackground)
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }
 }
