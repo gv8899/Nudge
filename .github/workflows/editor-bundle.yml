@@ -1,0 +1,37 @@
+name: Editor Bundle Build
+
+on:
+  push:
+    paths:
+      - "apple/NudgeEditor/**"
+      - "src/components/editor/**"
+      - ".github/workflows/editor-bundle.yml"
+  pull_request:
+    paths:
+      - "apple/NudgeEditor/**"
+      - "src/components/editor/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "apple/NudgeEditor/package-lock.json"
+      - name: Install editor bundle deps
+        working-directory: apple/NudgeEditor
+        run: npm ci --legacy-peer-deps
+      - name: Build bundle
+        working-directory: apple/NudgeEditor
+        run: npm run build
+      - name: Run bundle tests
+        working-directory: apple/NudgeEditor
+        run: npm test
+      - name: Verify outputs
+        run: |
+          test -f apple/NudgeEditor/dist/index.html
+          test -f apple/NudgeEditor/dist/editor.js
+          test -f apple/NudgeEditor/dist/editor.css
