@@ -28,6 +28,12 @@ public struct CalendarDayView: View {
         self.onEventTap = onEventTap
     }
 
+    /// `events` is the whole week (so `weekDates` dots show for every day
+    /// with an event). The Day list itself filters down to selected-day.
+    private var dayEvents: [CalendarEventDTO] {
+        events.filter { $0.start.hasPrefix(selectedDate) }
+    }
+
     public var body: some View {
         VStack(spacing: 0) {
             WeekStripView(
@@ -37,9 +43,9 @@ public struct CalendarDayView: View {
                 onWeekOffset: onWeekOffset
             )
 
-            if isLoading && events.isEmpty {
+            if isLoading && dayEvents.isEmpty {
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if events.isEmpty {
+            } else if dayEvents.isEmpty {
                 Text("calendar.panelEmpty", bundle: .module)
                     .font(.subheadline)
                     .foregroundStyle(Color.nudgeTextDim)
@@ -47,7 +53,7 @@ public struct CalendarDayView: View {
             } else {
                 ScrollView {
                     VStack(spacing: 14) {
-                        ForEach(events, id: \.id) { event in
+                        ForEach(dayEvents, id: \.id) { event in
                             Button { onEventTap(event) } label: {
                                 eventRow(event)
                             }

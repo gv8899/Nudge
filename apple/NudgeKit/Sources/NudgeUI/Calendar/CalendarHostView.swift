@@ -124,7 +124,11 @@ public struct CalendarHostView: View {
     private func currentRange() -> (String, String) {
         switch mode {
         case .day:
-            return (selectedDate, selectedDate)
+            // Fetch the whole week even for Day mode so the WeekStripView
+            // can show event-indicator dots under every day with an event.
+            let start = weekStart(selectedDateObj)
+            let end = calendar.date(byAdding: .day, value: 6, to: start) ?? start
+            return (DateFormatters.isoDate(start), DateFormatters.isoDate(end))
         case .week:
             let start = weekStart(selectedDateObj)
             let end = calendar.date(byAdding: .day, value: 6, to: start) ?? start

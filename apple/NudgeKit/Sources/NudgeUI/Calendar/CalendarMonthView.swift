@@ -66,7 +66,9 @@ public struct CalendarMonthView: View {
             gridView
             Divider().background(Color.nudgeBorderLight)
             bottomList
+            Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private var header: some View {
