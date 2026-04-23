@@ -66,12 +66,14 @@
     "deleteTagAria": "Delete {name}",
     "newTagPlaceholder": "New tag...",
     "removeAria": "Remove {name}",
+    "dragReorderAria": "Drag to reorder: {name}",
     "searchOrCreate": "Search or create tag..."
   },
   "nav": {
     "tasks": "Tasks",
     "notes": "Notes",
     "cards": "Cards",
+    "calendar": "Calendar",
     "settings": "Settings",
     "mainNavAria": "Main navigation",
     "settingsAria": "Open settings"
@@ -199,7 +201,7 @@
   "calendar": {
     "section": "Calendar",
     "connectTitle": "Connect Google Calendar",
-    "connectDescription": "See your meetings for today",
+    "connectDescription": "See your meetings alongside today's tasks.",
     "connectButton": "Connect",
     "disconnectButton": "Disconnect",
     "disconnectConfirmTitle": "Disconnect",
@@ -222,7 +224,13 @@
     "eventJoinMeet": "Join with Google Meet",
     "mobileCollapsedCount": "Today · {count} events",
     "mobileCollapsedEmpty": "Nothing today",
-    "mobileConnectPrompt": "Connect Google Calendar →"
+    "mobileConnectPrompt": "Connect Google Calendar →",
+    "viewMode": { "day": "Day", "week": "Week", "month": "Month" },
+    "weekEmpty": "Nothing this week",
+    "joinMeeting": "Join meeting",
+    "attendees": "Attendees",
+    "description": "Notes",
+    "thisWeek": "This week"
   },
   "offline": {
     "banner": "Offline. Last updated at {time}."

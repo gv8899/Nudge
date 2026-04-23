@@ -66,12 +66,14 @@
     "deleteTagAria": "刪除 {name}",
     "newTagPlaceholder": "新增標籤...",
     "removeAria": "移除 {name}",
+    "dragReorderAria": "拖曳排序：{name}",
     "searchOrCreate": "搜尋或建立標籤..."
   },
   "nav": {
     "tasks": "行動",
     "notes": "日誌",
     "cards": "卡片",
+    "calendar": "日曆",
     "settings": "設定",
     "mainNavAria": "主導覽",
     "settingsAria": "開啟設定"
@@ -199,7 +201,7 @@
   "calendar": {
     "section": "行事曆",
     "connectTitle": "連結 Google Calendar",
-    "connectDescription": "看看今天有哪些會議",
+    "connectDescription": "看看今天有哪些行程、會議，跟任務排在一起的安排。",
     "connectButton": "連結",
     "disconnectButton": "中斷連結",
     "disconnectConfirmTitle": "中斷連結",
@@ -222,7 +224,13 @@
     "eventJoinMeet": "使用 Google Meet 加入會議",
     "mobileCollapsedCount": "今日行程 · {count} 件",
     "mobileCollapsedEmpty": "今日無行程",
-    "mobileConnectPrompt": "連結 Google Calendar →"
+    "mobileConnectPrompt": "連結 Google Calendar →",
+    "viewMode": { "day": "日", "week": "週", "month": "月" },
+    "weekEmpty": "這週沒有行程",
+    "joinMeeting": "加入線上會議",
+    "attendees": "與會者",
+    "description": "備註",
+    "thisWeek": "今週"
   },
   "offline": {
     "banner": "離線中。上次更新於 {time}"

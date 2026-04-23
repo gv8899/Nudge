@@ -66,12 +66,14 @@
     "deleteTagAria": "{name} を削除",
     "newTagPlaceholder": "新しいタグ...",
     "removeAria": "{name} を外す",
+    "dragReorderAria": "ドラッグで並び替え：{name}",
     "searchOrCreate": "タグを検索・作成..."
   },
   "nav": {
     "tasks": "アクション",
     "notes": "ジャーナル",
     "cards": "カード",
+    "calendar": "カレンダー",
     "settings": "設定",
     "mainNavAria": "メインナビ",
     "settingsAria": "設定を開く"
@@ -199,7 +201,7 @@
   "calendar": {
     "section": "カレンダー",
     "connectTitle": "Google カレンダーを連携",
-    "connectDescription": "今日の予定を確認できます",
+    "connectDescription": "会議とタスクを一緒に確認。",
     "connectButton": "連携する",
     "disconnectButton": "連携解除",
     "disconnectConfirmTitle": "連携解除",
@@ -222,7 +224,13 @@
     "eventJoinMeet": "Google Meet で参加",
     "mobileCollapsedCount": "今日の予定 · {count} 件",
     "mobileCollapsedEmpty": "今日は予定なし",
-    "mobileConnectPrompt": "Google カレンダーを連携 →"
+    "mobileConnectPrompt": "Google カレンダーを連携 →",
+    "viewMode": { "day": "日", "week": "週", "month": "月" },
+    "weekEmpty": "今週は予定がありません",
+    "joinMeeting": "会議に参加",
+    "attendees": "参加者",
+    "description": "メモ",
+    "thisWeek": "今週"
   },
   "offline": {
     "banner": "オフライン。最終更新: {time}"
