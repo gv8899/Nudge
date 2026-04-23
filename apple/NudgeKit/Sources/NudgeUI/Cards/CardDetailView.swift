@@ -34,17 +34,6 @@ public struct CardDetailView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                TextField(text: $title) {
-                    Text("cardDetail.editTitleAria", bundle: .module)
-                }
-                .focused($titleFocused)
-                .font(.title2.weight(.semibold))
-                .textFieldStyle(.plain)
-                .foregroundStyle(Color.nudgeForeground)
-                .onChange(of: title) { _, newValue in
-                    debouncedSaveTitle(newValue)
-                }
-
                 tagRow
 
                 Divider()
@@ -66,6 +55,25 @@ public struct CardDetailView: View {
             .padding(16)
         }
         .background(Color.nudgeBackground)
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                TextField(text: $title) {
+                    Text("cardDetail.editTitleAria", bundle: .module)
+                }
+                .focused($titleFocused)
+                .font(.headline)
+                .multilineTextAlignment(.center)
+                .textFieldStyle(.plain)
+                .foregroundStyle(Color.nudgeForeground)
+                .frame(maxWidth: 240)
+                .onChange(of: title) { _, newValue in
+                    debouncedSaveTitle(newValue)
+                }
+            }
+        }
+        #endif
         .onAppear {
             // Newly-created cards arrive with an empty title — jump into edit.
             if initialCard.title.isEmpty {

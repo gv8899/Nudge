@@ -34,13 +34,19 @@ public struct CardsHostView: View {
     #if os(iOS)
     private var iOSLayout: some View {
         NavigationStack(path: $navigationPath) {
-            VStack(spacing: 0) {
-                inlineHeader
-                searchBar
-                tagFilterBar
-                content
+            ZStack(alignment: .bottomTrailing) {
+                VStack(spacing: 0) {
+                    inlineHeader
+                    searchBar
+                    tagFilterBar
+                    content
+                }
+                .background(Color.nudgeBackground)
+
+                createFAB
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 20)
             }
-            .background(Color.nudgeBackground)
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: CardDTO.self) { card in
                 CardDetailView(
@@ -61,16 +67,28 @@ public struct CardsHostView: View {
             Text("nav.cards", bundle: .module)
                 .font(.largeTitle.weight(.bold))
                 .foregroundStyle(Color.nudgeForeground)
-            IconButton(
-                systemName: "plus",
-                accessibilityLabel: "cards.createAria",
-                foreground: .nudgePrimary,
-                action: createCard
-            )
             Spacer()
+            if !allTags.isEmpty {
+                filterToggleButton
+            }
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
+    }
+
+    /// Floating Action Button for creating a new card. Sits above the
+    /// system tab bar (anchored to the inner ZStack's safe area).
+    private var createFAB: some View {
+        Button(action: createCard) {
+            Image(systemName: "plus")
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(Color.nudgePrimaryForeground)
+                .frame(width: 56, height: 56)
+                .background(Circle().fill(Color.nudgePrimary))
+                .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 3) // nudge:allow-color
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("cards.createAria", bundle: .module))
     }
     #endif
 
@@ -120,38 +138,34 @@ public struct CardsHostView: View {
 
     private var searchBar: some View {
         HStack(spacing: 8) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(Color.nudgeTextDim)
-                TextField(text: $query) {
-                    Text("cards.searchPlaceholder", bundle: .module)
-                }
-                .textFieldStyle(.plain)
-                .foregroundStyle(Color.nudgeForeground)
-                .submitLabel(.search)
-
-                if !query.isEmpty {
-                    Button {
-                        query = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(Color.nudgeTextDim)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Text("common.cancel", bundle: .module))
-                }
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(Color.nudgeTextDim)
+            TextField(text: $query) {
+                Text("cards.searchPlaceholder", bundle: .module)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.nudgeBorderLight.opacity(0.3))
-            )
+            .textFieldStyle(.plain)
+            .foregroundStyle(Color.nudgeForeground)
+            .submitLabel(.search)
 
-            if !allTags.isEmpty {
-                filterToggleButton
+            if !query.isEmpty {
+                Button {
+                    query = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(Color.nudgeTextDim)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("common.cancel", bundle: .module))
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.nudgeBorderLight.opacity(0.3))
+        )
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
     }
@@ -162,7 +176,7 @@ public struct CardsHostView: View {
         } label: {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: "line.3.horizontal.decrease.circle\(showFilters || !selectedTagIds.isEmpty ? ".fill" : "")")
-                    .font(.title3)
+                    .font(.title2)
                     .foregroundStyle(
                         selectedTagIds.isEmpty ? Color.nudgeTextDim : Color.nudgePrimary
                     )

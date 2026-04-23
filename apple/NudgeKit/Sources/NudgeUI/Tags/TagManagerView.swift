@@ -1,26 +1,25 @@
 import SwiftUI
 import NudgeCore
 
-/// Chip-cloud tag manager: every tag is an outlined capsule that wraps
-/// to multiple lines. Tap a chip to rename / delete via menu. A trailing
-/// "+" chip toggles into a text field for adding new tags.
+/// Vertical-list tag manager with drag-to-reorder. Each row supports
+/// inline rename, delete (swipe / button), and color-less display.
+/// Reorder via long-press-drag on iOS or grab handle on macOS; the new
+/// `sortOrder` is PATCH-ed back per affected tag.
 public struct TagManagerView: View {
     @Environment(TagRepository.self) private var tagRepo
     @State private var tags: [TagDTO] = []
     @State private var isLoading = true
 
     @State private var newName: String = ""
-    @State private var isAdding = false
-    @FocusState private var addFieldFocused: Bool
-
-    @State private var renaming: TagDTO?
+    @State private var renamingId: String?
     @State private var renameText: String = ""
     @State private var pendingDelete: TagDTO?
+    @FocusState private var renameFieldFocused: String?
 
     public init() {}
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(spacing: 0) {
             if isLoading {
                 HStack {
                     ProgressView().controlSize(.small)
@@ -28,60 +27,15 @@ public struct TagManagerView: View {
                 }
                 .padding(16)
             } else {
-                FlowLayout(spacing: 8, lineSpacing: 8) {
-                    ForEach(tags) { tag in
-                        Menu {
-                            Button {
-                                renameText = tag.name
-                                renaming = tag
-                            } label: {
-                                Label {
-                                    Text("common.edit", bundle: .module)
-                                } icon: {
-                                    Image(systemName: "pencil")
-                                }
-                            }
-                            Button(role: .destructive) {
-                                pendingDelete = tag
-                            } label: {
-                                Label {
-                                    Text("common.delete", bundle: .module)
-                                } icon: {
-                                    Image(systemName: "trash")
-                                }
-                            }
-                        } label: {
-                            chipLabel(tag.name)
-                        }
-                        .menuStyle(.borderlessButton)
-                    }
-
-                    if isAdding {
-                        addInput
-                    } else {
-                        Button {
-                            isAdding = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                                addFieldFocused = true
-                            }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "plus")
-                                    .font(.caption.weight(.semibold))
-                                Text("tags.add", bundle: .module)
-                                    .font(.footnote)
-                            }
-                            .foregroundStyle(Color.nudgePrimary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .overlay(
-                                Capsule().stroke(Color.nudgePrimary.opacity(0.5), lineWidth: 1)
-                            )
-                        }
-                        .buttonStyle(.plain)
+                ForEach(Array(tags.enumerated()), id: \.element.id) { index, tag in
+                    tagRow(tag)
+                    if index < tags.count - 1 || true {
+                        Rectangle()
+                            .fill(Color.nudgeBorderLight)
+                            .frame(height: 1)
                     }
                 }
-                .padding(16)
+                addRow
             }
         }
         .task { await reload() }
@@ -104,65 +58,104 @@ public struct TagManagerView: View {
         } message: { tag in
             Text("tags.deleteConfirm \(tag.name)", bundle: .module)
         }
-        .alert(
-            Text("common.edit", bundle: .module),
-            isPresented: .init(
-                get: { renaming != nil },
-                set: { if !$0 { renaming = nil } }
-            ),
-            presenting: renaming
-        ) { tag in
-            TextField("", text: $renameText)
-            Button(role: .cancel, action: {}) {
-                Text("common.cancel", bundle: .module)
+    }
+
+    @ViewBuilder
+    private func tagRow(_ tag: TagDTO) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "line.3.horizontal")
+                .foregroundStyle(Color.nudgeTextDim)
+                .frame(width: 20)
+
+            if renamingId == tag.id {
+                TextField("", text: $renameText)
+                    .focused($renameFieldFocused, equals: tag.id)
+                    .submitLabel(.done)
+                    .onSubmit { Task { await commitRename(tag) } }
+                    .font(.subheadline)
+                    .foregroundStyle(Color.nudgeForeground)
+            } else {
+                Button {
+                    renameText = tag.name
+                    renamingId = tag.id
+                    renameFieldFocused = tag.id
+                } label: {
+                    Text(verbatim: tag.name)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.nudgeForeground)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
+
             Button {
-                Task { await commitRename(tag) }
+                pendingDelete = tag
             } label: {
-                Text("common.save", bundle: .module)
+                Image(systemName: "trash")
+                    .font(.footnote)
+                    .foregroundStyle(Color.nudgeTextDim)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("tags.deleteTitle", bundle: .module))
+        }
+        .frame(minHeight: 44)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 4)
+        .draggable(tag.id) {
+            // Drag preview chip
+            Text(verbatim: tag.name)
+                .font(.subheadline)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Capsule().fill(Color.nudgeBackground))
+                .overlay(Capsule().stroke(Color.nudgeBorderLight, lineWidth: 1))
+        }
+        .dropDestination(for: String.self) { droppedIds, _ in
+            guard let droppedId = droppedIds.first,
+                  let from = tags.firstIndex(where: { $0.id == droppedId }),
+                  let to = tags.firstIndex(where: { $0.id == tag.id }),
+                  from != to else { return false }
+            withAnimation(.easeOut(duration: 0.2)) {
+                let moved = tags.remove(at: from)
+                tags.insert(moved, at: to)
+            }
+            Task { await persistOrder() }
+            return true
         }
     }
 
-    private func chipLabel(_ name: String) -> some View {
-        Text(name)
-            .font(.footnote)
-            .foregroundStyle(Color.nudgeForeground)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .overlay(
-                Capsule().stroke(Color.nudgeBorderLight, lineWidth: 1)
-            )
-    }
-
-    private var addInput: some View {
-        HStack(spacing: 4) {
+    @ViewBuilder
+    private var addRow: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "plus.circle")
+                .foregroundStyle(Color.nudgePrimary)
+                .frame(width: 20)
             TextField(
                 "",
                 text: $newName,
                 prompt: Text("tags.newTagPlaceholder", bundle: .module)
             )
-            .focused($addFieldFocused)
             .submitLabel(.done)
             .onSubmit { Task { await create() } }
-            .font(.footnote)
+            .font(.subheadline)
             .foregroundStyle(Color.nudgeForeground)
-            .frame(minWidth: 100)
-
-            Button {
-                isAdding = false
-                newName = ""
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(Color.nudgeTextDim)
+            if !newName.trimmingCharacters(in: .whitespaces).isEmpty {
+                Button {
+                    Task { await create() }
+                } label: {
+                    Text("tags.add", bundle: .module)
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(Color.nudgePrimary)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .overlay(
-            Capsule().stroke(Color.nudgePrimary, lineWidth: 1)
-        )
+        .frame(minHeight: 44)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 4)
     }
 
     // MARK: - Actions
@@ -191,7 +184,7 @@ public struct TagManagerView: View {
 
     private func commitRename(_ tag: TagDTO) async {
         let name = renameText.trimmingCharacters(in: .whitespaces)
-        defer { renaming = nil }
+        defer { renamingId = nil }
         guard !name.isEmpty, name != tag.name else { return }
         do {
             _ = try await tagRepo.update(id: tag.id, name: name)
@@ -208,5 +201,16 @@ public struct TagManagerView: View {
         } catch {
             print("[TagManager] delete failed: \(error)")
         }
+    }
+
+    /// Sends PATCH for each tag whose index changed after a drag.
+    /// Server stores integers; we reassign 0..N to the new local order.
+    /// Sequential rather than parallel — fewer than 50 tags expected,
+    /// and parallel @MainActor task-groups trip Swift 6's isolation checker.
+    private func persistOrder() async {
+        for (idx, tag) in tags.enumerated() where tag.sortOrder != idx {
+            _ = try? await tagRepo.update(id: tag.id, sortOrder: idx)
+        }
+        tagRepo.invalidate()
     }
 }
