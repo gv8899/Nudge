@@ -36,11 +36,9 @@ public struct SettingsView: View {
 
     public var body: some View {
         #if os(iOS)
-        NavigationStack {
-            contentScroll
-                .navigationTitle(Text("settings.title", bundle: .module))
-                .navigationBarTitleDisplayMode(.inline)
-        }
+        contentScroll
+            .navigationTitle(Text("settings.title", bundle: .module))
+            .navigationBarTitleDisplayMode(.inline)
         #else
         contentScroll
         #endif
