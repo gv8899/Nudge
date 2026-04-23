@@ -30,14 +30,14 @@ struct IOSTabRoot: View {
             DailyHostView()
                 .tabItem { Label { Text("nav.tasks", bundle: .module) } icon: { Image(systemName: "checkmark.circle") } }
 
+            CalendarHostView()
+                .tabItem { Label { Text("nav.calendar", bundle: .module) } icon: { Image(systemName: "calendar") } }
+
             CardsHostView()
                 .tabItem { Label { Text("nav.cards", bundle: .module) } icon: { Image(systemName: "square.stack") } }
 
             PlaceholderTab(title: "日誌", systemImage: "book")
                 .tabItem { Label { Text("nav.notes", bundle: .module) } icon: { Image(systemName: "book") } }
-
-            SettingsView(auth: auth)
-                .tabItem { Label { Text("nav.settings", bundle: .module) } icon: { Image(systemName: "gearshape") } }
         }
         .tint(Color.nudgePrimary)
     }
@@ -53,6 +53,9 @@ struct MacSidebarRoot: View {
                 Section {
                     NavigationLink(value: SidebarItem.today) {
                         Label(title: { Text("nav.tasks", bundle: .module) }, icon: { Image(systemName: "sun.max") })
+                    }
+                    NavigationLink(value: SidebarItem.calendar) {
+                        Label(title: { Text("nav.calendar", bundle: .module) }, icon: { Image(systemName: "calendar") })
                     }
                 }
                 Section {
@@ -73,6 +76,7 @@ struct MacSidebarRoot: View {
         } content: {
             switch selection ?? .today {
             case .today: DailyHostView()
+            case .calendar: CalendarHostView()
             case .notes: PlaceholderTab(title: "日誌", systemImage: "book")
             case .cards: CardsHostView()
             case .settings: SettingsView(auth: auth)
@@ -85,7 +89,7 @@ struct MacSidebarRoot: View {
 }
 
 enum SidebarItem: Hashable {
-    case today, notes, cards, settings
+    case today, calendar, notes, cards, settings
 }
 #endif
 
