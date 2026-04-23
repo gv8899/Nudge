@@ -27,7 +27,7 @@ struct IOSTabRoot: View {
 
     var body: some View {
         TabView {
-            DailyHostView()
+            DailyHostView(auth: auth)
                 .tabItem { Label { Text("nav.tasks", bundle: .module) } icon: { Image(systemName: "checkmark.circle") } }
 
             CalendarHostView()
@@ -75,7 +75,7 @@ struct MacSidebarRoot: View {
             .navigationTitle("Nudge")
         } content: {
             switch selection ?? .today {
-            case .today: DailyHostView()
+            case .today: DailyHostView(auth: auth)
             case .calendar: CalendarHostView()
             case .notes: PlaceholderTab(title: "日誌", systemImage: "book")
             case .cards: CardsHostView()

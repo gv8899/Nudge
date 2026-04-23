@@ -3,13 +3,13 @@ import NudgeCore
 import NudgeData
 
 public struct DailyHostView: View {
+    let auth: AuthRepository
+
     @Environment(TaskRepository.self) private var taskRepo
-    @Environment(CalendarRepository.self) private var calendarRepo
     @Environment(TagRepository.self) private var tagRepo
 
     @State private var selectedDate: String = DateFormatters.isoDate(Date())
     @State private var dailyData: DailyDataDTO?
-    @State private var events: [CalendarEventDTO] = []
     @State private var weekDates: Set<String> = []
     @State private var loadState: LoadState = .idle
     @State private var lastUpdated: String = ""
@@ -21,14 +21,16 @@ public struct DailyHostView: View {
     @State private var archiveTicker: Int = 0
     @State private var moveTicker: Int = 0
 
-    @State private var oauth = CalendarOAuthCoordinator()
-    @State private var isConnectingCalendar = false
+    @State private var showQuickAdd = false
+    @State private var quickAddText = ""
 
     #if os(iOS)
     @State private var navigationPath = NavigationPath()
     #endif
 
-    public init() {}
+    public init(auth: AuthRepository) {
+        self.auth = auth
+    }
 
     enum LoadState: Equatable {
         case idle
@@ -37,6 +39,8 @@ public struct DailyHostView: View {
         case offline
         case error
     }
+
+    enum DailyRoute: Hashable { case settings }
 
     public var body: some View {
         #if os(iOS)
@@ -51,44 +55,60 @@ public struct DailyHostView: View {
     #if os(iOS)
     private var iOSLayout: some View {
         NavigationStack(path: $navigationPath) {
-            VStack(spacing: 0) {
-                statusBanner
-                WeekStripView(
-                    selectedDate: selectedDate,
-                    datesWithTasks: weekDates,
-                    onSelectDate: { selectedDate = $0 },
-                    onWeekOffset: offsetWeek
-                )
-                ScrollView {
-                    VStack(spacing: 0) {
-                        CalendarSectionView(
-                            events: events,
-                            isConnected: calendarRepo.isConnected,
-                            onConnectTapped: connectCalendar
-                        )
-                        OverdueSectionView(
-                            overdueTasks: dailyData?.overdueTasks ?? [],
-                            currentDate: selectedDate,
-                            onToggleComplete: toggleComplete,
-                            onReschedule: { moveAssignment($0, to: $1) },
-                            onMoveTo: { moveSheetAssignment = $0 },
-                            onArchive: { archiveTask($0) }
-                        )
-                        NewTaskInputView(onSubmit: createTask)
-                        TaskListView(
-                            assignments: dailyData?.assignments ?? [],
-                            isLoading: loadState == .loading,
-                            onToggleComplete: toggleComplete,
-                            onOpen: { navigationPath.append($0) },
-                            onMove: handleMove,
-                            onArchive: { archiveTask($0) },
-                            onMoveTo: { moveSheetAssignment = $0 }
-                        )
-                        .frame(minHeight: 300)
+            ZStack(alignment: .bottomTrailing) {
+                VStack(spacing: 0) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text("nav.tasks", bundle: .module)
+                            .font(.largeTitle.weight(.bold))
+                            .foregroundStyle(Color.nudgeForeground)
+                        Spacer()
+                        NavigationLink(value: DailyRoute.settings) {
+                            Image(systemName: "gearshape")
+                                .font(.title3)
+                                .foregroundStyle(Color.nudgePrimary)
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    statusBanner
+                    WeekStripView(
+                        selectedDate: selectedDate,
+                        datesWithTasks: weekDates,
+                        onSelectDate: { selectedDate = $0 },
+                        onWeekOffset: offsetWeek
+                    )
+                    ScrollView {
+                        VStack(spacing: 0) {
+                            OverdueSectionView(
+                                overdueTasks: dailyData?.overdueTasks ?? [],
+                                currentDate: selectedDate,
+                                onToggleComplete: toggleComplete,
+                                onReschedule: { moveAssignment($0, to: $1) },
+                                onMoveTo: { moveSheetAssignment = $0 },
+                                onArchive: { archiveTask($0) }
+                            )
+                            TaskListView(
+                                assignments: dailyData?.assignments ?? [],
+                                isLoading: loadState == .loading,
+                                onToggleComplete: toggleComplete,
+                                onOpen: { navigationPath.append($0) },
+                                onMove: handleMove,
+                                onArchive: { archiveTask($0) },
+                                onMoveTo: { moveSheetAssignment = $0 }
+                            )
+                            .frame(minHeight: 300)
+                        }
                     }
                 }
+                .background(Color.nudgeBackground)
+
+                createTaskFAB
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 20)
             }
-            .background(Color.nudgeBackground)
             .animation(.easeOut(duration: 0.2), value: loadState)
             #if os(iOS)
             .sensoryFeedback(.success, trigger: completionTicker)
@@ -102,6 +122,12 @@ public struct DailyHostView: View {
                     onUpdateDescription: { updateDescription(assignment: assignment, description: $0) }
                 )
             }
+            .navigationDestination(for: DailyRoute.self) { route in
+                switch route {
+                case .settings:
+                    SettingsView(auth: auth)
+                }
+            }
             .sheet(item: $moveSheetAssignment) { assignment in
                 MoveToDatePickerView(
                     initialDate: assignment.date,
@@ -112,8 +138,42 @@ public struct DailyHostView: View {
                     onCancel: { moveSheetAssignment = nil }
                 )
             }
+            .sheet(isPresented: $showQuickAdd, onDismiss: { quickAddText = "" }) {
+                quickAddSheet
+                    .presentationDetents([.height(160)])
+                    .presentationDragIndicator(.visible)
+            }
         }
         .task(id: selectedDate) { await reload() }
+    }
+
+    private var createTaskFAB: some View {
+        Button {
+            quickAddText = ""
+            showQuickAdd = true
+        } label: {
+            Image(systemName: "plus")
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(Color.nudgePrimaryForeground)
+                .frame(width: 56, height: 56)
+                .background(Circle().fill(Color.nudgePrimary))
+                .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 3) // nudge:allow-color
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("task.createPlaceholder", bundle: .module))
+    }
+
+    private var quickAddSheet: some View {
+        QuickAddTaskSheet(
+            text: $quickAddText,
+            onSubmit: {
+                let title = quickAddText.trimmingCharacters(in: .whitespaces)
+                guard !title.isEmpty else { return }
+                createTask(title)
+                showQuickAdd = false
+            },
+            onCancel: { showQuickAdd = false }
+        )
     }
     #endif
 
@@ -121,20 +181,7 @@ public struct DailyHostView: View {
 
     #if os(macOS)
     private var macOSLayout: some View {
-        HStack(spacing: 0) {
-            VStack(spacing: 0) {
-                CalendarSectionView(
-                    events: events,
-                    isConnected: calendarRepo.isConnected,
-                    onConnectTapped: connectCalendar
-                )
-                Spacer()
-            }
-            .frame(width: 300)
-            .background(Color.nudgeBackground)
-
-            Divider()
-
+        ZStack(alignment: .bottomTrailing) {
             VStack(spacing: 0) {
                 statusBanner
                 WeekStripView(
@@ -153,7 +200,6 @@ public struct DailyHostView: View {
                             onMoveTo: { moveSheetAssignment = $0 },
                             onArchive: { archiveTask($0) }
                         )
-                        NewTaskInputView(onSubmit: createTask)
                         TaskListView(
                             assignments: dailyData?.assignments ?? [],
                             isLoading: loadState == .loading,
@@ -167,6 +213,10 @@ public struct DailyHostView: View {
                     }
                 }
             }
+
+            createTaskFABMacOS
+                .padding(.trailing, 20)
+                .padding(.bottom, 20)
         }
         .background(Color.nudgeBackground)
         .animation(.easeOut(duration: 0.2), value: loadState)
@@ -188,7 +238,37 @@ public struct DailyHostView: View {
                 onCancel: { moveSheetAssignment = nil }
             )
         }
+        .sheet(isPresented: $showQuickAdd, onDismiss: { quickAddText = "" }) {
+            QuickAddTaskSheet(
+                text: $quickAddText,
+                onSubmit: {
+                    let title = quickAddText.trimmingCharacters(in: .whitespaces)
+                    guard !title.isEmpty else { return }
+                    createTask(title)
+                    showQuickAdd = false
+                },
+                onCancel: { showQuickAdd = false }
+            )
+            .frame(minWidth: 420, minHeight: 180)
+        }
         .task(id: selectedDate) { await reload() }
+    }
+
+    private var createTaskFABMacOS: some View {
+        Button {
+            quickAddText = ""
+            showQuickAdd = true
+        } label: {
+            Image(systemName: "plus")
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(Color.nudgePrimaryForeground)
+                .frame(width: 48, height: 48)
+                .background(Circle().fill(Color.nudgePrimary))
+                .shadow(color: Color.black.opacity(0.18), radius: 6, x: 0, y: 3) // nudge:allow-color
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("task.createPlaceholder", bundle: .module))
+        .keyboardShortcut("n", modifiers: .command)
     }
     #endif
 
@@ -204,22 +284,6 @@ public struct DailyHostView: View {
         }
     }
 
-    func connectCalendar() {
-        guard !isConnectingCalendar else { return }
-        isConnectingCalendar = true
-        Task {
-            defer { isConnectingCalendar = false }
-            do {
-                let url = try await calendarRepo.mobileStart()
-                try await oauth.present(connectURL: url)
-                await reload()
-            } catch CalendarOAuthCoordinator.ConnectError.userCancelled {
-                // silent
-            } catch {
-                print("[Calendar] connect failed: \(error)")
-            }
-        }
-    }
 }
 
 // MARK: - Actions
@@ -229,13 +293,11 @@ extension DailyHostView {
         let requestedDate = selectedDate
         loadState = .loading
         dailyData = nil
-        events = []
 
-        // Parallelize the three fetches. Daily data is authoritative for
-        // loadState; week summary and calendar events are best-effort.
+        // Parallelize the two fetches. Daily data is authoritative for
+        // loadState; week summary is best-effort.
         async let daily = taskRepo.dailyData(date: requestedDate)
         async let weekSummary = weekSummaryFor(date: requestedDate)
-        async let calendarEvents = (try? calendarRepo.events(date: requestedDate)) ?? []
 
         do {
             let data = try await daily
@@ -252,11 +314,6 @@ extension DailyHostView {
 
         if let summary = await weekSummary, requestedDate == selectedDate {
             weekDates = Set(summary.datesWithTasks)
-        }
-
-        let fetchedEvents = await calendarEvents
-        if requestedDate == selectedDate {
-            events = fetchedEvents
         }
     }
 
