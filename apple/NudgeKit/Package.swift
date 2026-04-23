@@ -23,6 +23,6 @@ let package = Package(
                 .process("Resources/Localizable.xcstrings")
             ]
         ),
-        .testTarget(name: "NudgeCoreTests", dependencies: ["NudgeCore", "NudgeData"]),
+        .testTarget(name: "NudgeCoreTests", dependencies: ["NudgeCore", "NudgeData", "NudgeUI"]),
     ]
 )
