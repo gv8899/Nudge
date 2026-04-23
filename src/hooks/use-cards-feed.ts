@@ -17,13 +17,16 @@ interface CardsPage {
   nextCursor: string | null;
 }
 
-export function useCardsFeed(query: string) {
+export function useCardsFeed(query: string, tagIds: string[] = []) {
+  // Stable key for the tag filter — sort so [a,b] and [b,a] share a cache entry
+  const tagsKey = [...tagIds].sort().join(",");
   const getKey = (pageIndex: number, prev: CardsPage | null) => {
     if (prev && !prev.nextCursor) return null;
     const cursor = prev ? prev.nextCursor : undefined;
     const params = new URLSearchParams({ limit: "20" });
     if (cursor) params.set("cursor", cursor);
     if (query) params.set("q", query);
+    if (tagsKey) params.set("tagIds", tagsKey);
     return `/api/cards?${params.toString()}`;
   };
 

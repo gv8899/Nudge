@@ -13,6 +13,9 @@ public struct CardsHostView: View {
     @State private var isLoadingMore = false
     @State private var hasError = false
     @State private var pushedCard: CardDTO?
+    @State private var allTags: [TagDTO] = []
+    @State private var selectedTagIds: Set<String> = []
+    @State private var showFilters: Bool = false
 
     #if os(iOS)
     @State private var navigationPath = NavigationPath()
@@ -34,6 +37,7 @@ public struct CardsHostView: View {
             VStack(spacing: 0) {
                 inlineHeader
                 searchBar
+                tagFilterBar
                 content
             }
             .background(Color.nudgeBackground)
@@ -47,7 +51,8 @@ public struct CardsHostView: View {
                 )
             }
         }
-        .task(id: debouncedQuery) { await firstPage() }
+        .task { await loadAllTags() }
+        .task(id: filterRefreshKey) { await firstPage() }
         .task(id: query) { await debounceQuery() }
     }
 
@@ -74,6 +79,7 @@ public struct CardsHostView: View {
         NavigationSplitView {
             VStack(spacing: 0) {
                 searchBar
+                tagFilterBar
                 content
             }
             .background(Color.nudgeBackground)
@@ -104,7 +110,8 @@ public struct CardsHostView: View {
                     .background(Color.nudgeBackground)
             }
         }
-        .task(id: debouncedQuery) { await firstPage() }
+        .task { await loadAllTags() }
+        .task(id: filterRefreshKey) { await firstPage() }
         .task(id: query) { await debounceQuery() }
     }
     #endif
@@ -113,36 +120,122 @@ public struct CardsHostView: View {
 
     private var searchBar: some View {
         HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(Color.nudgeTextDim)
-            TextField(text: $query) {
-                Text("cards.searchPlaceholder", bundle: .module)
-            }
-            .textFieldStyle(.plain)
-            .foregroundStyle(Color.nudgeForeground)
-            .submitLabel(.search)
-
-            if !query.isEmpty {
-                Button {
-                    query = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(Color.nudgeTextDim)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .contentShape(Rectangle())
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(Color.nudgeTextDim)
+                TextField(text: $query) {
+                    Text("cards.searchPlaceholder", bundle: .module)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text("common.cancel", bundle: .module))
+                .textFieldStyle(.plain)
+                .foregroundStyle(Color.nudgeForeground)
+                .submitLabel(.search)
+
+                if !query.isEmpty {
+                    Button {
+                        query = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(Color.nudgeTextDim)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("common.cancel", bundle: .module))
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.nudgeBorderLight.opacity(0.3))
+            )
+
+            if !allTags.isEmpty {
+                filterToggleButton
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.nudgeBorderLight.opacity(0.3))
-        )
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
+    }
+
+    private var filterToggleButton: some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.2)) { showFilters.toggle() }
+        } label: {
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: "line.3.horizontal.decrease.circle\(showFilters || !selectedTagIds.isEmpty ? ".fill" : "")")
+                    .font(.title3)
+                    .foregroundStyle(
+                        selectedTagIds.isEmpty ? Color.nudgeTextDim : Color.nudgePrimary
+                    )
+                    .frame(width: 32, height: 32)
+                if !selectedTagIds.isEmpty {
+                    Circle()
+                        .fill(Color.nudgeDestructive)
+                        .frame(width: 8, height: 8)
+                        .offset(x: 2, y: -2)
+                }
+            }
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("cards.filterByTag", bundle: .module))
+    }
+
+    /// Composite key that re-runs the list `.task` whenever EITHER
+    /// the debounced search OR the selected tag set changes.
+    private var filterRefreshKey: String {
+        let tags = selectedTagIds.sorted().joined(separator: ",")
+        return "\(debouncedQuery)|\(tags)"
+    }
+
+    @ViewBuilder
+    private var tagFilterBar: some View {
+        if !allTags.isEmpty && showFilters {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(allTags) { tag in
+                        let active = selectedTagIds.contains(tag.id)
+                        Button {
+                            if active {
+                                selectedTagIds.remove(tag.id)
+                            } else {
+                                selectedTagIds.insert(tag.id)
+                            }
+                        } label: {
+                            Text(tag.name)
+                                .font(.caption)
+                                .foregroundStyle(active ? Color.nudgePrimaryForeground : Color.nudgeForeground)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(
+                                    Capsule().fill(active ? Color.nudgePrimary : Color.clear)
+                                )
+                                .overlay(
+                                    Capsule().stroke(
+                                        active ? Color.nudgePrimary : Color.nudgeBorderLight,
+                                        lineWidth: 1
+                                    )
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(active ? [.isSelected] : [])
+                    }
+                    if !selectedTagIds.isEmpty {
+                        Button {
+                            selectedTagIds.removeAll()
+                        } label: {
+                            Text("common.cancel", bundle: .module)
+                                .font(.caption)
+                                .foregroundStyle(Color.nudgeTextDim)
+                                .padding(.horizontal, 8)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+            .padding(.bottom, 4)
+        }
     }
 
     @ViewBuilder
@@ -222,7 +315,11 @@ public struct CardsHostView: View {
         isLoading = true
         hasError = false
         do {
-            let result = try await cardRepo.list(query: debouncedQuery, cursor: nil)
+            let result = try await cardRepo.list(
+                query: debouncedQuery,
+                cursor: nil,
+                tagIds: Array(selectedTagIds)
+            )
             cards = result.cards
             nextCursor = result.nextCursor
         } catch {
@@ -237,13 +334,25 @@ public struct CardsHostView: View {
         guard !isLoadingMore, let cursor = nextCursor else { return }
         isLoadingMore = true
         do {
-            let result = try await cardRepo.list(query: debouncedQuery, cursor: cursor)
+            let result = try await cardRepo.list(
+                query: debouncedQuery,
+                cursor: cursor,
+                tagIds: Array(selectedTagIds)
+            )
             cards.append(contentsOf: result.cards)
             nextCursor = result.nextCursor
         } catch {
             print("[CardsHostView] loadMore failed: \(error)")
         }
         isLoadingMore = false
+    }
+
+    private func loadAllTags() async {
+        do {
+            allTags = try await tagRepo.list()
+        } catch {
+            print("[CardsHostView] loadAllTags failed: \(error)")
+        }
     }
 
     private func createCard() {

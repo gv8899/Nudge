@@ -12,7 +12,8 @@ public final class CardRepository {
 
     /// Fetches one page of cards. Pass `cursor = nil` for the first page.
     /// Empty `query` omits the `q=` query parameter.
-    public func list(query: String, cursor: String?, limit: Int = 20) async throws -> CardListDTO {
+    /// `tagIds` filters with AND semantics — card must carry every listed tag.
+    public func list(query: String, cursor: String?, tagIds: [String] = [], limit: Int = 20) async throws -> CardListDTO {
         // Build query string manually so values are fully percent-encoded
         // (URLComponents leaves colons and other RFC-allowed chars unencoded).
         var allowed = CharacterSet.urlQueryAllowed
@@ -26,6 +27,11 @@ public final class CardRepository {
         }
         if let cursor, !cursor.isEmpty {
             pairs.append("cursor=\(encode(cursor))")
+        }
+        if !tagIds.isEmpty {
+            // Sort so caches and request URLs are stable per filter set.
+            let csv = tagIds.sorted().joined(separator: ",")
+            pairs.append("tagIds=\(encode(csv))")
         }
         let path = "/api/cards?" + pairs.joined(separator: "&")
         return try await client.get(path)

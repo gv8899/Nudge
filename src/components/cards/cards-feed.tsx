@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { Search, List, LayoutGrid, Plus, Eraser } from "lucide-react";
 import { useCardsFeed } from "@/hooks/use-cards-feed";
+import { useTags } from "@/hooks/use-tags";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { CardListItem } from "./card-list-item";
 import { CardGridItem } from "./card-grid-item";
@@ -32,6 +33,8 @@ export function CardsFeed() {
   }, []);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const { tags: allTags } = useTags();
   const [isCreating, setIsCreating] = useState(false);
   const [isCleaning, setIsCleaning] = useState(false);
   const [confirmCleanOpen, setConfirmCleanOpen] = useState(false);
@@ -51,7 +54,13 @@ export function CardsFeed() {
   }, [query]);
 
   const { cards, isLoading, isLoadingMore, hasMore, loadMore, mutate } =
-    useCardsFeed(debouncedQuery);
+    useCardsFeed(debouncedQuery, selectedTagIds);
+
+  const toggleTagFilter = (tagId: string) => {
+    setSelectedTagIds((prev) =>
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+    );
+  };
 
   // 新增空白卡片，建立後直接進入編輯頁
   const handleCreate = async () => {
@@ -169,7 +178,7 @@ export function CardsFeed() {
       </div>
 
       {/* 搜尋框 */}
-      <div className="relative mb-6">
+      <div className="relative mb-3">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim pointer-events-none" />
         <input
           type="text"
@@ -180,6 +189,39 @@ export function CardsFeed() {
           aria-label={t("searchAria")}
         />
       </div>
+
+      {/* Tag filter chip cloud — AND semantics */}
+      {allTags.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+          {allTags.map((tag) => {
+            const active = selectedTagIds.includes(tag.id);
+            return (
+              <button
+                key={tag.id}
+                type="button"
+                onClick={() => toggleTagFilter(tag.id)}
+                aria-pressed={active}
+                className={
+                  active
+                    ? "text-xs px-2.5 py-1 rounded-full bg-primary text-primary-foreground border border-primary transition-colors"
+                    : "text-xs px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted transition-colors"
+                }
+              >
+                {tag.name}
+              </button>
+            );
+          })}
+          {selectedTagIds.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedTagIds([])}
+              className="text-xs text-text-dim hover:text-foreground transition-colors px-2 py-1"
+            >
+              {tCommon("cancel")}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* 卡片內容 */}
       {isLoading && cards.length === 0 ? (

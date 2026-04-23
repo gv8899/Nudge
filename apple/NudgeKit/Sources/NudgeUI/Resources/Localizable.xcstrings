@@ -265,6 +265,13 @@
         }
       }
     },
+    "cards.filterByTag" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Filter by tag" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "タグで絞り込む" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "依標籤過濾" } }
+      }
+    },
     "cards.createAria" : {
       "localizations" : {
         "en" : {
