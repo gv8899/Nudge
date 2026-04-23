@@ -1,6 +1,10 @@
 import SwiftUI
 import NudgeCore
 
+#if os(iOS)
+import UIKit
+#endif
+
 public struct CardDetailView: View {
     public let initialCard: CardDTO
     public let onUpdateTitle: (String) -> Void
@@ -14,6 +18,9 @@ public struct CardDetailView: View {
     @State private var titleSaveWorkItem: DispatchWorkItem?
     @State private var descriptionSaveWorkItem: DispatchWorkItem?
     @State private var showTagPicker = false
+    @State private var activeMarks = ActiveMarks()
+    @State private var editorKeyboardVisible = false
+    private let commandBus = EditorCommandBus()
     @FocusState private var titleFocused: Bool
 
     public init(
@@ -32,27 +39,15 @@ public struct CardDetailView: View {
     }
 
     public var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                tagRow
-
-                Divider()
-                    .background(Color.nudgeBorderLight)
-
-                RichTextEditor(
-                    html: $descriptionHTML,
-                    placeholder: NSLocalizedString(
-                        "cardDetail.editorPlaceholder",
-                        bundle: .module,
-                        comment: ""
-                    )
-                )
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .onChange(of: descriptionHTML) { _, newValue in
-                    debouncedSaveDescription(newValue)
-                }
-            }
-            .padding(16)
+        VStack(spacing: 0) {
+            #if os(macOS)
+            EditorToolbar(
+                activeMarks: activeMarks,
+                commandBus: commandBus,
+                onDismissKeyboard: nil
+            )
+            #endif
+            scrollContent
         }
         .background(Color.nudgeBackground)
         #if os(iOS)
@@ -73,9 +68,23 @@ public struct CardDetailView: View {
                 }
             }
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if editorKeyboardVisible {
+                EditorToolbar(
+                    activeMarks: activeMarks,
+                    commandBus: commandBus,
+                    onDismissKeyboard: { commandBus.send(.blur) }
+                )
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+            editorKeyboardVisible = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            editorKeyboardVisible = false
+        }
         #endif
         .onAppear {
-            // Newly-created cards arrive with an empty title — jump into edit.
             if initialCard.title.isEmpty {
                 titleFocused = true
             }
@@ -89,6 +98,34 @@ public struct CardDetailView: View {
                 },
                 onCancel: { showTagPicker = false }
             )
+        }
+    }
+
+    @ViewBuilder
+    private var scrollContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                tagRow
+
+                Divider()
+                    .background(Color.nudgeBorderLight)
+
+                RichTextEditor(
+                    html: $descriptionHTML,
+                    placeholder: NSLocalizedString(
+                        "cardDetail.editorPlaceholder",
+                        bundle: .module,
+                        comment: ""
+                    ),
+                    activeMarks: $activeMarks,
+                    commandBus: commandBus
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .onChange(of: descriptionHTML) { _, newValue in
+                    debouncedSaveDescription(newValue)
+                }
+            }
+            .padding(16)
         }
     }
 
