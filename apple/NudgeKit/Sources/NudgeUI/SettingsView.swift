@@ -53,6 +53,7 @@ public struct SettingsView: View {
                 calendarGroup
                 appearanceGroup
                 languageGroup
+                tagsGroup
                 maintenanceGroup
             }
             .padding(16)
@@ -226,6 +227,12 @@ public struct SettingsView: View {
                 .labelsHidden()
                 .tint(Color.nudgePrimary)
             }
+        }
+    }
+
+    private var tagsGroup: some View {
+        SettingsGroup(header: "settings.tags.section") {
+            TagManagerView()
         }
     }
 

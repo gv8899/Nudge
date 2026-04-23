@@ -1,27 +1,39 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Trash2, GripVertical } from "lucide-react";
+import { Pencil, Trash2, Plus, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTags } from "@/hooks/use-tags";
-import { TagColorPicker } from "./tag-color-picker";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import type { TagColor } from "@/lib/constants";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 export function TagManager() {
   const t = useTranslations("tags");
+  const tCommon = useTranslations("common");
   const { tags, mutate } = useTags();
+
   const [newName, setNewName] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
-  const editInputRef = useRef<HTMLInputElement>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const addInputRef = useRef<HTMLInputElement>(null);
+
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renamingText, setRenamingText] = useState("");
+  const renameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (editingId && editInputRef.current) {
-      editInputRef.current.focus();
-      editInputRef.current.select();
+    if (isAdding) addInputRef.current?.focus();
+  }, [isAdding]);
+
+  useEffect(() => {
+    if (renamingId) {
+      renameInputRef.current?.focus();
+      renameInputRef.current?.select();
     }
-  }, [editingId]);
+  }, [renamingId]);
 
   const createTag = async () => {
     const name = newName.trim();
@@ -32,10 +44,11 @@ export function TagManager() {
       body: JSON.stringify({ name }),
     });
     setNewName("");
+    setIsAdding(false);
     mutate();
   };
 
-  const updateTag = async (id: string, updates: { name?: string; color?: TagColor }) => {
+  const updateTag = async (id: string, updates: { name?: string }) => {
     await fetch(`/api/tags/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -49,90 +62,101 @@ export function TagManager() {
     mutate();
   };
 
-  const saveEdit = (id: string) => {
-    const name = editingName.trim();
-    if (name) updateTag(id, { name });
-    setEditingId(null);
+  const saveRename = (id: string, originalName: string) => {
+    const name = renamingText.trim();
+    if (name && name !== originalName) updateTag(id, { name });
+    setRenamingId(null);
   };
 
   return (
-    <div className="space-y-2">
-      {tags.map((tag) => (
-        <div key={tag.id} className="flex items-center gap-2 py-1.5 group">
-          <GripVertical className="h-3.5 w-3.5 text-text-faint shrink-0" />
-
-          <Popover>
-            <PopoverTrigger className="shrink-0 cursor-pointer" aria-label={t("changeColor")}>
-              <span
-                className="w-4 h-4 rounded-full block"
-                style={{ backgroundColor: `var(--${tag.color})` }}
-              />
-            </PopoverTrigger>
-            <PopoverContent align="start" side="bottom" className="w-auto p-0">
-              <TagColorPicker
-                value={tag.color}
-                onChange={(color) => updateTag(tag.id, { color })}
-              />
-            </PopoverContent>
-          </Popover>
-
-          {editingId === tag.id ? (
+    <div className="flex flex-wrap items-center gap-2">
+      {tags.map((tag) => {
+        if (renamingId === tag.id) {
+          return (
             <input
-              ref={editInputRef}
-              value={editingName}
-              onChange={(e) => setEditingName(e.target.value)}
-              onBlur={() => saveEdit(tag.id)}
+              key={tag.id}
+              ref={renameInputRef}
+              value={renamingText}
+              onChange={(e) => setRenamingText(e.target.value)}
+              onBlur={() => saveRename(tag.id, tag.name)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") saveEdit(tag.id);
-                if (e.key === "Escape") setEditingId(null);
+                if (e.key === "Enter") saveRename(tag.id, tag.name);
+                if (e.key === "Escape") setRenamingId(null);
               }}
-              className="flex-1 min-w-0 text-sm bg-transparent outline-none border-b border-primary text-foreground"
+              className="text-xs px-2.5 py-1 rounded-full border border-primary outline-none bg-transparent text-foreground min-w-[60px]"
+              size={Math.max(renamingText.length, 4)}
             />
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setEditingId(tag.id);
-                setEditingName(tag.name);
-              }}
-              className="flex-1 min-w-0 text-left text-sm text-foreground truncate hover:text-primary transition-colors"
+          );
+        }
+        return (
+          <DropdownMenu key={tag.id}>
+            <DropdownMenuTrigger
+              className="text-xs px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted transition-colors cursor-pointer"
             >
               {tag.name}
-            </button>
-          )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-32">
+              <DropdownMenuItem
+                onClick={() => {
+                  setRenamingText(tag.name);
+                  setRenamingId(tag.id);
+                }}
+              >
+                <Pencil className="h-3.5 w-3.5 mr-2" />
+                {tCommon("edit")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => deleteTag(tag.id)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-2" />
+                {tCommon("delete")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      })}
 
+      {isAdding ? (
+        <div className="inline-flex items-center gap-1 rounded-full border border-primary px-2.5 py-1">
+          <input
+            ref={addInputRef}
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") createTag();
+              if (e.key === "Escape") {
+                setIsAdding(false);
+                setNewName("");
+              }
+            }}
+            placeholder={t("newTagPlaceholder")}
+            className="text-xs bg-transparent outline-none placeholder:text-text-faint text-foreground min-w-[80px]"
+            size={Math.max(newName.length, 8)}
+          />
           <button
             type="button"
-            onClick={() => deleteTag(tag.id)}
-            aria-label={t("deleteTagAria", { name: tag.name })}
-            className="opacity-0 group-hover:opacity-100 text-text-faint hover:text-destructive transition-all shrink-0 p-1"
+            onClick={() => {
+              setIsAdding(false);
+              setNewName("");
+            }}
+            className="text-text-dim hover:text-foreground"
+            aria-label={tCommon("cancel")}
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <X className="h-3 w-3" />
           </button>
         </div>
-      ))}
-
-      <div className="flex items-center gap-2 pt-1">
-        <input
-          type="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") createTag();
-          }}
-          placeholder={t("newTagPlaceholder")}
-          className="flex-1 text-sm bg-transparent outline-none placeholder:text-text-faint text-foreground"
-        />
-        {newName.trim() && (
-          <button
-            type="button"
-            onClick={createTag}
-            className="text-xs text-primary hover:text-primary/80 font-medium transition-colors shrink-0"
-          >
-            {t("add")}
-          </button>
-        )}
-      </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsAdding(true)}
+          className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border border-primary/50 text-primary hover:bg-primary/10 transition-colors"
+        >
+          <Plus className="h-3 w-3" />
+          {t("add")}
+        </button>
+      )}
     </div>
   );
 }

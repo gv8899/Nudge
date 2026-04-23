@@ -1,6 +1,9 @@
 import SwiftUI
 import NudgeCore
 
+/// Outline-only tag chip — no colour. Tags now scale to many without
+/// colour collisions. The server still stores `tag.color` but we ignore
+/// it in display; web is being aligned to drop the picker too.
 public struct TagBadgeView: View {
     public let tag: TagDTO
 
@@ -12,28 +15,10 @@ public struct TagBadgeView: View {
         Text(tag.name)
             .font(.caption2)
             .foregroundStyle(Color.nudgeForeground)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(
-                Capsule().fill(parsedColor.opacity(0.2))
-            )
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
             .overlay(
-                Capsule().stroke(parsedColor, lineWidth: 0.5)
+                Capsule().stroke(Color.nudgeBorderLight, lineWidth: 1)
             )
-    }
-
-    private var parsedColor: Color {
-        Color(hex: tag.color) ?? Color.nudgeTextDim
-    }
-}
-
-private extension Color {
-    init?(hex: String) {
-        let hex = hex.replacingOccurrences(of: "#", with: "")
-        guard hex.count == 6, let value = UInt32(hex, radix: 16) else { return nil }
-        let r = Double((value >> 16) & 0xff) / 255.0
-        let g = Double((value >> 8) & 0xff) / 255.0
-        let b = Double(value & 0xff) / 255.0
-        self.init(red: r, green: g, blue: b)
     }
 }

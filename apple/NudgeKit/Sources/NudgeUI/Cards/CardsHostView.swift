@@ -3,6 +3,7 @@ import NudgeCore
 
 public struct CardsHostView: View {
     @Environment(CardRepository.self) private var cardRepo
+    @Environment(TagRepository.self) private var tagRepo
 
     @State private var cards: [CardDTO] = []
     @State private var query: String = ""
@@ -41,7 +42,8 @@ public struct CardsHostView: View {
                 CardDetailView(
                     card: card,
                     onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
-                    onUpdateDescription: { updateDescription(cardId: card.id, html: $0) }
+                    onUpdateDescription: { updateDescription(cardId: card.id, html: $0) },
+                    onUpdateTags: { newIds in await updateTags(cardId: card.id, tagIds: newIds) }
                 )
             }
         }
@@ -92,7 +94,8 @@ public struct CardsHostView: View {
                 CardDetailView(
                     card: card,
                     onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
-                    onUpdateDescription: { updateDescription(cardId: card.id, html: $0) }
+                    onUpdateDescription: { updateDescription(cardId: card.id, html: $0) },
+                    onUpdateTags: { newIds in await updateTags(cardId: card.id, tagIds: newIds) }
                 )
             } else {
                 Text(verbatim: "—")
@@ -273,6 +276,27 @@ public struct CardsHostView: View {
             } catch {
                 print("[CardsHostView] updateTitle failed: \(error)")
             }
+        }
+    }
+
+    private func updateTags(cardId: String, tagIds: Set<String>) async {
+        do {
+            try await tagRepo.setTaskTags(taskId: cardId, tagIds: Array(tagIds))
+            // Refresh in-memory list so chips show in row + detail next time.
+            let allTags = try await tagRepo.list()
+            let nextTags = allTags.filter { tagIds.contains($0.id) }
+            if let idx = cards.firstIndex(where: { $0.id == cardId }) {
+                let c = cards[idx]
+                cards[idx] = CardDTO(
+                    id: c.id,
+                    title: c.title,
+                    description: c.description,
+                    updatedAt: c.updatedAt,
+                    tags: nextTags
+                )
+            }
+        } catch {
+            print("[CardsHostView] updateTags failed: \(error)")
         }
     }
 

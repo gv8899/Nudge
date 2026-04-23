@@ -1,6 +1,6 @@
 import Foundation
 
-public struct TagDTO: Codable, Equatable, Sendable {
+public struct TagDTO: Codable, Equatable, Sendable, Identifiable {
     public let id: String
     public let name: String
     public let color: String  // hex, "#xxxxxx"

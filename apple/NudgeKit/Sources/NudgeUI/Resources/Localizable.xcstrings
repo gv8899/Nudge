@@ -1257,6 +1257,83 @@
         "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "清除失敗" } }
       }
     },
+    "tags.addTag" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add tag" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "タグ追加" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "新增標籤" } }
+      }
+    },
+    "tags.searchOrCreate" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Search or create tag..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "検索または作成..." } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "搜尋或建立標籤..." } }
+      }
+    },
+    "tags.createNamed %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Create \"%@\"" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "「%@」を作成" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "建立「%@」" } }
+      }
+    },
+    "tags.removeAria %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Remove %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "%@ を削除" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "移除 %@" } }
+      }
+    },
+    "tags.add" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "追加" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "新增" } }
+      }
+    },
+    "tags.newTagPlaceholder" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add tag..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "タグ追加..." } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "新增標籤..." } }
+      }
+    },
+    "tags.deleteTitle" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete tag" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "タグを削除" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "刪除標籤" } }
+      }
+    },
+    "tags.deleteConfirm %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete tag \"%@\"?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "タグ「%@」を削除しますか？" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "確定要刪除「%@」嗎？" } }
+      }
+    },
+    "tags.changeColor" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Change color" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "色を変更" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "換色" } }
+      }
+    },
+    "settings.tags.section" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Tags" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "タグ" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "標籤管理" } }
+      }
+    },
+    "common.delete" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "削除" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "刪除" } }
+      }
+    },
     "settings.account.section" : {
       "localizations" : {
         "en" : {
