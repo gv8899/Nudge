@@ -28,6 +28,21 @@ public final class CalendarRepository {
         return response.events ?? []
     }
 
+    /// Fetches events across a date range [start ... end] (inclusive, YYYY-MM-DD).
+    /// Server maps `date` + `endDate` params; behaviour matches single-day call
+    /// when `start == end`.
+    public func events(start: String, end: String) async throws -> [CalendarEventDTO] {
+        let response: EventsResponse = try await client.get(
+            "/api/calendar/events?date=\(start)&endDate=\(end)"
+        )
+        if response.connected == false {
+            isConnected = false
+            return []
+        }
+        isConnected = true
+        return response.events ?? []
+    }
+
     /// Requests a one-time connect URL from the server. The caller opens this
     /// URL in `ASWebAuthenticationSession` with callback scheme `nudge`.
     public func mobileStart() async throws -> URL {
