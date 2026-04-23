@@ -21,4 +21,22 @@ public enum APIError: Error, Sendable, LocalizedError {
             return "Invalid server response"
         }
     }
+
+    public var isCancellation: Bool {
+        switch self {
+        case .network(let underlying):
+            return Self.isCancellation(underlying)
+        default:
+            return false
+        }
+    }
+
+    public static func isCancellation(_ error: (any Error)?) -> Bool {
+        guard let error else { return false }
+        if error is CancellationError { return true }
+        if let urlError = error as? URLError, urlError.code == .cancelled { return true }
+        let ns = error as NSError
+        if ns.domain == NSURLErrorDomain && ns.code == NSURLErrorCancelled { return true }
+        return false
+    }
 }

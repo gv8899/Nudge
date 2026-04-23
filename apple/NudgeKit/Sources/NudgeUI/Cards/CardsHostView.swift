@@ -337,6 +337,10 @@ public struct CardsHostView: View {
             cards = result.cards
             nextCursor = result.nextCursor
         } catch {
+            if APIError.isCancellation(error) {
+                isLoading = false
+                return
+            }
             print("[CardsHostView] firstPage failed: \(error)")
             cards = []
             hasError = true
@@ -356,7 +360,9 @@ public struct CardsHostView: View {
             cards.append(contentsOf: result.cards)
             nextCursor = result.nextCursor
         } catch {
-            print("[CardsHostView] loadMore failed: \(error)")
+            if !APIError.isCancellation(error) {
+                print("[CardsHostView] loadMore failed: \(error)")
+            }
         }
         isLoadingMore = false
     }
@@ -365,6 +371,7 @@ public struct CardsHostView: View {
         do {
             allTags = try await tagRepo.list()
         } catch {
+            if APIError.isCancellation(error) { return }
             print("[CardsHostView] loadAllTags failed: \(error)")
         }
     }

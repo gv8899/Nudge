@@ -159,6 +159,7 @@ public struct CardDetailView: View {
             let all = try await tagRepo.list()
             tags = all.filter { newIds.contains($0.id) }
         } catch {
+            if APIError.isCancellation(error) { return }
             print("[CardDetail] tag refresh failed: \(error)")
         }
     }

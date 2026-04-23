@@ -161,6 +161,7 @@ public struct TagPickerSheet: View {
         do {
             allTags = try await tagRepo.list()
         } catch {
+            if APIError.isCancellation(error) { return }
             print("[TagPicker] reload failed: \(error)")
         }
     }

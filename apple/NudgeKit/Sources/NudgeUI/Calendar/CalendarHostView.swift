@@ -170,6 +170,7 @@ public struct CalendarHostView: View {
                 return String(event.start[..<t])
             })
         } catch {
+            if APIError.isCancellation(error) { return }
             print("[CalendarHost] reload failed: \(error)")
             events = []
         }

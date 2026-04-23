@@ -166,6 +166,7 @@ public struct TagManagerView: View {
         do {
             tags = try await tagRepo.reload()
         } catch {
+            if APIError.isCancellation(error) { return }
             print("[TagManager] reload failed: \(error)")
         }
     }

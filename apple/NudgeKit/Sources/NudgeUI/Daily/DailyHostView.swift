@@ -305,6 +305,8 @@ extension DailyHostView {
             dailyData = data
             lastUpdated = Self.currentTimeString()
             loadState = .loaded
+        } catch let error as APIError where error.isCancellation {
+            return
         } catch APIError.network {
             if requestedDate == selectedDate { loadState = .offline }
         } catch {
