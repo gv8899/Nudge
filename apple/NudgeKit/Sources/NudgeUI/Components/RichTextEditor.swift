@@ -38,7 +38,6 @@ public struct RichTextEditor: View {
 
     public var body: some View {
         editorView
-            .frame(minHeight: max(120, contentHeight))
     }
 
     @ViewBuilder
@@ -50,7 +49,7 @@ public struct RichTextEditor: View {
             colorScheme: colorScheme,
             labels: Self.labelsDict(),
             onActiveMarks: { marks in activeMarks?.wrappedValue = marks },
-            onHeight: { h in contentHeight = h },
+            onHeight: { _ in },
             commandBus: commandBus
         )
         #else
@@ -60,7 +59,7 @@ public struct RichTextEditor: View {
             colorScheme: colorScheme,
             labels: Self.labelsDict(),
             onActiveMarks: { marks in activeMarks?.wrappedValue = marks },
-            onHeight: { h in contentHeight = h },
+            onHeight: { _ in },
             commandBus: commandBus
         )
         #endif
@@ -116,12 +115,30 @@ private struct UIKitEditor: UIViewRepresentable {
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.defaultWebpagePreferences.allowsContentJavaScript = true
+        config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+        config.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.isOpaque = false
         webView.backgroundColor = .clear
-        webView.scrollView.isScrollEnabled = false
-        webView.scrollView.bounces = false
+        webView.scrollView.isScrollEnabled = true
+        webView.scrollView.delaysContentTouches = false
+        webView.scrollView.bounces = true
+        webView.scrollView.keyboardDismissMode = .interactive
+        webView.inputAssistantItem.leadingBarButtonGroups = []
+        webView.inputAssistantItem.trailingBarButtonGroups = []
         webView.isInspectable = true
+
+        // Install our EditorToolbar as the WKContentView's inputAccessoryView
+        // so it sits on top of the keyboard as part of the system input view.
+        // This is how Notes / Bear / Heptabase do it: (a) button taps inside
+        // an accessoryView don't resign first responder so editor keeps focus
+        // and our format commands actually apply, and (b) iOS replaces its
+        // default "^ v / Done" form-assistant bar with our accessoryView.
+        if let bus = commandBus {
+            let toolbarHost = EditorToolbarHost(commandBus: bus)
+            context.coordinator.installInputAccessoryView(toolbarHost, on: webView)
+        }
+
         context.coordinator.attach(webView: webView)
         context.coordinator.pushTheme(scheme: colorScheme)
         context.coordinator.loadBundle()
@@ -161,6 +178,8 @@ private struct AppKitEditor: NSViewRepresentable {
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         config.defaultWebpagePreferences.allowsContentJavaScript = true
+        config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+        config.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.setValue(false, forKey: "drawsBackground")
         webView.isInspectable = true

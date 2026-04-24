@@ -19,7 +19,6 @@ public struct CardDetailView: View {
     @State private var descriptionSaveWorkItem: DispatchWorkItem?
     @State private var showTagPicker = false
     @State private var activeMarks = ActiveMarks()
-    @State private var editorKeyboardVisible = false
     private let commandBus = EditorCommandBus()
     @FocusState private var titleFocused: Bool
 
@@ -52,37 +51,11 @@ public struct CardDetailView: View {
         .background(Color.nudgeBackground)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                TextField(text: $title) {
-                    Text("cardDetail.editTitleAria", bundle: .module)
-                }
-                .focused($titleFocused)
-                .font(.headline)
-                .multilineTextAlignment(.center)
-                .textFieldStyle(.plain)
-                .foregroundStyle(Color.nudgeForeground)
-                .frame(maxWidth: 240)
-                .onChange(of: title) { _, newValue in
-                    debouncedSaveTitle(newValue)
-                }
-            }
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if editorKeyboardVisible {
-                EditorToolbar(
-                    activeMarks: activeMarks,
-                    commandBus: commandBus,
-                    onDismissKeyboard: { commandBus.send(.blur) }
-                )
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-            editorKeyboardVisible = true
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-            editorKeyboardVisible = false
-        }
+        // No .safeAreaInset EditorToolbar — on iOS the toolbar is installed
+        // as the WKWebView's inputAccessoryView (see EditorAccessoryView.swift).
+        // That makes taps on toolbar buttons NOT resign the keyboard first
+        // responder, so format commands actually apply while the caret is
+        // preserved.
         #endif
         .onAppear {
             if initialCard.title.isEmpty {
@@ -103,29 +76,56 @@ public struct CardDetailView: View {
 
     @ViewBuilder
     private var scrollContent: some View {
-        ScrollView {
+        // Tag row is fixed at the top; RichTextEditor owns its own scrolling
+        // (WKWebView internal scroll). Do NOT wrap the editor in a SwiftUI
+        // ScrollView — nesting breaks contenteditable focus on iOS.
+        //
+        // Title stays in the view body (NOT ToolbarItem(placement: .principal)):
+        // putting an editable TextField inside a NavigationStack's toolbar
+        // causes iOS to lock the UITextInput session onto it, so even when
+        // the WKWebView's contenteditable shows a caret, keystrokes still
+        // route to the toolbar TextField (Apple forums / SwiftUI toolbar in
+        // NavigationStack is a known-broken combo).
+        VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 12) {
-                tagRow
+                TextField(text: $title) {
+                    Text("cardDetail.editTitleAria", bundle: .module)
+                }
+                .focused($titleFocused)
+                .font(.title2.weight(.semibold))
+                .textFieldStyle(.plain)
+                .foregroundStyle(Color.nudgeForeground)
+                .onChange(of: title) { _, newValue in
+                    debouncedSaveTitle(newValue)
+                }
 
+                tagRow
                 Divider()
                     .background(Color.nudgeBorderLight)
-
-                RichTextEditor(
-                    html: $descriptionHTML,
-                    placeholder: NSLocalizedString(
-                        "cardDetail.editorPlaceholder",
-                        bundle: .module,
-                        comment: ""
-                    ),
-                    activeMarks: $activeMarks,
-                    commandBus: commandBus
-                )
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .onChange(of: descriptionHTML) { _, newValue in
-                    debouncedSaveDescription(newValue)
-                }
             }
-            .padding(16)
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+
+            // .id(initialCard.id) — matches the web fix (<TiptapEditor
+            // key={task.id}>). The editor does not sync htmlBinding →
+            // content after ready; switching to a different card must
+            // happen via view-identity remount.
+            RichTextEditor(
+                html: $descriptionHTML,
+                placeholder: NSLocalizedString(
+                    "cardDetail.editorPlaceholder",
+                    bundle: .module,
+                    comment: ""
+                ),
+                activeMarks: $activeMarks,
+                commandBus: commandBus
+            )
+            .id(initialCard.id)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .onChange(of: descriptionHTML) { _, newValue in
+                debouncedSaveDescription(newValue)
+            }
         }
     }
 

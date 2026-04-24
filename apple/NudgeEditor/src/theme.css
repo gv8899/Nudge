@@ -19,13 +19,11 @@ html, body {
     line-height: 1.6;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
-    -webkit-user-select: text;
     -webkit-touch-callout: default;
 }
 
 #editor {
     padding: 16px;
-    min-height: 100vh;
 }
 
 .ProseMirror {

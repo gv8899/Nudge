@@ -1,12 +1,24 @@
 // apple/NudgeEditor/src/main.ts
+//
+// iOS / macOS TipTap bundle entry point. Builds extensions directly from
+// @tiptap/* packages — does NOT import src/components/editor/editor-extensions.ts
+// (which transitively pulls React via ReactNodeViewRenderer / lucide-react).
+//
+// Shared with the web side only:
+//   - SLASH_COMMAND_DEFS / filterSlashItems (pure data)
+//   - SplitTaskList (pure ProseMirror, no React)
 import { Editor, Extension } from "@tiptap/core";
 import Suggestion from "@tiptap/suggestion";
-import { createEditorExtensions } from "@web-editor/editor-extensions";
+import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
 import {
   SLASH_COMMAND_DEFS,
   filterSlashItems,
   type SlashCommandItem,
 } from "@web-editor/slash-command-defs";
+import { SplitTaskList } from "@web-editor/split-task-list";
 import { postToNative, type ActiveMarks } from "./bridge";
 import { mountSlashMenu, type SlashMenuHandle } from "./slash-menu";
 import "./theme.css";
@@ -17,7 +29,6 @@ interface LabelDict {
 
 let editor: Editor | null = null;
 let labels: LabelDict = {};
-let suppressChange = false;
 
 function buildSlashItems(): SlashCommandItem[] {
   return SLASH_COMMAND_DEFS.map((def) => {
@@ -53,13 +64,9 @@ function computeActive(): ActiveMarks {
   };
 }
 
-// iOS-specific slash command extension — replaces the web's React-based renderer
-// with a plain-DOM SlashMenu. Built from scratch using Suggestion so we don't
-// inherit the React render baked into the web's slashCommandExtension.
-function createIOSSlashCommandExtension() {
+function createSlashCommandExtension() {
   return Extension.create({
     name: "slashCommand",
-
     addProseMirrorPlugins() {
       return [
         Suggestion({
@@ -114,25 +121,30 @@ function createIOSSlashCommandExtension() {
 }
 
 function createEditor(placeholder: string) {
-  // Filter out slashCommand (web's React renderer) and codeBlock (uses ReactNodeViewRenderer).
-  // We add our own iOS slashCommand extension below.
-  const baseExts = createEditorExtensions({
-    placeholder,
-    slashItems: buildSlashItems() as any,
-    codeBlock: false,
-  }).filter((e: any) => e.name !== "slashCommand");
-
   editor = new Editor({
     element: document.getElementById("editor") as HTMLElement,
-    extensions: [...baseExts, createIOSSlashCommandExtension()],
+    extensions: [
+      StarterKit.configure({ codeBlock: false }),
+      Placeholder.configure({ placeholder }),
+      TaskList,
+      TaskItem.configure({ nested: false }),
+      // SplitTaskList — disabled alongside slash-command while isolating
+      // the "typed character disappears" bug on iOS WKWebView. Its
+      // appendTransaction walks the doc on every transaction; theoretical
+      // risk of interacting with hardware-keyboard-path input delivery.
+      // SplitTaskList,
+      // Slash-command extension temporarily disabled — its Suggestion
+      // plugin installs a keydown handler at the ProseMirror plugin layer;
+      // suspected of swallowing input events on iOS WKWebView. Will
+      // reintroduce once input path is confirmed solid.
+      // createSlashCommandExtension(),
+    ],
     content: "",
     editorProps: {
       attributes: { class: "ProseMirror" },
     },
     onUpdate: ({ editor: ed }) => {
-      if (!suppressChange) {
-        postToNative({ kind: "change", html: ed.getHTML() });
-      }
+      postToNative({ kind: "change", html: ed.getHTML() });
       postToNative({ kind: "selection", active: computeActive() });
     },
     onSelectionUpdate: () => {
@@ -142,10 +154,32 @@ function createEditor(placeholder: string) {
     onBlur: () => postToNative({ kind: "focus", focused: false }),
   });
 
+  const editorEl = document.getElementById("editor")!;
+
+  // NOTE on iOS focus: an earlier version installed a capture-phase
+  // pointerdown listener that called editor.commands.focus() (later
+  // editor.view.focus()) to get iOS to raise the keyboard. With the title
+  // TextField now living inside the view body (not a NavigationStack
+  // ToolbarItem.principal), iOS correctly routes the UITextInput session
+  // to WKWebView on tap, so ProseMirror's own tap handler raises the
+  // keyboard, sets selection at tap position, and receives keystrokes
+  // normally. A manual focus listener here either raced ProseMirror's
+  // selection (view.focus: DOM focus without selection → keystrokes
+  // land nowhere) or forced the selection to doc-end, overriding tap
+  // position. Trust ProseMirror's built-in handling.
+
+  // Measure the editor container (not the body). Using body.scrollHeight +
+  // min-height:100vh creates a feedback loop: body grows → viewport grows →
+  // 100vh grows → body grows. Dedupe to avoid tight-loop postMessage spam.
+  let lastHeight = 0;
   const ro = new ResizeObserver(() => {
-    postToNative({ kind: "height", value: document.body.scrollHeight });
+    const h = Math.ceil(editorEl.getBoundingClientRect().height);
+    if (Math.abs(h - lastHeight) >= 1) {
+      lastHeight = h;
+      postToNative({ kind: "height", value: h });
+    }
   });
-  ro.observe(document.body);
+  ro.observe(editorEl);
 }
 
 interface NudgeEditorAPI {
@@ -160,9 +194,7 @@ interface NudgeEditorAPI {
 const api: NudgeEditorAPI = {
   load(html: string) {
     if (!editor) return;
-    suppressChange = true;
     editor.commands.setContent(html || "", { emitUpdate: false });
-    suppressChange = false;
   },
   getHTML() {
     return editor?.getHTML() ?? "";
@@ -197,7 +229,8 @@ const api: NudgeEditorAPI = {
     }
   },
   focus() {
-    editor?.commands.focus();
+    if (!editor) return;
+    editor.view.focus();
   },
   setTheme(tokens: Record<string, string>) {
     const root = document.documentElement;
@@ -221,7 +254,5 @@ const api: NudgeEditorAPI = {
 
 (window as any).NudgeEditor = api;
 
-// 啟動：先建一個 editor（無 placeholder），ready 送出去；Swift 側會接著呼叫 setTheme、
-// setLabels、load。
 createEditor("");
 postToNative({ kind: "ready" });

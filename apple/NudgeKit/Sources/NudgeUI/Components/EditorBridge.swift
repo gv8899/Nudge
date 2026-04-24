@@ -2,6 +2,10 @@ import Foundation
 import SwiftUI
 import WebKit
 
+#if os(iOS)
+import UIKit
+#endif
+
 /// 對應 JS bridge.ts 的 NativeMessage 型別（一致順序）。
 enum EditorNativeMessage {
     case ready
@@ -70,6 +74,10 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
     private var pendingLoadHTML: String?
     var lastEmittedHTML: String = ""
     private var currentScheme: ColorScheme?
+    private var lastSentScheme: ColorScheme?
+    #if os(iOS)
+    private var accessoryHost: EditorToolbarHost?
+    #endif
 
     init(
         htmlBinding: Binding<String>,
@@ -87,8 +95,72 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
 
     func attach(webView: WKWebView) {
         self.webView = webView
-        webView.configuration.userContentController.add(self, name: "editor")
+        let ucc = webView.configuration.userContentController
+        ucc.add(self, name: "editor")
+        ucc.add(self, name: "editorConsole")
+        // Forward console.* to Swift so we can see runtime errors that happen
+        // before our own error handler attaches.
+        let js = """
+        (function() {
+            function forward(level, args) {
+                try {
+                    var msg = Array.prototype.slice.call(args).map(function(a) {
+                        if (a instanceof Error) return a.stack || a.message;
+                        try { return typeof a === 'string' ? a : JSON.stringify(a); }
+                        catch (e) { return String(a); }
+                    }).join(' ');
+                    window.webkit.messageHandlers.editorConsole.postMessage({level: level, msg: msg});
+                } catch (e) { /* swallow */ }
+            }
+            ['log','info','warn','error','debug'].forEach(function(level) {
+                var orig = console[level];
+                console[level] = function() { forward(level, arguments); orig.apply(console, arguments); };
+            });
+            window.addEventListener('error', function(ev) {
+                forward('error', ['window.error:', ev.message, 'at', ev.filename+':'+ev.lineno, ev.error && ev.error.stack]);
+            });
+            window.addEventListener('unhandledrejection', function(ev) {
+                forward('error', ['unhandledrejection:', ev.reason && ev.reason.stack || ev.reason]);
+            });
+        })();
+        """
+        let script = WKUserScript(source: js, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        ucc.addUserScript(script)
         webView.navigationDelegate = self
+    }
+
+    #if os(iOS)
+    func installInputAccessoryView(_ host: EditorToolbarHost, on webView: WKWebView) {
+        self.accessoryHost = host
+    }
+
+    private func tryInstallAccessory() {
+        guard let webView, let host = accessoryHost else { return }
+        webView.nudgeInstallInputAccessoryView(host)
+    }
+    #endif
+
+    // MARK: - WKNavigationDelegate
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        print("[EditorCoordinator] didFinish navigation")
+        #if os(iOS)
+        // WKContentView only exists after a navigation completes — install
+        // the inputAccessoryView now so the runtime subclass swap has a real
+        // target. Retry in a couple of run-loop ticks just in case.
+        tryInstallAccessory()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            self?.tryInstallAccessory()
+        }
+        #endif
+    }
+
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        print("[EditorCoordinator] didFail: \(error)")
+    }
+
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        print("[EditorCoordinator] didFailProvisionalNavigation: \(error)")
     }
 
     /// 載入 editor.html bundle
@@ -103,27 +175,45 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
             return
         }
         let base = url.deletingLastPathComponent()
+        print("[EditorCoordinator] loading bundle from \(url.path)")
         webView.loadFileURL(url, allowingReadAccessTo: base)
     }
 
-    /// Binding → JS；避免把自己剛發出去的值 echo 回去
+    /// Called from updateUIView on every SwiftUI re-render.
+    ///
+    /// Matches the web fix from commit cfdcda2 ("編輯器 cursor 跳掉"):
+    /// once the editor is ready, the editor is the single source of truth
+    /// for its HTML content. Do NOT push htmlBinding → editor after that
+    /// point. Reason: every typed character triggers postToNative →
+    /// htmlBinding update → SwiftUI re-render → updateUIView → this method
+    /// firing. If we call NudgeEditor.load(html) here — even with a
+    /// "same value" guard — any whitespace / attribute-order difference
+    /// from server revalidation causes a setContent(), which RESETS the
+    /// ProseMirror selection to doc-end. Next keystroke then inserts at
+    /// the bottom of the document and the caret appears to "jump" down.
+    ///
+    /// To switch to a different card's content, the parent should give
+    /// the RichTextEditor a new .id(card.id) to force a fresh instance —
+    /// the same pattern web uses with `<TiptapEditor key={task.id} />`.
     func applyIncomingHTMLIfNeeded() {
-        guard isReady, let webView else {
+        guard isReady else {
             pendingLoadHTML = htmlBinding.wrappedValue
             return
         }
-        let target = htmlBinding.wrappedValue
-        if target != lastEmittedHTML {
-            let escaped = escapeForJS(target)
-            webView.evaluateJavaScript("NudgeEditor.load(\(escaped))")
-            lastEmittedHTML = target
-        }
+        // After ready: editor owns the content. No-op.
     }
 
     func pushTheme(scheme: ColorScheme) {
-        guard isReady, let webView else { return }
-        if currentScheme == scheme { return }
+        // Always remember the desired scheme, even when the editor isn't
+        // ready yet. Otherwise the initial pushTheme() call (from makeUIView)
+        // returns early, currentScheme stays nil, and the .ready handler has
+        // nothing to replay — the editor runs forever with the default light
+        // CSS vars, so dark-mode text renders #1a1a1a on a black background
+        // and looks invisible.
         currentScheme = scheme
+        guard isReady, let webView else { return }
+        if lastSentScheme == scheme { return }
+        lastSentScheme = scheme
         let tokens: [String: String] = [
             "background": Color.nudgeBackground.cssHex(for: scheme),
             "foreground": Color.nudgeForeground.cssHex(for: scheme),
@@ -164,25 +254,44 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
 
     func userContentController(_ userContentController: WKUserContentController,
                                didReceive message: WKScriptMessage) {
-        guard let event = EditorNativeMessage.parse(message.body) else { return }
+        if message.name == "editorConsole" {
+            if let dict = message.body as? [String: Any],
+               let level = dict["level"] as? String,
+               let msg = dict["msg"] as? String {
+                print("[editor.\(level)] \(msg)")
+            }
+            return
+        }
+        guard let event = EditorNativeMessage.parse(message.body) else {
+            print("[EditorCoordinator] unparsable message: \(message.body)")
+            return
+        }
         switch event {
         case .ready:
+            print("[EditorCoordinator] ready")
             isReady = true
             pushLabels()
             if let scheme = currentScheme {
                 pushTheme(scheme: scheme)
             }
             let initial = pendingLoadHTML ?? htmlBinding.wrappedValue
+            print("[EditorCoordinator] loading initial HTML (\(initial.count) chars)")
             lastEmittedHTML = initial
             let escaped = escapeForJS(initial)
-            webView?.evaluateJavaScript("NudgeEditor.load(\(escaped))")
+            webView?.evaluateJavaScript("NudgeEditor.load(\(escaped))") { _, err in
+                if let err { print("[EditorCoordinator] load() eval error: \(err)") }
+            }
             pendingLoadHTML = nil
         case .change(let html):
             lastEmittedHTML = html
             htmlBinding.wrappedValue = html
         case .selection(let active):
             onActiveMarks(active)
+            #if os(iOS)
+            accessoryHost?.state.activeMarks = active
+            #endif
         case .height(let h):
+            print("[EditorCoordinator] height \(h)")
             onHeight(h)
         case .focus:
             break
