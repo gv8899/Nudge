@@ -99,7 +99,6 @@ public struct DailyHostView: View {
                                 onArchive: { archiveTask($0) },
                                 onMoveTo: { moveSheetAssignment = $0 }
                             )
-                            .frame(minHeight: 300)
                         }
                     }
                 }

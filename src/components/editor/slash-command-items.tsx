@@ -1,111 +1,21 @@
 import {
-  Type,
-  Heading1,
-  Heading2,
-  Heading3,
-  List,
-  ListOrdered,
-  ListTodo,
-  Quote,
-  Code,
-  Minus,
-  type LucideIcon,
+  Type, Heading1, Heading2, Heading3, List, ListOrdered, ListTodo,
+  Quote, Code, Minus, type LucideIcon,
 } from "lucide-react";
-import type { Editor, Range } from "@tiptap/core";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
+import {
+  SLASH_COMMAND_DEFS,
+  type SlashCommandItem as BaseSlashCommandItem,
+} from "./slash-command-defs";
 
-export interface SlashCommandItem {
-  id: string;
-  label: string;
-  description: string;
-  icon: LucideIcon;
-  keywords: string[];
-  requiredExtension?: string;
-  command: (args: { editor: Editor; range: Range }) => void;
-}
+export { filterSlashItems } from "./slash-command-defs";
 
-interface SlashCommandDef {
-  id: string;
-  icon: LucideIcon;
-  requiredExtension?: string;
-  command: (args: { editor: Editor; range: Range }) => void;
-}
-
-const SLASH_COMMAND_DEFS: SlashCommandDef[] = [
-  {
-    id: "text",
-    icon: Type,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setParagraph().run();
-    },
-  },
-  {
-    id: "h1",
-    icon: Heading1,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setNode("heading", { level: 1 }).run();
-    },
-  },
-  {
-    id: "h2",
-    icon: Heading2,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setNode("heading", { level: 2 }).run();
-    },
-  },
-  {
-    id: "h3",
-    icon: Heading3,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setNode("heading", { level: 3 }).run();
-    },
-  },
-  {
-    id: "bullet",
-    icon: List,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleBulletList().run();
-    },
-  },
-  {
-    id: "ordered",
-    icon: ListOrdered,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleOrderedList().run();
-    },
-  },
-  {
-    id: "todo",
-    icon: ListTodo,
-    requiredExtension: "taskList",
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleTaskList().run();
-    },
-  },
-  {
-    id: "quote",
-    icon: Quote,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleBlockquote().run();
-    },
-  },
-  {
-    id: "code",
-    icon: Code,
-    requiredExtension: "codeBlock",
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
-    },
-  },
-  {
-    id: "divider",
-    icon: Minus,
-    command: ({ editor, range }) => {
-      editor.chain().focus().deleteRange(range).setHorizontalRule().run();
-    },
-  },
-];
+const ID_TO_ICON: Record<string, LucideIcon> = {
+  text: Type, h1: Heading1, h2: Heading2, h3: Heading3,
+  bullet: List, ordered: ListOrdered, todo: ListTodo,
+  quote: Quote, code: Code, divider: Minus,
+};
 
 const ID_TO_KEY: Record<string, { label: string; description: string; keywords: string }> = {
   text: { label: "slashTextLabel", description: "slashTextDescription", keywords: "slashTextKeywords" },
@@ -120,6 +30,10 @@ const ID_TO_KEY: Record<string, { label: string; description: string; keywords: 
   divider: { label: "slashDividerLabel", description: "slashDividerDescription", keywords: "slashDividerKeywords" },
 };
 
+export interface SlashCommandItem extends BaseSlashCommandItem {
+  icon: LucideIcon;
+}
+
 /** Hook 回傳已翻譯的 slash command items；必須在 client component 內使用 */
 export function useSlashCommandItems(): SlashCommandItem[] {
   const t = useTranslations("editor");
@@ -128,39 +42,13 @@ export function useSlashCommandItems(): SlashCommandItem[] {
       SLASH_COMMAND_DEFS.map((def) => {
         const keys = ID_TO_KEY[def.id];
         return {
-          id: def.id,
-          icon: def.icon,
-          requiredExtension: def.requiredExtension,
-          command: def.command,
+          ...def,
+          icon: ID_TO_ICON[def.id],
           label: t(keys.label),
           description: t(keys.description),
           keywords: t(keys.keywords).split("|").filter(Boolean),
         };
       }),
     [t],
-  );
-}
-
-/** 根據 query 字串 filter 項目，並排除 editor 未載入的 extension */
-export function filterSlashItems(
-  items: SlashCommandItem[],
-  query: string,
-  editor?: Editor,
-): SlashCommandItem[] {
-  let filtered = items;
-
-  if (editor) {
-    const loadedExtensions = new Set(editor.extensionManager.extensions.map((e) => e.name));
-    filtered = filtered.filter(
-      (item) => !item.requiredExtension || loadedExtensions.has(item.requiredExtension),
-    );
-  }
-
-  if (!query) return filtered;
-  const q = query.toLowerCase();
-  return filtered.filter(
-    (item) =>
-      item.label.toLowerCase().includes(q) ||
-      item.keywords.some((k) => k.toLowerCase().includes(q)),
   );
 }

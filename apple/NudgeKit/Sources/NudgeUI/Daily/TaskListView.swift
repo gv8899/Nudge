@@ -59,7 +59,7 @@ public struct TaskListView: View {
     }
 
     private var list: some View {
-        List {
+        LazyVStack(spacing: 0) {
             ForEach(sorted, id: \.id) { assignment in
                 TaskRowView(
                     assignment: assignment,
@@ -68,29 +68,7 @@ public struct TaskListView: View {
                     onMoveTo: { onMoveTo(assignment) },
                     onArchive: { onArchive(assignment) }
                 )
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.nudgeBackground)
-                #if os(iOS)
-                .swipeActions(edge: .leading) {
-                    Button(role: .destructive, action: { onArchive(assignment) }) {
-                        Label {
-                            Text("daily.archiveButton", bundle: .module)
-                        } icon: {
-                            Image(systemName: "archivebox")
-                        }
-                    }
-                }
-                .swipeActions(edge: .trailing) {
-                    Button(action: { onMoveTo(assignment) }) {
-                        Label {
-                            Text("task.moveToOtherDate", bundle: .module)
-                        } icon: {
-                            Image(systemName: "calendar")
-                        }
-                    }
-                    .tint(Color.nudgePrimary)
-                }
-                #endif
+                .frame(minHeight: 44)
                 #if os(macOS)
                 .dropDestination(for: String.self) { droppedIds, _ in
                     guard let draggedId = droppedIds.first,
@@ -105,10 +83,7 @@ public struct TaskListView: View {
                 }
                 #endif
             }
-            .onMove(perform: onMove)
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
         .background(Color.nudgeBackground)
     }
 }

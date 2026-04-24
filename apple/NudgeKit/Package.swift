@@ -20,7 +20,8 @@ let package = Package(
             dependencies: ["NudgeCore", "NudgeData"],
             resources: [
                 .process("Resources/Assets.xcassets"),
-                .process("Resources/Localizable.xcstrings")
+                .process("Resources/Localizable.xcstrings"),
+                .copy("Resources/Editor")
             ]
         ),
         .testTarget(name: "NudgeCoreTests", dependencies: ["NudgeCore", "NudgeData", "NudgeUI"]),
