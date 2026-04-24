@@ -4,6 +4,8 @@ import WebKit
 
 #if os(iOS)
 import UIKit
+#elseif os(macOS)
+import AppKit
 #endif
 
 /// 對應 JS bridge.ts 的 NativeMessage 型別（一致順序）。
@@ -13,6 +15,7 @@ enum EditorNativeMessage {
     case selection(ActiveMarks)
     case height(CGFloat)
     case focus(Bool)
+    case openURL(url: String)
 
     static func parse(_ body: Any) -> EditorNativeMessage? {
         guard let dict = body as? [String: Any],
@@ -32,6 +35,9 @@ enum EditorNativeMessage {
             return nil
         case "focus":
             if let f = dict["focused"] as? Bool { return .focus(f) }
+            return nil
+        case "openURL":
+            if let url = dict["url"] as? String { return .openURL(url: url) }
             return nil
         default:
             return nil
@@ -295,6 +301,13 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
             onHeight(h)
         case .focus:
             break
+        case .openURL(let urlString):
+            guard let url = URL(string: urlString) else { break }
+            #if os(iOS)
+            UIApplication.shared.open(url)
+            #elseif os(macOS)
+            NSWorkspace.shared.open(url)
+            #endif
         }
     }
 

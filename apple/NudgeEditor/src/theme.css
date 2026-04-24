@@ -31,6 +31,16 @@ html, body {
     caret-color: var(--nudge-primary);
 }
 
+/* Inline links (TipTap Link extension). Click handler in main.ts
+   captures clicks at the DOM layer and forwards to native. */
+.ProseMirror a,
+.ProseMirror a.nudge-link {
+    color: var(--nudge-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
 .ProseMirror h1 { font-size: 1.875rem; font-weight: 700; margin: 1em 0 0.5em; }
 .ProseMirror h2 { font-size: 1.5rem;   font-weight: 700; margin: 1em 0 0.5em; }
 .ProseMirror h3 { font-size: 1.25rem;  font-weight: 700; margin: 1em 0 0.5em; }
@@ -45,22 +55,63 @@ html, body {
 }
 .ProseMirror ul[data-type="taskList"] li {
     display: flex;
-    gap: 0.5em;
+    gap: 0.6em;
     align-items: flex-start;
 }
 .ProseMirror ul[data-type="taskList"] li > label {
     flex-shrink: 0;
-    padding-top: 0.25em;
+    /* Optical alignment: line-height 1.6 → first-line box 25.6px, cap-
+       height center ~14px from top; 20px checkbox needs ~3px top offset
+       for its center to sit on that line. 0.18em ≈ 3px at 16px base. */
+    padding-top: 0.22em;
+    margin: 0;
+}
+/* li > div is ProseMirror's content wrapper for each task item.
+   Normalize its top margin so text baseline aligns with the checkbox
+   box. */
+.ProseMirror ul[data-type="taskList"] li > div {
+    margin: 0;
+}
+.ProseMirror ul[data-type="taskList"] li > div > p {
+    margin: 0;
 }
 .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
     color: var(--nudge-text-dim);
     text-decoration: line-through;
 }
+/* Checkbox styled to match the Daily (行動) page's NudgeCheckbox: same
+   size, same primary-tinted border, same filled-on-check look. Native
+   accent-color doesn't give us the checkmark-square.fill SF-Symbol vibe,
+   so we strip native appearance and draw the box + tick ourselves. */
 .ProseMirror ul[data-type="taskList"] li input[type="checkbox"] {
-    accent-color: var(--nudge-primary);
-    width: 1.1em;
-    height: 1.1em;
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--nudge-text-dim);
+    border-radius: 5px;
+    background: transparent;
     margin: 0;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.ProseMirror ul[data-type="taskList"] li input[type="checkbox"]:checked {
+    background: var(--nudge-primary);
+    border-color: var(--nudge-primary);
+}
+.ProseMirror ul[data-type="taskList"] li input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 4px;
+    height: 9px;
+    border: solid #ffffff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
 }
 
 .ProseMirror blockquote {

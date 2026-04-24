@@ -13,6 +13,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
+import Link from "@tiptap/extension-link";
 import {
   SLASH_COMMAND_DEFS,
   filterSlashItems,
@@ -128,6 +129,15 @@ function createEditor(placeholder: string) {
       Placeholder.configure({ placeholder }),
       TaskList,
       TaskItem.configure({ nested: false }),
+      // openOnClick: false — contenteditable 裡 ProseMirror 直接 open
+      // 會和 caret 移動衝突。我們在 DOM 層自己攔 click → postToNative,
+      // Swift 用 UIApplication.open() 開外部瀏覽器。
+      // autolink: true — 輸入 URL 自動 linkify。
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        HTMLAttributes: { class: "nudge-link" },
+      }),
       // SplitTaskList — disabled alongside slash-command while isolating
       // the "typed character disappears" bug on iOS WKWebView. Its
       // appendTransaction walks the doc on every transaction; theoretical
@@ -155,6 +165,25 @@ function createEditor(placeholder: string) {
   });
 
   const editorEl = document.getElementById("editor")!;
+
+  // Delegate click on anchors → native. contenteditable 下 <a> 直接
+  // click 預設不會 navigate（只移 caret），我們攔在 capture phase
+  // preventDefault 並把 URL 丟回 Swift。使用者編輯 URL 可以 long-press
+  // 選取或用鍵盤移 caret 進 URL 文字。
+  editorEl.addEventListener(
+    "click",
+    (e) => {
+      const t = e.target as HTMLElement | null;
+      const anchor = t?.closest("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href) return;
+      e.preventDefault();
+      e.stopPropagation();
+      postToNative({ kind: "openURL", url: href });
+    },
+    true,
+  );
 
   // NOTE on iOS focus: an earlier version installed a capture-phase
   // pointerdown listener that called editor.commands.focus() (later

@@ -6,7 +6,8 @@ export type NativeMessage =
   | { kind: "change"; html: string }
   | { kind: "selection"; active: ActiveMarks }
   | { kind: "height"; value: number }
-  | { kind: "focus"; focused: boolean };
+  | { kind: "focus"; focused: boolean }
+  | { kind: "openURL"; url: string };
 
 export interface ActiveMarks {
   heading: 1 | 2 | 3 | null;

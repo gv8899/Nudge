@@ -18,9 +18,10 @@ public struct CardDetailView: View {
     @State private var titleSaveWorkItem: DispatchWorkItem?
     @State private var descriptionSaveWorkItem: DispatchWorkItem?
     @State private var showTagPicker = false
+    @State private var showRenameAlert = false
+    @State private var pendingTitle = ""
     @State private var activeMarks = ActiveMarks()
     private let commandBus = EditorCommandBus()
-    @FocusState private var titleFocused: Bool
 
     public init(
         card: CardDTO,
@@ -50,16 +51,37 @@ public struct CardDetailView: View {
         }
         .background(Color.nudgeBackground)
         #if os(iOS)
+        // Title now lives in the navigation bar (matching CalendarHostView's
+        // pattern — static inline text, not an editable TextField). Editing
+        // goes through the "..." menu → rename alert, avoiding the iOS
+        // UITextInput session lockup caused by a TextField inside
+        // ToolbarItem(.principal).
+        .navigationTitle(title.isEmpty ? untitledLabel : title)
         .navigationBarTitleDisplayMode(.inline)
-        // No .safeAreaInset EditorToolbar — on iOS the toolbar is installed
-        // as the WKWebView's inputAccessoryView (see EditorAccessoryView.swift).
-        // That makes taps on toolbar buttons NOT resign the keyboard first
-        // responder, so format commands actually apply while the caret is
-        // preserved.
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                moreMenu
+            }
+        }
+        .alert(Text("cardDetail.renameTitle", bundle: .module), isPresented: $showRenameAlert) {
+            TextField("", text: $pendingTitle)
+            Button(action: commitRename) {
+                Text("common.save", bundle: .module)
+            }
+            Button(role: .cancel) {
+                pendingTitle = title
+            } label: {
+                Text("common.cancel", bundle: .module)
+            }
+        }
         #endif
         .onAppear {
+            pendingTitle = title
             if initialCard.title.isEmpty {
-                titleFocused = true
+                // Empty card → open rename alert so user can fill in the
+                // title. Dispatched async so it doesn't fight the
+                // navigation transition.
+                DispatchQueue.main.async { showRenameAlert = true }
             }
         }
         .sheet(isPresented: $showTagPicker) {
@@ -76,103 +98,83 @@ public struct CardDetailView: View {
 
     @ViewBuilder
     private var scrollContent: some View {
-        // Tag row is fixed at the top; RichTextEditor owns its own scrolling
-        // (WKWebView internal scroll). Do NOT wrap the editor in a SwiftUI
-        // ScrollView — nesting breaks contenteditable focus on iOS.
+        // RichTextEditor owns its own scrolling (WKWebView internal scroll).
+        // Do NOT wrap the editor in a SwiftUI ScrollView — nesting breaks
+        // contenteditable focus on iOS.
         //
-        // Title stays in the view body (NOT ToolbarItem(placement: .principal)):
+        // Tag management lives entirely in the "..." menu → TagPickerSheet;
+        // the card body is the editor full-bleed so the writing surface is
+        // maximized. (Earlier revisions also showed chips/empty-state inline
+        // here, but since the menu is the only mutation entry, inline display
+        // was dead weight.)
+        //
+        // Title is in navigationTitle (NOT ToolbarItem(placement: .principal)):
         // putting an editable TextField inside a NavigationStack's toolbar
         // causes iOS to lock the UITextInput session onto it, so even when
         // the WKWebView's contenteditable shows a caret, keystrokes still
         // route to the toolbar TextField (Apple forums / SwiftUI toolbar in
         // NavigationStack is a known-broken combo).
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 12) {
-                TextField(text: $title) {
-                    Text("cardDetail.editTitleAria", bundle: .module)
-                }
-                .focused($titleFocused)
-                .font(.title2.weight(.semibold))
-                .textFieldStyle(.plain)
-                .foregroundStyle(Color.nudgeForeground)
-                .onChange(of: title) { _, newValue in
-                    debouncedSaveTitle(newValue)
-                }
-
-                tagRow
-                Divider()
-                    .background(Color.nudgeBorderLight)
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
-
-            // .id(initialCard.id) — matches the web fix (<TiptapEditor
-            // key={task.id}>). The editor does not sync htmlBinding →
-            // content after ready; switching to a different card must
-            // happen via view-identity remount.
-            RichTextEditor(
-                html: $descriptionHTML,
-                placeholder: NSLocalizedString(
-                    "cardDetail.editorPlaceholder",
-                    bundle: .module,
-                    comment: ""
-                ),
-                activeMarks: $activeMarks,
-                commandBus: commandBus
-            )
-            .id(initialCard.id)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .onChange(of: descriptionHTML) { _, newValue in
-                debouncedSaveDescription(newValue)
-            }
+        RichTextEditor(
+            html: $descriptionHTML,
+            placeholder: NSLocalizedString(
+                "cardDetail.editorPlaceholder",
+                bundle: .module,
+                comment: ""
+            ),
+            activeMarks: $activeMarks,
+            commandBus: commandBus
+        )
+        .id(initialCard.id)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .onChange(of: descriptionHTML) { _, newValue in
+            debouncedSaveDescription(newValue)
         }
+    }
+
+    #if os(iOS)
+    private var untitledLabel: String {
+        NSLocalizedString("cardDetail.untitled", bundle: .module, comment: "")
     }
 
     @ViewBuilder
-    private var tagRow: some View {
-        FlowLayout(spacing: 6, lineSpacing: 6) {
-            ForEach(tags) { tag in
-                HStack(spacing: 4) {
-                    Text(tag.name)
-                        .font(.caption2)
-                        .foregroundStyle(Color.nudgeForeground)
-                    Button {
-                        Task { await removeTag(tag.id) }
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(Color.nudgeTextDim)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Text("tags.removeAria \(tag.name)", bundle: .module))
+    private var moreMenu: some View {
+        Menu {
+            Button {
+                pendingTitle = title
+                showRenameAlert = true
+            } label: {
+                Label {
+                    Text("cardDetail.renameTitle", bundle: .module)
+                } icon: {
+                    Image(systemName: "pencil")
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .overlay(
-                    Capsule().stroke(Color.nudgeBorderLight, lineWidth: 1)
-                )
             }
-
             Button {
                 showTagPicker = true
             } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 10, weight: .semibold))
-                    Text(tags.isEmpty ? "tags.addTag" : "tags.add", bundle: .module)
-                        .font(.caption2)
+                Label {
+                    Text("cardDetail.manageTags", bundle: .module)
+                } icon: {
+                    Image(systemName: "tag")
                 }
-                .foregroundStyle(Color.nudgePrimary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .overlay(
-                    Capsule().stroke(Color.nudgePrimary.opacity(0.5), lineWidth: 1)
-                )
             }
-            .buttonStyle(.plain)
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 17, weight: .medium))
+                .foregroundStyle(Color.nudgeForeground)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
+        .accessibilityLabel(Text("cardDetail.moreActions", bundle: .module))
     }
+
+    private func commitRename() {
+        let trimmed = pendingTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed != title else { return }
+        title = trimmed
+        debouncedSaveTitle(trimmed)
+    }
+    #endif
 
     private func debouncedSaveTitle(_ newValue: String) {
         titleSaveWorkItem?.cancel()
