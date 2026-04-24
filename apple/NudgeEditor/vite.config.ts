@@ -9,6 +9,16 @@ export default defineConfig({
       "@web-editor": resolve(__dirname, "../../src/components/editor"),
     },
   },
+  // Vite walks up the directory tree looking for postcss.config.* and would
+  // find the Next.js web app's config at the repo root, which requires
+  // @tailwindcss/postcss. That plugin lives in the web's node_modules, not
+  // ours — on CI (which only `npm ci` inside apple/NudgeEditor) it can't be
+  // resolved and the build dies. The editor bundle uses plain CSS with
+  // custom properties only, so inline plugins:[] both skips auto-discovery
+  // and declares we want no PostCSS transforms.
+  css: {
+    postcss: { plugins: [] },
+  },
   build: {
     outDir: "dist",
     emptyOutDir: true,
