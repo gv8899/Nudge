@@ -93,6 +93,13 @@ public struct CardDetailView: View {
                 },
                 onCancel: { showTagPicker = false }
             )
+            #if os(iOS)
+            // iOS 26 bottom-sheet defaults: medium detent so the editor
+            // stays partly visible, drag indicator so the gesture
+            // affordance reads at a glance.
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            #endif
         }
     }
 

@@ -57,22 +57,19 @@ public struct DailyHostView: View {
         NavigationStack(path: $navigationPath) {
             ZStack(alignment: .bottomTrailing) {
                 VStack(spacing: 0) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text("nav.tasks", bundle: .module)
-                            .font(.largeTitle.weight(.bold))
-                            .foregroundStyle(Color.nudgeForeground)
-                        Spacer()
-                        NavigationLink(value: DailyRoute.settings) {
-                            Image(systemName: "gearshape")
-                                .font(.title3)
-                                .foregroundStyle(Color.nudgePrimary)
-                                .frame(width: 44, height: 44)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
+                    // Date eyebrow sits immediately under the nav bar and
+                    // above the week strip — small, centered, MM, yyyy only
+                    // (e.g. "04, 2026"). Intentionally OUTSIDE the nav bar
+                    // subtitle slot so it doesn't fight the toolbar's liquid
+                    // glass background on iOS 26.
+                    Text(formattedSelectedDate)
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(Color.nudgeTextDim)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 6)
+                        .animation(.easeOut(duration: 0.2), value: selectedDate)
+
                     statusBanner
                     WeekStripView(
                         selectedDate: selectedDate,
@@ -108,17 +105,33 @@ public struct DailyHostView: View {
                     .padding(.trailing, 20)
                     .padding(.bottom, 20)
             }
+            // System nav bar + toolbar — iOS 26 auto-renders gear as a
+            // liquid glass pill. Settings lives there because it's a
+            // secondary page action; the primary "create task" lives in
+            // the floating FAB (bottom-right) per user convention.
+            .navigationTitle(Text("nav.tasks", bundle: .module))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink(value: DailyRoute.settings) {
+                        Image(systemName: "gearshape")
+                    }
+                    .accessibilityLabel(Text("nav.settings", bundle: .module))
+                }
+            }
             .animation(.easeOut(duration: 0.2), value: loadState)
-            #if os(iOS)
             .sensoryFeedback(.success, trigger: completionTicker)
             .sensoryFeedback(.impact(weight: .medium), trigger: archiveTicker)
             .sensoryFeedback(.selection, trigger: moveTicker)
-            #endif
             .navigationDestination(for: DailyAssignmentDTO.self) { assignment in
-                TaskDetailView(
-                    assignment: assignment,
-                    onUpdateTitle: { updateTitle(assignment: assignment, title: $0) },
-                    onUpdateDescription: { updateDescription(assignment: assignment, description: $0) }
+                // Unified with Cards → CardDetailView. Loader fetches fresh
+                // CardDTO (including tags) since DailyAssignmentDTO only
+                // carries a tag-less TaskDTO.
+                CardDetailLoader(
+                    taskId: assignment.task.id,
+                    onUpdateTitle: { updateTaskTitle(taskId: assignment.task.id, title: $0) },
+                    onUpdateDescription: { updateTaskDescription(taskId: assignment.task.id, description: $0) },
+                    onUpdateTags: { newIds in await updateTaskTags(taskId: assignment.task.id, tagIds: newIds) }
                 )
             }
             .navigationDestination(for: DailyRoute.self) { route in
@@ -146,6 +159,10 @@ public struct DailyHostView: View {
         .task(id: selectedDate) { await reload() }
     }
 
+    /// iOS 26 neutral glass FAB — `.glass` (not `.glassProminent`) so
+    /// the disk stays transparent instead of carrying a tint. Matches
+    /// the unemphasized liquid-glass affordance the system uses for
+    /// toolbar and tab-bar buttons.
     private var createTaskFAB: some View {
         Button {
             quickAddText = ""
@@ -153,12 +170,11 @@ public struct DailyHostView: View {
         } label: {
             Image(systemName: "plus")
                 .font(.title2.weight(.semibold))
-                .foregroundStyle(Color.nudgePrimaryForeground)
-                .frame(width: 56, height: 56)
-                .background(Circle().fill(Color.nudgePrimary))
-                .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 3) // nudge:allow-color
+                .frame(width: 28, height: 28)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.glass)
+        .buttonBorderShape(.circle)
+        .controlSize(.extraLarge)
         .accessibilityLabel(Text("task.createPlaceholder", bundle: .module))
     }
 
@@ -220,10 +236,13 @@ public struct DailyHostView: View {
         .background(Color.nudgeBackground)
         .animation(.easeOut(duration: 0.2), value: loadState)
         .sheet(item: $selectedAssignmentForDetail) { assignment in
-            TaskDetailView(
-                assignment: assignment,
-                onUpdateTitle: { updateTitle(assignment: assignment, title: $0) },
-                onUpdateDescription: { updateDescription(assignment: assignment, description: $0) }
+            // Unified with Cards detail — see iOS navigationDestination
+            // above for rationale.
+            CardDetailLoader(
+                taskId: assignment.task.id,
+                onUpdateTitle: { updateTaskTitle(taskId: assignment.task.id, title: $0) },
+                onUpdateDescription: { updateTaskDescription(taskId: assignment.task.id, description: $0) },
+                onUpdateTags: { newIds in await updateTaskTags(taskId: assignment.task.id, tagIds: newIds) }
             )
             .frame(minWidth: 500, minHeight: 400)
         }
@@ -283,6 +302,19 @@ public struct DailyHostView: View {
         }
     }
 
+    /// "MM, yyyy" (zero-padded month + year, e.g. "04, 2026") used as the
+    /// small eyebrow above the "任務" page title. Locale-independent —
+    /// this is a pure numeric eyebrow; the week strip and the week's
+    /// selected-day highlight carry the rest of the temporal context.
+    private var formattedSelectedDate: String {
+        guard let date = DateFormatters.parseISODate(selectedDate) else {
+            return selectedDate
+        }
+        let cal = Calendar(identifier: .gregorian)
+        let m = cal.component(.month, from: date)
+        let y = cal.component(.year, from: date)
+        return String(format: "%02d, %d", m, y)
+    }
 }
 
 // MARK: - Actions
@@ -356,18 +388,50 @@ extension DailyHostView {
 
     func toggleComplete(_ assignment: DailyAssignmentDTO) {
         if !assignment.isCompleted { completionTicker &+= 1 }
+        let newValue = !assignment.isCompleted
+        // Optimistic update: flip isCompleted locally so the row redraws
+        // immediately (no full-page flash from reload()'s "dailyData = nil
+        // → loadState = .loading → fetch → assign → loaded" cycle, which
+        // looked like the whole screen blinked on every checkbox tap).
+        applyAssignmentIsCompletedLocally(id: assignment.id, value: newValue)
         Task {
             do {
                 try await taskRepo.toggleComplete(
                     assignmentId: assignment.id,
-                    isCompleted: !assignment.isCompleted,
+                    isCompleted: newValue,
                     onDate: assignment.date
                 )
             } catch {
+                // Revert on server failure — the row snaps back to its
+                // original state instead of lying about persistence.
+                applyAssignmentIsCompletedLocally(id: assignment.id, value: !newValue)
                 print("[DailyHostView] toggleComplete failed: \(error)")
             }
-            await reload()
         }
+    }
+
+    /// Flips `isCompleted` on a specific assignment inside both
+    /// `assignments` and `overdueTasks` without touching any other state —
+    /// no loadState transition, no `dailyData = nil`, no fetch.
+    private func applyAssignmentIsCompletedLocally(id: String, value: Bool) {
+        guard let data = dailyData else { return }
+        func rewrap(_ a: DailyAssignmentDTO) -> DailyAssignmentDTO {
+            guard a.id == id else { return a }
+            return DailyAssignmentDTO(
+                id: a.id,
+                taskId: a.taskId,
+                date: a.date,
+                isCompleted: value,
+                sortOrder: a.sortOrder,
+                task: a.task
+            )
+        }
+        dailyData = DailyDataDTO(
+            date: data.date,
+            assignments: data.assignments.map(rewrap),
+            overdueTasks: data.overdueTasks.map(rewrap),
+            noteContent: data.noteContent
+        )
     }
 
     func handleMove(_ indices: IndexSet, _ newOffset: Int) {
@@ -415,23 +479,81 @@ extension DailyHostView {
         }
     }
 
-    func updateTitle(assignment: DailyAssignmentDTO, title: String) {
+    func updateTaskTitle(taskId: String, title: String) {
+        // Optimistic local update so the row in the list (and overdue
+        // section) reflects the new title the moment the user navigates
+        // back, without waiting for the PATCH + reload round-trip.
+        applyTaskPatchLocally(taskId: taskId) { task in
+            TaskDTO(
+                id: task.id,
+                title: title,
+                description: task.description,
+                status: task.status,
+                createdAt: task.createdAt,
+                updatedAt: task.updatedAt
+            )
+        }
         Task {
             do {
-                try await taskRepo.updateTitle(taskId: assignment.task.id, title: title)
+                try await taskRepo.updateTitle(taskId: taskId, title: title)
             } catch {
                 print("[DailyHostView] updateTitle failed: \(error)")
             }
         }
     }
 
-    func updateDescription(assignment: DailyAssignmentDTO, description: String) {
+    func updateTaskDescription(taskId: String, description: String) {
+        applyTaskPatchLocally(taskId: taskId) { task in
+            TaskDTO(
+                id: task.id,
+                title: task.title,
+                description: description,
+                status: task.status,
+                createdAt: task.createdAt,
+                updatedAt: task.updatedAt
+            )
+        }
         Task {
             do {
-                try await taskRepo.updateDescription(taskId: assignment.task.id, description: description)
+                try await taskRepo.updateDescription(taskId: taskId, description: description)
             } catch {
                 print("[DailyHostView] updateDescription failed: \(error)")
             }
+        }
+    }
+
+    /// Rebuilds `dailyData` with one task swapped out across both
+    /// `assignments` and `overdueTasks` lists. Pure local mutation so the
+    /// UI reflects rename / description edits without a round-trip.
+    private func applyTaskPatchLocally(
+        taskId: String,
+        patch: (TaskDTO) -> TaskDTO
+    ) {
+        guard let data = dailyData else { return }
+        func rewrap(_ a: DailyAssignmentDTO) -> DailyAssignmentDTO {
+            guard a.task.id == taskId else { return a }
+            return DailyAssignmentDTO(
+                id: a.id,
+                taskId: a.taskId,
+                date: a.date,
+                isCompleted: a.isCompleted,
+                sortOrder: a.sortOrder,
+                task: patch(a.task)
+            )
+        }
+        dailyData = DailyDataDTO(
+            date: data.date,
+            assignments: data.assignments.map(rewrap),
+            overdueTasks: data.overdueTasks.map(rewrap),
+            noteContent: data.noteContent
+        )
+    }
+
+    func updateTaskTags(taskId: String, tagIds: Set<String>) async {
+        do {
+            try await tagRepo.setTaskTags(taskId: taskId, tagIds: Array(tagIds))
+        } catch {
+            print("[DailyHostView] updateTags failed: \(error)")
         }
     }
 }

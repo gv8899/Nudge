@@ -62,6 +62,13 @@ public final class CardRepository {
         )
     }
 
+    /// Fetches one card (task) by id, including its tags. Backs the shared
+    /// detail view when called from entry points that only have a task id
+    /// (e.g. Daily page rows, which carry a TaskDTO with no tags).
+    public func get(cardId: String) async throws -> CardDTO {
+        try await client.get("/api/tasks/\(cardId)")
+    }
+
     /// PATCHes the title of an existing card.
     public func updateTitle(cardId: String, title: String) async throws {
         struct Body: Codable { let title: String }

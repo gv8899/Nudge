@@ -46,8 +46,8 @@ struct QuickAddTaskSheet: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.nudgeBorderLight.opacity(0.3))
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(.ultraThinMaterial)
             )
             .padding(.horizontal, 20)
 

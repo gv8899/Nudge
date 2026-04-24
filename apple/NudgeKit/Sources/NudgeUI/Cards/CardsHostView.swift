@@ -6,16 +6,15 @@ public struct CardsHostView: View {
     @Environment(TagRepository.self) private var tagRepo
 
     @State private var cards: [CardDTO] = []
-    @State private var query: String = ""
-    @State private var debouncedQuery: String = ""
     @State private var nextCursor: String?
     @State private var isLoading = false
     @State private var isLoadingMore = false
     @State private var hasError = false
     @State private var pushedCard: CardDTO?
-    @State private var allTags: [TagDTO] = []
-    @State private var selectedTagIds: Set<String> = []
-    @State private var showFilters: Bool = false
+
+    // Search + tag filtering now lives in the dedicated
+    // `Tab(role: .search)` surface (CardSearchView). This host view is
+    // an unfiltered list of all cards.
 
     #if os(iOS)
     @State private var navigationPath = NavigationPath()
@@ -35,19 +34,18 @@ public struct CardsHostView: View {
     private var iOSLayout: some View {
         NavigationStack(path: $navigationPath) {
             ZStack(alignment: .bottomTrailing) {
-                VStack(spacing: 0) {
-                    inlineHeader
-                    searchBar
-                    tagFilterBar
-                    content
-                }
-                .background(Color.nudgeBackground)
+                content
+                    .background(Color.nudgeBackground)
 
                 createFAB
                     .padding(.trailing, 20)
                     .padding(.bottom, 20)
             }
-            .toolbar(.hidden, for: .navigationBar)
+            // Search and tag filtering moved to the dedicated
+            // `Tab(role: .search)` surface (CardSearchView) — this host
+            // view just lists all cards. `+` stays as the floating FAB.
+            .navigationTitle(Text("nav.cards", bundle: .module))
+            .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: CardDTO.self) { card in
                 CardDetailView(
                     card: card,
@@ -57,37 +55,22 @@ public struct CardsHostView: View {
                 )
             }
         }
-        .task { await loadAllTags() }
-        .task(id: filterRefreshKey) { await firstPage() }
-        .task(id: query) { await debounceQuery() }
+        .task { await firstPage() }
     }
 
-    private var inlineHeader: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text("nav.cards", bundle: .module)
-                .font(.largeTitle.weight(.bold))
-                .foregroundStyle(Color.nudgeForeground)
-            Spacer()
-            if !allTags.isEmpty {
-                filterToggleButton
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-    }
-
-    /// Floating Action Button for creating a new card. Sits above the
-    /// system tab bar (anchored to the inner ZStack's safe area).
+    /// iOS 26 glass FAB for creating a new card. `.glass` (neutral,
+    /// untinted) matches the system toolbar and tab-bar glass pills;
+    /// same contract as the Daily FAB so the two primary actions feel
+    /// like one pattern rather than two bespoke buttons.
     private var createFAB: some View {
         Button(action: createCard) {
             Image(systemName: "plus")
                 .font(.title2.weight(.semibold))
-                .foregroundStyle(Color.nudgePrimaryForeground)
-                .frame(width: 56, height: 56)
-                .background(Circle().fill(Color.nudgePrimary))
-                .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 3) // nudge:allow-color
+                .frame(width: 28, height: 28)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.glass)
+        .buttonBorderShape(.circle)
+        .controlSize(.extraLarge)
         .accessibilityLabel(Text("cards.createAria", bundle: .module))
     }
     #endif
@@ -95,24 +78,20 @@ public struct CardsHostView: View {
     #if os(macOS)
     private var macOSLayout: some View {
         NavigationSplitView {
-            VStack(spacing: 0) {
-                searchBar
-                tagFilterBar
-                content
-            }
-            .background(Color.nudgeBackground)
-            .navigationTitle(Text("nav.cards", bundle: .module))
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    IconButton(
-                        systemName: "plus",
-                        accessibilityLabel: "cards.createAria",
-                        foreground: .nudgePrimary,
-                        action: createCard
-                    )
+            content
+                .background(Color.nudgeBackground)
+                .navigationTitle(Text("nav.cards", bundle: .module))
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        IconButton(
+                            systemName: "plus",
+                            accessibilityLabel: "cards.createAria",
+                            foreground: .nudgePrimary,
+                            action: createCard
+                        )
+                    }
                 }
-            }
-            .frame(minWidth: 300)
+                .frame(minWidth: 300)
         } detail: {
             if let card = pushedCard {
                 CardDetailView(
@@ -128,137 +107,15 @@ public struct CardsHostView: View {
                     .background(Color.nudgeBackground)
             }
         }
-        .task { await loadAllTags() }
-        .task(id: filterRefreshKey) { await firstPage() }
-        .task(id: query) { await debounceQuery() }
+        .task { await firstPage() }
     }
     #endif
-
-    // MARK: - Custom search bar (replaces .searchable so there's only one ✕)
-
-    private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(Color.nudgeTextDim)
-            TextField(text: $query) {
-                Text("cards.searchPlaceholder", bundle: .module)
-            }
-            .textFieldStyle(.plain)
-            .foregroundStyle(Color.nudgeForeground)
-            .submitLabel(.search)
-
-            if !query.isEmpty {
-                Button {
-                    query = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(Color.nudgeTextDim)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text("common.cancel", bundle: .module))
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.nudgeBorderLight.opacity(0.3))
-        )
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-    }
-
-    private var filterToggleButton: some View {
-        Button {
-            withAnimation(.easeOut(duration: 0.2)) { showFilters.toggle() }
-        } label: {
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: "line.3.horizontal.decrease.circle\(showFilters || !selectedTagIds.isEmpty ? ".fill" : "")")
-                    .font(.title2)
-                    .foregroundStyle(
-                        selectedTagIds.isEmpty ? Color.nudgeTextDim : Color.nudgePrimary
-                    )
-                    .frame(width: 32, height: 32)
-                if !selectedTagIds.isEmpty {
-                    Circle()
-                        .fill(Color.nudgeDestructive)
-                        .frame(width: 8, height: 8)
-                        .offset(x: 2, y: -2)
-                }
-            }
-            .frame(minWidth: 44, minHeight: 44)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text("cards.filterByTag", bundle: .module))
-    }
-
-    /// Composite key that re-runs the list `.task` whenever EITHER
-    /// the debounced search OR the selected tag set changes.
-    private var filterRefreshKey: String {
-        let tags = selectedTagIds.sorted().joined(separator: ",")
-        return "\(debouncedQuery)|\(tags)"
-    }
-
-    @ViewBuilder
-    private var tagFilterBar: some View {
-        if !allTags.isEmpty && showFilters {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(allTags) { tag in
-                        let active = selectedTagIds.contains(tag.id)
-                        Button {
-                            if active {
-                                selectedTagIds.remove(tag.id)
-                            } else {
-                                selectedTagIds.insert(tag.id)
-                            }
-                        } label: {
-                            Text(tag.name)
-                                .font(.caption)
-                                .foregroundStyle(active ? Color.nudgePrimaryForeground : Color.nudgeForeground)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(
-                                    Capsule().fill(active ? Color.nudgePrimary : Color.clear)
-                                )
-                                .overlay(
-                                    Capsule().stroke(
-                                        active ? Color.nudgePrimary : Color.nudgeBorderLight,
-                                        lineWidth: 1
-                                    )
-                                )
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(active ? [.isSelected] : [])
-                    }
-                    if !selectedTagIds.isEmpty {
-                        Button {
-                            selectedTagIds.removeAll()
-                        } label: {
-                            Text("common.cancel", bundle: .module)
-                                .font(.caption)
-                                .foregroundStyle(Color.nudgeTextDim)
-                                .padding(.horizontal, 8)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 16)
-            }
-            .padding(.bottom, 4)
-        }
-    }
 
     @ViewBuilder
     private var content: some View {
         if cards.isEmpty && isLoading {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else if cards.isEmpty && !debouncedQuery.isEmpty {
-            emptyState(key: "cards.emptyWithQuery")
         } else if cards.isEmpty && hasError {
             emptyState(key: "error.unknown")
         } else if cards.isEmpty {
@@ -318,22 +175,11 @@ public struct CardsHostView: View {
         #endif
     }
 
-    private func debounceQuery() async {
-        try? await Task.sleep(nanoseconds: 300_000_000)
-        if !Task.isCancelled {
-            debouncedQuery = query
-        }
-    }
-
     private func firstPage() async {
         isLoading = true
         hasError = false
         do {
-            let result = try await cardRepo.list(
-                query: debouncedQuery,
-                cursor: nil,
-                tagIds: Array(selectedTagIds)
-            )
+            let result = try await cardRepo.list(query: "", cursor: nil)
             cards = result.cards
             nextCursor = result.nextCursor
         } catch {
@@ -352,11 +198,7 @@ public struct CardsHostView: View {
         guard !isLoadingMore, let cursor = nextCursor else { return }
         isLoadingMore = true
         do {
-            let result = try await cardRepo.list(
-                query: debouncedQuery,
-                cursor: cursor,
-                tagIds: Array(selectedTagIds)
-            )
+            let result = try await cardRepo.list(query: "", cursor: cursor)
             cards.append(contentsOf: result.cards)
             nextCursor = result.nextCursor
         } catch {
@@ -365,15 +207,6 @@ public struct CardsHostView: View {
             }
         }
         isLoadingMore = false
-    }
-
-    private func loadAllTags() async {
-        do {
-            allTags = try await tagRepo.list()
-        } catch {
-            if APIError.isCancellation(error) { return }
-            print("[CardsHostView] loadAllTags failed: \(error)")
-        }
     }
 
     private func createCard() {
@@ -451,3 +284,8 @@ public struct CardsHostView: View {
         }
     }
 }
+
+// `TagFilterChip` / `PressableChipStyle` live in
+// `Tags/TagFilterChip.swift`; the dedicated Search tab (CardSearchView)
+// is the only consumer now that this host view no longer filters
+// inline. Retained in the shared component file for future reuse.

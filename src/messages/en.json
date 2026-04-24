@@ -7,7 +7,9 @@
     "loadFailed": "Failed to load",
     "today": "Today",
     "confirm": "Confirm",
-    "edit": "Edit"
+    "edit": "Edit",
+    "clear": "Clear",
+    "search": "Search"
   },
   "settings": {
     "title": "Settings",

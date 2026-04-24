@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "NudgeKit",
     platforms: [
-        .iOS(.v18),
+        .iOS("26.0"),
         .macOS(.v15),
     ],
     products: [

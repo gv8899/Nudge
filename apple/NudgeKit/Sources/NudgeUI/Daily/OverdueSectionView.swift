@@ -55,10 +55,17 @@ public struct OverdueSectionView: View {
     }
 
     private var header: some View {
-        Button(action: { isExpanded.toggle() }) {
+        Button(action: {
+            withAnimation(.easeOut(duration: 0.2)) { isExpanded.toggle() }
+        }) {
             HStack(spacing: 6) {
-                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                // Single glyph that rotates on toggle — keeps the chevron
+                // mass constant across states (iOS 26 pattern), instead
+                // of swapping `.right` ↔ `.down` which causes a subtle
+                // size pop as SF Symbol draws a different path.
+                Image(systemName: "chevron.right")
                     .font(.caption)
+                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 Text(String(
                     format: NSLocalizedString("daily.overdueLabel", bundle: .module, comment: ""),
                     overdueTasks.count

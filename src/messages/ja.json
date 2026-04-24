@@ -7,7 +7,9 @@
     "loadFailed": "読み込みに失敗しました",
     "today": "今日",
     "confirm": "確認",
-    "edit": "編集"
+    "edit": "編集",
+    "clear": "クリア",
+    "search": "検索"
   },
   "settings": {
     "title": "設定",
