@@ -32,6 +32,10 @@ jobs:
         run: npm test
       - name: Verify outputs
         run: |
-          test -f apple/NudgeEditor/dist/index.html
+          # Vite runs in lib mode (see vite.config.ts) → only editor.js /
+          # editor.css land in dist/. The HTML wrapper (editor.html) is a
+          # static file at the workspace root, copied into NudgeUI
+          # resources by build.sh — not produced by Vite.
           test -f apple/NudgeEditor/dist/editor.js
           test -f apple/NudgeEditor/dist/editor.css
+          test -f apple/NudgeEditor/editor.html
