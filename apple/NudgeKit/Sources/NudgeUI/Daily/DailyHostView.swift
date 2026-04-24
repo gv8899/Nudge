@@ -150,13 +150,49 @@ public struct DailyHostView: View {
                     onCancel: { moveSheetAssignment = nil }
                 )
             }
-            .sheet(isPresented: $showQuickAdd, onDismiss: { quickAddText = "" }) {
-                quickAddSheet
-                    .presentationDetents([.height(160)])
-                    .presentationDragIndicator(.visible)
+            // Quick-add goes through a native `.alert` rather than a
+            // custom bottom sheet. Reasons:
+            //  1. `.sheet + .height()` + auto-focus TextField produces
+            //     a visible two-stage animation (sheet rises, then
+            //     bumps higher when keyboard appears) that neither
+            //     `.medium` nor the FocusOnAppear hidden-UITextField
+            //     trick cleanly fixes on iOS 26.
+            //  2. A nested `.ultraThinMaterial` inside a material
+            //     sheet background ended up looking like a floating
+            //     card stacked on a card — the user called it out.
+            //  3. Alerts are what Apple uses for their own widget
+            //     quick-add: single coordinated animation, native
+            //     input styling, zero custom code.
+            .alert(
+                Text("task.createPlaceholder", bundle: .module),
+                isPresented: $showQuickAdd
+            ) {
+                TextField(
+                    "",
+                    text: $quickAddText,
+                    prompt: Text("task.createPlaceholder", bundle: .module)
+                )
+                .submitLabel(.done)
+                Button {
+                    submitQuickAdd()
+                } label: {
+                    Text("common.save", bundle: .module)
+                }
+                Button(role: .cancel) {
+                    quickAddText = ""
+                } label: {
+                    Text("common.cancel", bundle: .module)
+                }
             }
         }
         .task(id: selectedDate) { await reload() }
+    }
+
+    private func submitQuickAdd() {
+        let title = quickAddText.trimmingCharacters(in: .whitespaces)
+        quickAddText = ""
+        guard !title.isEmpty else { return }
+        createTask(title)
     }
 
     /// iOS 26 neutral glass FAB — `.glass` (not `.glassProminent`) so
@@ -175,21 +211,14 @@ public struct DailyHostView: View {
         .buttonStyle(.glass)
         .buttonBorderShape(.circle)
         .controlSize(.extraLarge)
+        // Override the `.tint(Color.nudgePrimary)` inherited from the
+        // root TabView so the glyph stays neutral — matches the iOS 26
+        // separated search pill, which also renders its icon in the
+        // system's primary label color, not a brand tint.
+        .tint(.primary)
         .accessibilityLabel(Text("task.createPlaceholder", bundle: .module))
     }
 
-    private var quickAddSheet: some View {
-        QuickAddTaskSheet(
-            text: $quickAddText,
-            onSubmit: {
-                let title = quickAddText.trimmingCharacters(in: .whitespaces)
-                guard !title.isEmpty else { return }
-                createTask(title)
-                showQuickAdd = false
-            },
-            onCancel: { showQuickAdd = false }
-        )
-    }
     #endif
 
     // MARK: - macOS layout

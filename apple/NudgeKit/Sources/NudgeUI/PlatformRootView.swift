@@ -62,7 +62,7 @@ struct IOSTabRoot: View {
             }
 
             Tab(role: nil) {
-                PlaceholderTab(title: "日誌", systemImage: "book")
+                NotesHostView()
             } label: {
                 Label {
                     Text("nav.notes", bundle: .module)
@@ -122,7 +122,7 @@ struct MacSidebarRoot: View {
             switch selection ?? .today {
             case .today: DailyHostView(auth: auth)
             case .calendar: CalendarHostView()
-            case .notes: PlaceholderTab(title: "日誌", systemImage: "book")
+            case .notes: NotesHostView()
             case .cards: CardsHostView()
             case .settings: SettingsView(auth: auth)
             }
