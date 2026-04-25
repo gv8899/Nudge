@@ -208,6 +208,7 @@ public struct DailyHostView: View {
                 )
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
+                .presentationBackground(Color.nudgeBackground)
             }
             // Quick-add goes through a native `.alert` rather than a
             // custom bottom sheet. Reasons:

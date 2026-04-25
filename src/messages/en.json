@@ -254,7 +254,12 @@
     "joinMeeting": "Join meeting",
     "attendees": "Attendees",
     "description": "Notes",
-    "thisWeek": "This week"
+    "thisWeek": "This week",
+    "period": {
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening"
+    }
   },
   "offline": {
     "banner": "Offline. Last updated at {time}."

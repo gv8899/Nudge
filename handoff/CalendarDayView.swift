@@ -101,18 +101,14 @@ public struct CalendarDayView: View {
         let titleColor: Color = past ? Color.nudgeTextDim : Color.nudgeForeground
         let timeColor: Color = past ? Color.nudgeTextDim.opacity(0.7) : Color.nudgeForeground
 
-        // Time floats outside the card: it's a free label that frames
-        // the card on the left. Only the title + location group sits on
-        // the elevated surface, so the eye reads time-as-axis, content-
-        // as-object instead of one giant rectangle.
         HStack(alignment: .top, spacing: 14) {
             Group {
                 if event.allDay {
                     Text("calendar.eventAllDay", bundle: .module)
-                        .font(.title3.weight(.semibold))
+                        .font(.subheadline.weight(.semibold))
                 } else {
                     Text(shortTime(event.start))
-                        .font(.title3.weight(.semibold))
+                        .font(.subheadline.weight(.semibold))
                         .monospacedDigit()
                 }
             }
@@ -120,10 +116,7 @@ public struct CalendarDayView: View {
             .lineLimit(1)
             .minimumScaleFactor(0.85)
             .fixedSize(horizontal: true, vertical: false)
-            .frame(minWidth: 64, alignment: .leading)
-            // Match the card's vertical padding so the time baseline
-            // lines up with the title baseline inside the card.
-            .padding(.vertical, 12)
+            .frame(minWidth: 56, alignment: .leading)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: event.title)
@@ -143,14 +136,14 @@ public struct CalendarDayView: View {
                     .foregroundStyle(Color.nudgeTextDim)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.nudgeForeground.opacity(past ? 0.03 : 0.06))
-            )
+            Spacer(minLength: 0)
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.nudgeForeground.opacity(past ? 0.03 : 0.06))
+        )
     }
 
     // MARK: - Period grouping

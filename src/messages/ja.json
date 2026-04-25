@@ -254,7 +254,12 @@
     "joinMeeting": "会議に参加",
     "attendees": "参加者",
     "description": "メモ",
-    "thisWeek": "今週"
+    "thisWeek": "今週",
+    "period": {
+      "morning": "午前",
+      "afternoon": "午後",
+      "evening": "夜"
+    }
   },
   "offline": {
     "banner": "オフライン。最終更新: {time}"

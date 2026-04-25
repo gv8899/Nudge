@@ -254,7 +254,12 @@
     "joinMeeting": "加入線上會議",
     "attendees": "與會者",
     "description": "備註",
-    "thisWeek": "今週"
+    "thisWeek": "今週",
+    "period": {
+      "morning": "上午",
+      "afternoon": "下午",
+      "evening": "晚上"
+    }
   },
   "offline": {
     "banner": "離線中。上次更新於 {time}"

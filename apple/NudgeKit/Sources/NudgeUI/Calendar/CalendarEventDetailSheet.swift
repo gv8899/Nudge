@@ -58,11 +58,16 @@ public struct CalendarEventDetailSheet: View {
                 }
                 .padding(20)
             }
-            .background(Color.nudgeBackground)
+            // The sheet itself owns the background via
+            // `.presentationBackground` below — putting another
+            // `.background(Color.nudgeBackground)` here on top of the
+            // system sheet material caused the "card-within-card"
+            // double-rounded-corner look at the sheet edges.
         }
         #if os(iOS)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .presentationBackground(Color.nudgeBackground)
         #endif
     }
 

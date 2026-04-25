@@ -36,7 +36,9 @@ public struct ScheduleEditSheet: View {
                 )
                 .padding(16)
             }
-            .background(Color.nudgeBackground)
+            // Background owned by `.presentationBackground` below — see
+            // CalendarEventDetailSheet for why a ScrollView .background
+            // on top of the system sheet material reads as double-card.
             .navigationTitle(Text("cardDetail.schedule", bundle: .module))
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)

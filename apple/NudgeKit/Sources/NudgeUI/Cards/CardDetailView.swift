@@ -101,9 +101,12 @@ public struct CardDetailView: View {
             #if os(iOS)
             // iOS 26 bottom-sheet defaults: medium detent so the editor
             // stays partly visible, drag indicator so the gesture
-            // affordance reads at a glance.
+            // affordance reads at a glance. presentationBackground
+            // replaces the system material so the sheet picks up our
+            // dark token instead of layering over it.
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
+            .presentationBackground(Color.nudgeBackground)
             #endif
         }
         .sheet(isPresented: $showScheduleSheet) {
@@ -125,6 +128,7 @@ public struct CardDetailView: View {
             #if os(iOS)
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
+            .presentationBackground(Color.nudgeBackground)
             #endif
         }
     }
