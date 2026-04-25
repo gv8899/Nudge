@@ -10,14 +10,20 @@
     "edit": "編輯",
     "clear": "清除",
     "search": "搜尋",
-    "done": "完成"
+    "done": "完成",
+    "a11y": {
+      "expanded": "已展開",
+      "collapsed": "已收合"
+    }
   },
   "settings": {
     "title": "設定",
     "account": {
       "section": "帳號資料",
       "unnamed": "未命名",
-      "joinedAt": "加入於 {date}"
+      "joinedAt": "加入於 {date}",
+      "email": "電子郵件",
+      "name": "名稱"
     },
     "theme": {
       "section": "主題",
@@ -80,7 +86,8 @@
     "newTagPlaceholder": "新增標籤...",
     "removeAria": "移除 {name}",
     "dragReorderAria": "拖曳排序：{name}",
-    "searchOrCreate": "搜尋或建立標籤..."
+    "searchOrCreate": "搜尋或建立標籤...",
+    "dragHandle": "拖曳排序"
   },
   "nav": {
     "tasks": "行動",
@@ -259,7 +266,8 @@
       "morning": "上午",
       "afternoon": "下午",
       "evening": "晚上"
-    }
+    },
+    "checkingStatus": "確認連線狀態中…"
   },
   "offline": {
     "banner": "離線中。上次更新於 {time}"

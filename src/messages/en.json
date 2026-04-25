@@ -10,14 +10,20 @@
     "edit": "Edit",
     "clear": "Clear",
     "search": "Search",
-    "done": "Done"
+    "done": "Done",
+    "a11y": {
+      "expanded": "Expanded",
+      "collapsed": "Collapsed"
+    }
   },
   "settings": {
     "title": "Settings",
     "account": {
       "section": "Account",
       "unnamed": "Unnamed",
-      "joinedAt": "Joined {date}"
+      "joinedAt": "Joined {date}",
+      "email": "Email",
+      "name": "Name"
     },
     "theme": {
       "section": "Theme",
@@ -80,7 +86,8 @@
     "newTagPlaceholder": "New tag...",
     "removeAria": "Remove {name}",
     "dragReorderAria": "Drag to reorder: {name}",
-    "searchOrCreate": "Search or create tag..."
+    "searchOrCreate": "Search or create tag...",
+    "dragHandle": "Reorder"
   },
   "nav": {
     "tasks": "Tasks",
@@ -259,7 +266,8 @@
       "morning": "Morning",
       "afternoon": "Afternoon",
       "evening": "Evening"
-    }
+    },
+    "checkingStatus": "Checking…"
   },
   "offline": {
     "banner": "Offline. Last updated at {time}."

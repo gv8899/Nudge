@@ -135,7 +135,12 @@ public struct DailyHostView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink(value: DailyRoute.settings) {
+                        // Explicit foregroundStyle overrides the
+                        // .tint(Color.nudgePrimary) inherited from
+                        // PlatformRootView's TabView root, which would
+                        // otherwise paint this glyph orange.
                         Image(systemName: "gearshape")
+                            .foregroundStyle(Color.nudgeForeground)
                     }
                     .accessibilityLabel(Text("nav.settings", bundle: .module))
                 }
@@ -268,13 +273,15 @@ public struct DailyHostView: View {
                 .font(.title2.weight(.semibold))
                 .frame(width: 28, height: 28)
         }
-        .buttonStyle(.glass)
-        .buttonBorderShape(.circle)
-        .controlSize(.extraLarge)
-        // Override the `.tint(Color.nudgePrimary)` inherited from the
-        // root TabView so the glyph stays neutral — matches the iOS 26
-        // separated search pill, which also renders its icon in the
-        // system's primary label color, not a brand tint.
+        // `.glass` rendered too transparent next to the system
+        // TabRole.search pill — the FAB looked like an outline floating
+        // over content while the search button had a visible disk.
+        // `.glassEffect(.regular, in: .circle)` applies the same glass
+        // material the system uses for the search pill, so the two
+        // affordances now read as the same family.
+        .buttonStyle(.plain)
+        .frame(width: 56, height: 56)
+        .glassEffect(.regular, in: .circle)
         .tint(.primary)
         .accessibilityLabel(Text("task.createPlaceholder", bundle: .module))
     }

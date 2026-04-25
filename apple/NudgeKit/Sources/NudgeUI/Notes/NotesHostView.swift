@@ -25,7 +25,11 @@ public struct NotesHostView: View {
                                 showFeed.toggle()
                             }
                         } label: {
+                            // Explicit foregroundStyle overrides the
+                            // .tint(Color.nudgePrimary) inherited from
+                            // PlatformRootView's TabView root.
                             Image(systemName: showFeed ? "pencil.line" : "list.bullet")
+                                .foregroundStyle(Color.nudgeForeground)
                         }
                         .accessibilityLabel(
                             Text(

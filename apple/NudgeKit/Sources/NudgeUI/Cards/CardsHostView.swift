@@ -68,9 +68,13 @@ public struct CardsHostView: View {
                 .font(.title2.weight(.semibold))
                 .frame(width: 28, height: 28)
         }
-        .buttonStyle(.glass)
-        .buttonBorderShape(.circle)
-        .controlSize(.extraLarge)
+        // Match the Daily FAB exactly — glassEffect with the same
+        // material the system search pill uses, so all primary
+        // affordances read as one family.
+        .buttonStyle(.plain)
+        .frame(width: 56, height: 56)
+        .glassEffect(.regular, in: .circle)
+        .tint(.primary)
         .accessibilityLabel(Text("cards.createAria", bundle: .module))
     }
     #endif
@@ -86,7 +90,6 @@ public struct CardsHostView: View {
                         IconButton(
                             systemName: "plus",
                             accessibilityLabel: "cards.createAria",
-                            foreground: .nudgePrimary,
                             action: createCard
                         )
                     }

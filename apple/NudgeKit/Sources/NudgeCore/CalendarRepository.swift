@@ -9,6 +9,11 @@ public final class CalendarRepository {
     /// Email of the connected Google account (= primary calendar id).
     /// Empty string when not connected or not yet fetched.
     public private(set) var connectedEmail: String = ""
+    /// True once we've observed connection state at least once this session
+    /// (via events fetch, explicit refresh, or disconnect). Lets SettingsView
+    /// skip the redundant /events + /calendars round-trip on every open
+    /// when the calendar tab has already primed the state.
+    public private(set) var hasInitialized: Bool = false
 
     public init(client: APIClient) {
         self.client = client
@@ -22,9 +27,11 @@ public final class CalendarRepository {
         let response: EventsResponse = try await client.get("/api/calendar/events?date=\(date)")
         if response.connected == false {
             isConnected = false
+            hasInitialized = true
             return []
         }
         isConnected = true
+        hasInitialized = true
         return response.events ?? []
     }
 
@@ -37,9 +44,11 @@ public final class CalendarRepository {
         )
         if response.connected == false {
             isConnected = false
+            hasInitialized = true
             return []
         }
         isConnected = true
+        hasInitialized = true
         return response.events ?? []
     }
 
@@ -64,6 +73,25 @@ public final class CalendarRepository {
         }
     }
 
+    /// SettingsView's `.task` calls this so re-entering Settings doesn't
+    /// re-hit /events + /calendars when state has already been primed.
+    /// Two independent gaps to fill:
+    ///   1. Connection state never observed → events() to learn whether
+    ///      Calendar is connected at all.
+    ///   2. State observed via events() (which doesn't fetch /calendars)
+    ///      but `connectedEmail` still empty → just listCalendars().
+    /// Force a full refresh by calling `refreshConnectionStatus()`
+    /// directly (used after the OAuth flow completes).
+    public func refreshConnectionStatusIfNeeded() async {
+        if !hasInitialized {
+            await refreshConnectionStatus()
+            return
+        }
+        if isConnected && connectedEmail.isEmpty {
+            _ = try? await listCalendars()
+        }
+    }
+
     /// Lists the user's Google calendars. Primary calendar's id is the
     /// user's email, which we surface via `connectedEmail`.
     @discardableResult
@@ -80,6 +108,7 @@ public final class CalendarRepository {
         try await client.postVoid("/api/calendar/disconnect", body: EmptyBody())
         isConnected = false
         connectedEmail = ""
+        hasInitialized = true
     }
 
     private struct EventsResponse: Codable {

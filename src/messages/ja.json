@@ -10,14 +10,20 @@
     "edit": "編集",
     "clear": "クリア",
     "search": "検索",
-    "done": "完了"
+    "done": "完了",
+    "a11y": {
+      "expanded": "展開済み",
+      "collapsed": "折りたたみ済み"
+    }
   },
   "settings": {
     "title": "設定",
     "account": {
       "section": "アカウント",
       "unnamed": "名称未設定",
-      "joinedAt": "{date} 登録"
+      "joinedAt": "{date} 登録",
+      "email": "メール",
+      "name": "名前"
     },
     "theme": {
       "section": "テーマ",
@@ -80,7 +86,8 @@
     "newTagPlaceholder": "新しいタグ...",
     "removeAria": "{name} を外す",
     "dragReorderAria": "ドラッグで並び替え：{name}",
-    "searchOrCreate": "タグを検索・作成..."
+    "searchOrCreate": "タグを検索・作成...",
+    "dragHandle": "並べ替え"
   },
   "nav": {
     "tasks": "アクション",
@@ -259,7 +266,8 @@
       "morning": "午前",
       "afternoon": "午後",
       "evening": "夜"
-    }
+    },
+    "checkingStatus": "確認中…"
   },
   "offline": {
     "banner": "オフライン。最終更新: {time}"

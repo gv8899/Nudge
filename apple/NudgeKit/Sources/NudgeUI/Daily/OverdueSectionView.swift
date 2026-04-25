@@ -47,6 +47,10 @@ public struct OverdueSectionView: View {
         if overdueTasks.isEmpty {
             EmptyView()
         } else {
+            // Vertical-only padding on the outer; horizontal padding lives
+            // inside header / row so they match TaskRowView's 12pt edge
+            // (otherwise overdue checkboxes sit 4pt right of today's
+            // checkboxes — visible misalignment).
             VStack(alignment: .leading, spacing: 8) {
                 header
                 if isExpanded {
@@ -55,7 +59,6 @@ public struct OverdueSectionView: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .animation(.easeOut(duration: 0.2), value: isExpanded)
             .onChange(of: currentDate) { _, newValue in
@@ -65,13 +68,15 @@ public struct OverdueSectionView: View {
     }
 
     private var header: some View {
+        // Outer padding is 12 (matches row edge); the additional 12 inside
+        // brings the label / chevron in line with the visual centers of
+        // the row's NudgeCheckbox (44pt frame, ~22pt glyph → 11pt inset)
+        // and TaskRowMenu's `…` (also 44pt frame). Keeps the optical
+        // column from "前幾天的" / chevron consistent with the rows.
         Button(action: {
             withAnimation(.easeOut(duration: 0.2)) { isExpanded.toggle() }
         }) {
             HStack(spacing: 6) {
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 Text(String(
                     format: nudgeLocalized("daily.overdueLabel", locale: locale),
                     overdueTasks.count
@@ -79,13 +84,21 @@ public struct OverdueSectionView: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.nudgePrimary)
                 Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                    .foregroundStyle(Color.nudgePrimary)
             }
+            .padding(.horizontal, 24)
             .frame(minHeight: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("daily.overdueSectionAria", bundle: .module))
-        .accessibilityValue(Text(isExpanded ? "expanded" : "collapsed"))
+        .accessibilityValue(Text(
+            isExpanded ? "common.a11y.expanded" : "common.a11y.collapsed",
+            bundle: .module
+        ))
         .accessibilityAddTraits(.isHeader)
     }
 
@@ -118,5 +131,8 @@ public struct OverdueSectionView: View {
                 onArchive: { onArchive(task) }
             )
         }
+        // Match TaskRowView's horizontal padding so the checkbox column
+        // lines up across overdue and today sections.
+        .padding(.horizontal, 12)
     }
 }
