@@ -43,7 +43,9 @@ public struct CardSearchView: View {
             )
             .background(Color.nudgeBackground)
             .navigationTitle(Text("common.search", bundle: .module))
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .searchable(
                 text: $query,
                 placement: .automatic,
