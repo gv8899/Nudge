@@ -47,16 +47,15 @@ public struct TaskRowView: View {
 
             Text(assignment.task.title)
                 .strikethrough(assignment.isCompleted)
+                // Single-stage dim — was nudgeTextDim + .opacity(0.6)
+                // which drove luminance below WCAG AA. Foreground-style
+                // alone gives the correct "completed but readable" look.
                 .foregroundStyle(assignment.isCompleted ? Color.nudgeTextDim : Color.nudgeForeground)
-                .opacity(assignment.isCompleted ? 0.6 : 1.0)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-                .onTapGesture(perform: onOpen)
 
-            // The unified `…` menu replaced the legacy single-purpose
-            // calendar IconButton. All row actions (move, skip, set
-            // recurrence, set reminder, archive) live in this one menu so
-            // today / overdue / recurring rows look identical.
+            // Unified `…` menu — TaskRowMenu's inner Menu/Button consumes
+            // its own taps so the row-level onTapGesture (below) doesn't
+            // fire when the user opens the menu.
             TaskRowMenu(
                 isToday: isToday,
                 isRecurring: assignment.isRecurring,
@@ -69,11 +68,24 @@ public struct TaskRowView: View {
             )
         }
         .padding(.horizontal, 12)
+        .frame(minHeight: 44)
         .background(Color.nudgeBackground)
+        // Whole row is now the tap surface — was only the title text,
+        // leaving fat-finger dead zones in the spacing column.
+        // NudgeCheckbox / TaskRowMenu are Buttons that consume their
+        // own taps before this gesture sees them.
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onOpen)
         #if os(macOS)
         .draggable(assignment.id)
         #endif
-        .contextMenu {
+        #if os(iOS)
+        // Native iOS list swipe affordances — leading = mark
+        // complete/uncomplete, trailing = archive (destructive).
+        // Was: only contextMenu (long-press), which iOS users don't
+        // always discover. Keeps the `…` menu as the explicit
+        // affordance for everything else.
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
             Button(action: onToggleComplete) {
                 Label {
                     Text(assignment.isCompleted ? "task.uncomplete" : "task.complete", bundle: .module)
@@ -81,22 +93,9 @@ public struct TaskRowView: View {
                     Image(systemName: assignment.isCompleted ? "circle" : "checkmark.circle")
                 }
             }
-            Button(action: onMoveTo) {
-                Label {
-                    Text("task.moveToOtherDate", bundle: .module)
-                } icon: {
-                    Image(systemName: "calendar")
-                }
-            }
-            if assignment.isRecurring {
-                Button(action: onSkipThisOccurrence) {
-                    Label {
-                        Text("daily.skipThisOccurrence", bundle: .module)
-                    } icon: {
-                        Image(systemName: "forward")
-                    }
-                }
-            }
+            .tint(.nudgePrimary)
+        }
+        .swipeActions(edge: .trailing) {
             Button(role: .destructive, action: onArchive) {
                 Label {
                     Text("daily.archiveButton", bundle: .module)
@@ -104,13 +103,7 @@ public struct TaskRowView: View {
                     Image(systemName: "archivebox")
                 }
             }
-            Button(action: onOpen) {
-                Label {
-                    Text("common.edit", bundle: .module)
-                } icon: {
-                    Image(systemName: "pencil")
-                }
-            }
         }
+        #endif
     }
 }

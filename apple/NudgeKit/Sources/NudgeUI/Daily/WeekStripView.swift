@@ -112,9 +112,13 @@ public struct WeekStripView: View {
 
         Button(action: { onSelectDate(date) }) {
             VStack(spacing: 4) {
+                // Weekday label stays neutral — was nudgePrimary on
+                // selected, which combined with the filled circle and
+                // the dot to put three primary-color elements in one
+                // cell. The fill alone is enough selection signal.
                 Text(weekdayKey(date), bundle: .module)
                     .font(.caption2)
-                    .foregroundStyle(isSelected ? Color.nudgePrimary : Color.nudgeTextDim)
+                    .foregroundStyle(Color.nudgeTextDim)
 
                 Text(dayNumber)
                     .font(.headline)
@@ -125,8 +129,12 @@ public struct WeekStripView: View {
                             .fill(isSelected ? Color.nudgePrimary : Color.clear)
                     )
 
+                // Hide the hasTasks dot on the selected day — it's
+                // information redundant with the filled circle. Keeps
+                // the cell from carrying three concurrent primary-color
+                // accents.
                 Circle()
-                    .fill(hasTasks ? Color.nudgePrimary : Color.clear)
+                    .fill(hasTasks && !isSelected ? Color.nudgePrimary : Color.clear)
                     .frame(width: 4, height: 4)
             }
             .frame(maxWidth: .infinity, minHeight: 56)

@@ -71,6 +71,9 @@
       "eveningTime": "夜間時間",
       "eveningContent": "夜間內容",
       "perTaskEnabled": "個別任務提醒"
+    },
+    "dangerZone": {
+      "section": "危險操作"
     }
   },
   "tags": {
@@ -180,7 +183,8 @@
     "skipThisOccurrence": "跳過這次",
     "setRecurring": "設成重複任務…",
     "setReminder": "設定提醒…",
-    "rowMenu": "任務動作"
+    "rowMenu": "任務動作",
+    "completedSection": "已完成 ({n})"
   },
   "cards": {
     "createAria": "新增卡片",
@@ -199,7 +203,8 @@
     "cleanConfirmButton": "確定清除",
     "cleanLoading": "清除中...",
     "toastCleaned": "已清除 {count} 張空白卡片",
-    "toastNothingToClean": "沒有需要清除的卡片"
+    "toastNothingToClean": "沒有需要清除的卡片",
+    "untitled": "未命名"
   },
   "cardDetail": {
     "backToCards": "返回卡片",
@@ -267,7 +272,13 @@
       "afternoon": "下午",
       "evening": "晚上"
     },
-    "checkingStatus": "確認連線狀態中…"
+    "checkingStatus": "確認連線狀態中…",
+    "prevWeek": "上一週",
+    "nextWeek": "下一週",
+    "prevMonth": "上個月",
+    "nextMonth": "下個月",
+    "eventCount": "{n} 個事件",
+    "connectedEmailLabel": "已連結"
   },
   "offline": {
     "banner": "離線中。上次更新於 {time}"

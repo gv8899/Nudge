@@ -67,19 +67,14 @@ public struct NotesCanvasView: View {
         }
     }
 
+    /// Locale-aware nav title — was hand-stitched "M/D · weekday" with
+    /// hardcoded "·". Now `Date.FormatStyle` produces the right sequence
+    /// per locale: "Apr 25, Fri" / "4月25日金" / "4月25日 週五".
     private var formattedDate: String {
         guard let d = DateFormatters.parseISODate(date) else { return date }
-        let cal = Calendar(identifier: .gregorian)
-        let m = cal.component(.month, from: d)
-        let day = cal.component(.day, from: d)
-        let weekdayIndex = cal.component(.weekday, from: d) // 1..7, Sun=1
-        let shortWeekdayKeys: [LocalizedStringKey] = [
-            "weekday.sun", "weekday.mon", "weekday.tue", "weekday.wed",
-            "weekday.thu", "weekday.fri", "weekday.sat",
-        ]
-        let weekdayKey = shortWeekdayKeys[weekdayIndex - 1]
-        let weekday = nudgeLocalized(weekdayKey.stringKey ?? "", locale: locale)
-        return "\(m)/\(day) · \(weekday)"
+        return d.formatted(
+            .dateTime.month(.abbreviated).day().weekday(.abbreviated).locale(locale)
+        )
     }
 
     // MARK: - Load / save
@@ -126,15 +121,5 @@ public struct NotesCanvasView: View {
             if APIError.isCancellation(error) { return }
             print("[NotesCanvasView] save failed: \(error)")
         }
-    }
-}
-
-private extension LocalizedStringKey {
-    /// Extract the underlying string key for `NSLocalizedString` lookup.
-    /// `LocalizedStringKey` stores its key in a private `key` property
-    /// but exposes it via `description`.
-    var stringKey: String? {
-        let mirror = Mirror(reflecting: self)
-        return mirror.children.first(where: { $0.label == "key" })?.value as? String
     }
 }

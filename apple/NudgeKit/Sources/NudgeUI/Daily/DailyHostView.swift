@@ -8,6 +8,7 @@ public struct DailyHostView: View {
     @Environment(TaskRepository.self) private var taskRepo
     @Environment(TagRepository.self) private var tagRepo
     @Environment(CardRepository.self) private var cardRepo
+    @Environment(\.locale) private var locale
     #if os(iOS)
     @Environment(NotificationRouter.self) private var notificationRouter
     #endif
@@ -101,7 +102,8 @@ public struct DailyHostView: View {
                                 onArchive: { archiveTask($0) },
                                 onSkipThisOccurrence: { skipOccurrence($0) },
                                 onSetRecurrence: { openScheduleSheet(for: $0) },
-                                onSetReminder: { openScheduleSheet(for: $0) }
+                                onSetReminder: { openScheduleSheet(for: $0) },
+                                onOpen: { navigationPath.append($0) }
                             )
                             TaskListView(
                                 assignments: dailyData?.assignments ?? [],
@@ -312,7 +314,8 @@ public struct DailyHostView: View {
                             onArchive: { archiveTask($0) },
                             onSkipThisOccurrence: { skipOccurrence($0) },
                             onSetRecurrence: { openScheduleSheet(for: $0) },
-                            onSetReminder: { openScheduleSheet(for: $0) }
+                            onSetReminder: { openScheduleSheet(for: $0) },
+                            onOpen: { selectedAssignmentForDetail = $0 }
                         )
                         TaskListView(
                             assignments: dailyData?.assignments ?? [],
@@ -430,25 +433,24 @@ public struct DailyHostView: View {
         }
     }
 
-    /// "MM, yyyy" (zero-padded month + year, e.g. "04, 2026") used as the
-    /// small eyebrow above the "任務" page title. Locale-independent —
-    /// this is a pure numeric eyebrow; the week strip and the week's
-    /// selected-day highlight carry the rest of the temporal context.
     /// True when the user is viewing today's date — drives the "Move to
     /// today" entry visibility in TaskRowMenu (hidden when already today).
     private var isViewingToday: Bool {
         selectedDate == DateFormatters.isoDate(Date())
     }
 
+    /// Locale-aware "month + year" eyebrow above the "任務" page title.
+    /// Was hardcoded "04, 2026" which doesn't read like any locale's
+    /// natural date. Now: "April 2026" / "2026年4月" / "2026 年 4 月".
     private var formattedSelectedDate: String {
         guard let date = DateFormatters.parseISODate(selectedDate) else {
             return selectedDate
         }
-        let cal = Calendar(identifier: .gregorian)
-        let m = cal.component(.month, from: date)
-        let y = cal.component(.year, from: date)
-        return String(format: "%02d, %d", m, y)
+        return date.formatted(
+            .dateTime.month(.wide).year().locale(locale)
+        )
     }
+
 }
 
 // MARK: - Actions
@@ -551,12 +553,20 @@ extension DailyHostView {
         guard let data = dailyData else { return }
         func rewrap(_ a: DailyAssignmentDTO) -> DailyAssignmentDTO {
             guard a.id == id else { return a }
+            // Preserve `isSkipped` and `isRecurring` — the previous rewrap
+            // dropped them to default `false` because the DTO init has
+            // them as defaulted positional params, which silently broke
+            // recurring rows after toggling complete (lost the "is
+            // recurring" flag → row no longer shows the "Skip this
+            // occurrence" menu entry).
             return DailyAssignmentDTO(
                 id: a.id,
                 taskId: a.taskId,
                 date: a.date,
                 isCompleted: value,
+                isSkipped: a.isSkipped,
                 sortOrder: a.sortOrder,
+                isRecurring: a.isRecurring,
                 task: a.task
             )
         }

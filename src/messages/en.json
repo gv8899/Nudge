@@ -71,6 +71,9 @@
       "eveningTime": "Evening time",
       "eveningContent": "Evening content",
       "perTaskEnabled": "Per-task reminders"
+    },
+    "dangerZone": {
+      "section": "Danger zone"
     }
   },
   "tags": {
@@ -180,7 +183,8 @@
     "skipThisOccurrence": "Skip this one",
     "setRecurring": "Repeat…",
     "setReminder": "Set reminder…",
-    "rowMenu": "Task actions"
+    "rowMenu": "Task actions",
+    "completedSection": "Completed ({n})"
   },
   "cards": {
     "createAria": "New card",
@@ -199,7 +203,8 @@
     "cleanConfirmButton": "Confirm delete",
     "cleanLoading": "Cleaning...",
     "toastCleaned": "Cleaned {count} untitled card(s)",
-    "toastNothingToClean": "No cards to clean"
+    "toastNothingToClean": "No cards to clean",
+    "untitled": "Untitled"
   },
   "cardDetail": {
     "backToCards": "Back to cards",
@@ -267,7 +272,13 @@
       "afternoon": "Afternoon",
       "evening": "Evening"
     },
-    "checkingStatus": "Checking…"
+    "checkingStatus": "Checking…",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "eventCount": "{n} events",
+    "connectedEmailLabel": "Connected"
   },
   "offline": {
     "banner": "Offline. Last updated at {time}."

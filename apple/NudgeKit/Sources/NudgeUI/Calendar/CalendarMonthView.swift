@@ -51,13 +51,16 @@ public struct CalendarMonthView: View {
     private var todayIso: String { DateFormatters.isoDate(Date()) }
     private var monthComponent: Int { calendar.component(.month, from: monthAnchor) }
 
-    private func events(on date: Date) -> [CalendarEventDTO] {
-        let iso = DateFormatters.isoDate(date)
-        return events.filter { $0.start.hasPrefix(iso) }
+    /// Pre-compute events grouped by ISO date so each of the 42 cells
+    /// does an O(1) dict lookup instead of an O(N) linear scan. Without
+    /// this, a month with 30 events meant ~1260 string-prefix checks
+    /// per render, which spiked CPU on month flip.
+    private var eventsByDate: [String: [CalendarEventDTO]] {
+        Dictionary(grouping: events, by: { String($0.start.prefix(10)) })
     }
 
     private var selectedDayEvents: [CalendarEventDTO] {
-        events.filter { $0.start.hasPrefix(selectedDate) }
+        eventsByDate[selectedDate] ?? []
     }
 
     public var body: some View {
@@ -74,12 +77,11 @@ public struct CalendarMonthView: View {
 
     private var header: some View {
         HStack {
-            Button(action: onPrevMonth) {
-                Image(systemName: "chevron.left")
-                    .foregroundStyle(Color.nudgeTextDim)
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
+            IconButton(
+                systemName: "chevron.left",
+                accessibilityLabel: "calendar.prevMonth",
+                action: onPrevMonth
+            )
             Spacer()
             Text(verbatim: monthTitle)
                 .font(.subheadline.weight(.semibold))
@@ -88,15 +90,20 @@ public struct CalendarMonthView: View {
             Button(action: onThisMonth) {
                 Text("calendar.today", bundle: .module)
                     .font(.footnote)
-                    .foregroundStyle(Color.nudgePrimary)
+                    // Match SettingsView / WeekView "本週" — text buttons
+                    // use foreground colour, not the brand accent, so the
+                    // page only spends primary on selection markers.
+                    .foregroundStyle(Color.nudgeForeground)
+                    .frame(minHeight: 44)
+                    .padding(.horizontal, 8)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            Button(action: onNextMonth) {
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(Color.nudgeTextDim)
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
+            IconButton(
+                systemName: "chevron.right",
+                accessibilityLabel: "calendar.nextMonth",
+                action: onNextMonth
+            )
         }
         .padding(.horizontal, 8)
     }
@@ -142,7 +149,7 @@ public struct CalendarMonthView: View {
         let isSelected = iso == selectedDate
         let isToday = iso == todayIso
         let isPad = calendar.component(.month, from: date) != monthComponent
-        let count = events(on: date).count
+        let count = eventsByDate[iso]?.count ?? 0
 
         return Button {
             if isSelected {
@@ -154,14 +161,24 @@ public struct CalendarMonthView: View {
             VStack(spacing: 2) {
                 ZStack {
                     if isToday {
+                        // Today reads as a filled accent disc — strongest
+                        // visual marker of the page.
                         Circle().fill(Color.nudgePrimary)
-                            .frame(width: 26, height: 26)
+                            .frame(width: 28, height: 28)
                     } else if isSelected {
-                        Circle().stroke(Color.nudgeBorderLight, lineWidth: 1)
-                            .frame(width: 26, height: 26)
+                        // Selected (but not today) gets a 2pt foreground
+                        // stroke — was 1pt borderLight, which on dark
+                        // mode was indistinguishable from background and
+                        // left the user with no confirmation of selection.
+                        Circle().stroke(Color.nudgeForeground, lineWidth: 2)
+                            .frame(width: 28, height: 28)
                     }
+                    // Day digit upgraded from .footnote (~13pt) to
+                    // .subheadline (~15pt): a calendar's primary visual
+                    // info is the date number, the previous size made
+                    // it the weakest text on the page.
                     Text(verbatim: "\(day)")
-                        .font(.footnote.weight(isToday ? .semibold : .regular))
+                        .font(.subheadline.weight(isToday ? .semibold : .regular))
                         .foregroundStyle(dayColor(isToday: isToday, isPad: isPad))
                 }
                 dots(count: count)
@@ -171,11 +188,27 @@ public struct CalendarMonthView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(date, format: .dateTime.year().month().day()))
+        .accessibilityValue(a11yValue(count: count, isToday: isToday))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func a11yValue(count: Int, isToday: Bool) -> Text {
+        // Compose VoiceOver value: "today, 3 events" / "3 events" / "today" / ""
+        var parts: [String] = []
+        if isToday { parts.append(nudgeLocalized("calendar.today", locale: locale)) }
+        if count > 0 {
+            let template = nudgeLocalized("calendar.eventCount %lld", locale: locale)
+            parts.append(String(format: template, count))
+        }
+        return Text(verbatim: parts.joined(separator: "・"))
     }
 
     private func dayColor(isToday: Bool, isPad: Bool) -> Color {
         if isToday { return .nudgePrimaryForeground }
-        if isPad { return .nudgeTextDim.opacity(0.5) }
+        // Padding days: single-stage dim (was .nudgeTextDim.opacity(0.5)
+        // — two stages of dim stacked failed WCAG AA contrast).
+        if isPad { return .nudgeTextDim }
         return .nudgeForeground
     }
 
@@ -188,8 +221,11 @@ public struct CalendarMonthView: View {
                     Circle().fill(Color.nudgePrimary).frame(width: 4, height: 4)
                 }
             } else {
+                // Token-aligned font (was hard-coded .system(size: 8))
+                // — now respects Dynamic Type and matches the rest of
+                // the calendar's caption hierarchy.
                 Text(verbatim: "···")
-                    .font(.system(size: 8, weight: .bold))
+                    .font(.caption2.weight(.bold))
                     .foregroundStyle(Color.nudgePrimary)
             }
         }

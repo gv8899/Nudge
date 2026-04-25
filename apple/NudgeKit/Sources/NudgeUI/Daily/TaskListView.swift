@@ -15,6 +15,9 @@ public struct TaskListView: View {
     public let onSetRecurrence: (DailyAssignmentDTO) -> Void
     public let onSetReminder: (DailyAssignmentDTO) -> Void
 
+    @Environment(\.locale) private var locale
+    @State private var isCompletedExpanded: Bool = false
+
     public init(
         assignments: [DailyAssignmentDTO],
         isLoading: Bool = false,
@@ -43,11 +46,41 @@ public struct TaskListView: View {
         self.onSetReminder = onSetReminder
     }
 
-    /// Completed tasks sorted to the bottom (matches Web behavior).
-    private var sorted: [DailyAssignmentDTO] {
-        let pending = assignments.filter { !$0.isCompleted }.sorted { $0.sortOrder < $1.sortOrder }
-        let done = assignments.filter { $0.isCompleted }.sorted { $0.sortOrder < $1.sortOrder }
-        return pending + done
+    /// Single combined list of items so SwiftUI tracks identity across
+    /// pending → completed transitions consistently. The previous
+    /// implementation used two nested ForEach containers — when a row
+    /// flipped completion state and moved between containers, SwiftUI
+    /// was occasionally rendering the old row's view (with old
+    /// `isCompleted`) at the new position, producing the "checkmark
+    /// not visible after toggle" report.
+    private enum Item: Identifiable {
+        case row(DailyAssignmentDTO)
+        case completedHeader(count: Int)
+
+        var id: String {
+            switch self {
+            case .row(let a): return "row-\(a.id)"
+            case .completedHeader: return "header-completed"
+            }
+        }
+    }
+
+    private var items: [Item] {
+        let pending = assignments
+            .filter { !$0.isCompleted }
+            .sorted { $0.sortOrder < $1.sortOrder }
+        let completed = assignments
+            .filter { $0.isCompleted }
+            .sorted { $0.sortOrder < $1.sortOrder }
+
+        var result: [Item] = pending.map { .row($0) }
+        if !completed.isEmpty {
+            result.append(.completedHeader(count: completed.count))
+            if isCompletedExpanded {
+                result.append(contentsOf: completed.map { .row($0) })
+            }
+        }
+        return result
     }
 
     public var body: some View {
@@ -63,7 +96,7 @@ public struct TaskListView: View {
             Spacer(minLength: 48)
             Image(systemName: "sparkles")
                 .font(.largeTitle)
-                .foregroundStyle(Color.nudgeTextDim.opacity(0.5))
+                .foregroundStyle(Color.nudgeTextDim)
             Text("daily.emptyToday", bundle: .module)
                 .font(.subheadline)
                 .foregroundStyle(Color.nudgeTextDim)
@@ -75,35 +108,68 @@ public struct TaskListView: View {
 
     private var list: some View {
         LazyVStack(spacing: 0) {
-            ForEach(sorted, id: \.id) { assignment in
-                TaskRowView(
-                    assignment: assignment,
-                    isToday: isToday,
-                    onToggleComplete: { onToggleComplete(assignment) },
-                    onOpen: { onOpen(assignment) },
-                    onMoveToToday: { onMoveToToday(assignment) },
-                    onMoveTo: { onMoveTo(assignment) },
-                    onSkipThisOccurrence: { onSkipThisOccurrence(assignment) },
-                    onSetRecurrence: { onSetRecurrence(assignment) },
-                    onSetReminder: { onSetReminder(assignment) },
-                    onArchive: { onArchive(assignment) }
-                )
-                .frame(minHeight: 44)
-                #if os(macOS)
-                .dropDestination(for: String.self) { droppedIds, _ in
-                    guard let draggedId = droppedIds.first,
-                          let fromIdx = sorted.firstIndex(where: { $0.id == draggedId }),
-                          let toIdx = sorted.firstIndex(where: { $0.id == assignment.id }) else {
-                        return false
-                    }
-                    let indexSet: IndexSet = [fromIdx]
-                    let destination = fromIdx < toIdx ? toIdx + 1 : toIdx
-                    onMove(indexSet, destination)
-                    return true
+            ForEach(items) { item in
+                switch item {
+                case .row(let assignment):
+                    row(assignment)
+                case .completedHeader(let count):
+                    completedHeader(count: count)
                 }
-                #endif
             }
         }
         .background(Color.nudgeBackground)
+    }
+
+    private func row(_ assignment: DailyAssignmentDTO) -> some View {
+        TaskRowView(
+            assignment: assignment,
+            isToday: isToday,
+            onToggleComplete: { onToggleComplete(assignment) },
+            onOpen: { onOpen(assignment) },
+            onMoveToToday: { onMoveToToday(assignment) },
+            onMoveTo: { onMoveTo(assignment) },
+            onSkipThisOccurrence: { onSkipThisOccurrence(assignment) },
+            onSetRecurrence: { onSetRecurrence(assignment) },
+            onSetReminder: { onSetReminder(assignment) },
+            onArchive: { onArchive(assignment) }
+        )
+        #if os(macOS)
+        .dropDestination(for: String.self) { droppedIds, _ in
+            let combined = assignments.sorted { $0.sortOrder < $1.sortOrder }
+            guard let draggedId = droppedIds.first,
+                  let fromIdx = combined.firstIndex(where: { $0.id == draggedId }),
+                  let toIdx = combined.firstIndex(where: { $0.id == assignment.id }) else {
+                return false
+            }
+            let indexSet: IndexSet = [fromIdx]
+            let destination = fromIdx < toIdx ? toIdx + 1 : toIdx
+            onMove(indexSet, destination)
+            return true
+        }
+        #endif
+    }
+
+    private func completedHeader(count: Int) -> some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.2)) { isCompletedExpanded.toggle() }
+        } label: {
+            HStack(spacing: 6) {
+                Text(verbatim: String(
+                    format: nudgeLocalized("daily.completedSection %lld", locale: locale),
+                    count
+                ))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.nudgeTextDim)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .rotationEffect(.degrees(isCompletedExpanded ? 90 : 0))
+                    .foregroundStyle(Color.nudgeTextDim)
+            }
+            .padding(.horizontal, 24)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }

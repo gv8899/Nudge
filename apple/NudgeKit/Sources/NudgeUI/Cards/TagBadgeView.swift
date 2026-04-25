@@ -18,7 +18,9 @@ public struct TagBadgeView: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
             .overlay(
-                Capsule().stroke(Color.nudgeBorderLight, lineWidth: 1)
+                // Was nudgeBorderLight — invisible against dark mode bg.
+                // nudgeBorder gives just enough contrast to read as a chip.
+                Capsule().stroke(Color.nudgeBorder, lineWidth: 1)
             )
     }
 }

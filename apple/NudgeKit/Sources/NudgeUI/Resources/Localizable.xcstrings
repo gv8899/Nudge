@@ -111,6 +111,28 @@
         }
       }
     },
+    "calendar.connectedEmailLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連携中"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已連結"
+          }
+        }
+      }
+    },
     "calendar.description": {
       "localizations": {
         "en": {
@@ -221,6 +243,28 @@
         }
       }
     },
+    "calendar.eventCount %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld events"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 件のイベント"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個事件"
+          }
+        }
+      }
+    },
     "calendar.joinMeeting": {
       "localizations": {
         "en": {
@@ -261,6 +305,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "今日行程 · %lld 件"
+          }
+        }
+      }
+    },
+    "calendar.nextMonth": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next month"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次の月"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下個月"
+          }
+        }
+      }
+    },
+    "calendar.nextWeek": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next week"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次の週"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一週"
           }
         }
       }
@@ -371,6 +459,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "上午"
+          }
+        }
+      }
+    },
+    "calendar.prevMonth": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous month"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前の月"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上個月"
+          }
+        }
+      }
+    },
+    "calendar.prevWeek": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous week"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前の週"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一週"
           }
         }
       }
@@ -881,6 +1013,28 @@
         }
       }
     },
+    "cards.untitled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無題"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名"
+          }
+        }
+      }
+    },
     "common.a11y.collapsed": {
       "localizations": {
         "en": {
@@ -1141,6 +1295,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "封存"
+          }
+        }
+      }
+    },
+    "daily.completedSection %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed (%lld)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完了 (%lld)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成 (%lld)"
           }
         }
       }
@@ -3511,6 +3687,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "已清除 %lld 張空白卡片"
+          }
+        }
+      }
+    },
+    "settings.dangerZone.section": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Danger zone"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "危険操作"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "危險操作"
           }
         }
       }

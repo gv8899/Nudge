@@ -2,7 +2,8 @@ import SwiftUI
 import NudgeCore
 
 /// Agenda-style week list: events grouped by day. Days with no events
-/// show an empty placeholder row. Range labelled in the header bar.
+/// show a thin divider only (no placeholder text), so the eye can scan
+/// straight to days with content. Range labelled in the header bar.
 public struct CalendarWeekView: View {
     @Environment(\.locale) private var locale
     let weekStart: Date
@@ -48,6 +49,12 @@ public struct CalendarWeekView: View {
         return result
     }
 
+    /// Pre-grouped events by ISO date — same optimisation pattern as
+    /// CalendarMonthView. Avoids 7× O(N) filter scans per render.
+    private var eventsByDate: [String: [CalendarEventDTO]] {
+        Dictionary(grouping: events, by: { String($0.start.prefix(10)) })
+    }
+
     public var body: some View {
         VStack(spacing: 0) {
             header
@@ -62,8 +69,13 @@ public struct CalendarWeekView: View {
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
-                        ForEach(days, id: \.date) { day in
-                            dayBlock(date: day.date, label: day.label)
+                        let dayList = days
+                        ForEach(Array(dayList.enumerated()), id: \.element.date) { index, day in
+                            dayBlock(
+                                date: day.date,
+                                label: day.label,
+                                isLast: index == dayList.count - 1
+                            )
                         }
                     }
                     .padding(16)
@@ -74,12 +86,11 @@ public struct CalendarWeekView: View {
 
     private var header: some View {
         HStack {
-            Button(action: onPrevWeek) {
-                Image(systemName: "chevron.left")
-                    .foregroundStyle(Color.nudgeTextDim)
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
+            IconButton(
+                systemName: "chevron.left",
+                accessibilityLabel: "calendar.prevWeek",
+                action: onPrevWeek
+            )
             Spacer()
             Text(verbatim: headerRangeLabel)
                 .font(.subheadline.weight(.medium))
@@ -88,15 +99,19 @@ public struct CalendarWeekView: View {
             Button(action: onThisWeek) {
                 Text("calendar.thisWeek", bundle: .module)
                     .font(.footnote)
-                    .foregroundStyle(Color.nudgePrimary)
+                    // Match Settings / MonthView "今天" — text buttons
+                    // use foreground colour, not the brand accent.
+                    .foregroundStyle(Color.nudgeForeground)
+                    .frame(minHeight: 44)
+                    .padding(.horizontal, 8)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            Button(action: onNextWeek) {
-                Image(systemName: "chevron.right")
-                    .foregroundStyle(Color.nudgeTextDim)
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
+            IconButton(
+                systemName: "chevron.right",
+                accessibilityLabel: "calendar.nextWeek",
+                action: onNextWeek
+            )
         }
         .padding(.horizontal, 8)
     }
@@ -107,19 +122,19 @@ public struct CalendarWeekView: View {
         return "\(fmt.string(from: weekStart)) – \(fmt.string(from: weekEnd))"
     }
 
-    private func dayBlock(date: Date, label: String) -> some View {
+    private func dayBlock(date: Date, label: String, isLast: Bool) -> some View {
         let iso = DateFormatters.isoDate(date)
-        let dayEvents = events.filter { $0.start.hasPrefix(iso) }
+        let dayEvents = eventsByDate[iso] ?? []
         return VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: label)
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(Color.nudgeTextDim)
+                // Empty days dim the label too, so the eye skips them
+                // when scanning for content. Was: same colour for empty
+                // and filled days, which made all 7 day blocks read at
+                // the same weight regardless of whether they had events.
+                .foregroundStyle(dayEvents.isEmpty ? Color.nudgeTextDim.opacity(0.7) : Color.nudgeTextDim)
                 .textCase(.uppercase)
-            if dayEvents.isEmpty {
-                Text("calendar.panelEmpty", bundle: .module)
-                    .font(.caption)
-                    .foregroundStyle(Color.nudgeTextDim)
-            } else {
+            if !dayEvents.isEmpty {
                 ForEach(dayEvents, id: \.id) { event in
                     Button { onEventTap(event) } label: {
                         HStack(alignment: .firstTextBaseline, spacing: 10) {
@@ -141,9 +156,12 @@ public struct CalendarWeekView: View {
                     .buttonStyle(.plain)
                 }
             }
-            Rectangle()
-                .fill(Color.nudgeBorderLight)
-                .frame(height: 1)
+            // Skip the divider after the last day — was unconditional
+            // Rectangle() per dayBlock which left a trailing line below
+            // the last day with nothing to separate.
+            if !isLast {
+                Divider().background(Color.nudgeBorderLight)
+            }
         }
     }
 

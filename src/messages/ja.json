@@ -71,6 +71,9 @@
       "eveningTime": "夜の時刻",
       "eveningContent": "夜の内容",
       "perTaskEnabled": "タスク毎のリマインダー"
+    },
+    "dangerZone": {
+      "section": "危険操作"
     }
   },
   "tags": {
@@ -180,7 +183,8 @@
     "skipThisOccurrence": "今回をスキップ",
     "setRecurring": "繰り返し設定…",
     "setReminder": "リマインダーを設定…",
-    "rowMenu": "タスク操作"
+    "rowMenu": "タスク操作",
+    "completedSection": "完了 ({n})"
   },
   "cards": {
     "createAria": "新しいカード",
@@ -199,7 +203,8 @@
     "cleanConfirmButton": "削除を確認",
     "cleanLoading": "削除中...",
     "toastCleaned": "{count} 件の空白カードを削除しました",
-    "toastNothingToClean": "削除するカードがありません"
+    "toastNothingToClean": "削除するカードがありません",
+    "untitled": "無題"
   },
   "cardDetail": {
     "backToCards": "カード一覧へ戻る",
@@ -267,7 +272,13 @@
       "afternoon": "午後",
       "evening": "夜"
     },
-    "checkingStatus": "確認中…"
+    "checkingStatus": "確認中…",
+    "prevWeek": "前の週",
+    "nextWeek": "次の週",
+    "prevMonth": "前の月",
+    "nextMonth": "次の月",
+    "eventCount": "{n} 件のイベント",
+    "connectedEmailLabel": "連携中"
   },
   "offline": {
     "banner": "オフライン。最終更新: {time}"

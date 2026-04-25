@@ -140,20 +140,26 @@ public struct CardsHostView: View {
     }
 
     private var list: some View {
+        // Switched from flat Divider list to elevated cards. The flat
+        // list with 1pt borderLight separators read as one continuous
+        // wall of text in dark mode; per-card RoundedRect bg gives the
+        // eye an anchor for each card without adding heavy chrome.
+        // Same elevated-surface pattern as CalendarDayView event cards.
         ScrollView {
-            LazyVStack(spacing: 0) {
+            LazyVStack(spacing: 8) {
                 ForEach(cards) { card in
                     CardListItemView(card: card) {
                         openDetail(card)
                     }
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color.nudgeForeground.opacity(0.04))
+                    )
                     .onAppear {
                         if card.id == cards.last?.id {
                             Task { await loadMore() }
                         }
                     }
-                    Divider()
-                        .background(Color.nudgeBorderLight)
-                        .padding(.leading, 16)
                 }
                 if isLoadingMore {
                     Text("cards.loadMore", bundle: .module)
@@ -167,6 +173,8 @@ public struct CardsHostView: View {
                         .padding(12)
                 }
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
         }
     }
 

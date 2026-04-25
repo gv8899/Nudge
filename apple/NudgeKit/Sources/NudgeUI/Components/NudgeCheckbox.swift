@@ -21,16 +21,17 @@ public struct NudgeCheckbox: View {
 
     public var body: some View {
         Button(action: action) {
-            // `.symbolEffect(.bounce)` gives the tick a small, physical
-            // pop on every toggle — cheap iOS 17+ polish that makes the
-            // row feel alive. `.contentTransition(.symbolEffect(.replace))`
-            // crossfades between the empty-box and filled glyphs so the
-            // change reads as one animation, not a swap.
+            // Plain symbol swap. The previous version layered
+            // `.contentTransition(.symbolEffect(.replace))` and
+            // `.symbolEffect(.bounce, value: isChecked)`, which raced with
+            // SwiftUI's ForEach reordering when the row moved between
+            // pending / completed sections — the freshly-mounted row
+            // sometimes rendered the OLD glyph because the symbol effect
+            // was animating in. Removing the in-place animation makes
+            // the glyph reflect `isChecked` immediately on render.
             Image(systemName: isChecked ? "checkmark.square.fill" : "square")
                 .font(.title3)
                 .foregroundStyle(isChecked ? Color.nudgePrimary : Color.nudgeTextDim)
-                .contentTransition(.symbolEffect(.replace))
-                .symbolEffect(.bounce, value: isChecked)
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
         }

@@ -11,6 +11,7 @@ public struct OverdueSectionView: View {
     public let onSkipThisOccurrence: (DailyAssignmentDTO) -> Void
     public let onSetRecurrence: (DailyAssignmentDTO) -> Void
     public let onSetReminder: (DailyAssignmentDTO) -> Void
+    public let onOpen: (DailyAssignmentDTO) -> Void
 
     @Environment(\.locale) private var locale
     @State private var isExpanded: Bool
@@ -24,7 +25,8 @@ public struct OverdueSectionView: View {
         onArchive: @escaping (DailyAssignmentDTO) -> Void,
         onSkipThisOccurrence: @escaping (DailyAssignmentDTO) -> Void,
         onSetRecurrence: @escaping (DailyAssignmentDTO) -> Void,
-        onSetReminder: @escaping (DailyAssignmentDTO) -> Void
+        onSetReminder: @escaping (DailyAssignmentDTO) -> Void,
+        onOpen: @escaping (DailyAssignmentDTO) -> Void
     ) {
         self.overdueTasks = overdueTasks
         self.currentDate = currentDate
@@ -35,6 +37,7 @@ public struct OverdueSectionView: View {
         self.onSkipThisOccurrence = onSkipThisOccurrence
         self.onSetRecurrence = onSetRecurrence
         self.onSetReminder = onSetReminder
+        self.onOpen = onOpen
         _isExpanded = State(initialValue: Self.defaultExpanded(for: currentDate))
     }
 
@@ -115,8 +118,7 @@ public struct OverdueSectionView: View {
                 .foregroundStyle(task.isCompleted ? Color.nudgeTextDim : Color.nudgeForeground)
                 .strikethrough(task.isCompleted)
                 .lineLimit(1)
-
-            Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             // Overdue rows are by definition not "today", so the menu's
             // "Move to today" entry is always shown via isToday: false.
@@ -134,5 +136,12 @@ public struct OverdueSectionView: View {
         // Match TaskRowView's horizontal padding so the checkbox column
         // lines up across overdue and today sections.
         .padding(.horizontal, 12)
+        .frame(minHeight: 44)
+        // Whole-row tap to open detail — was: only the title text was
+        // tappable (and even that wasn't wired in the overdue row),
+        // so users couldn't open a card from the overdue list.
+        // NudgeCheckbox / TaskRowMenu consume their own taps.
+        .contentShape(Rectangle())
+        .onTapGesture { onOpen(task) }
     }
 }
