@@ -83,6 +83,14 @@ public final class CardRepository {
         try await client.patchVoid("/api/tasks/\(cardId)", body: Body(description: html))
     }
 
+    /// PATCHes the absolute one-shot reminder time on a non-recurring task.
+    /// Pass nil to clear. Recurrence-driven reminders go via
+    /// RecurrenceRepository.upsert(remindAtTimeOfDay:) instead.
+    public func updateRemindAt(cardId: String, remindAt: String?) async throws {
+        struct Body: Codable { let remindAt: String? }
+        try await client.patchVoid("/api/tasks/\(cardId)", body: Body(remindAt: remindAt))
+    }
+
     /// Deletes every card whose title is empty or whitespace-only.
     /// Returns the number of cards deleted.
     public func deleteUntitled() async throws -> Int {

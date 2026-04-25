@@ -4,28 +4,43 @@ import NudgeCore
 public struct TaskListView: View {
     public let assignments: [DailyAssignmentDTO]
     public let isLoading: Bool
+    public let isToday: Bool
     public let onToggleComplete: (DailyAssignmentDTO) -> Void
     public let onOpen: (DailyAssignmentDTO) -> Void
     public let onMove: (IndexSet, Int) -> Void
     public let onArchive: (DailyAssignmentDTO) -> Void
     public let onMoveTo: (DailyAssignmentDTO) -> Void
+    public let onMoveToToday: (DailyAssignmentDTO) -> Void
+    public let onSkipThisOccurrence: (DailyAssignmentDTO) -> Void
+    public let onSetRecurrence: (DailyAssignmentDTO) -> Void
+    public let onSetReminder: (DailyAssignmentDTO) -> Void
 
     public init(
         assignments: [DailyAssignmentDTO],
         isLoading: Bool = false,
+        isToday: Bool,
         onToggleComplete: @escaping (DailyAssignmentDTO) -> Void,
         onOpen: @escaping (DailyAssignmentDTO) -> Void,
         onMove: @escaping (IndexSet, Int) -> Void,
         onArchive: @escaping (DailyAssignmentDTO) -> Void,
-        onMoveTo: @escaping (DailyAssignmentDTO) -> Void
+        onMoveTo: @escaping (DailyAssignmentDTO) -> Void,
+        onMoveToToday: @escaping (DailyAssignmentDTO) -> Void,
+        onSkipThisOccurrence: @escaping (DailyAssignmentDTO) -> Void,
+        onSetRecurrence: @escaping (DailyAssignmentDTO) -> Void,
+        onSetReminder: @escaping (DailyAssignmentDTO) -> Void
     ) {
         self.assignments = assignments
         self.isLoading = isLoading
+        self.isToday = isToday
         self.onToggleComplete = onToggleComplete
         self.onOpen = onOpen
         self.onMove = onMove
         self.onArchive = onArchive
         self.onMoveTo = onMoveTo
+        self.onMoveToToday = onMoveToToday
+        self.onSkipThisOccurrence = onSkipThisOccurrence
+        self.onSetRecurrence = onSetRecurrence
+        self.onSetReminder = onSetReminder
     }
 
     /// Completed tasks sorted to the bottom (matches Web behavior).
@@ -63,9 +78,14 @@ public struct TaskListView: View {
             ForEach(sorted, id: \.id) { assignment in
                 TaskRowView(
                     assignment: assignment,
+                    isToday: isToday,
                     onToggleComplete: { onToggleComplete(assignment) },
                     onOpen: { onOpen(assignment) },
+                    onMoveToToday: { onMoveToToday(assignment) },
                     onMoveTo: { onMoveTo(assignment) },
+                    onSkipThisOccurrence: { onSkipThisOccurrence(assignment) },
+                    onSetRecurrence: { onSetRecurrence(assignment) },
+                    onSetReminder: { onSetReminder(assignment) },
                     onArchive: { onArchive(assignment) }
                 )
                 .frame(minHeight: 44)

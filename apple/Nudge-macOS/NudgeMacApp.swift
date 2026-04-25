@@ -13,6 +13,8 @@ struct NudgeMacApp: App {
     @State private var calendarRepo: CalendarRepository
     @State private var cardRepo: CardRepository
     @State private var noteRepo: NoteRepository
+    @State private var recurrenceRepo: RecurrenceRepository
+    @State private var notificationPrefsRepo: NotificationPreferencesRepository
     private let container: ModelContainer
     private let googleSignIn: GoogleSignInServiceMacOS
 
@@ -34,6 +36,8 @@ struct NudgeMacApp: App {
         let calRepo = CalendarRepository(client: client)
         let cardRepo = CardRepository(client: client)
         let noteRepo = NoteRepository(client: client)
+        let recurrenceRepo = RecurrenceRepository(client: client)
+        let notificationPrefsRepo = NotificationPreferencesRepository(client: client)
 
         // Wire 401 handler after repos are live
         client.setUnauthorizedHandler { [weak authRepo] in
@@ -46,6 +50,8 @@ struct NudgeMacApp: App {
         self._calendarRepo = State(initialValue: calRepo)
         self._cardRepo = State(initialValue: cardRepo)
         self._noteRepo = State(initialValue: noteRepo)
+        self._recurrenceRepo = State(initialValue: recurrenceRepo)
+        self._notificationPrefsRepo = State(initialValue: notificationPrefsRepo)
         self.container = container
         self.googleSignIn = GoogleSignInServiceMacOS.fromInfoPlist()
     }
@@ -63,6 +69,8 @@ struct NudgeMacApp: App {
                         .environment(calendarRepo)
                         .environment(cardRepo)
                         .environment(noteRepo)
+                        .environment(recurrenceRepo)
+                        .environment(notificationPrefsRepo)
                 }
                 .task {
                     await auth.restoreSession()

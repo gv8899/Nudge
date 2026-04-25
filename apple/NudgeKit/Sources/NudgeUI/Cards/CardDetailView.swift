@@ -12,13 +12,17 @@ public struct CardDetailView: View {
     public let onUpdateTags: (Set<String>) async -> Void
 
     @Environment(TagRepository.self) private var tagRepo
+    @Environment(CardRepository.self) private var cardRepo
+    @Environment(\.locale) private var locale
     @State private var title: String
     @State private var descriptionHTML: String
     @State private var tags: [TagDTO]
+    @State private var absoluteRemindAt: String?
     @State private var titleSaveWorkItem: DispatchWorkItem?
     @State private var descriptionSaveWorkItem: DispatchWorkItem?
     @State private var showTagPicker = false
     @State private var showRenameAlert = false
+    @State private var showScheduleSheet = false
     @State private var pendingTitle = ""
     @State private var activeMarks = ActiveMarks()
     private let commandBus = EditorCommandBus()
@@ -36,6 +40,7 @@ public struct CardDetailView: View {
         _title = State(initialValue: card.title)
         _descriptionHTML = State(initialValue: card.description)
         _tags = State(initialValue: card.tags)
+        _absoluteRemindAt = State(initialValue: card.remindAt)
     }
 
     public var body: some View {
@@ -101,6 +106,27 @@ public struct CardDetailView: View {
             .presentationDragIndicator(.visible)
             #endif
         }
+        .sheet(isPresented: $showScheduleSheet) {
+            ScheduleEditSheet(
+                taskId: initialCard.id,
+                taskTitle: title,
+                initialAbsoluteRemindAt: $absoluteRemindAt,
+                onChangeAbsoluteRemindAt: { newValue in
+                    Task {
+                        do {
+                            try await cardRepo.updateRemindAt(cardId: initialCard.id, remindAt: newValue)
+                        } catch {
+                            print("[CardDetail] updateRemindAt failed: \(error)")
+                        }
+                    }
+                },
+                onDone: { showScheduleSheet = false }
+            )
+            #if os(iOS)
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            #endif
+        }
     }
 
     @ViewBuilder
@@ -109,25 +135,11 @@ public struct CardDetailView: View {
         // Do NOT wrap the editor in a SwiftUI ScrollView — nesting breaks
         // contenteditable focus on iOS.
         //
-        // Tag management lives entirely in the "..." menu → TagPickerSheet;
-        // the card body is the editor full-bleed so the writing surface is
-        // maximized. (Earlier revisions also showed chips/empty-state inline
-        // here, but since the menu is the only mutation entry, inline display
-        // was dead weight.)
-        //
-        // Title is in navigationTitle (NOT ToolbarItem(placement: .principal)):
-        // putting an editable TextField inside a NavigationStack's toolbar
-        // causes iOS to lock the UITextInput session onto it, so even when
-        // the WKWebView's contenteditable shows a caret, keystrokes still
-        // route to the toolbar TextField (Apple forums / SwiftUI toolbar in
-        // NavigationStack is a known-broken combo).
+        // Recurrence + reminder live behind the "..." menu (ScheduleEditSheet),
+        // not inline above the editor — keeps the writing surface unobstructed.
         RichTextEditor(
             html: $descriptionHTML,
-            placeholder: NSLocalizedString(
-                "cardDetail.editorPlaceholder",
-                bundle: .module,
-                comment: ""
-            ),
+            placeholder: nudgeLocalized("cardDetail.editorPlaceholder", locale: locale),
             activeMarks: $activeMarks,
             commandBus: commandBus
         )
@@ -140,7 +152,7 @@ public struct CardDetailView: View {
 
     #if os(iOS)
     private var untitledLabel: String {
-        NSLocalizedString("cardDetail.untitled", bundle: .module, comment: "")
+        nudgeLocalized("cardDetail.untitled", locale: locale)
     }
 
     @ViewBuilder
@@ -154,6 +166,15 @@ public struct CardDetailView: View {
                     Text("cardDetail.renameTitle", bundle: .module)
                 } icon: {
                     Image(systemName: "pencil")
+                }
+            }
+            Button {
+                showScheduleSheet = true
+            } label: {
+                Label {
+                    Text("cardDetail.schedule", bundle: .module)
+                } icon: {
+                    Image(systemName: "calendar.badge.clock")
                 }
             }
             Button {

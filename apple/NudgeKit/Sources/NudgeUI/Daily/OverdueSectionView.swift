@@ -8,7 +8,11 @@ public struct OverdueSectionView: View {
     public let onReschedule: (DailyAssignmentDTO, String) -> Void
     public let onMoveTo: (DailyAssignmentDTO) -> Void
     public let onArchive: (DailyAssignmentDTO) -> Void
+    public let onSkipThisOccurrence: (DailyAssignmentDTO) -> Void
+    public let onSetRecurrence: (DailyAssignmentDTO) -> Void
+    public let onSetReminder: (DailyAssignmentDTO) -> Void
 
+    @Environment(\.locale) private var locale
     @State private var isExpanded: Bool
 
     public init(
@@ -17,7 +21,10 @@ public struct OverdueSectionView: View {
         onToggleComplete: @escaping (DailyAssignmentDTO) -> Void,
         onReschedule: @escaping (DailyAssignmentDTO, String) -> Void,
         onMoveTo: @escaping (DailyAssignmentDTO) -> Void,
-        onArchive: @escaping (DailyAssignmentDTO) -> Void
+        onArchive: @escaping (DailyAssignmentDTO) -> Void,
+        onSkipThisOccurrence: @escaping (DailyAssignmentDTO) -> Void,
+        onSetRecurrence: @escaping (DailyAssignmentDTO) -> Void,
+        onSetReminder: @escaping (DailyAssignmentDTO) -> Void
     ) {
         self.overdueTasks = overdueTasks
         self.currentDate = currentDate
@@ -25,6 +32,9 @@ public struct OverdueSectionView: View {
         self.onReschedule = onReschedule
         self.onMoveTo = onMoveTo
         self.onArchive = onArchive
+        self.onSkipThisOccurrence = onSkipThisOccurrence
+        self.onSetRecurrence = onSetRecurrence
+        self.onSetReminder = onSetReminder
         _isExpanded = State(initialValue: Self.defaultExpanded(for: currentDate))
     }
 
@@ -59,15 +69,11 @@ public struct OverdueSectionView: View {
             withAnimation(.easeOut(duration: 0.2)) { isExpanded.toggle() }
         }) {
             HStack(spacing: 6) {
-                // Single glyph that rotates on toggle — keeps the chevron
-                // mass constant across states (iOS 26 pattern), instead
-                // of swapping `.right` ↔ `.down` which causes a subtle
-                // size pop as SF Symbol draws a different path.
                 Image(systemName: "chevron.right")
                     .font(.caption)
                     .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 Text(String(
-                    format: NSLocalizedString("daily.overdueLabel", bundle: .module, comment: ""),
+                    format: nudgeLocalized("daily.overdueLabel", locale: locale),
                     overdueTasks.count
                 ))
                     .font(.subheadline.weight(.semibold))
@@ -99,22 +105,18 @@ public struct OverdueSectionView: View {
 
             Spacer()
 
-            Menu {
-                Button(action: { onReschedule(task, currentDate) }) {
-                    Text("daily.overdueScheduleToday", bundle: .module)
-                }
-                Button(action: { onMoveTo(task) }) {
-                    Text("task.moveToOtherDate", bundle: .module)
-                }
-                Button(role: .destructive, action: { onArchive(task) }) {
-                    Text("daily.archiveButton", bundle: .module)
-                }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .foregroundStyle(Color.nudgeTextDim)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-            }
+            // Overdue rows are by definition not "today", so the menu's
+            // "Move to today" entry is always shown via isToday: false.
+            TaskRowMenu(
+                isToday: false,
+                isRecurring: task.isRecurring,
+                onMoveToToday: { onReschedule(task, currentDate) },
+                onMoveToOtherDate: { onMoveTo(task) },
+                onSkipThisOccurrence: { onSkipThisOccurrence(task) },
+                onSetRecurrence: { onSetRecurrence(task) },
+                onSetReminder: { onSetReminder(task) },
+                onArchive: { onArchive(task) }
+            )
         }
     }
 }

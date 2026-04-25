@@ -3,22 +3,37 @@ import NudgeCore
 
 public struct TaskRowView: View {
     public let assignment: DailyAssignmentDTO
+    public let isToday: Bool
     public let onToggleComplete: () -> Void
     public let onOpen: () -> Void
+    public let onMoveToToday: () -> Void
     public let onMoveTo: () -> Void
+    public let onSkipThisOccurrence: () -> Void
+    public let onSetRecurrence: () -> Void
+    public let onSetReminder: () -> Void
     public let onArchive: () -> Void
 
     public init(
         assignment: DailyAssignmentDTO,
+        isToday: Bool,
         onToggleComplete: @escaping () -> Void,
         onOpen: @escaping () -> Void,
+        onMoveToToday: @escaping () -> Void,
         onMoveTo: @escaping () -> Void,
+        onSkipThisOccurrence: @escaping () -> Void,
+        onSetRecurrence: @escaping () -> Void,
+        onSetReminder: @escaping () -> Void,
         onArchive: @escaping () -> Void
     ) {
         self.assignment = assignment
+        self.isToday = isToday
         self.onToggleComplete = onToggleComplete
         self.onOpen = onOpen
+        self.onMoveToToday = onMoveToToday
         self.onMoveTo = onMoveTo
+        self.onSkipThisOccurrence = onSkipThisOccurrence
+        self.onSetRecurrence = onSetRecurrence
+        self.onSetReminder = onSetReminder
         self.onArchive = onArchive
     }
 
@@ -38,10 +53,19 @@ public struct TaskRowView: View {
                 .contentShape(Rectangle())
                 .onTapGesture(perform: onOpen)
 
-            IconButton(
-                systemName: "calendar",
-                accessibilityLabel: "task.moveToOtherDate",
-                action: onMoveTo
+            // The unified `…` menu replaced the legacy single-purpose
+            // calendar IconButton. All row actions (move, skip, set
+            // recurrence, set reminder, archive) live in this one menu so
+            // today / overdue / recurring rows look identical.
+            TaskRowMenu(
+                isToday: isToday,
+                isRecurring: assignment.isRecurring,
+                onMoveToToday: onMoveToToday,
+                onMoveToOtherDate: onMoveTo,
+                onSkipThisOccurrence: onSkipThisOccurrence,
+                onSetRecurrence: onSetRecurrence,
+                onSetReminder: onSetReminder,
+                onArchive: onArchive
             )
         }
         .padding(.horizontal, 12)
@@ -62,6 +86,15 @@ public struct TaskRowView: View {
                     Text("task.moveToOtherDate", bundle: .module)
                 } icon: {
                     Image(systemName: "calendar")
+                }
+            }
+            if assignment.isRecurring {
+                Button(action: onSkipThisOccurrence) {
+                    Label {
+                        Text("daily.skipThisOccurrence", bundle: .module)
+                    } icon: {
+                        Image(systemName: "forward")
+                    }
                 }
             }
             Button(role: .destructive, action: onArchive) {

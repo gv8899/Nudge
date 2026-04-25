@@ -7,6 +7,10 @@ public struct DailyHostView: View {
 
     @Environment(TaskRepository.self) private var taskRepo
     @Environment(TagRepository.self) private var tagRepo
+    @Environment(CardRepository.self) private var cardRepo
+    #if os(iOS)
+    @Environment(NotificationRouter.self) private var notificationRouter
+    #endif
 
     @State private var selectedDate: String = DateFormatters.isoDate(Date())
     @State private var dailyData: DailyDataDTO?
@@ -15,6 +19,8 @@ public struct DailyHostView: View {
     @State private var lastUpdated: String = ""
     @State private var selectedAssignmentForDetail: DailyAssignmentDTO?
     @State private var moveSheetAssignment: DailyAssignmentDTO?
+    @State private var scheduleSheetAssignment: DailyAssignmentDTO?
+    @State private var scheduleSheetRemindAt: String?
 
     // Haptic feedback triggers (iOS 17+)
     @State private var completionTicker: Int = 0
@@ -41,6 +47,13 @@ public struct DailyHostView: View {
     }
 
     enum DailyRoute: Hashable { case settings }
+
+    /// Navigation route used when a notification tap routes us straight to
+    /// a task whose assignment isn't in `dailyData` (e.g. a non-recurring
+    /// task with an absolute reminder, or a recurring occurrence on a day
+    /// the user wasn't viewing). Carries only the task id; CardDetailLoader
+    /// fetches the rest.
+    struct TaskIdRoute: Hashable { let id: String }
 
     public var body: some View {
         #if os(iOS)
@@ -85,16 +98,24 @@ public struct DailyHostView: View {
                                 onToggleComplete: toggleComplete,
                                 onReschedule: { moveAssignment($0, to: $1) },
                                 onMoveTo: { moveSheetAssignment = $0 },
-                                onArchive: { archiveTask($0) }
+                                onArchive: { archiveTask($0) },
+                                onSkipThisOccurrence: { skipOccurrence($0) },
+                                onSetRecurrence: { openScheduleSheet(for: $0) },
+                                onSetReminder: { openScheduleSheet(for: $0) }
                             )
                             TaskListView(
                                 assignments: dailyData?.assignments ?? [],
                                 isLoading: loadState == .loading,
+                                isToday: isViewingToday,
                                 onToggleComplete: toggleComplete,
                                 onOpen: { navigationPath.append($0) },
                                 onMove: handleMove,
                                 onArchive: { archiveTask($0) },
-                                onMoveTo: { moveSheetAssignment = $0 }
+                                onMoveTo: { moveSheetAssignment = $0 },
+                                onMoveToToday: { moveAssignment($0, to: DateFormatters.isoDate(Date())) },
+                                onSkipThisOccurrence: { skipOccurrence($0) },
+                                onSetRecurrence: { openScheduleSheet(for: $0) },
+                                onSetReminder: { openScheduleSheet(for: $0) }
                             )
                         }
                     }
@@ -140,6 +161,19 @@ public struct DailyHostView: View {
                     SettingsView(auth: auth)
                 }
             }
+            .navigationDestination(for: TaskIdRoute.self) { route in
+                CardDetailLoader(
+                    taskId: route.id,
+                    onUpdateTitle: { updateTaskTitle(taskId: route.id, title: $0) },
+                    onUpdateDescription: { updateTaskDescription(taskId: route.id, description: $0) },
+                    onUpdateTags: { newIds in await updateTaskTags(taskId: route.id, tagIds: newIds) }
+                )
+            }
+            .onChange(of: notificationRouter.pendingTaskId) { _, taskId in
+                guard let taskId else { return }
+                navigationPath.append(TaskIdRoute(id: taskId))
+                notificationRouter.clear()
+            }
             .sheet(item: $moveSheetAssignment) { assignment in
                 MoveToDatePickerView(
                     initialDate: assignment.date,
@@ -149,6 +183,31 @@ public struct DailyHostView: View {
                     },
                     onCancel: { moveSheetAssignment = nil }
                 )
+            }
+            .sheet(item: $scheduleSheetAssignment) { assignment in
+                ScheduleEditSheet(
+                    taskId: assignment.task.id,
+                    taskTitle: assignment.task.title,
+                    initialAbsoluteRemindAt: $scheduleSheetRemindAt,
+                    onChangeAbsoluteRemindAt: { newValue in
+                        Task {
+                            do {
+                                try await cardRepo.updateRemindAt(
+                                    cardId: assignment.task.id,
+                                    remindAt: newValue
+                                )
+                            } catch {
+                                print("[DailyHostView] updateRemindAt failed: \(error)")
+                            }
+                        }
+                    },
+                    onDone: {
+                        scheduleSheetAssignment = nil
+                        Task { await reload() }
+                    }
+                )
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
             // Quick-add goes through a native `.alert` rather than a
             // custom bottom sheet. Reasons:
@@ -242,16 +301,24 @@ public struct DailyHostView: View {
                             onToggleComplete: toggleComplete,
                             onReschedule: { moveAssignment($0, to: $1) },
                             onMoveTo: { moveSheetAssignment = $0 },
-                            onArchive: { archiveTask($0) }
+                            onArchive: { archiveTask($0) },
+                            onSkipThisOccurrence: { skipOccurrence($0) },
+                            onSetRecurrence: { openScheduleSheet(for: $0) },
+                            onSetReminder: { openScheduleSheet(for: $0) }
                         )
                         TaskListView(
                             assignments: dailyData?.assignments ?? [],
                             isLoading: loadState == .loading,
+                            isToday: isViewingToday,
                             onToggleComplete: toggleComplete,
                             onOpen: { selectedAssignmentForDetail = $0 },
                             onMove: handleMove,
                             onArchive: { archiveTask($0) },
-                            onMoveTo: { moveSheetAssignment = $0 }
+                            onMoveTo: { moveSheetAssignment = $0 },
+                            onMoveToToday: { moveAssignment($0, to: DateFormatters.isoDate(Date())) },
+                            onSkipThisOccurrence: { skipOccurrence($0) },
+                            onSetRecurrence: { openScheduleSheet(for: $0) },
+                            onSetReminder: { openScheduleSheet(for: $0) }
                         )
                         .frame(minHeight: 300)
                     }
@@ -284,6 +351,30 @@ public struct DailyHostView: View {
                 },
                 onCancel: { moveSheetAssignment = nil }
             )
+        }
+        .sheet(item: $scheduleSheetAssignment) { assignment in
+            ScheduleEditSheet(
+                taskId: assignment.task.id,
+                taskTitle: assignment.task.title,
+                initialAbsoluteRemindAt: $scheduleSheetRemindAt,
+                onChangeAbsoluteRemindAt: { newValue in
+                    Task {
+                        do {
+                            try await cardRepo.updateRemindAt(
+                                cardId: assignment.task.id,
+                                remindAt: newValue
+                            )
+                        } catch {
+                            print("[DailyHostView] updateRemindAt failed: \(error)")
+                        }
+                    }
+                },
+                onDone: {
+                    scheduleSheetAssignment = nil
+                    Task { await reload() }
+                }
+            )
+            .frame(minWidth: 480, minHeight: 420)
         }
         .sheet(isPresented: $showQuickAdd, onDismiss: { quickAddText = "" }) {
             QuickAddTaskSheet(
@@ -335,6 +426,12 @@ public struct DailyHostView: View {
     /// small eyebrow above the "任務" page title. Locale-independent —
     /// this is a pure numeric eyebrow; the week strip and the week's
     /// selected-day highlight carry the rest of the temporal context.
+    /// True when the user is viewing today's date — drives the "Move to
+    /// today" entry visibility in TaskRowMenu (hidden when already today).
+    private var isViewingToday: Bool {
+        selectedDate == DateFormatters.isoDate(Date())
+    }
+
     private var formattedSelectedDate: String {
         guard let date = DateFormatters.parseISODate(selectedDate) else {
             return selectedDate
@@ -503,6 +600,39 @@ extension DailyHostView {
                 try await taskRepo.archive(taskId: assignment.task.id)
             } catch {
                 print("[DailyHostView] archive failed: \(error)")
+            }
+            await reload()
+        }
+    }
+
+    /// Presents the schedule sheet for `assignment`. Fetches the latest
+    /// remindAt from the server first so the sheet's reminder DatePicker
+    /// initializes correctly when the task is non-recurring.
+    func openScheduleSheet(for assignment: DailyAssignmentDTO) {
+        scheduleSheetRemindAt = nil
+        scheduleSheetAssignment = assignment
+        Task {
+            do {
+                let card = try await cardRepo.get(cardId: assignment.task.id)
+                if scheduleSheetAssignment?.id == assignment.id {
+                    scheduleSheetRemindAt = card.remindAt
+                }
+            } catch {
+                print("[DailyHostView] preloadCard failed: \(error)")
+            }
+        }
+    }
+
+    /// Marks a recurring assignment as skipped for its specific date,
+    /// hiding it from the row list while preserving the recurrence rule
+    /// so the next occurrence still materializes.
+    func skipOccurrence(_ assignment: DailyAssignmentDTO) {
+        archiveTicker &+= 1
+        Task {
+            do {
+                try await taskRepo.toggleSkip(assignmentId: assignment.id, isSkipped: true)
+            } catch {
+                print("[DailyHostView] toggleSkip failed: \(error)")
             }
             await reload()
         }

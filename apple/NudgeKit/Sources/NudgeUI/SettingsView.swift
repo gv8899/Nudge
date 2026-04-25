@@ -5,6 +5,7 @@ public struct SettingsView: View {
     @Bindable var auth: AuthRepository
     @Environment(CalendarRepository.self) private var calendarRepo
     @Environment(CardRepository.self) private var cardRepo
+    @Environment(\.locale) private var locale
     @AppStorage(NudgePreferenceKey.theme) private var themeRaw: String = NudgeTheme.system.rawValue
     @AppStorage(NudgePreferenceKey.language) private var languageRaw: String = NudgeLanguage.auto.rawValue
     @State private var oauth = CalendarOAuthCoordinator()
@@ -270,27 +271,15 @@ public struct SettingsView: View {
             do {
                 let count = try await cardRepo.deleteUntitled()
                 if count == 0 {
-                    cleanResult = NSLocalizedString(
-                        "settings.cleanUntitled.successEmpty",
-                        bundle: .module,
-                        comment: ""
-                    )
+                    cleanResult = nudgeLocalized("settings.cleanUntitled.successEmpty", locale: locale)
                 } else {
                     cleanResult = String(
-                        format: NSLocalizedString(
-                            "settings.cleanUntitled.successWithCount",
-                            bundle: .module,
-                            comment: ""
-                        ),
+                        format: nudgeLocalized("settings.cleanUntitled.successWithCount", locale: locale),
                         count
                     )
                 }
             } catch {
-                cleanResult = NSLocalizedString(
-                    "settings.cleanUntitled.failed",
-                    bundle: .module,
-                    comment: ""
-                )
+                cleanResult = nudgeLocalized("settings.cleanUntitled.failed", locale: locale)
             }
         }
     }

@@ -4,6 +4,7 @@ import NudgeCore
 /// Agenda-style week list: events grouped by day. Days with no events
 /// show an empty placeholder row. Range labelled in the header bar.
 public struct CalendarWeekView: View {
+    @Environment(\.locale) private var locale
     let weekStart: Date
     let weekEnd: Date
     let events: [CalendarEventDTO]
@@ -122,7 +123,7 @@ public struct CalendarWeekView: View {
                 ForEach(dayEvents, id: \.id) { event in
                     Button { onEventTap(event) } label: {
                         HStack(alignment: .firstTextBaseline, spacing: 10) {
-                            Text(event.allDay ? NSLocalizedString("calendar.eventAllDay", bundle: .module, comment: "") : shortTime(event.start))
+                            Text(event.allDay ? nudgeLocalized("calendar.eventAllDay", locale: locale) : shortTime(event.start))
                                 .font(.footnote.weight(.semibold))
                                 .monospacedDigit()
                                 .foregroundStyle(Color.nudgeForeground)

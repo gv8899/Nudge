@@ -10,6 +10,7 @@ import AppKit
 /// Sections render only when their underlying field is non-empty.
 public struct CalendarEventDetailSheet: View {
     public let event: CalendarEventDTO
+    @Environment(\.locale) private var locale
 
     public init(event: CalendarEventDTO) {
         self.event = event
@@ -44,7 +45,7 @@ public struct CalendarEventDetailSheet: View {
 
                     if !event.attendees.isEmpty {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(verbatim: "\(NSLocalizedString("calendar.attendees", bundle: .module, comment: "")) (\(event.attendees.count))")
+                            Text(verbatim: "\(nudgeLocalized("calendar.attendees", locale: locale)) (\(event.attendees.count))")
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(Color.nudgeTextDim)
                             ForEach(event.attendees, id: \.self) { a in

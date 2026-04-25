@@ -116,6 +116,7 @@ public struct NotesFeedView: View {
 /// Right: sanitized plaintext preview (first ~150 chars of HTML).
 struct NotesFeedRow: View {
     let entry: NoteFeedEntryDTO
+    @Environment(\.locale) private var locale
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -170,7 +171,7 @@ struct NotesFeedRow: View {
             "weekday.sun", "weekday.mon", "weekday.tue", "weekday.wed",
             "weekday.thu", "weekday.fri", "weekday.sat",
         ]
-        return NSLocalizedString(keys[idx], bundle: .module, comment: "")
+        return nudgeLocalized(keys[idx], locale: locale)
     }
 
     private var preview: String {

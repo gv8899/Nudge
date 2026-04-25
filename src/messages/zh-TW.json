@@ -9,7 +9,8 @@
     "confirm": "確認",
     "edit": "編輯",
     "clear": "清除",
-    "search": "搜尋"
+    "search": "搜尋",
+    "done": "完成"
   },
   "settings": {
     "title": "設定",
@@ -54,6 +55,16 @@
       "button": "登出",
       "confirmTitle": "登出",
       "confirmBody": "確定要登出嗎？"
+    },
+    "notifications": {
+      "title": "通知",
+      "morningEnabled": "早晨摘要",
+      "morningTime": "早晨時間",
+      "morningContent": "早晨內容",
+      "eveningEnabled": "夜間摘要",
+      "eveningTime": "夜間時間",
+      "eveningContent": "夜間內容",
+      "perTaskEnabled": "個別任務提醒"
     }
   },
   "tags": {
@@ -156,7 +167,13 @@
     "prevWeekAria": "上一週",
     "nextWeekAria": "下一週",
     "dateAria": "{month}月{day}日 {weekday}",
-    "todayButton": "今天"
+    "todayButton": "今天",
+    "moveToToday": "移到今天",
+    "moveToOtherDate": "移到其他日期…",
+    "skipThisOccurrence": "跳過這次",
+    "setRecurring": "設成重複任務…",
+    "setReminder": "設定提醒…",
+    "rowMenu": "任務動作"
   },
   "cards": {
     "createAria": "新增卡片",
@@ -184,7 +201,8 @@
     "editorPlaceholder": "打 / 插入標題、清單…",
     "titleHint": "標題",
     "createdAt": "建立 {date}",
-    "updatedAt": "更新 {date}"
+    "updatedAt": "更新 {date}",
+    "schedule": "排程"
   },
   "notes": {
     "backToCanvasAria": "回到今天 canvas",
@@ -227,7 +245,11 @@
     "mobileCollapsedCount": "今日行程 · {count} 件",
     "mobileCollapsedEmpty": "今日無行程",
     "mobileConnectPrompt": "連結 Google Calendar →",
-    "viewMode": { "day": "日", "week": "週", "month": "月" },
+    "viewMode": {
+      "day": "日",
+      "week": "週",
+      "month": "月"
+    },
     "weekEmpty": "這週沒有行程",
     "joinMeeting": "加入線上會議",
     "attendees": "與會者",
@@ -241,5 +263,60 @@
     "network": "網路錯誤",
     "unauthorized": "請重新登入",
     "unknown": "發生錯誤"
+  },
+  "weekday": {
+    "mon": "一",
+    "tue": "二",
+    "wed": "三",
+    "thu": "四",
+    "fri": "五",
+    "sat": "六",
+    "sun": "日"
+  },
+  "schedule": {
+    "recurrenceTitle": "重複",
+    "recurrence": {
+      "off": "關",
+      "startDate": "開始日期",
+      "endDate": "結束日期",
+      "hasEndDate": "設結束日期",
+      "monthDayN": "每月 {n} 日",
+      "nthN": "第 {n} 個",
+      "last": "最後一個",
+      "nthLabel": "第幾個",
+      "weekday": "星期"
+    },
+    "preset": {
+      "daily": "每天",
+      "weekdays": "平日",
+      "weekly": "每週",
+      "biweekly": "每兩週",
+      "monthlyDay": "每月某日",
+      "monthlyNthWeekday": "每月第幾個週幾",
+      "yearly": "每年"
+    },
+    "reminder": {
+      "enabled": "提醒",
+      "timeOfDay": "時段",
+      "dateTime": "提醒時間"
+    }
+  },
+  "notifications": {
+    "content": {
+      "summary": "摘要",
+      "incomplete": "未完成任務",
+      "summaryStreak": "摘要 + 連續紀錄"
+    },
+    "morning": {
+      "title": "早安",
+      "bodyTemplate": "看看今天的安排。"
+    },
+    "evening": {
+      "title": "今日總結",
+      "bodyTemplate": "今天到這裡告一段落。"
+    },
+    "task": {
+      "reminderBody": "點開查看任務。"
+    }
   }
 }

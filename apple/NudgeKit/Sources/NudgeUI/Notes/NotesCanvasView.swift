@@ -12,6 +12,7 @@ public struct NotesCanvasView: View {
     public let date: String
 
     @Environment(NoteRepository.self) private var noteRepo
+    @Environment(\.locale) private var locale
     @State private var html: String = ""
     @State private var isLoaded: Bool = false
     @State private var saveWorkItem: DispatchWorkItem?
@@ -47,11 +48,7 @@ public struct NotesCanvasView: View {
         if isLoaded {
             RichTextEditor(
                 html: $html,
-                placeholder: NSLocalizedString(
-                    "notes.canvasPlaceholder",
-                    bundle: .module,
-                    comment: ""
-                ),
+                placeholder: nudgeLocalized("notes.canvasPlaceholder", locale: locale),
                 activeMarks: $activeMarks,
                 commandBus: commandBus
             )
@@ -81,11 +78,7 @@ public struct NotesCanvasView: View {
             "weekday.thu", "weekday.fri", "weekday.sat",
         ]
         let weekdayKey = shortWeekdayKeys[weekdayIndex - 1]
-        let weekday = NSLocalizedString(
-            weekdayKey.stringKey ?? "",
-            bundle: .module,
-            comment: ""
-        )
+        let weekday = nudgeLocalized(weekdayKey.stringKey ?? "", locale: locale)
         return "\(m)/\(day) · \(weekday)"
     }
 

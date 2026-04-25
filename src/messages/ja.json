@@ -9,7 +9,8 @@
     "confirm": "確認",
     "edit": "編集",
     "clear": "クリア",
-    "search": "検索"
+    "search": "検索",
+    "done": "完了"
   },
   "settings": {
     "title": "設定",
@@ -54,6 +55,16 @@
       "button": "ログアウト",
       "confirmTitle": "ログアウト",
       "confirmBody": "本当にログアウトしますか？"
+    },
+    "notifications": {
+      "title": "通知",
+      "morningEnabled": "朝のサマリー",
+      "morningTime": "朝の時刻",
+      "morningContent": "朝の内容",
+      "eveningEnabled": "夜のサマリー",
+      "eveningTime": "夜の時刻",
+      "eveningContent": "夜の内容",
+      "perTaskEnabled": "タスク毎のリマインダー"
     }
   },
   "tags": {
@@ -156,7 +167,13 @@
     "prevWeekAria": "前の週",
     "nextWeekAria": "次の週",
     "dateAria": "{month}月{day}日 {weekday}",
-    "todayButton": "今日"
+    "todayButton": "今日",
+    "moveToToday": "今日に移動",
+    "moveToOtherDate": "他の日に移動…",
+    "skipThisOccurrence": "今回をスキップ",
+    "setRecurring": "繰り返し設定…",
+    "setReminder": "リマインダーを設定…",
+    "rowMenu": "タスク操作"
   },
   "cards": {
     "createAria": "新しいカード",
@@ -184,7 +201,8 @@
     "editorPlaceholder": "/ を入力して見出しやリストを挿入…",
     "titleHint": "タイトル",
     "createdAt": "作成 {date}",
-    "updatedAt": "更新 {date}"
+    "updatedAt": "更新 {date}",
+    "schedule": "スケジュール"
   },
   "notes": {
     "backToCanvasAria": "今日のキャンバスへ戻る",
@@ -227,7 +245,11 @@
     "mobileCollapsedCount": "今日の予定 · {count} 件",
     "mobileCollapsedEmpty": "今日は予定なし",
     "mobileConnectPrompt": "Google カレンダーを連携 →",
-    "viewMode": { "day": "日", "week": "週", "month": "月" },
+    "viewMode": {
+      "day": "日",
+      "week": "週",
+      "month": "月"
+    },
     "weekEmpty": "今週は予定がありません",
     "joinMeeting": "会議に参加",
     "attendees": "参加者",
@@ -241,5 +263,60 @@
     "network": "ネットワークエラー",
     "unauthorized": "再度サインインしてください",
     "unknown": "エラーが発生しました"
+  },
+  "weekday": {
+    "mon": "月",
+    "tue": "火",
+    "wed": "水",
+    "thu": "木",
+    "fri": "金",
+    "sat": "土",
+    "sun": "日"
+  },
+  "schedule": {
+    "recurrenceTitle": "繰り返し",
+    "recurrence": {
+      "off": "オフ",
+      "startDate": "開始日",
+      "endDate": "終了日",
+      "hasEndDate": "終了日を設定",
+      "monthDayN": "{n} 日",
+      "nthN": "第 {n}",
+      "last": "最終",
+      "nthLabel": "週",
+      "weekday": "曜日"
+    },
+    "preset": {
+      "daily": "毎日",
+      "weekdays": "平日",
+      "weekly": "毎週",
+      "biweekly": "隔週",
+      "monthlyDay": "毎月（日付）",
+      "monthlyNthWeekday": "毎月（曜日）",
+      "yearly": "毎年"
+    },
+    "reminder": {
+      "enabled": "リマインダー",
+      "timeOfDay": "時刻",
+      "dateTime": "通知日時"
+    }
+  },
+  "notifications": {
+    "content": {
+      "summary": "サマリー",
+      "incomplete": "未完了タスク",
+      "summaryStreak": "サマリー + 継続記録"
+    },
+    "morning": {
+      "title": "おはようございます",
+      "bodyTemplate": "今日の予定を確認しましょう。"
+    },
+    "evening": {
+      "title": "今日のまとめ",
+      "bodyTemplate": "今日を振り返りましょう。"
+    },
+    "task": {
+      "reminderBody": "タップしてタスクを開く。"
+    }
   }
 }
