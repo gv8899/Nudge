@@ -21,13 +21,21 @@ public struct NudgeCheckbox: View {
 
     public var body: some View {
         Button(action: action) {
+            // `.symbolEffect(.bounce)` gives the tick a small, physical
+            // pop on every toggle — cheap iOS 17+ polish that makes the
+            // row feel alive. `.contentTransition(.symbolEffect(.replace))`
+            // crossfades between the empty-box and filled glyphs so the
+            // change reads as one animation, not a swap.
             Image(systemName: isChecked ? "checkmark.square.fill" : "square")
                 .font(.title3)
                 .foregroundStyle(isChecked ? Color.nudgePrimary : Color.nudgeTextDim)
+                .contentTransition(.symbolEffect(.replace))
+                .symbolEffect(.bounce, value: isChecked)
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .sensoryFeedback(.selection, trigger: isChecked)
         .accessibilityLabel(Text(accessibilityLabel, bundle: .module))
         .accessibilityAddTraits(isChecked ? .isSelected : [])
     }

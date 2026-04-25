@@ -6,6 +6,7 @@ import NudgeCore
 /// to 3 event dots.
 public struct CalendarMonthView: View {
     @Binding var selectedDate: String
+    @Environment(\.locale) private var locale
     let monthAnchor: Date
     let events: [CalendarEventDTO]
     let isLoading: Bool
@@ -211,11 +212,14 @@ public struct CalendarMonthView: View {
                     ForEach(selectedDayEvents, id: \.id) { event in
                         Button { onEventTap(event) } label: {
                             HStack(alignment: .firstTextBaseline, spacing: 10) {
-                                Text(event.allDay ? NSLocalizedString("calendar.eventAllDay", bundle: .module, comment: "") : shortTime(event.start))
+                                Text(event.allDay ? nudgeLocalized("calendar.eventAllDay", locale: locale) : shortTime(event.start))
                                     .font(.footnote.weight(.semibold))
                                     .monospacedDigit()
                                     .foregroundStyle(Color.nudgeForeground)
-                                    .frame(width: 54, alignment: .leading)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.85)
+                                    .fixedSize(horizontal: true, vertical: false)
+                                    .frame(minWidth: 54, alignment: .leading)
                                 Text(verbatim: event.title)
                                     .font(.subheadline)
                                     .foregroundStyle(Color.nudgeForeground)

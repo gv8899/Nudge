@@ -7,14 +7,23 @@
     "loadFailed": "Failed to load",
     "today": "Today",
     "confirm": "Confirm",
-    "edit": "Edit"
+    "edit": "Edit",
+    "clear": "Clear",
+    "search": "Search",
+    "done": "Done",
+    "a11y": {
+      "expanded": "Expanded",
+      "collapsed": "Collapsed"
+    }
   },
   "settings": {
     "title": "Settings",
     "account": {
       "section": "Account",
       "unnamed": "Unnamed",
-      "joinedAt": "Joined {date}"
+      "joinedAt": "Joined {date}",
+      "email": "Email",
+      "name": "Name"
     },
     "theme": {
       "section": "Theme",
@@ -52,6 +61,16 @@
       "button": "Log out",
       "confirmTitle": "Log out",
       "confirmBody": "Log out now?"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "morningEnabled": "Morning summary",
+      "morningTime": "Morning time",
+      "morningContent": "Morning content",
+      "eveningEnabled": "Evening summary",
+      "eveningTime": "Evening time",
+      "eveningContent": "Evening content",
+      "perTaskEnabled": "Per-task reminders"
     }
   },
   "tags": {
@@ -67,7 +86,8 @@
     "newTagPlaceholder": "New tag...",
     "removeAria": "Remove {name}",
     "dragReorderAria": "Drag to reorder: {name}",
-    "searchOrCreate": "Search or create tag..."
+    "searchOrCreate": "Search or create tag...",
+    "dragHandle": "Reorder"
   },
   "nav": {
     "tasks": "Tasks",
@@ -154,7 +174,13 @@
     "prevWeekAria": "Previous week",
     "nextWeekAria": "Next week",
     "dateAria": "{month}/{day} {weekday}",
-    "todayButton": "Today"
+    "todayButton": "Today",
+    "moveToToday": "Move to today",
+    "moveToOtherDate": "Move to date…",
+    "skipThisOccurrence": "Skip this one",
+    "setRecurring": "Repeat…",
+    "setReminder": "Set reminder…",
+    "rowMenu": "Task actions"
   },
   "cards": {
     "createAria": "New card",
@@ -182,7 +208,8 @@
     "editorPlaceholder": "Type / to insert headings, lists…",
     "titleHint": "Title",
     "createdAt": "Created {date}",
-    "updatedAt": "Updated {date}"
+    "updatedAt": "Updated {date}",
+    "schedule": "Schedule"
   },
   "notes": {
     "backToCanvasAria": "Back to today's canvas",
@@ -225,12 +252,22 @@
     "mobileCollapsedCount": "Today · {count} events",
     "mobileCollapsedEmpty": "Nothing today",
     "mobileConnectPrompt": "Connect Google Calendar →",
-    "viewMode": { "day": "Day", "week": "Week", "month": "Month" },
+    "viewMode": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
     "weekEmpty": "Nothing this week",
     "joinMeeting": "Join meeting",
     "attendees": "Attendees",
     "description": "Notes",
-    "thisWeek": "This week"
+    "thisWeek": "This week",
+    "period": {
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening"
+    },
+    "checkingStatus": "Checking…"
   },
   "offline": {
     "banner": "Offline. Last updated at {time}."
@@ -239,5 +276,60 @@
     "network": "Network error",
     "unauthorized": "Please sign in again",
     "unknown": "Something went wrong"
+  },
+  "weekday": {
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
+  },
+  "schedule": {
+    "recurrenceTitle": "Repeat",
+    "recurrence": {
+      "off": "Off",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "hasEndDate": "Set end date",
+      "monthDayN": "Day {n}",
+      "nthN": "{n}",
+      "last": "Last",
+      "nthLabel": "Which",
+      "weekday": "Weekday"
+    },
+    "preset": {
+      "daily": "Daily",
+      "weekdays": "Weekdays",
+      "weekly": "Weekly",
+      "biweekly": "Biweekly",
+      "monthlyDay": "Monthly (day)",
+      "monthlyNthWeekday": "Monthly (weekday)",
+      "yearly": "Yearly"
+    },
+    "reminder": {
+      "enabled": "Reminder",
+      "timeOfDay": "Time of day",
+      "dateTime": "Reminder time"
+    }
+  },
+  "notifications": {
+    "content": {
+      "summary": "Summary",
+      "incomplete": "Incomplete tasks",
+      "summaryStreak": "Summary + streak"
+    },
+    "morning": {
+      "title": "Good morning",
+      "bodyTemplate": "Here's your day."
+    },
+    "evening": {
+      "title": "Today's wrap-up",
+      "bodyTemplate": "Wrap up the day."
+    },
+    "task": {
+      "reminderBody": "Tap to open the task."
+    }
   }
 }

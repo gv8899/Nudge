@@ -25,19 +25,64 @@ public struct PlatformRootView: View {
 struct IOSTabRoot: View {
     @Bindable var auth: AuthRepository
 
+    // iOS 26 `Tab` API with a dedicated `.search` role — iOS renders
+    // the search tab as the separated glass pill on the right of the
+    // main tab bar (matches Apple Store / Photos / Reminders). The four
+    // primary tabs keep their legacy order.
     var body: some View {
         TabView {
-            DailyHostView(auth: auth)
-                .tabItem { Label { Text("nav.tasks", bundle: .module) } icon: { Image(systemName: "checkmark.circle") } }
+            Tab(role: nil) {
+                DailyHostView(auth: auth)
+            } label: {
+                Label {
+                    Text("nav.tasks", bundle: .module)
+                } icon: {
+                    Image(systemName: "checkmark.circle")
+                }
+            }
 
-            CalendarHostView()
-                .tabItem { Label { Text("nav.calendar", bundle: .module) } icon: { Image(systemName: "calendar") } }
+            Tab(role: nil) {
+                CalendarHostView()
+            } label: {
+                Label {
+                    Text("nav.calendar", bundle: .module)
+                } icon: {
+                    Image(systemName: "calendar")
+                }
+            }
 
-            CardsHostView()
-                .tabItem { Label { Text("nav.cards", bundle: .module) } icon: { Image(systemName: "square.stack") } }
+            Tab(role: nil) {
+                CardsHostView()
+            } label: {
+                Label {
+                    Text("nav.cards", bundle: .module)
+                } icon: {
+                    Image(systemName: "square.stack")
+                }
+            }
 
-            PlaceholderTab(title: "日誌", systemImage: "book")
-                .tabItem { Label { Text("nav.notes", bundle: .module) } icon: { Image(systemName: "book") } }
+            Tab(role: nil) {
+                NotesHostView()
+            } label: {
+                Label {
+                    Text("nav.notes", bundle: .module)
+                } icon: {
+                    Image(systemName: "book")
+                }
+            }
+
+            // Dedicated search tab — scope: cards-only for now (user
+            // decision `A:(c)`). When widened to tasks/notes, the
+            // search view routes internally over those repos.
+            Tab(role: .search) {
+                CardSearchView()
+            } label: {
+                Label {
+                    Text("common.search", bundle: .module)
+                } icon: {
+                    Image(systemName: "magnifyingglass")
+                }
+            }
         }
         .tint(Color.nudgePrimary)
     }
@@ -77,7 +122,7 @@ struct MacSidebarRoot: View {
             switch selection ?? .today {
             case .today: DailyHostView(auth: auth)
             case .calendar: CalendarHostView()
-            case .notes: PlaceholderTab(title: "日誌", systemImage: "book")
+            case .notes: NotesHostView()
             case .cards: CardsHostView()
             case .settings: SettingsView(auth: auth)
             }

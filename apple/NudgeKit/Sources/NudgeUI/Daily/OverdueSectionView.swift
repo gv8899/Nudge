@@ -8,7 +8,11 @@ public struct OverdueSectionView: View {
     public let onReschedule: (DailyAssignmentDTO, String) -> Void
     public let onMoveTo: (DailyAssignmentDTO) -> Void
     public let onArchive: (DailyAssignmentDTO) -> Void
+    public let onSkipThisOccurrence: (DailyAssignmentDTO) -> Void
+    public let onSetRecurrence: (DailyAssignmentDTO) -> Void
+    public let onSetReminder: (DailyAssignmentDTO) -> Void
 
+    @Environment(\.locale) private var locale
     @State private var isExpanded: Bool
 
     public init(
@@ -17,7 +21,10 @@ public struct OverdueSectionView: View {
         onToggleComplete: @escaping (DailyAssignmentDTO) -> Void,
         onReschedule: @escaping (DailyAssignmentDTO, String) -> Void,
         onMoveTo: @escaping (DailyAssignmentDTO) -> Void,
-        onArchive: @escaping (DailyAssignmentDTO) -> Void
+        onArchive: @escaping (DailyAssignmentDTO) -> Void,
+        onSkipThisOccurrence: @escaping (DailyAssignmentDTO) -> Void,
+        onSetRecurrence: @escaping (DailyAssignmentDTO) -> Void,
+        onSetReminder: @escaping (DailyAssignmentDTO) -> Void
     ) {
         self.overdueTasks = overdueTasks
         self.currentDate = currentDate
@@ -25,6 +32,9 @@ public struct OverdueSectionView: View {
         self.onReschedule = onReschedule
         self.onMoveTo = onMoveTo
         self.onArchive = onArchive
+        self.onSkipThisOccurrence = onSkipThisOccurrence
+        self.onSetRecurrence = onSetRecurrence
+        self.onSetReminder = onSetReminder
         _isExpanded = State(initialValue: Self.defaultExpanded(for: currentDate))
     }
 
@@ -37,6 +47,10 @@ public struct OverdueSectionView: View {
         if overdueTasks.isEmpty {
             EmptyView()
         } else {
+            // Vertical-only padding on the outer; horizontal padding lives
+            // inside header / row so they match TaskRowView's 12pt edge
+            // (otherwise overdue checkboxes sit 4pt right of today's
+            // checkboxes — visible misalignment).
             VStack(alignment: .leading, spacing: 8) {
                 header
                 if isExpanded {
@@ -45,7 +59,6 @@ public struct OverdueSectionView: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .animation(.easeOut(duration: 0.2), value: isExpanded)
             .onChange(of: currentDate) { _, newValue in
@@ -55,24 +68,37 @@ public struct OverdueSectionView: View {
     }
 
     private var header: some View {
-        Button(action: { isExpanded.toggle() }) {
+        // Outer padding is 12 (matches row edge); the additional 12 inside
+        // brings the label / chevron in line with the visual centers of
+        // the row's NudgeCheckbox (44pt frame, ~22pt glyph → 11pt inset)
+        // and TaskRowMenu's `…` (also 44pt frame). Keeps the optical
+        // column from "前幾天的" / chevron consistent with the rows.
+        Button(action: {
+            withAnimation(.easeOut(duration: 0.2)) { isExpanded.toggle() }
+        }) {
             HStack(spacing: 6) {
-                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                    .font(.caption)
                 Text(String(
-                    format: NSLocalizedString("daily.overdueLabel", bundle: .module, comment: ""),
+                    format: nudgeLocalized("daily.overdueLabel", locale: locale),
                     overdueTasks.count
                 ))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.nudgePrimary)
                 Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                    .foregroundStyle(Color.nudgePrimary)
             }
+            .padding(.horizontal, 24)
             .frame(minHeight: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("daily.overdueSectionAria", bundle: .module))
-        .accessibilityValue(Text(isExpanded ? "expanded" : "collapsed"))
+        .accessibilityValue(Text(
+            isExpanded ? "common.a11y.expanded" : "common.a11y.collapsed",
+            bundle: .module
+        ))
         .accessibilityAddTraits(.isHeader)
     }
 
@@ -92,22 +118,21 @@ public struct OverdueSectionView: View {
 
             Spacer()
 
-            Menu {
-                Button(action: { onReschedule(task, currentDate) }) {
-                    Text("daily.overdueScheduleToday", bundle: .module)
-                }
-                Button(action: { onMoveTo(task) }) {
-                    Text("task.moveToOtherDate", bundle: .module)
-                }
-                Button(role: .destructive, action: { onArchive(task) }) {
-                    Text("daily.archiveButton", bundle: .module)
-                }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .foregroundStyle(Color.nudgeTextDim)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-            }
+            // Overdue rows are by definition not "today", so the menu's
+            // "Move to today" entry is always shown via isToday: false.
+            TaskRowMenu(
+                isToday: false,
+                isRecurring: task.isRecurring,
+                onMoveToToday: { onReschedule(task, currentDate) },
+                onMoveToOtherDate: { onMoveTo(task) },
+                onSkipThisOccurrence: { onSkipThisOccurrence(task) },
+                onSetRecurrence: { onSetRecurrence(task) },
+                onSetReminder: { onSetReminder(task) },
+                onArchive: { onArchive(task) }
+            )
         }
+        // Match TaskRowView's horizontal padding so the checkbox column
+        // lines up across overdue and today sections.
+        .padding(.horizontal, 12)
     }
 }

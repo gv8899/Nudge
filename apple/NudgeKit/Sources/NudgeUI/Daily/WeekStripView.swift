@@ -21,8 +21,14 @@ public struct WeekStripView: View {
 
     public var body: some View {
         VStack(spacing: 8) {
+            #if os(macOS)
+            // macOS still shows the big date + prev/next chevrons inside
+            // this view. iOS has moved the date to a smaller eyebrow
+            // above the page title (see DailyHostView.iOSLayout), so the
+            // header is suppressed here on iOS to avoid duplication.
             header
                 .padding(.horizontal, 16)
+            #endif
 
             HStack(spacing: 4) {
                 ForEach(currentWeekDates(), id: \.self) { dateString in

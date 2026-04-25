@@ -137,4 +137,12 @@ extension TaskRepository {
             body: Body(description: description)
         )
     }
+
+    public func toggleSkip(assignmentId: String, isSkipped: Bool) async throws {
+        struct Body: Codable { let isSkipped: Bool }
+        try await client.patchVoid(
+            "/api/daily-assignments/\(assignmentId)",
+            body: Body(isSkipped: isSkipped)
+        )
+    }
 }

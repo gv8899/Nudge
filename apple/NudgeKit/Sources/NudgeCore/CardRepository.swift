@@ -62,6 +62,13 @@ public final class CardRepository {
         )
     }
 
+    /// Fetches one card (task) by id, including its tags. Backs the shared
+    /// detail view when called from entry points that only have a task id
+    /// (e.g. Daily page rows, which carry a TaskDTO with no tags).
+    public func get(cardId: String) async throws -> CardDTO {
+        try await client.get("/api/tasks/\(cardId)")
+    }
+
     /// PATCHes the title of an existing card.
     public func updateTitle(cardId: String, title: String) async throws {
         struct Body: Codable { let title: String }
@@ -74,6 +81,14 @@ public final class CardRepository {
     public func updateDescription(cardId: String, html: String) async throws {
         struct Body: Codable { let description: String }
         try await client.patchVoid("/api/tasks/\(cardId)", body: Body(description: html))
+    }
+
+    /// PATCHes the absolute one-shot reminder time on a non-recurring task.
+    /// Pass nil to clear. Recurrence-driven reminders go via
+    /// RecurrenceRepository.upsert(remindAtTimeOfDay:) instead.
+    public func updateRemindAt(cardId: String, remindAt: String?) async throws {
+        struct Body: Codable { let remindAt: String? }
+        try await client.patchVoid("/api/tasks/\(cardId)", body: Body(remindAt: remindAt))
     }
 
     /// Deletes every card whose title is empty or whitespace-only.

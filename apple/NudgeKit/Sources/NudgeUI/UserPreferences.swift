@@ -52,7 +52,17 @@ public struct NudgePreferencesApplier<Content: View>: View {
     public var body: some View {
         let theme = NudgeTheme(rawValue: themeRaw) ?? .system
         let language = NudgeLanguage(rawValue: languageRaw) ?? .auto
+        // Force the entire view tree to rebuild when the in-app language
+        // changes. SwiftUI propagates `.environment(\.locale)` to plain
+        // `Text(_, bundle:)`, but UIKit-rendered surfaces — navigationTitle
+        // (UINavigationBar title), alert buttons, system pickers — capture
+        // their text at render time and don't observe env changes. Tagging
+        // the content with the locale id forces SwiftUI to discard the old
+        // hierarchy and rebuild from scratch under the new locale, so every
+        // surface (including UIKit-backed ones) re-renders consistently.
+        let localeID = language.locale?.identifier ?? "auto"
         content()
+            .id(localeID)
             .preferredColorScheme(theme.colorScheme)
             .modifier(LocaleOverride(locale: language.locale))
     }

@@ -116,8 +116,13 @@ public struct CalendarHostView: View {
                 }
             }
         } label: {
-            Image(systemName: "square.grid.3x3")
-                .foregroundStyle(Color.nudgePrimary)
+            // Explicit foregroundStyle overrides the
+            // .tint(Color.nudgePrimary) inherited from PlatformRootView
+            // — without this the glyph still picks up the orange tab
+            // accent and outweighs the gear / pencil sibling toolbar
+            // icons in other tabs.
+            Image(systemName: "square.grid.2x2")
+                .foregroundStyle(Color.nudgeForeground)
         }
     }
 

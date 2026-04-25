@@ -63,9 +63,26 @@ public struct TagManagerView: View {
     @ViewBuilder
     private func tagRow(_ tag: TagDTO) -> some View {
         HStack(spacing: 12) {
+            // Drag handle — `.draggable` now lives ONLY here, not on the
+            // whole row. The previous row-wide draggable competed with
+            // the rename Button's tap recogniser, requiring an unusually
+            // long press before the system committed to drag. With the
+            // gesture isolated to a 44pt handle, a normal short-hold on
+            // ≡ initiates drag immediately, matching iOS list-reorder.
             Image(systemName: "line.3.horizontal")
+                .font(.body.weight(.medium))
                 .foregroundStyle(Color.nudgeTextDim)
-                .frame(width: 20)
+                .frame(width: 32, height: 44)
+                .contentShape(Rectangle())
+                .draggable(tag.id) {
+                    Text(verbatim: tag.name)
+                        .font(.subheadline)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.nudgeBackground))
+                        .overlay(Capsule().stroke(Color.nudgeBorderLight, lineWidth: 1))
+                }
+                .accessibilityLabel(Text("tags.dragHandle", bundle: .module))
 
             if renamingId == tag.id {
                 TextField("", text: $renameText)
@@ -104,15 +121,6 @@ public struct TagManagerView: View {
         .frame(minHeight: 44)
         .padding(.horizontal, 16)
         .padding(.vertical, 4)
-        .draggable(tag.id) {
-            // Drag preview chip
-            Text(verbatim: tag.name)
-                .font(.subheadline)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(Capsule().fill(Color.nudgeBackground))
-                .overlay(Capsule().stroke(Color.nudgeBorderLight, lineWidth: 1))
-        }
         .dropDestination(for: String.self) { droppedIds, _ in
             guard let droppedId = droppedIds.first,
                   let from = tags.firstIndex(where: { $0.id == droppedId }),

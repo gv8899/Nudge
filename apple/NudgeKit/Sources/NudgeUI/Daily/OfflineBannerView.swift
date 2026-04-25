@@ -3,6 +3,7 @@ import NudgeCore
 
 public struct OfflineBannerView: View {
     public let lastUpdated: String
+    @Environment(\.locale) private var locale
 
     public init(lastUpdated: String) {
         self.lastUpdated = lastUpdated
@@ -13,7 +14,7 @@ public struct OfflineBannerView: View {
             Image(systemName: "wifi.slash")
                 .foregroundStyle(Color.nudgeWarning)
             Text(verbatim: String(
-                format: NSLocalizedString("offline.banner", bundle: .module, comment: ""),
+                format: nudgeLocalized("offline.banner", locale: locale),
                 lastUpdated
             ))
                 .font(.footnote)

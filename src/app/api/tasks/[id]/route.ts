@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { tasks } from "@/lib/db/schema";
+import { tasks, tags, taskTags } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
 
@@ -19,7 +19,14 @@ export async function GET(
     .limit(1);
 
   if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(task);
+
+  const taskTagRows = await db
+    .select({ id: tags.id, name: tags.name, color: tags.color })
+    .from(taskTags)
+    .innerJoin(tags, eq(tags.id, taskTags.tagId))
+    .where(eq(taskTags.taskId, id));
+
+  return NextResponse.json({ ...task, tags: taskTagRows });
 }
 
 export async function PATCH(

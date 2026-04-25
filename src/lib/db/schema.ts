@@ -1,4 +1,4 @@
-import { pgTable, text, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -63,15 +63,25 @@ export const statusHistory = pgTable("status_history", {
   note: text("note"),
 });
 
-export const dailyTaskAssignments = pgTable("daily_task_assignments", {
-  id: text("id").primaryKey(),
-  taskId: text("task_id")
-    .notNull()
-    .references(() => tasks.id, { onDelete: "cascade" }),
-  date: text("date").notNull(),
-  isCompleted: boolean("is_completed").notNull().default(false),
-  sortOrder: integer("sort_order").notNull().default(0),
-});
+export const dailyTaskAssignments = pgTable(
+  "daily_task_assignments",
+  {
+    id: text("id").primaryKey(),
+    taskId: text("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    date: text("date").notNull(),
+    isCompleted: boolean("is_completed").notNull().default(false),
+    isSkipped: boolean("is_skipped").notNull().default(false),
+    sortOrder: integer("sort_order").notNull().default(0),
+  },
+  (table) => ({
+    uniqTaskDate: uniqueIndex("daily_task_assignments_task_date_uniq").on(
+      table.taskId,
+      table.date,
+    ),
+  }),
+);
 
 export const dailyNotes = pgTable("daily_notes", {
   id: text("id").primaryKey(),
@@ -82,4 +92,61 @@ export const dailyNotes = pgTable("daily_notes", {
   content: text("content").notNull(),
   createdAt: text("created_at").notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
+});
+
+// 重複任務規則 — 每個 task 最多一條 (UNIQUE on taskId)。preset 系統 + 額外
+// 欄位來描述變化（weekdays CSV、monthDay 等）。未來要升級到完整 RRULE
+// 只需多一個 rruleOverride 欄位。
+export const taskRecurrences = pgTable("task_recurrences", {
+  id: text("id").primaryKey(),
+  taskId: text("task_id")
+    .notNull()
+    .unique()
+    .references(() => tasks.id, { onDelete: "cascade" }),
+  preset: text("preset", {
+    enum: [
+      "daily",
+      "weekdays",
+      "weekly",
+      "biweekly",
+      "monthly_day",
+      "monthly_nth_weekday",
+      "yearly",
+    ],
+  }).notNull(),
+  weekdays: text("weekdays"), // CSV "1,3,5" — ISO weekday 1=Mon..7=Sun
+  monthDay: integer("month_day"), // 1..31
+  monthNth: integer("month_nth"), // 1..5 (5 = last)
+  monthNthWeekday: integer("month_nth_weekday"), // 1..7
+  startDate: text("start_date").notNull(), // YYYY-MM-DD
+  endDate: text("end_date"), // YYYY-MM-DD or null (no end)
+  remindAtTimeOfDay: text("remind_at_time_of_day"), // HH:MM or null
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
+// 通知偏好 — 每 user 一筆。早晚批次摘要的開關 / 時段 / 內容、外加 per-task
+// reminder 全局開關。
+export const notificationPreferences = pgTable("notification_preferences", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  morningEnabled: boolean("morning_enabled").notNull().default(true),
+  morningTime: text("morning_time").notNull().default("09:00"), // HH:MM
+  morningContent: text("morning_content", {
+    enum: ["summary", "incomplete", "summary_streak"],
+  })
+    .notNull()
+    .default("summary"),
+  eveningEnabled: boolean("evening_enabled").notNull().default(true),
+  eveningTime: text("evening_time").notNull().default("21:00"),
+  eveningContent: text("evening_content", {
+    enum: ["summary", "incomplete", "summary_streak"],
+  })
+    .notNull()
+    .default("incomplete"),
+  perTaskRemindersEnabled: boolean("per_task_reminders_enabled")
+    .notNull()
+    .default(true),
+  updatedAt: text("updated_at").notNull(),
 });

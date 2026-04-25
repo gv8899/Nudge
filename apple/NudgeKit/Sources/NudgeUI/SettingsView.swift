@@ -5,6 +5,7 @@ public struct SettingsView: View {
     @Bindable var auth: AuthRepository
     @Environment(CalendarRepository.self) private var calendarRepo
     @Environment(CardRepository.self) private var cardRepo
+    @Environment(\.locale) private var locale
     @AppStorage(NudgePreferenceKey.theme) private var themeRaw: String = NudgeTheme.system.rawValue
     @AppStorage(NudgePreferenceKey.language) private var languageRaw: String = NudgeLanguage.auto.rawValue
     @State private var oauth = CalendarOAuthCoordinator()
@@ -57,7 +58,7 @@ public struct SettingsView: View {
             .padding(16)
         }
         .background(Color.nudgeBackground)
-        .task { await calendarRepo.refreshConnectionStatus() }
+        .task { await calendarRepo.refreshConnectionStatusIfNeeded() }
         .alert(
             Text("settings.logout.confirmTitle", bundle: .module),
             isPresented: $showLogoutConfirm
@@ -122,20 +123,18 @@ public struct SettingsView: View {
         SettingsGroup(header: "settings.account.section") {
             if let user = auth.currentUser {
                 SettingsRow {
-                    Text(verbatim: "Email")
+                    Text("settings.account.email", bundle: .module)
                 } trailing: {
                     Text(verbatim: user.email)
-                        .foregroundStyle(Color.nudgeTextDim)
                 }
                 SettingsDivider()
                 SettingsRow {
-                    Text(verbatim: "Name")
+                    Text("settings.account.name", bundle: .module)
                 } trailing: {
                     if let name = user.name, !name.isEmpty {
-                        Text(verbatim: name).foregroundStyle(Color.nudgeTextDim)
+                        Text(verbatim: name)
                     } else {
                         Text("settings.account.unnamed", bundle: .module)
-                            .foregroundStyle(Color.nudgeTextDim)
                     }
                 }
                 SettingsDivider()
@@ -151,12 +150,28 @@ public struct SettingsView: View {
 
     private var calendarGroup: some View {
         SettingsGroup(header: "calendar.section") {
-            if calendarRepo.isConnected {
+            // While `hasInitialized` is false the connection state is
+            // unknown — show a skeleton row sized to the connected
+            // (email + disconnect) layout so the section doesn't grow
+            // when state arrives. Skipping this caused the section to
+            // pop up by ~44pt on first Settings open and shifted the
+            // groups below it.
+            if !calendarRepo.hasInitialized {
+                SettingsRow {
+                    HStack(spacing: 8) {
+                        ProgressView().controlSize(.small)
+                        Text("calendar.checkingStatus", bundle: .module)
+                            .font(.footnote)
+                            .foregroundStyle(Color.nudgeTextDim)
+                    }
+                } trailing: {
+                    EmptyView()
+                }
+                .frame(minHeight: 88)
+            } else if calendarRepo.isConnected {
                 if !calendarRepo.connectedEmail.isEmpty {
                     SettingsRow {
                         Text("calendar.connectedAs \(calendarRepo.connectedEmail)", bundle: .module)
-                            .font(.footnote)
-                            .foregroundStyle(Color.nudgeTextDim)
                     } trailing: {
                         EmptyView()
                     }
@@ -203,7 +218,9 @@ public struct SettingsView: View {
                 }
                 .pickerStyle(.menu)
                 .labelsHidden()
-                .tint(Color.nudgePrimary)
+                // Match the row label colour so the value reads as
+                // continuation of the same line, not a tinted action.
+                .tint(Color.nudgeForeground)
             }
         }
     }
@@ -223,7 +240,9 @@ public struct SettingsView: View {
                 }
                 .pickerStyle(.menu)
                 .labelsHidden()
-                .tint(Color.nudgePrimary)
+                // Match the row label colour so the value reads as
+                // continuation of the same line, not a tinted action.
+                .tint(Color.nudgeForeground)
             }
         }
     }
@@ -270,27 +289,15 @@ public struct SettingsView: View {
             do {
                 let count = try await cardRepo.deleteUntitled()
                 if count == 0 {
-                    cleanResult = NSLocalizedString(
-                        "settings.cleanUntitled.successEmpty",
-                        bundle: .module,
-                        comment: ""
-                    )
+                    cleanResult = nudgeLocalized("settings.cleanUntitled.successEmpty", locale: locale)
                 } else {
                     cleanResult = String(
-                        format: NSLocalizedString(
-                            "settings.cleanUntitled.successWithCount",
-                            bundle: .module,
-                            comment: ""
-                        ),
+                        format: nudgeLocalized("settings.cleanUntitled.successWithCount", locale: locale),
                         count
                     )
                 }
             } catch {
-                cleanResult = NSLocalizedString(
-                    "settings.cleanUntitled.failed",
-                    bundle: .module,
-                    comment: ""
-                )
+                cleanResult = nudgeLocalized("settings.cleanUntitled.failed", locale: locale)
             }
         }
     }
@@ -359,7 +366,7 @@ private struct SettingsActionRow: View {
         Button(action: action) {
             HStack {
                 Text(labelKey, bundle: .module)
-                    .foregroundStyle(role == .destructive ? Color.nudgeDestructive : Color.nudgePrimary)
+                    .foregroundStyle(role == .destructive ? Color.nudgeDestructive : Color.nudgeForeground)
                 Spacer()
                 if isLoading {
                     ProgressView().controlSize(.small)

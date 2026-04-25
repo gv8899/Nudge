@@ -15,6 +15,14 @@ public struct APIConfiguration: Sendable {
         baseURL: URL(string: "http://localhost:3000")!
     )
 
-    /// Debug + release 都打 production；dev 機器開 npm run dev 也不會影響 app。
-    public static var `default`: APIConfiguration { .production }
+    /// Release builds 永遠打 production。Debug build (sim/local) 打
+    /// development，方便 iterate 還沒 deploy 的後端 endpoints；release
+    /// archive 自動回到 production，TestFlight / App Store build 不受影響。
+    public static var `default`: APIConfiguration {
+        #if DEBUG
+        return .development
+        #else
+        return .production
+        #endif
+    }
 }
