@@ -14,7 +14,8 @@
     "a11y": {
       "expanded": "Expanded",
       "collapsed": "Collapsed"
-    }
+    },
+    "errorSaving": "Couldn't save. Try again."
   },
   "settings": {
     "title": "Settings",
@@ -70,7 +71,8 @@
       "eveningEnabled": "Evening summary",
       "eveningTime": "Evening time",
       "eveningContent": "Evening content",
-      "perTaskEnabled": "Per-task reminders"
+      "perTaskEnabled": "Per-task reminders",
+      "platformNote": "Push notifications are delivered by the iOS app. Web is for configuration only."
     },
     "dangerZone": {
       "section": "Danger zone"
@@ -184,7 +186,10 @@
     "setRecurring": "Repeat…",
     "setReminder": "Set reminder…",
     "rowMenu": "Task actions",
-    "completedSection": "Completed ({n})"
+    "completedSection": "Completed ({n})",
+    "skipConfirmTitle": "Skip this occurrence?",
+    "skipConfirmBody": "\"{title}\" will be skipped this time. The next occurrence will follow the recurrence rule.",
+    "skipConfirmAction": "Skip"
   },
   "cards": {
     "createAria": "New card",
@@ -308,7 +313,8 @@
       "nthN": "{n}",
       "last": "Last",
       "nthLabel": "Which",
-      "weekday": "Weekday"
+      "weekday": "Weekday",
+      "weekdaysLabel": "Weekdays"
     },
     "preset": {
       "daily": "Daily",
@@ -322,7 +328,14 @@
     "reminder": {
       "enabled": "Reminder",
       "timeOfDay": "Time of day",
-      "dateTime": "Reminder time"
+      "dateTime": "Reminder time",
+      "label": "Reminder time",
+      "placeholder": "No reminder",
+      "clear": "Clear"
+    },
+    "validation": {
+      "endBeforeStart": "End date must be after start date.",
+      "weeklyNeedsWeekday": "Pick at least one weekday."
     }
   },
   "notifications": {

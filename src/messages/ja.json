@@ -14,7 +14,8 @@
     "a11y": {
       "expanded": "展開済み",
       "collapsed": "折りたたみ済み"
-    }
+    },
+    "errorSaving": "保存に失敗しました。もう一度お試しください。"
   },
   "settings": {
     "title": "設定",
@@ -70,7 +71,8 @@
       "eveningEnabled": "夜のサマリー",
       "eveningTime": "夜の時刻",
       "eveningContent": "夜の内容",
-      "perTaskEnabled": "タスク毎のリマインダー"
+      "perTaskEnabled": "タスク毎のリマインダー",
+      "platformNote": "プッシュ通知は iOS アプリで受信します。Web は設定のみです。"
     },
     "dangerZone": {
       "section": "危険操作"
@@ -184,7 +186,10 @@
     "setRecurring": "繰り返し設定…",
     "setReminder": "リマインダーを設定…",
     "rowMenu": "タスク操作",
-    "completedSection": "完了 ({n})"
+    "completedSection": "完了 ({n})",
+    "skipConfirmTitle": "この回をスキップ？",
+    "skipConfirmBody": "「{title}」をこの回はスキップします。次回は繰り返しルールに従います。",
+    "skipConfirmAction": "スキップ"
   },
   "cards": {
     "createAria": "新しいカード",
@@ -308,7 +313,8 @@
       "nthN": "第 {n}",
       "last": "最終",
       "nthLabel": "週",
-      "weekday": "曜日"
+      "weekday": "曜日",
+      "weekdaysLabel": "曜日"
     },
     "preset": {
       "daily": "毎日",
@@ -322,7 +328,14 @@
     "reminder": {
       "enabled": "リマインダー",
       "timeOfDay": "時刻",
-      "dateTime": "通知日時"
+      "dateTime": "通知日時",
+      "label": "リマインダー時刻",
+      "placeholder": "通知なし",
+      "clear": "クリア"
+    },
+    "validation": {
+      "endBeforeStart": "終了日は開始日より後にしてください。",
+      "weeklyNeedsWeekday": "曜日を1つ以上選択してください。"
     }
   },
   "notifications": {

@@ -4658,6 +4658,160 @@
           }
         }
       }
+    },
+    "settings.notifications.platformNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Push notifications are delivered by the iOS app. Web is for configuration only."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プッシュ通知は iOS アプリで受信します。Web は設定のみです。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推播由 iOS app 接收。Web 僅做設定。"
+          }
+        }
+      }
+    },
+    "schedule.validation.endBeforeStart": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End date must be after start date."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "終了日は開始日より後にしてください。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "結束日必須晚於起始日。"
+          }
+        }
+      }
+    },
+    "schedule.validation.weeklyNeedsWeekday": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick at least one weekday."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "曜日を1つ以上選択してください。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "至少選一個星期。"
+          }
+        }
+      }
+    },
+    "daily.skipConfirmTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip this occurrence?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この回をスキップ？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳過這次發生？"
+          }
+        }
+      }
+    },
+    "daily.skipConfirmBody": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\"%@\" will be skipped this time. The next occurrence will follow the recurrence rule."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」をこの回はスキップします。次回は繰り返しルールに従います。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」這次會被跳過。下次發生會照重複規則繼續。"
+          }
+        }
+      }
+    },
+    "daily.skipConfirmAction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スキップ"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳過"
+          }
+        }
+      }
+    },
+    "common.errorSaving": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save. Try again."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存に失敗しました。もう一度お試しください。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儲存失敗，請再試一次。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

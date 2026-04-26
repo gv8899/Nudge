@@ -14,7 +14,8 @@
     "a11y": {
       "expanded": "已展開",
       "collapsed": "已收合"
-    }
+    },
+    "errorSaving": "儲存失敗，請再試一次。"
   },
   "settings": {
     "title": "設定",
@@ -70,7 +71,8 @@
       "eveningEnabled": "夜間摘要",
       "eveningTime": "夜間時間",
       "eveningContent": "夜間內容",
-      "perTaskEnabled": "個別任務提醒"
+      "perTaskEnabled": "個別任務提醒",
+      "platformNote": "推播由 iOS app 接收。Web 僅做設定。"
     },
     "dangerZone": {
       "section": "危險操作"
@@ -184,7 +186,10 @@
     "setRecurring": "設成重複任務…",
     "setReminder": "設定提醒…",
     "rowMenu": "任務動作",
-    "completedSection": "已完成 ({n})"
+    "completedSection": "已完成 ({n})",
+    "skipConfirmTitle": "跳過這次發生？",
+    "skipConfirmBody": "「{title}」這次會被跳過。下次發生會照重複規則繼續。",
+    "skipConfirmAction": "跳過"
   },
   "cards": {
     "createAria": "新增卡片",
@@ -308,7 +313,8 @@
       "nthN": "第 {n} 個",
       "last": "最後一個",
       "nthLabel": "第幾個",
-      "weekday": "星期"
+      "weekday": "星期",
+      "weekdaysLabel": "星期"
     },
     "preset": {
       "daily": "每天",
@@ -322,7 +328,14 @@
     "reminder": {
       "enabled": "提醒",
       "timeOfDay": "時段",
-      "dateTime": "提醒時間"
+      "dateTime": "提醒時間",
+      "label": "提醒時間",
+      "placeholder": "不提醒",
+      "clear": "清除"
+    },
+    "validation": {
+      "endBeforeStart": "結束日必須晚於起始日。",
+      "weeklyNeedsWeekday": "至少選一個星期。"
     }
   },
   "notifications": {
