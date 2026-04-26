@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   useTaskRecurrence,
@@ -56,7 +56,7 @@ interface Props {
 
 export function ScheduleSection({ taskId }: Props) {
   const t = useTranslations();
-  const { data, save } = useTaskRecurrence(taskId);
+  const { data, isLoading, save } = useTaskRecurrence(taskId);
 
   const [preset, setPreset] = useState<RecurrencePreset | null>(null);
   const [weekdays, setWeekdays] = useState<Set<number>>(new Set());
@@ -67,10 +67,14 @@ export function ScheduleSection({ taskId }: Props) {
   const [endDate, setEndDate] = useState(today());
   const [remindAt, setRemindAt] = useState<string>(""); // "" = 不提醒
   const [didApplyServer, setDidApplyServer] = useState(false);
+  // Prevents the state-change caused by the sync from triggering a redundant save.
+  const skipNextSaveRef = useRef(false);
 
-  // Sync from server once on first data
+  // Sync from server once on first load.
+  // Flip didApplyServer as soon as SWR finishes loading (data OR null for no recurrence).
   useEffect(() => {
-    if (data && !didApplyServer) {
+    if (isLoading || didApplyServer) return;
+    if (data) {
       setPreset(data.preset);
       setWeekdays(parseWeekdaysCsv(data.weekdays));
       setMonthNth(data.monthNth ?? 1);
@@ -79,9 +83,11 @@ export function ScheduleSection({ taskId }: Props) {
       setHasEndDate(data.endDate !== null);
       setEndDate(data.endDate ?? today());
       setRemindAt(data.remindAtTimeOfDay ?? "");
-      setDidApplyServer(true);
     }
-  }, [data, didApplyServer]);
+    // data === null means no recurrence saved yet; keep useState defaults.
+    skipNextSaveRef.current = true; // skip the save effect triggered by state updates above
+    setDidApplyServer(true);
+  }, [isLoading, data, didApplyServer]);
 
   const errEnd = !validateEndAfterStart(startDate, hasEndDate ? endDate : null);
   const errWeekday = !validateWeeklyHasWeekday(
@@ -92,8 +98,13 @@ export function ScheduleSection({ taskId }: Props) {
 
   // Debounced save (500ms) — single timer for any field change.
   // Skip until server data has been applied (avoid overwriting unloaded card).
+  // Also skip the very first fire after sync to avoid a redundant PUT.
   useEffect(() => {
     if (!didApplyServer) return;
+    if (skipNextSaveRef.current) {
+      skipNextSaveRef.current = false;
+      return;
+    }
     if (!isValid) return;
     const timer = setTimeout(() => {
       void doSave();
@@ -280,24 +291,30 @@ export function ScheduleSection({ taskId }: Props) {
         <label className="block text-sm font-medium text-foreground">
           {t("schedule.reminder.label")}
         </label>
-        <div className="flex gap-2">
-          <input
-            type="time"
-            value={remindAt}
-            onChange={(e) => setRemindAt(e.target.value)}
-            className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-            aria-label={t("schedule.reminder.label")}
-          />
-          {remindAt && (
-            <button
-              type="button"
-              onClick={() => setRemindAt("")}
-              className="text-xs text-text-dim hover:text-foreground"
-            >
-              {t("schedule.reminder.clear")}
-            </button>
-          )}
-        </div>
+        {preset === null ? (
+          <p className="text-xs text-text-dim">
+            {t("schedule.reminder.requiresPreset")}
+          </p>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              type="time"
+              value={remindAt}
+              onChange={(e) => setRemindAt(e.target.value)}
+              className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              aria-label={t("schedule.reminder.label")}
+            />
+            {remindAt && (
+              <button
+                type="button"
+                onClick={() => setRemindAt("")}
+                className="text-xs text-text-dim hover:text-foreground"
+              >
+                {t("schedule.reminder.clear")}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

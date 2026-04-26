@@ -47,6 +47,10 @@ export function SkipConfirmationDialog({
       if (!res.ok) throw new Error(`PATCH failed: ${res.status}`);
       // Revalidate the daily key so the row disappears from the page
       await globalMutate(`/api/daily/${currentDate}`);
+      // Also revalidate the week endpoint so calendar-nav dots update immediately
+      await globalMutate(
+        (key) => typeof key === "string" && key.startsWith("/api/daily/week"),
+      );
       onOpenChange(false);
     } catch (err) {
       console.error("[SkipConfirmationDialog] failed:", err);

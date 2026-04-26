@@ -331,7 +331,8 @@
       "dateTime": "通知日時",
       "label": "リマインダー時刻",
       "placeholder": "通知なし",
-      "clear": "クリア"
+      "clear": "クリア",
+      "requiresPreset": "リマインダーを設定するには、繰り返しルールを選択してください。"
     },
     "validation": {
       "endBeforeStart": "終了日は開始日より後にしてください。",

@@ -331,7 +331,8 @@
       "dateTime": "Reminder time",
       "label": "Reminder time",
       "placeholder": "No reminder",
-      "clear": "Clear"
+      "clear": "Clear",
+      "requiresPreset": "Pick a recurrence rule to set a reminder."
     },
     "validation": {
       "endBeforeStart": "End date must be after start date.",

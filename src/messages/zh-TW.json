@@ -331,7 +331,8 @@
       "dateTime": "提醒時間",
       "label": "提醒時間",
       "placeholder": "不提醒",
-      "clear": "清除"
+      "clear": "清除",
+      "requiresPreset": "選擇重複規則才能設定提醒時間。"
     },
     "validation": {
       "endBeforeStart": "結束日必須晚於起始日。",
