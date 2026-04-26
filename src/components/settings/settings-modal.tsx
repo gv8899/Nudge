@@ -14,6 +14,7 @@ import { useRouter, usePathname, type Locale } from "@/i18n/routing";
 import { fetcher } from "@/lib/fetcher";
 import { TagManager } from "@/components/tags/tag-manager";
 import { CalendarSection } from "./calendar-section";
+import { NotificationsSection } from "./notifications-section";
 import { format, parseISO } from "date-fns";
 
 interface SettingsModalProps {
@@ -214,6 +215,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
           {/* 日曆連接 */}
           <CalendarSection />
+
+          {/* 通知偏好 */}
+          <NotificationsSection />
 
           {/* 標籤管理 */}
           <section className="py-4">
