@@ -32,6 +32,8 @@ export interface DailyTaskAssignment {
   taskId: string;
   date: string;
   isCompleted: boolean;
+  isSkipped: boolean;
+  isRecurring: boolean;
   sortOrder: number;
   task: Task;
 }
