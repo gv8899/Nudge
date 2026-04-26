@@ -58,7 +58,20 @@ public struct CalendarHostView: View {
         .task(id: rangeKey) { await reload() }
         .sheet(item: $selectedEvent) { event in
             CalendarEventDetailSheet(event: event)
+                #if os(macOS)
+                // mac 端原本是裸 .sheet — 沒尺寸、無背景 token，
+                // 視窗大小變不可預測。給最小尺寸 + token 背景。
+                .frame(minWidth: 480, minHeight: 360)
+                .background(Color.nudgeBackground)
+                #endif
         }
+        #if os(macOS)
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.switchCalendarModeNotification)) { note in
+            if let raw = note.object as? String, CalendarViewMode(rawValue: raw) != nil {
+                modeRaw = raw
+            }
+        }
+        #endif
     }
 
     @ViewBuilder
@@ -124,6 +137,7 @@ public struct CalendarHostView: View {
             Image(systemName: "square.grid.2x2")
                 .foregroundStyle(Color.nudgeForeground)
         }
+        .help(Text("calendar.modePickerAria", bundle: .module))
     }
 
     private func currentRange() -> (String, String) {

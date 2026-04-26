@@ -32,5 +32,9 @@ public struct IconButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(accessibilityLabel, bundle: .module))
+        // mac 端 hover 顯示 tooltip。a11y label 已經是這顆按鈕的意義，
+        // 直接重用，不需要每個 call site 自己再加一次 .help()。在 iOS
+        // 上 .help() 沒視覺影響，但會被 VoiceOver 用作 hint，無害。
+        .help(Text(accessibilityLabel, bundle: .module))
     }
 }

@@ -68,7 +68,16 @@ public final class AuthRepository {
             status = .unauthenticated
             return false
         } catch {
-            // 網路錯等：不動 token，status 保持現況
+            // 網路錯：保留 token (避免不小心被登出)，但 status 必須脫
+            // 離 .unknown 否則 AuthGateView 會卡在初始 spinner 永遠
+            // 不顯示登入或內容。
+            // - 已認證過 → 維持 .authenticated（網路恢復不會中斷）
+            // - 從未認證過（cold start）→ 落到 .unauthenticated 讓
+            //   使用者看到登入頁，可選擇重試或重新登入
+            if case .authenticated = status {
+                return false
+            }
+            status = .unauthenticated
             return false
         }
     }

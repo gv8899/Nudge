@@ -69,13 +69,8 @@ public struct CalendarWeekView: View {
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
-                        let dayList = days
-                        ForEach(Array(dayList.enumerated()), id: \.element.date) { index, day in
-                            dayBlock(
-                                date: day.date,
-                                label: day.label,
-                                isLast: index == dayList.count - 1
-                            )
+                        ForEach(days, id: \.date) { day in
+                            dayBlock(date: day.date, label: day.label)
                         }
                     }
                     .padding(16)
@@ -122,7 +117,7 @@ public struct CalendarWeekView: View {
         return "\(fmt.string(from: weekStart)) – \(fmt.string(from: weekEnd))"
     }
 
-    private func dayBlock(date: Date, label: String, isLast: Bool) -> some View {
+    private func dayBlock(date: Date, label: String) -> some View {
         let iso = DateFormatters.isoDate(date)
         let dayEvents = eventsByDate[iso] ?? []
         return VStack(alignment: .leading, spacing: 8) {
@@ -136,32 +131,36 @@ public struct CalendarWeekView: View {
                 .textCase(.uppercase)
             if !dayEvents.isEmpty {
                 ForEach(dayEvents, id: \.id) { event in
+                    let past = isPast(event.end)
+                    let textColor: Color = past ? Color.nudgeTextDim : Color.nudgeForeground
                     Button { onEventTap(event) } label: {
-                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
                             Text(event.allDay ? nudgeLocalized("calendar.eventAllDay", locale: locale) : shortTime(event.start))
-                                .font(.footnote.weight(.semibold))
+                                .font(.body.weight(.semibold))
                                 .monospacedDigit()
-                                .foregroundStyle(Color.nudgeForeground)
+                                .foregroundStyle(textColor)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.85)
                                 .fixedSize(horizontal: true, vertical: false)
-                                .frame(minWidth: 54, alignment: .leading)
+                                .frame(minWidth: 60, alignment: .leading)
                             Text(verbatim: event.title)
-                                .font(.subheadline)
-                                .foregroundStyle(Color.nudgeForeground)
+                                .font(.body)
+                                .foregroundStyle(textColor)
                                 .lineLimit(1)
                             Spacer()
                         }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(Color.nudgeForeground.opacity(past ? 0.02 : 0.04))
+                        )
                     }
                     .buttonStyle(.plain)
                 }
             }
-            // Skip the divider after the last day — was unconditional
-            // Rectangle() per dayBlock which left a trailing line below
-            // the last day with nothing to separate.
-            if !isLast {
-                Divider().background(Color.nudgeBorderLight)
-            }
+            // 區塊化 cards 已自帶視覺分界，不再需要日與日之間的 Divider。
+            // VStack 的 spacing 20 提供足夠呼吸感。
         }
     }
 
@@ -169,5 +168,15 @@ public struct CalendarWeekView: View {
         guard let tIndex = iso.firstIndex(of: "T") else { return iso }
         let afterT = iso.index(after: tIndex)
         return String(iso[afterT...].prefix(5))
+    }
+
+    /// 跟 CalendarDayView 共用的判斷邏輯 — 只小到不值得抽 file。
+    /// 若日後 Day / Week / Month 共用更多 helper 再抽到 CalendarDateUtils。
+    private func isPast(_ endIso: String) -> Bool {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = f.date(from: endIso) { return d < Date() }
+        f.formatOptions = [.withInternetDateTime]
+        return f.date(from: endIso).map { $0 < Date() } ?? false
     }
 }

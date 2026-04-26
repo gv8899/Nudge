@@ -15,7 +15,8 @@
       "expanded": "展開済み",
       "collapsed": "折りたたみ済み"
     },
-    "errorSaving": "保存に失敗しました。もう一度お試しください。"
+    "errorSaving": "保存に失敗しました。もう一度お試しください。",
+    "back": "戻る"
   },
   "settings": {
     "title": "設定",
@@ -106,7 +107,9 @@
   "login": {
     "tagline": "毎日のタスクをそっと後押し",
     "signInWithGoogle": "Google でサインイン",
-    "loginFailed": "サインインに失敗しました。もう一度お試しください。"
+    "loginFailed": "サインインに失敗しました。もう一度お試しください。",
+    "signInWithApple": "Apple でサインイン",
+    "signingIn": "サインイン中…"
   },
   "task": {
     "dragReorder": "並べ替え：{title}",
@@ -189,7 +192,18 @@
     "completedSection": "完了 ({n})",
     "skipConfirmTitle": "この回をスキップ？",
     "skipConfirmBody": "「{title}」をこの回はスキップします。次回は繰り返しルールに従います。",
-    "skipConfirmAction": "スキップ"
+    "skipConfirmAction": "スキップ",
+    "todayAria": "今日",
+    "dashboardCalendarTitle": "カレンダー",
+    "dashboardCalendarDisconnected": "設定から Google カレンダーを接続すると、今日の予定がここに表示されます。",
+    "dashboardCalendarEmpty": "この日の予定はありません。",
+    "dashboardCardsTitle": "最近のカード",
+    "dashboardToggleCalendar": "カレンダー欄を表示",
+    "dashboardToggleTasks": "タスク欄を表示",
+    "dashboardToggleCards": "カード欄を表示",
+    "popoverRecurringBadge": "繰り返し",
+    "popoverExpand": "展開",
+    "dashboardTasksTitle": "今日のタスク"
   },
   "cards": {
     "createAria": "新しいカード",
@@ -209,7 +223,8 @@
     "cleanLoading": "削除中...",
     "toastCleaned": "{count} 件の空白カードを削除しました",
     "toastNothingToClean": "削除するカードがありません",
-    "untitled": "無題"
+    "untitled": "無題",
+    "emptyDescription": "アイデアやメモを書き留めましょう。カードは検索でいつでも見つけられます。"
   },
   "cardDetail": {
     "backToCards": "カード一覧へ戻る",
@@ -283,7 +298,8 @@
     "prevMonth": "前の月",
     "nextMonth": "次の月",
     "eventCount": "{n} 件のイベント",
-    "connectedEmailLabel": "連携中"
+    "connectedEmailLabel": "連携中",
+    "modePickerAria": "表示モード"
   },
   "offline": {
     "banner": "オフライン。最終更新: {time}"

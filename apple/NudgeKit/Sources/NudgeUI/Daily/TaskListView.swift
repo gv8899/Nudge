@@ -98,7 +98,7 @@ public struct TaskListView: View {
                 .font(.largeTitle)
                 .foregroundStyle(Color.nudgeTextDim)
             Text("daily.emptyToday", bundle: .module)
-                .font(.subheadline)
+                .nudgeFont(.emptyStateBody)
                 .foregroundStyle(Color.nudgeTextDim)
             Spacer()
         }
@@ -107,7 +107,9 @@ public struct TaskListView: View {
     }
 
     private var list: some View {
-        LazyVStack(spacing: 0) {
+        // iOS: 卡片之間 8pt + 外側 16pt margin（block 視覺）
+        // mac: 緊湊列表，零間距 + 無外側 margin（dense workspace）
+        LazyVStack(spacing: listSpacing) {
             ForEach(items) { item in
                 switch item {
                 case .row(let assignment):
@@ -117,7 +119,24 @@ public struct TaskListView: View {
                 }
             }
         }
+        .padding(.horizontal, listOuterPaddingH)
         .background(Color.nudgeBackground)
+    }
+
+    private var listSpacing: CGFloat {
+        #if os(macOS)
+        return 0
+        #else
+        return 8
+        #endif
+    }
+
+    private var listOuterPaddingH: CGFloat {
+        #if os(macOS)
+        return 0
+        #else
+        return 16
+        #endif
     }
 
     private func row(_ assignment: DailyAssignmentDTO) -> some View {
@@ -158,11 +177,11 @@ public struct TaskListView: View {
                     format: nudgeLocalized("daily.completedSection %lld", locale: locale),
                     count
                 ))
-                    .font(.subheadline.weight(.semibold))
+                    .nudgeFont(.sectionHeader)
                     .foregroundStyle(Color.nudgeTextDim)
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
+                    .nudgeFont(.sectionChevron)
                     .rotationEffect(.degrees(isCompletedExpanded ? 90 : 0))
                     .foregroundStyle(Color.nudgeTextDim)
             }

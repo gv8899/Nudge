@@ -99,32 +99,38 @@ public struct CalendarDayView: View {
     private func eventCard(_ event: CalendarEventDTO) -> some View {
         let past = isPast(event.end)
         let titleColor: Color = past ? Color.nudgeTextDim : Color.nudgeForeground
-        let timeColor: Color = past ? Color.nudgeTextDim.opacity(0.7) : Color.nudgeForeground
+        let timeColor: Color = past ? Color.nudgeTextDim : Color.nudgeForeground
 
-        // Time floats outside the card: it's a free label that frames
-        // the card on the left. Only the title + location group sits on
-        // the elevated surface, so the eye reads time-as-axis, content-
-        // as-object instead of one giant rectangle.
-        HStack(alignment: .top, spacing: 14) {
+        // 整張卡片，時間 vs 內容靠「降階」色塊區隔 — 不畫線。時間欄
+        // 多疊一層 nudgeForeground tint，effective opacity 比內容欄
+        // 高 ~10pp，視覺上自然分層。`.frame(maxHeight: .infinity)`
+        // 讓時間欄背景跟著最高欄位（內容欄）拉到等高，不會在底部
+        // 留一截露出底卡 bg。
+        HStack(alignment: .top, spacing: 0) {
+            // Time column
             Group {
                 if event.allDay {
                     Text("calendar.eventAllDay", bundle: .module)
-                        .font(.title3.weight(.semibold))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(timeColor)
                 } else {
                     Text(shortTime(event.start))
                         .font(.title3.weight(.semibold))
                         .monospacedDigit()
+                        .foregroundStyle(timeColor)
                 }
             }
-            .foregroundStyle(timeColor)
             .lineLimit(1)
             .minimumScaleFactor(0.85)
             .fixedSize(horizontal: true, vertical: false)
             .frame(minWidth: 64, alignment: .leading)
-            // Match the card's vertical padding so the time baseline
-            // lines up with the title baseline inside the card.
+            .padding(.horizontal, 14)
             .padding(.vertical, 12)
+            .frame(maxHeight: .infinity, alignment: .topLeading)
 
+            // Content column — overlay tint 改放到內容欄，內容區
+            // 視覺上「重」於時間區。時間區只用底卡 bg，反而看起來
+            // 像 label。
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: event.title)
                     .font(.body.weight(.semibold))
@@ -146,11 +152,14 @@ public struct CalendarDayView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.nudgeForeground.opacity(past ? 0.03 : 0.06))
-            )
+            .frame(maxHeight: .infinity, alignment: .topLeading)
+            .background(Color.nudgeForeground.opacity(past ? 0.025 : 0.05))
         }
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.nudgeForeground.opacity(past ? 0.02 : 0.04))
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     // MARK: - Period grouping

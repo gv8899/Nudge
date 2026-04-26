@@ -10,6 +10,10 @@ public struct CardListItemView: View {
     /// scroll frame. With 100 cards that adds up.
     private let preview: String
 
+    #if os(macOS)
+    @State private var isHovered = false
+    #endif
+
     public init(card: CardDTO, onTap: @escaping () -> Void) {
         self.card = card
         self.onTap = onTap
@@ -48,8 +52,8 @@ public struct CardListItemView: View {
                 }
             }
             .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .frame(minHeight: 76)
+            .padding(.vertical, rowPadV)
+            .frame(minHeight: rowMinHeight)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -58,6 +62,34 @@ public struct CardListItemView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: a11yLabel))
         .accessibilityAddTraits(.isButton)
+        #if os(macOS)
+        .overlay(
+            // Hover 高亮蓋在 button 內容上方但不擋滑鼠（allowsHitTesting=false
+            // 預設 overlay 不擋）。卡片 row 用 RoundedRect bg 已被 host view
+            // 包裝，所以 hover 用 stroke 表達會干擾，改用淡淡的 forground
+            // overlay 避免雙層 bg 疊色。
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.nudgeForeground.opacity(isHovered ? 0.05 : 0))
+                .allowsHitTesting(false)
+        )
+        .onHover { isHovered = $0 }
+        #endif
+    }
+
+    private var rowMinHeight: CGFloat {
+        #if os(macOS)
+        return 56
+        #else
+        return 76
+        #endif
+    }
+
+    private var rowPadV: CGFloat {
+        #if os(macOS)
+        return 8
+        #else
+        return 12
+        #endif
     }
 
     private var titleText: LocalizedStringKey {

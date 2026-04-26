@@ -244,24 +244,32 @@ public struct CalendarMonthView: View {
                 .padding(16)
         } else {
             ScrollView {
-                VStack(spacing: 10) {
+                VStack(spacing: 8) {
                     ForEach(selectedDayEvents, id: \.id) { event in
+                        let past = isPast(event.end)
+                        let textColor: Color = past ? Color.nudgeTextDim : Color.nudgeForeground
                         Button { onEventTap(event) } label: {
-                            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            HStack(alignment: .firstTextBaseline, spacing: 12) {
                                 Text(event.allDay ? nudgeLocalized("calendar.eventAllDay", locale: locale) : shortTime(event.start))
-                                    .font(.footnote.weight(.semibold))
+                                    .font(.body.weight(.semibold))
                                     .monospacedDigit()
-                                    .foregroundStyle(Color.nudgeForeground)
+                                    .foregroundStyle(textColor)
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.85)
                                     .fixedSize(horizontal: true, vertical: false)
-                                    .frame(minWidth: 54, alignment: .leading)
+                                    .frame(minWidth: 60, alignment: .leading)
                                 Text(verbatim: event.title)
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color.nudgeForeground)
+                                    .font(.body)
+                                    .foregroundStyle(textColor)
                                     .lineLimit(1)
                                 Spacer()
                             }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(Color.nudgeForeground.opacity(past ? 0.02 : 0.04))
+                            )
                         }
                         .buttonStyle(.plain)
                     }
@@ -275,5 +283,14 @@ public struct CalendarMonthView: View {
         guard let tIndex = iso.firstIndex(of: "T") else { return iso }
         let afterT = iso.index(after: tIndex)
         return String(iso[afterT...].prefix(5))
+    }
+
+    /// 跟 CalendarDayView / WeekView 共用的判斷邏輯。
+    private func isPast(_ endIso: String) -> Bool {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = f.date(from: endIso) { return d < Date() }
+        f.formatOptions = [.withInternetDateTime]
+        return f.date(from: endIso).map { $0 < Date() } ?? false
     }
 }

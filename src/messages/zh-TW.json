@@ -15,7 +15,8 @@
       "expanded": "已展開",
       "collapsed": "已收合"
     },
-    "errorSaving": "儲存失敗，請再試一次。"
+    "errorSaving": "儲存失敗，請再試一次。",
+    "back": "返回"
   },
   "settings": {
     "title": "設定",
@@ -106,7 +107,9 @@
   "login": {
     "tagline": "輕量型每日任務推進工具",
     "signInWithGoogle": "使用 Google 帳號登入",
-    "loginFailed": "登入失敗，請再試一次"
+    "loginFailed": "登入失敗，請再試一次",
+    "signInWithApple": "用 Apple 登入",
+    "signingIn": "登入中…"
   },
   "task": {
     "dragReorder": "拖曳排序：{title}",
@@ -189,7 +192,18 @@
     "completedSection": "已完成 ({n})",
     "skipConfirmTitle": "跳過這次發生？",
     "skipConfirmBody": "「{title}」這次會被跳過。下次發生會照重複規則繼續。",
-    "skipConfirmAction": "跳過"
+    "skipConfirmAction": "跳過",
+    "todayAria": "今天",
+    "dashboardCalendarTitle": "行事曆",
+    "dashboardCalendarDisconnected": "在設定中連結 Google 行事曆，今日預定就會顯示在這。",
+    "dashboardCalendarEmpty": "這天沒有行程。",
+    "dashboardCardsTitle": "最近卡片",
+    "dashboardToggleCalendar": "顯示行事曆欄",
+    "dashboardToggleTasks": "顯示任務欄",
+    "dashboardToggleCards": "顯示卡片欄",
+    "popoverRecurringBadge": "重複",
+    "popoverExpand": "展開",
+    "dashboardTasksTitle": "今日任務"
   },
   "cards": {
     "createAria": "新增卡片",
@@ -209,7 +223,8 @@
     "cleanLoading": "清除中...",
     "toastCleaned": "已清除 {count} 張空白卡片",
     "toastNothingToClean": "沒有需要清除的卡片",
-    "untitled": "未命名"
+    "untitled": "未命名",
+    "emptyDescription": "記下一個想法、靈感或筆記。卡片可被搜尋與重新整理。"
   },
   "cardDetail": {
     "backToCards": "返回卡片",
@@ -283,7 +298,8 @@
     "prevMonth": "上個月",
     "nextMonth": "下個月",
     "eventCount": "{n} 個事件",
-    "connectedEmailLabel": "已連結"
+    "connectedEmailLabel": "已連結",
+    "modePickerAria": "檢視模式"
   },
   "offline": {
     "banner": "離線中。上次更新於 {time}"

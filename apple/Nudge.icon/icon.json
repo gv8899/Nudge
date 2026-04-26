@@ -1,0 +1,38 @@
+{
+  "color-space-for-untagged-svg-colors" : "display-p3",
+  "fill" : {
+    "automatic-gradient" : "display-p3:0.88207,0.84364,0.75699,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "layer_fg 2.svg",
+          "name" : "layer_fg 2"
+        },
+        {
+          "image-name" : "layer_mid.svg",
+          "name" : "layer_mid"
+        },
+        {
+          "fill" : {
+            "solid" : "display-p3:0.88207,0.84364,0.75699,1.00000"
+          },
+          "image-name" : "layer_bg.svg",
+          "name" : "layer_bg"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : "shared"
+  }
+}

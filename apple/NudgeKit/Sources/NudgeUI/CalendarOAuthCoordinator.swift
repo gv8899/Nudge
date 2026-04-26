@@ -12,13 +12,18 @@ import AppKit
 /// finishes when the server redirects to `nudge://calendar/connected`.
 @MainActor
 public final class CalendarOAuthCoordinator: NSObject {
-    public enum ConnectError: Error {
+    public enum ConnectError: Error, Sendable {
         case userCancelled
         case sessionFailed(Error)
         case invalidCallback
     }
 
-    private static let callbackScheme = "nudge"
+    // `nonisolated` so the @Sendable callback below can read it without
+    // being yanked back onto MainActor (which is what crashed the mac
+    // build with `_dispatch_assert_queue_fail` — the callback fires on
+    // XPC's queue and Swift 6 trapped on access of an implicitly
+    // MainActor-isolated static).
+    private nonisolated static let callbackScheme = "nudge"
 
     public override init() {
         super.init()
@@ -26,10 +31,16 @@ public final class CalendarOAuthCoordinator: NSObject {
 
     public func present(connectURL: URL) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            // @Sendable explicitly — without it the closure inherits the
+            // enclosing @MainActor isolation and gets called by AS on a
+            // non-main XPC queue, triggering the runtime isolation check
+            // (`_swift_task_checkIsolatedSwift` → SIGTRAP). Closure body
+            // touches only Sendable types: continuation, ConnectError,
+            // and the nonisolated callbackScheme.
             let session = ASWebAuthenticationSession(
                 url: connectURL,
                 callbackURLScheme: Self.callbackScheme
-            ) { callback, error in
+            ) { @Sendable callback, error in
                 if let error = error as? ASWebAuthenticationSessionError,
                    error.code == .canceledLogin {
                     continuation.resume(throwing: ConnectError.userCancelled)

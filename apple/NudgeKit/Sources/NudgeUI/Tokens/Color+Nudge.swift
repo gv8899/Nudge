@@ -26,4 +26,15 @@ public extension Color {
     static let nudgeSuccess = Color("nudge.success", bundle: .module)
     static let nudgeWarning = Color("nudge.warning", bundle: .module)
     static let nudgeInfo = Color("nudge.info", bundle: .module)
+
+    // MARK: - Interaction-state fills
+    //
+    // 統一 hover / selected 視覺強度，避免不同 list / grid 用不同
+    // opacity 出現「視覺權重不一致」。
+    // - hover: foreground @ 6% — 滑鼠 over 但未點選
+    // - selected: primary @ 14% — 已選中（list 列、grid 卡片皆同）
+
+    static var nudgeHoverFill: Color { nudgeForeground.opacity(0.06) }
+    static var nudgeSelectedFill: Color { nudgePrimary.opacity(0.14) }
+    static var nudgeSelectedStroke: Color { nudgePrimary.opacity(0.6) }
 }
