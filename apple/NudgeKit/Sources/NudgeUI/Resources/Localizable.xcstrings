@@ -710,19 +710,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Type / to insert headings, lists…"
+            "value": "Add details..."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "/ を入力して見出しやリストを挿入…"
+            "value": "詳細を追加..."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "打 / 插入標題、清單…"
+            "value": "補充細節⋯⋯"
           }
         }
       }
@@ -2684,19 +2684,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Write something..."
+            "value": "How was your day?"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "何か書いてみましょう..."
+            "value": "今日はどうでしたか？"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "寫點什麼⋯⋯"
+            "value": "今天怎麼樣？"
           }
         }
       }
