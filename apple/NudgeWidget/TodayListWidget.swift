@@ -93,23 +93,20 @@ struct TodayListRow: View {
             .buttonStyle(.plain)
 
             Link(destination: URL(string: "nudge://task/\(task.taskId)")!) {
-                HStack(spacing: 4) {
-                    Text(verbatim: task.title)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(task.isCompleted
-                            ? Color(red: 0.43, green: 0.41, blue: 0.33) // nudge:allow-color
-                            : Color(red: 0.11, green: 0.11, blue: 0.09)) // nudge:allow-color
-                        .strikethrough(task.isCompleted)
-                        .opacity(task.isCompleted ? 0.6 : 1.0)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    if task.isOverdue {
-                        Text(verbatim: "OVERDUE")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(Color(red: 0.77, green: 0.30, blue: 0.30)) // nudge:allow-color
-                    }
-                    Spacer(minLength: 0)
-                }
+                // No OVERDUE badge — overdue items naturally roll into
+                // today's list (matching Daily tab) and the red label felt
+                // like nagging. The data model still flags isOverdue so the
+                // snapshot mapper can keep them sorted to the top.
+                Text(verbatim: task.title)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(task.isCompleted
+                        ? Color(red: 0.43, green: 0.41, blue: 0.33) // nudge:allow-color
+                        : Color(red: 0.11, green: 0.11, blue: 0.09)) // nudge:allow-color
+                    .strikethrough(task.isCompleted)
+                    .opacity(task.isCompleted ? 0.6 : 1.0)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .buttonStyle(.plain)
         }
