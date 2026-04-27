@@ -146,7 +146,15 @@ struct NudgeiOSApp: App {
                 }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active {
-                        Task { await rescheduleNotifications() }
+                        Task {
+                            // Refresh widget snapshot every time the App
+                            // returns to foreground — handles day rollover
+                            // (overnight in background → next morning open
+                            // → widget should reflect today's tasks, not
+                            // yesterday's leftovers).
+                            await taskRepo.refreshWidgetSnapshot()
+                            await rescheduleNotifications()
+                        }
                     }
                 }
             }

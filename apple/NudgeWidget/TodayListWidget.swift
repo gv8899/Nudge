@@ -26,10 +26,21 @@ struct TodayListProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<TodayListEntry>) -> Void) {
-        let snap = store.read() ?? WidgetSnapshot(date: isoToday(), generatedAt: Date(), tasks: [])
         let now = Date()
+        let today = isoToday()
+        let raw = store.read()
+        // Stale-day guard: if the snapshot was written for a different day,
+        // render empty rather than showing yesterday's leftovers as if they
+        // were today's plan. The App writes a fresh snapshot on launch and
+        // on scenePhase .active, so the next foreground brings it back.
+        let snap: WidgetSnapshot = {
+            if let s = raw, s.date == today { return s }
+            return WidgetSnapshot(date: today, generatedAt: now, tasks: [])
+        }()
         let entry = TodayListEntry(date: now, snapshot: snap)
-        // Schedule a refresh at midnight so the widget rolls over at day boundary.
+        // Schedule a refresh at midnight so the widget rolls over at day
+        // boundary even before the App next opens (will re-evaluate the
+        // stale-day guard above).
         let cal = Calendar.current
         let tomorrow = cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: now)) ?? now
         completion(Timeline(entries: [entry], policy: .after(tomorrow)))
