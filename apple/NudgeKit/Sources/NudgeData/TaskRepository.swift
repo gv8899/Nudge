@@ -3,15 +3,35 @@ import Observation
 import SwiftData
 import NudgeCore
 
+/// Notify external widget surfaces about task changes. App passes in a real
+/// implementation that writes the snapshot + reloads timelines.
+/// NudgeData stays WidgetKit-free; the App owns the WidgetKit dependency.
+public protocol WidgetRefreshing: Sendable {
+    func refresh() async
+}
+
 @Observable
 @MainActor
 public final class TaskRepository {
     private let client: APIClient
     private let container: ModelContainer
+    private let widgetRefresher: WidgetRefreshing?
 
-    public init(client: APIClient, container: ModelContainer) {
+    public init(
+        client: APIClient,
+        container: ModelContainer,
+        widgetRefresher: WidgetRefreshing? = nil
+    ) {
         self.client = client
         self.container = container
+        self.widgetRefresher = widgetRefresher
+    }
+
+    /// Manually trigger the widget snapshot refresh. Mutation methods do this
+    /// automatically; call this from app launch / post-login flows so the
+    /// widget reflects current server state without waiting for a mutation.
+    public func refreshWidgetSnapshot() async {
+        await widgetRefresher?.refresh()
     }
 
     // MARK: - Read
@@ -85,6 +105,7 @@ extension TaskRepository {
             "/api/daily/\(date)/tasks",
             body: Body(title: title)
         )
+        await widgetRefresher?.refresh()
         return response
     }
 
@@ -94,6 +115,7 @@ extension TaskRepository {
             "/api/daily/\(onDate)/tasks",
             body: Body(assignmentId: assignmentId, isCompleted: isCompleted)
         )
+        await widgetRefresher?.refresh()
     }
 
     public func reorder(date: String, orderedIds: [String]) async throws {
@@ -104,6 +126,7 @@ extension TaskRepository {
             "/api/daily/\(date)/tasks/reorder",
             body: Body(order: order)
         )
+        await widgetRefresher?.refresh()
     }
 
     public func moveToDate(assignmentId: String, from: String, to: String) async throws {
@@ -112,6 +135,7 @@ extension TaskRepository {
             "/api/daily/\(from)/tasks",
             body: Body(assignmentId: assignmentId, moveToDate: to)
         )
+        await widgetRefresher?.refresh()
     }
 
     public func archive(taskId: String) async throws {
@@ -120,6 +144,7 @@ extension TaskRepository {
             "/api/tasks/\(taskId)/status",
             body: Body(status: "archived")
         )
+        await widgetRefresher?.refresh()
     }
 
     public func updateTitle(taskId: String, title: String) async throws {
@@ -128,6 +153,7 @@ extension TaskRepository {
             "/api/tasks/\(taskId)",
             body: Body(title: title)
         )
+        await widgetRefresher?.refresh()
     }
 
     public func updateDescription(taskId: String, description: String) async throws {
@@ -144,5 +170,6 @@ extension TaskRepository {
             "/api/daily-assignments/\(assignmentId)",
             body: Body(isSkipped: isSkipped)
         )
+        await widgetRefresher?.refresh()
     }
 }
