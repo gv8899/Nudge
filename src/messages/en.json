@@ -250,6 +250,33 @@
     "entryAria": "Journal for {month}/{day}/{year}",
     "monthLabel": "{month}"
   },
+  "widget": {
+    "quickAdd": {
+      "label": "New task",
+      "iconLabel": "Add"
+    },
+    "quickAddCard": {
+      "label": "New card"
+    },
+    "todayList": {
+      "title": "Today",
+      "empty": "No tasks today · + Add"
+    },
+    "kind": {
+      "quickAdd": {
+        "displayName": "Quick Add",
+        "description": "Add a task in one tap"
+      },
+      "quickAddCard": {
+        "displayName": "Quick Add Card",
+        "description": "Add a card in one tap"
+      },
+      "todayList": {
+        "displayName": "Today's Tasks",
+        "description": "Shows your top 5 tasks today"
+      }
+    }
+  },
   "calendar": {
     "section": "Calendar",
     "connectTitle": "Connect Google Calendar",

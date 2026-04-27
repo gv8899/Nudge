@@ -250,6 +250,33 @@
     "entryAria": "{year}年{month}月{day}日のジャーナル",
     "monthLabel": "{month} 月"
   },
+  "widget": {
+    "quickAdd": {
+      "label": "タスク追加",
+      "iconLabel": "追加"
+    },
+    "quickAddCard": {
+      "label": "カード追加"
+    },
+    "todayList": {
+      "title": "今日",
+      "empty": "今日のタスクなし ・ ＋ 追加"
+    },
+    "kind": {
+      "quickAdd": {
+        "displayName": "クイック追加",
+        "description": "ワンタップで今日のタスクを追加"
+      },
+      "quickAddCard": {
+        "displayName": "クイック追加カード",
+        "description": "ワンタップでカードを追加"
+      },
+      "todayList": {
+        "displayName": "今日のタスク",
+        "description": "今日のタスクを 5 件表示"
+      }
+    }
+  },
   "calendar": {
     "section": "カレンダー",
     "connectTitle": "Google カレンダーを連携",

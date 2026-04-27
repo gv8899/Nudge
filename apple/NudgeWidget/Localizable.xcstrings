@@ -1,0 +1,83 @@
+{
+  "sourceLanguage" : "zh-Hant",
+  "strings" : {
+    "widget.kind.quickAdd.description" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add a task in one tap" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ワンタップで今日のタスクを追加" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "一鍵新增今日任務" } }
+      }
+    },
+    "widget.kind.quickAdd.displayName" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Quick Add" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クイック追加" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "快速新增任務" } }
+      }
+    },
+    "widget.kind.quickAddCard.description" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add a card in one tap" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ワンタップでカードを追加" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "一鍵新增卡片" } }
+      }
+    },
+    "widget.kind.quickAddCard.displayName" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Quick Add Card" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クイック追加カード" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "快速新增卡片" } }
+      }
+    },
+    "widget.kind.todayList.description" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Shows your top 5 tasks today" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今日のタスクを 5 件表示" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "顯示今日前 5 個任務" } }
+      }
+    },
+    "widget.kind.todayList.displayName" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today's Tasks" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今日のタスク" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "今日任務" } }
+      }
+    },
+    "widget.quickAdd.iconLabel" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "追加" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "新增" } }
+      }
+    },
+    "widget.quickAdd.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New task" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "タスク追加" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "新增任務" } }
+      }
+    },
+    "widget.quickAddCard.label" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New card" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "カード追加" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "新增卡片" } }
+      }
+    },
+    "widget.todayList.empty" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No tasks today · + Add" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今日のタスクなし ・ ＋ 追加" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "今日無任務 ・ ＋ 新增" } }
+      }
+    },
+    "widget.todayList.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今日" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "今日" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

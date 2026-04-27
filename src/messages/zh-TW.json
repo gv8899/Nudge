@@ -250,6 +250,33 @@
     "entryAria": "{year}年{month}月{day}日的日記",
     "monthLabel": "{month} 月"
   },
+  "widget": {
+    "quickAdd": {
+      "label": "新增任務",
+      "iconLabel": "新增"
+    },
+    "quickAddCard": {
+      "label": "新增卡片"
+    },
+    "todayList": {
+      "title": "今日",
+      "empty": "今日無任務 ・ ＋ 新增"
+    },
+    "kind": {
+      "quickAdd": {
+        "displayName": "快速新增任務",
+        "description": "一鍵新增今日任務"
+      },
+      "quickAddCard": {
+        "displayName": "快速新增卡片",
+        "description": "一鍵新增卡片"
+      },
+      "todayList": {
+        "displayName": "今日任務",
+        "description": "顯示今日前 5 個任務"
+      }
+    }
+  },
   "calendar": {
     "section": "行事曆",
     "connectTitle": "連結 Google Calendar",
