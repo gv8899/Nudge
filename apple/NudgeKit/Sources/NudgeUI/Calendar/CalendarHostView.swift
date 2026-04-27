@@ -6,6 +6,7 @@ import NudgeCore
 /// sub-views.
 public struct CalendarHostView: View {
     @Environment(CalendarRepository.self) private var calendarRepo
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage(CalendarPreferenceKey.viewMode) private var modeRaw: String = CalendarViewMode.day.rawValue
 
     @State private var selectedDate: String = DateFormatters.isoDate(Date())
@@ -56,6 +57,11 @@ public struct CalendarHostView: View {
             }
         }
         .task(id: rangeKey) { await reload() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                Task { await reload() }
+            }
+        }
         .sheet(item: $selectedEvent) { event in
             CalendarEventDetailSheet(event: event)
                 #if os(macOS)
