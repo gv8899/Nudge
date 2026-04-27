@@ -4,6 +4,9 @@ import NudgeCore
 public struct CardsHostView: View {
     @Environment(CardRepository.self) private var cardRepo
     @Environment(TagRepository.self) private var tagRepo
+    #if os(iOS)
+    @Environment(NotificationRouter.self) private var notificationRouter
+    #endif
 
     @State private var cards: [CardDTO] = []
     @State private var nextCursor: String?
@@ -61,6 +64,17 @@ public struct CardsHostView: View {
             }
         }
         .task { await firstPage() }
+        // Widget deep link: PlatformRootView switches the tab on
+        // `pendingNewCard`, but TabView lazily mounts CardsHostView the
+        // FIRST time the tab is selected — by then `pendingNewCard` is
+        // already `true`, so a plain `.onChange` would never see a
+        // transition. `initial: true` re-fires with the current value at
+        // mount, catching the widget-tap scenario.
+        .onChange(of: notificationRouter.pendingNewCard, initial: true) { _, isPending in
+            guard isPending else { return }
+            createCard()
+            notificationRouter.clear()
+        }
     }
 
     /// iOS 26 glass FAB for creating a new card. `.glass` (neutral,

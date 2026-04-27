@@ -1,10 +1,32 @@
 import SwiftUI
 import SwiftData
 import UserNotifications
+import WidgetKit
 import GoogleSignIn
 import NudgeCore
 import NudgeData
 import NudgeUI
+
+/// App-side implementation of WidgetRefreshing. Fetches today's data via
+/// the supplied closure, builds a snapshot, writes it to the App Group
+/// container, and reloads all WidgetKit timelines so the widget reflects
+/// the change. Lives in the App target (not NudgeData) to keep the
+/// WidgetKit dependency out of shared frameworks.
+private struct WidgetRefresherImpl: WidgetRefreshing {
+    let fetch: @Sendable () async throws -> DailyDataDTO
+
+    func refresh() async {
+        let store = WidgetSnapshotStore()
+        do {
+            let data = try await fetch()
+            let snap = makeWidgetSnapshot(from: data, generatedAt: Date())
+            try store.write(snap)
+            WidgetCenter.shared.reloadAllTimelines()
+        } catch {
+            print("[WidgetRefresher] failed: \(error)")
+        }
+    }
+}
 
 @main
 struct NudgeiOSApp: App {
@@ -20,6 +42,8 @@ struct NudgeiOSApp: App {
     @State private var notificationRouter: NotificationRouter
     private let container: ModelContainer
     private let googleSignIn: GoogleSignInServiceIOS
+    private let keychain: KeychainStorage
+    private let sharedTokenStore: SharedTokenStore
 
     init() {
         NudgeAppearance.configure()
@@ -33,6 +57,7 @@ struct NudgeiOSApp: App {
         NudgeNotificationDelegate.router = router
 
         let keychain = KeychainStorage(service: "tw.nudge.app")
+        let sharedTokenStore = SharedTokenStore()
         let tokenProvider: APIClient.TokenProvider = {
             try? keychain.get(for: "token")
         }
@@ -42,7 +67,15 @@ struct NudgeiOSApp: App {
         )
         let authRepo = AuthRepository(client: client, keychain: keychain)
         let container = NudgeModelContainer.make()
-        let taskRepo = TaskRepository(client: client, container: container)
+        let taskRepo = TaskRepository(
+            client: client,
+            container: container,
+            widgetRefresher: WidgetRefresherImpl(
+                fetch: { [client] in
+                    try await client.get("/api/daily/\(DateFormatters.isoDate(Date()))")
+                }
+            )
+        )
         let tagRepo = TagRepository(client: client)
         let calRepo = CalendarRepository(client: client)
         let cardRepo = CardRepository(client: client)
@@ -67,6 +100,8 @@ struct NudgeiOSApp: App {
         self._notificationRouter = State(initialValue: notificationRouter)
         self.container = container
         self.googleSignIn = GoogleSignInServiceIOS.fromInfoPlist()
+        self.keychain = keychain
+        self.sharedTokenStore = sharedTokenStore
     }
 
     var body: some Scene {
@@ -88,13 +123,26 @@ struct NudgeiOSApp: App {
                 }
                 .task {
                     await auth.restoreSession()
+                    // Mirror the keychain token into the shared App Group
+                    // file so the widget extension can read it (sim cannot
+                    // reliably share keychain via access groups; see
+                    // SharedTokenStore.swift).
+                    syncTokenToSharedStore()
+                    // Seed the widget snapshot on launch — without this,
+                    // the widget shows the empty-state until the user
+                    // first creates/toggles a task. Mutation methods take
+                    // over from there.
+                    await taskRepo.refreshWidgetSnapshot()
                     // First-launch reschedule: scenePhase .onChange may
                     // not fire for the initial active state, so do it
                     // here too. Idempotent.
                     await rescheduleNotifications()
                 }
                 .onOpenURL { url in
-                    _ = GIDSignIn.sharedInstance.handle(url)
+                    if GIDSignIn.sharedInstance.handle(url) {
+                        return
+                    }
+                    notificationRouter.handleWidgetURL(url)
                 }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active {
@@ -113,6 +161,17 @@ struct NudgeiOSApp: App {
     /// the body content (task counts / streak) lands. Also clears any
     /// leftover batch notifications from previous test runs so they don't
     /// keep firing.
+    /// Push the current keychain auth token (if any) into the App Group
+    /// container so the NudgeWidget extension can read it from
+    /// `SharedTokenStore.read()`. Clears the file when the user is signed out.
+    private func syncTokenToSharedStore() {
+        if let token = try? keychain.get(for: "token"), !token.isEmpty {
+            try? sharedTokenStore.write(token)
+        } else {
+            sharedTokenStore.clear()
+        }
+    }
+
     private func rescheduleNotifications() async {
         _ = await NotificationScheduler.shared.requestAuthIfNeeded()
         UNUserNotificationCenter.current().removePendingNotificationRequests(
@@ -124,6 +183,10 @@ struct NudgeiOSApp: App {
         do {
             let idToken = try await googleSignIn.signIn()
             _ = try await auth.login(idToken: idToken)
+            // Make the freshly-stored token visible to the widget extension,
+            // then seed today's snapshot so the widget renders immediately.
+            syncTokenToSharedStore()
+            await taskRepo.refreshWidgetSnapshot()
             return .success(())
         } catch {
             return .failure(error)

@@ -206,6 +206,16 @@ public struct DailyHostView: View {
                 navigationPath.append(TaskIdRoute(id: taskId))
                 notificationRouter.clear()
             }
+            .onChange(of: notificationRouter.pendingNewTask) { _, isPending in
+                guard isPending else { return }
+                // Mirror the FAB tap path — fresh empty input then present
+                // the quick-add alert. Today selected so the new task lands
+                // on the day the user expects when arriving via widget.
+                selectedDate = DateFormatters.isoDate(Date())
+                quickAddText = ""
+                showQuickAdd = true
+                notificationRouter.clear()
+            }
             .sheet(item: $moveSheetAssignment) { assignment in
                 MoveToDatePickerView(
                     initialDate: assignment.date,

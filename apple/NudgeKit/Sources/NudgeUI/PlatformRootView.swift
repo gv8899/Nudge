@@ -23,16 +23,25 @@ public struct PlatformRootView: View {
 }
 
 #if os(iOS)
+/// Tab identity for the iOS tab bar. Used as `Tab(value:)` selection so
+/// deep-link handlers (NotificationRouter) can switch tabs declaratively
+/// instead of fighting `TabView` internal selection state.
+public enum RootTab: Hashable {
+    case tasks, calendar, cards, notes, search
+}
+
 struct IOSTabRoot: View {
     @Bindable var auth: AuthRepository
+    @Environment(NotificationRouter.self) private var notificationRouter
+    @State private var selectedTab: RootTab = .tasks
 
     // iOS 26 `Tab` API with a dedicated `.search` role — iOS renders
     // the search tab as the separated glass pill on the right of the
     // main tab bar (matches Apple Store / Photos / Reminders). The four
     // primary tabs keep their legacy order.
     var body: some View {
-        TabView {
-            Tab(role: nil) {
+        TabView(selection: $selectedTab) {
+            Tab(value: RootTab.tasks, role: nil) {
                 DailyHostView(auth: auth)
             } label: {
                 Label {
@@ -42,7 +51,7 @@ struct IOSTabRoot: View {
                 }
             }
 
-            Tab(role: nil) {
+            Tab(value: RootTab.calendar, role: nil) {
                 CalendarHostView()
             } label: {
                 Label {
@@ -52,7 +61,7 @@ struct IOSTabRoot: View {
                 }
             }
 
-            Tab(role: nil) {
+            Tab(value: RootTab.cards, role: nil) {
                 CardsHostView()
             } label: {
                 Label {
@@ -62,7 +71,7 @@ struct IOSTabRoot: View {
                 }
             }
 
-            Tab(role: nil) {
+            Tab(value: RootTab.notes, role: nil) {
                 NotesHostView()
             } label: {
                 Label {
@@ -75,7 +84,7 @@ struct IOSTabRoot: View {
             // Dedicated search tab — scope: cards-only for now (user
             // decision `A:(c)`). When widened to tasks/notes, the
             // search view routes internally over those repos.
-            Tab(role: .search) {
+            Tab(value: RootTab.search, role: .search) {
                 CardSearchView()
             } label: {
                 Label {
@@ -86,6 +95,19 @@ struct IOSTabRoot: View {
             }
         }
         .tint(Color.nudgePrimary)
+        // Deep-link → tab switch only. The destination view (DailyHostView /
+        // CardsHostView) keeps observing the same router flag and is the
+        // one that calls `notificationRouter.clear()` after consuming the
+        // intent — matches the existing `pendingNewTask` contract.
+        .onChange(of: notificationRouter.pendingNewCard) { _, isPending in
+            if isPending { selectedTab = .cards }
+        }
+        .onChange(of: notificationRouter.pendingNewTask) { _, isPending in
+            if isPending { selectedTab = .tasks }
+        }
+        .onChange(of: notificationRouter.pendingTaskId) { _, taskId in
+            if taskId != nil { selectedTab = .tasks }
+        }
     }
 }
 #else
