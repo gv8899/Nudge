@@ -6,6 +6,7 @@ public enum APIError: Error, Sendable, LocalizedError {
     case server(statusCode: Int, message: String?)
     case decoding(underlying: any Error)
     case invalidResponse
+    case notModified
 
     public var errorDescription: String? {
         switch self {
@@ -19,6 +20,8 @@ public enum APIError: Error, Sendable, LocalizedError {
             return "Failed to decode server response"
         case .invalidResponse:
             return "Invalid server response"
+        case .notModified:
+            return "Resource not modified (304)"
         }
     }
 

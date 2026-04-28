@@ -12,6 +12,11 @@ public final class APIClient: Sendable {
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
 
+    // ETag cache — 給 GET request 帶 If-None-Match。寫法與
+    // _unauthorizedHandler 一致：NSLock + nonisolated(unsafe) dict。
+    private let etagLock = NSLock()
+    private nonisolated(unsafe) var _etagCache: [String: String] = [:]
+
     public init(
         configuration: APIConfiguration,
         session: URLSession = .shared,
@@ -112,6 +117,18 @@ public final class APIClient: Sendable {
         return _unauthorizedHandler
     }
 
+    private func cachedETag(for path: String) -> String? {
+        etagLock.lock()
+        defer { etagLock.unlock() }
+        return _etagCache[path]
+    }
+
+    private func storeETag(_ etag: String, for path: String) {
+        etagLock.lock()
+        defer { etagLock.unlock() }
+        _etagCache[path] = etag
+    }
+
     private func buildRequest<Body: Encodable>(
         method: String,
         path: String,
@@ -127,6 +144,14 @@ public final class APIClient: Sendable {
 
         if let token = tokenProvider?() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        // GET-only: 帶上同 path 的 last-seen ETag，server 一致回 304。
+        // Cache key 用 request.url?.path 與 perform 存 ETag 的 key 對齊。
+        if method == "GET",
+           let urlPath = request.url?.path,
+           let etag = cachedETag(for: urlPath) {
+            request.setValue(etag, forHTTPHeaderField: "If-None-Match")
         }
 
         if let body, !(body is Empty) {
@@ -154,7 +179,15 @@ public final class APIClient: Sendable {
         print("[APIClient] \(request.httpMethod ?? "?") \(urlString) -> \(httpResponse.statusCode) (\(data.count) bytes)")
 
         switch httpResponse.statusCode {
+        case 304:
+            throw APIError.notModified
         case 200..<300:
+            // 存 ETag 供下次 GET 用
+            if request.httpMethod == "GET",
+               let etag = httpResponse.value(forHTTPHeaderField: "ETag"),
+               let path = request.url?.path {
+                storeETag(etag, for: path)
+            }
             if Response.self == Empty.self {
                 return Empty() as! Response
             }

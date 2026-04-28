@@ -34,6 +34,23 @@ public final class TaskRepository {
         await widgetRefresher?.refresh()
     }
 
+    /// Polling-friendly refresh — 帶上 cached ETag 打 dailyData，server
+    /// 回 304 直接 no-op；只有真有變動才更新本地 SwiftData cache 與 widget
+    /// snapshot。給 30s 自動 polling 用，避免每次都拉 full payload。
+    public func refreshIfChanged(date: String) async {
+        do {
+            let data: DailyDataDTO = try await client.get("/api/daily/\(date)")
+            try await updateCache(for: date, data: data)
+            await widgetRefresher?.refresh()
+        } catch APIError.notModified {
+            // 沒變動，無事發生
+        } catch {
+            if !APIError.isCancellation(error) {
+                print("[TaskRepository] refreshIfChanged failed: \(error)")
+            }
+        }
+    }
+
     // MARK: - Read
 
     public func dailyData(date: String) async throws -> DailyDataDTO {

@@ -9,6 +9,7 @@ public struct DailyHostView: View {
     @Environment(TagRepository.self) private var tagRepo
     @Environment(CardRepository.self) private var cardRepo
     @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
     #if os(iOS)
     @Environment(NotificationRouter.self) private var notificationRouter
     #endif
@@ -29,6 +30,10 @@ public struct DailyHostView: View {
 
     @State private var showQuickAdd = false
     @State private var quickAddText = ""
+
+    // 30 秒 smart polling — server 多數時候回 304，只有真有變動才更新
+    // 本地 cache + widget snapshot。scenePhase 切走時 cancel，回前景再啟。
+    @State private var pollingTask: Task<Void, Never>?
 
     // Used by both platforms now — macOS pushes detail into the
     // sidebar's content column NavigationStack instead of opening a
@@ -82,11 +87,50 @@ public struct DailyHostView: View {
     struct TaskIdRoute: Hashable { let id: String }
 
     public var body: some View {
-        #if os(iOS)
-        iOSLayout
-        #else
-        macOSLayout
-        #endif
+        Group {
+            #if os(iOS)
+            iOSLayout
+            #else
+            macOSLayout
+            #endif
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                startPolling()
+            } else {
+                pollingTask?.cancel()
+                pollingTask = nil
+            }
+        }
+        .onAppear {
+            // scenePhase 在 view 第一次出現時若已是 .active 不會 fire
+            // onChange，所以開頭也手動 start 一次
+            if scenePhase == .active {
+                startPolling()
+            }
+        }
+        .onDisappear {
+            pollingTask?.cancel()
+            pollingTask = nil
+        }
+    }
+
+    /// 啟動 30 秒 polling loop。Idempotent — 重複呼叫先 cancel 舊的。
+    /// scenePhase != active、view disappear、selectedDate 換都會被外層
+    /// cancel 掉，loop 自然結束。
+    private func startPolling() {
+        pollingTask?.cancel()
+        pollingTask = Task { [weak taskRepo] in
+            while !Task.isCancelled {
+                // 30 秒 — 用 nanoseconds 避免新 API 在較舊 deployment
+                // target 上不可用的問題
+                try? await Task.sleep(nanoseconds: 30_000_000_000)
+                if Task.isCancelled { break }
+                guard let repo = taskRepo else { break }
+                let today = DateFormatters.isoDate(Date())
+                await repo.refreshIfChanged(date: today)
+            }
+        }
     }
 
     // MARK: - iOS layout
