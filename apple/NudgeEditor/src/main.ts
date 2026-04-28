@@ -12,8 +12,8 @@ import Suggestion from "@tiptap/suggestion";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
 import Link from "@tiptap/extension-link";
+import { NudgeTaskItem } from "./task-item-no-focus";
 import {
   SLASH_COMMAND_DEFS,
   filterSlashItems,
@@ -138,7 +138,7 @@ function createEditor() {
         showOnlyCurrent: false,
       }),
       TaskList,
-      TaskItem.configure({ nested: false }),
+      NudgeTaskItem.configure({ nested: false }),
       // openOnClick: false — contenteditable 裡 ProseMirror 直接 open
       // 會和 caret 移動衝突。我們在 DOM 層自己攔 click → postToNative,
       // Swift 用 UIApplication.open() 開外部瀏覽器。
