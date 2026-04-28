@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { db } from "@/lib/db";
 import {
   dailyTaskAssignments,
@@ -12,7 +13,7 @@ import { occurs, type RecurrenceRule } from "@/lib/recurrence";
 import { nanoid } from "nanoid";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ date: string }> },
 ) {
   const user = await getUser();
@@ -149,10 +150,47 @@ export async function GET(
     .where(and(eq(dailyNotes.date, date), eq(dailyNotes.userId, user.id)))
     .limit(1);
 
-  return NextResponse.json({
-    date,
-    assignments,
-    overdueTasks,
-    noteContent: note?.content || "",
-  });
+  // ETag — weak hash of logical state for this date. 變動就變、沒變動
+  // 回 304 + 空 body 短路。Note 用 content.length 而非 updatedAt 因為
+  // dailyNotes schema 沒有 updatedAt 欄位（schema.ts:86）。Note length
+  // 必須是獨立 component — 直接丟進 max(...timestamps) 會被毫秒級數字
+  // 完全淹沒，note 改了 ETag 不會變、client 拿不到更新。
+  const allUpdatedAts: number[] = [];
+  for (const a of assignments) {
+    allUpdatedAts.push(new Date(a.task.updatedAt).getTime());
+  }
+  for (const a of overdueTasks) {
+    allUpdatedAts.push(new Date(a.task.updatedAt).getTime());
+  }
+  const maxUpdated = allUpdatedAts.length > 0 ? Math.max(...allUpdatedAts) : 0;
+  const noteLength = note?.content?.length ?? 0;
+  const etagSource = `${date}|${maxUpdated}|${assignments.length}|${overdueTasks.length}|${noteLength}`;
+  const etag = `W/"${createHash("md5").update(etagSource).digest("hex")}"`;
+
+  // Honor If-None-Match — 一致就回 304，不送 body
+  const ifNoneMatch = request.headers.get("if-none-match");
+  if (ifNoneMatch === etag) {
+    return new NextResponse(null, {
+      status: 304,
+      headers: {
+        ETag: etag,
+        "Cache-Control": "no-cache",
+      },
+    });
+  }
+
+  return NextResponse.json(
+    {
+      date,
+      assignments,
+      overdueTasks,
+      noteContent: note?.content || "",
+    },
+    {
+      headers: {
+        ETag: etag,
+        "Cache-Control": "no-cache",
+      },
+    }
+  );
 }
