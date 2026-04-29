@@ -74,6 +74,9 @@ export const dailyTaskAssignments = pgTable(
     isCompleted: boolean("is_completed").notNull().default(false),
     isSkipped: boolean("is_skipped").notNull().default(false),
     sortOrder: integer("sort_order").notNull().default(0),
+    // Bump on every PATCH (isCompleted / isSkipped / sortOrder / move). 給
+    // /api/daily/[date] 的 ETag 用，保證跨日勾/解勾都會讓 ETag 變動。
+    updatedAt: text("updated_at").notNull(),
   },
   (table) => ({
     uniqTaskDate: uniqueIndex("daily_task_assignments_task_date_uniq").on(

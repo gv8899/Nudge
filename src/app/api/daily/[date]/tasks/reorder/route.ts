@@ -11,9 +11,10 @@ export async function PUT(request: NextRequest) {
   const body = await request.json();
   const { order } = body as { order: { id: string; sortOrder: number }[] };
 
+  const nowIso = new Date().toISOString();
   for (const item of order) {
     await db.update(dailyTaskAssignments)
-      .set({ sortOrder: item.sortOrder })
+      .set({ sortOrder: item.sortOrder, updatedAt: nowIso })
       .where(eq(dailyTaskAssignments.id, item.id));
   }
 

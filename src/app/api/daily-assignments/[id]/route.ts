@@ -37,6 +37,8 @@ export async function PATCH(
     return NextResponse.json({ error: "No-op" }, { status: 400 });
   }
 
+  updates.updatedAt = new Date().toISOString();
+
   await db
     .update(dailyTaskAssignments)
     .set(updates)

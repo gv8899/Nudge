@@ -63,6 +63,7 @@ export async function GET(
           isCompleted: false,
           isSkipped: false,
           sortOrder: 0,
+          updatedAt: new Date().toISOString(),
         })
         .onConflictDoNothing();
     }
@@ -77,6 +78,7 @@ export async function GET(
       isCompleted: dailyTaskAssignments.isCompleted,
       isSkipped: dailyTaskAssignments.isSkipped,
       sortOrder: dailyTaskAssignments.sortOrder,
+      assignmentUpdatedAt: dailyTaskAssignments.updatedAt,
       isRecurring: sql<boolean>`(${taskRecurrences.id} IS NOT NULL)`,
       task: {
         id: tasks.id,
@@ -114,6 +116,7 @@ export async function GET(
       isCompleted: dailyTaskAssignments.isCompleted,
       isSkipped: dailyTaskAssignments.isSkipped,
       sortOrder: dailyTaskAssignments.sortOrder,
+      assignmentUpdatedAt: dailyTaskAssignments.updatedAt,
       isRecurring: sql<boolean>`(${taskRecurrences.id} IS NOT NULL)`,
       task: {
         id: tasks.id,
@@ -151,16 +154,23 @@ export async function GET(
     .limit(1);
 
   // ETag — weak hash of logical state for this date. 變動就變、沒變動
-  // 回 304 + 空 body 短路。Note 用 content.length 而非 updatedAt 因為
-  // dailyNotes schema 沒有 updatedAt 欄位（schema.ts:86）。Note length
-  // 必須是獨立 component — 直接丟進 max(...timestamps) 會被毫秒級數字
-  // 完全淹沒，note 改了 ETag 不會變、client 拿不到更新。
+  // 回 304 + 空 body 短路。
+  //
+  // 採 max(assignment.updatedAt) 而非 task.updatedAt：勾/解勾 / 跳過 /
+  // 排序 / 移日只動 daily_task_assignments，不會 bump tasks.updatedAt，
+  // 用後者會漏抓變動（過去的 bug：「前幾天」勾掉沒消失、4/27 解勾後今天
+  // overdue 沒重現）。assignment.updatedAt 由 PATCH endpoints 統一維護。
+  //
+  // Note 用 content.length 而非 updatedAt 因為 dailyNotes schema 沒有
+  // updatedAt 欄位（schema.ts:86）。Note length 必須是獨立 component —
+  // 直接丟進 max(...timestamps) 會被毫秒級數字完全淹沒，note 改了
+  // ETag 不會變、client 拿不到更新。
   const allUpdatedAts: number[] = [];
   for (const a of assignments) {
-    allUpdatedAts.push(new Date(a.task.updatedAt).getTime());
+    allUpdatedAts.push(new Date(a.assignmentUpdatedAt).getTime());
   }
   for (const a of overdueTasks) {
-    allUpdatedAts.push(new Date(a.task.updatedAt).getTime());
+    allUpdatedAts.push(new Date(a.assignmentUpdatedAt).getTime());
   }
   const maxUpdated = allUpdatedAts.length > 0 ? Math.max(...allUpdatedAts) : 0;
   const noteLength = note?.content?.length ?? 0;

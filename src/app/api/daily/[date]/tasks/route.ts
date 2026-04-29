@@ -74,6 +74,7 @@ export async function POST(
     date,
     isCompleted: false,
     sortOrder: topOrder,
+    updatedAt: new Date().toISOString(),
   };
 
   await db.insert(dailyTaskAssignments).values(assignment);
@@ -117,10 +118,11 @@ export async function PATCH(request: NextRequest) {
         .limit(1);
 
       const topOrder = await getTopSortOrder(moveToDate);
+      const nowIso = new Date().toISOString();
       if (alreadyExists) {
         // 目標日期已有 assignment，確保為未完成且排到最上方
         await db.update(dailyTaskAssignments)
-          .set({ isCompleted: false, sortOrder: topOrder })
+          .set({ isCompleted: false, sortOrder: topOrder, updatedAt: nowIso })
           .where(eq(dailyTaskAssignments.id, alreadyExists.id));
       } else {
         await db.insert(dailyTaskAssignments)
@@ -130,6 +132,7 @@ export async function PATCH(request: NextRequest) {
             date: moveToDate,
             isCompleted: false,
             sortOrder: topOrder,
+            updatedAt: nowIso,
           });
       }
 
@@ -145,9 +148,12 @@ export async function PATCH(request: NextRequest) {
   if (isCompleted !== undefined) updates.isCompleted = isCompleted;
   if (sortOrder !== undefined) updates.sortOrder = sortOrder;
 
-  await db.update(dailyTaskAssignments)
-    .set(updates)
-    .where(eq(dailyTaskAssignments.id, assignmentId));
+  if (Object.keys(updates).length > 0) {
+    updates.updatedAt = new Date().toISOString();
+    await db.update(dailyTaskAssignments)
+      .set(updates)
+      .where(eq(dailyTaskAssignments.id, assignmentId));
+  }
 
   if (isCompleted === true && body.taskId) {
     const now = new Date().toISOString();
