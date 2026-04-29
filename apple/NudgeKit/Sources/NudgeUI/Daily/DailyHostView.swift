@@ -1061,11 +1061,39 @@ extension DailyHostView {
                     isCompleted: newValue,
                     onDate: assignment.date
                 )
+                // 樂觀更新只翻 isCompleted，row 還留在 overdueTasks 陣列裡。
+                // 「前幾天」勾掉真正消失要靠 server side filter（overdueTasks
+                // query 排除 isCompleted=true）—— 跑一次 silent reload 把
+                // dailyData 跟 server 對齊。用 ETag conditional GET：304 就
+                // no-op、200 才 swap。沒有 loadState 重設，避免重畫閃爍。
+                await reloadSilently()
             } catch {
                 // Revert on server failure — the row snaps back to its
                 // original state instead of lying about persistence.
                 applyAssignmentIsCompletedLocally(id: assignment.id, value: !newValue)
                 print("[DailyHostView] toggleComplete failed: \(error)")
+            }
+        }
+    }
+
+    /// Like `reload()` but without `loadState = .loading` / `dailyData = nil`,
+    /// so a fresh server payload silently swaps in without flashing the
+    /// loading state. Used after PATCHes where we already did an optimistic
+    /// flip — purpose is to reconcile with server side-effects (e.g. overdue
+    /// rollup row dropping out after isCompleted flips to true). 304 →
+    /// no-op (optimistic state matches server).
+    private func reloadSilently() async {
+        let requestedDate = selectedDate
+        do {
+            let data = try await taskRepo.dailyData(date: requestedDate)
+            guard requestedDate == selectedDate else { return }
+            dailyData = data
+            lastUpdated = Self.currentTimeString()
+        } catch APIError.notModified {
+            // server confirms optimistic state — keep current dailyData
+        } catch {
+            if !APIError.isCancellation(error) {
+                print("[DailyHostView] reloadSilently failed: \(error)")
             }
         }
     }
