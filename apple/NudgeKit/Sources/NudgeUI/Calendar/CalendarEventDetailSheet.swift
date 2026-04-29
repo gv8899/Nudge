@@ -11,6 +11,7 @@ import AppKit
 public struct CalendarEventDetailSheet: View {
     public let event: CalendarEventDTO
     @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
 
     public init(event: CalendarEventDTO) {
         self.event = event
@@ -63,6 +64,19 @@ public struct CalendarEventDetailSheet: View {
             // `.background(Color.nudgeBackground)` here on top of the
             // system sheet material caused the "card-within-card"
             // double-rounded-corner look at the sheet edges.
+            // mac sheet 沒有像 iOS 的 drag indicator / 點外面就關閉，
+            // 必須有明確 dismiss 按鈕，否則 sheet 開啟後整個視窗鎖死。
+            // iOS 維持原本 .topBarTrailing；macOS 走 .confirmationAction。
+            #if os(macOS)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button { dismiss() } label: {
+                        Text("common.done", bundle: .module)
+                    }
+                    .keyboardShortcut(.cancelAction)
+                }
+            }
+            #endif
         }
         #if os(iOS)
         .presentationDetents([.medium, .large])

@@ -114,6 +114,7 @@ export async function PUT(
         isCompleted: false,
         isSkipped: false,
         sortOrder: 0,
+        updatedAt: new Date().toISOString(),
       })
       .onConflictDoNothing();
   }

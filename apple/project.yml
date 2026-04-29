@@ -19,7 +19,7 @@ settings:
     MARKETING_VERSION: "1.0.0"
     # Flutter 版在 tw.nudge.app 用過較低 build；從 100 起跳避免 ASC
     # 因 build number 不夠大拒絕 upload。之後每次 TestFlight +1 即可。
-    CURRENT_PROJECT_VERSION: "109"
+    CURRENT_PROJECT_VERSION: "115"
 
 packages:
   NudgeKit:
@@ -49,10 +49,13 @@ targets:
         product: GoogleSignIn
       - package: GoogleSignIn
         product: GoogleSignInSwift
+      - target: NudgeWidget
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: tw.nudge.app
         GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_ENTITLEMENTS: Nudge-iOS/Nudge-iOS.entitlements
         INFOPLIST_KEY_CFBundleDisplayName: Nudge
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
@@ -77,6 +80,36 @@ targets:
               - nudge
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
+
+  NudgeWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: NudgeWidget
+        excludes:
+          - "*.plist"
+          - "*.entitlements"
+    dependencies:
+      - package: NudgeKit
+        product: NudgeCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: tw.nudge.app.NudgeWidget
+        PRODUCT_NAME: NudgeWidget
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: NudgeWidget
+        CODE_SIGN_ENTITLEMENTS: NudgeWidget/NudgeWidget.entitlements
+        SKIP_INSTALL: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: WidgetBackground
+    info:
+      path: NudgeWidget/Info.plist
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
 
   Nudge-macOS:
     type: application

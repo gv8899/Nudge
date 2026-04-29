@@ -13,6 +13,11 @@ public struct TaskRowView: View {
     public let onSetReminder: () -> Void
     public let onArchive: () -> Void
 
+    #if os(macOS)
+    @State private var isHovered = false
+    @State private var showQuickPopover = false
+    #endif
+
     public init(
         assignment: DailyAssignmentDTO,
         isToday: Bool,
@@ -46,17 +51,17 @@ public struct TaskRowView: View {
             )
 
             Text(assignment.task.title)
+                .nudgeFont(.primaryRowTitle)
                 .strikethrough(assignment.isCompleted)
+                // Single-stage dim — was nudgeTextDim + .opacity(0.6)
+                // which drove luminance below WCAG AA. Foreground-style
+                // alone gives the correct "completed but readable" look.
                 .foregroundStyle(assignment.isCompleted ? Color.nudgeTextDim : Color.nudgeForeground)
-                .opacity(assignment.isCompleted ? 0.6 : 1.0)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-                .onTapGesture(perform: onOpen)
 
-            // The unified `…` menu replaced the legacy single-purpose
-            // calendar IconButton. All row actions (move, skip, set
-            // recurrence, set reminder, archive) live in this one menu so
-            // today / overdue / recurring rows look identical.
+            // Unified `…` menu — TaskRowMenu's inner Menu/Button consumes
+            // its own taps so the row-level onTapGesture (below) doesn't
+            // fire when the user opens the menu.
             TaskRowMenu(
                 isToday: isToday,
                 isRecurring: assignment.isRecurring,
@@ -68,11 +73,43 @@ public struct TaskRowView: View {
                 onArchive: onArchive
             )
         }
-        .padding(.horizontal, 12)
-        .background(Color.nudgeBackground)
-        #if os(macOS)
-        .draggable(assignment.id)
+        .padding(.horizontal, rowPaddingH)
+        .padding(.vertical, rowPaddingV)
+        .frame(minHeight: rowMinHeight)
+        // Hover background only renders on macOS (isHovered is iOS = no-op).
+        // iOS: RoundedRectangle bg makes each task feel like a paper card,
+        // 對齊 Cards / Notes tab 的 block 視覺。
+        .background(rowBackground)
+        // Whole row is now the tap surface — was only the title text,
+        // leaving fat-finger dead zones in the spacing column.
+        // NudgeCheckbox / TaskRowMenu are Buttons that consume their
+        // own taps before this gesture sees them.
+        .contentShape(Rectangle())
+        #if os(iOS)
+        .onTapGesture(perform: onOpen)
         #endif
+        #if os(macOS)
+        // mac：tap → 視窗中央彈 sheet quick-edit（Heptabase pop-out 風
+        // 格），sheet 內按 ↗ 才走 onOpen 推到右側 detail。iOS 維持直
+        // 接 push。
+        .onTapGesture { showQuickPopover = true }
+        .sheet(isPresented: $showQuickPopover) {
+            TaskPopoverView(
+                assignment: assignment,
+                onToggleComplete: {
+                    onToggleComplete()
+                    showQuickPopover = false
+                },
+                onExpand: {
+                    showQuickPopover = false
+                    onOpen()
+                }
+            )
+        }
+        .onHover { isHovered = $0 }
+        .draggable(assignment.id)
+        // Right-click 是 mac 第一直覺。內容對齊 TaskRowMenu (...)，但少
+        // 包一層 Menu，所以 native context menu 會直接展開。
         .contextMenu {
             Button(action: onToggleComplete) {
                 Label {
@@ -81,9 +118,19 @@ public struct TaskRowView: View {
                     Image(systemName: assignment.isCompleted ? "circle" : "checkmark.circle")
                 }
             }
+            Divider()
+            if !isToday {
+                Button(action: onMoveToToday) {
+                    Label {
+                        Text("daily.moveToToday", bundle: .module)
+                    } icon: {
+                        Image(systemName: "calendar.badge.checkmark")
+                    }
+                }
+            }
             Button(action: onMoveTo) {
                 Label {
-                    Text("task.moveToOtherDate", bundle: .module)
+                    Text("daily.moveToOtherDate", bundle: .module)
                 } icon: {
                     Image(systemName: "calendar")
                 }
@@ -96,7 +143,23 @@ public struct TaskRowView: View {
                         Image(systemName: "forward")
                     }
                 }
+            } else {
+                Button(action: onSetRecurrence) {
+                    Label {
+                        Text("daily.setRecurring", bundle: .module)
+                    } icon: {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                    }
+                }
             }
+            Button(action: onSetReminder) {
+                Label {
+                    Text("daily.setReminder", bundle: .module)
+                } icon: {
+                    Image(systemName: "bell")
+                }
+            }
+            Divider()
             Button(role: .destructive, action: onArchive) {
                 Label {
                     Text("daily.archiveButton", bundle: .module)
@@ -104,13 +167,75 @@ public struct TaskRowView: View {
                     Image(systemName: "archivebox")
                 }
             }
-            Button(action: onOpen) {
+        }
+        #endif
+        #if os(iOS)
+        // Native iOS list swipe affordances — leading = mark
+        // complete/uncomplete, trailing = archive (destructive).
+        // Was: only contextMenu (long-press), which iOS users don't
+        // always discover. Keeps the `…` menu as the explicit
+        // affordance for everything else.
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            Button(action: onToggleComplete) {
                 Label {
-                    Text("common.edit", bundle: .module)
+                    Text(assignment.isCompleted ? "task.uncomplete" : "task.complete", bundle: .module)
                 } icon: {
-                    Image(systemName: "pencil")
+                    Image(systemName: assignment.isCompleted ? "circle" : "checkmark.circle")
+                }
+            }
+            .tint(.nudgePrimary)
+        }
+        .swipeActions(edge: .trailing) {
+            Button(role: .destructive, action: onArchive) {
+                Label {
+                    Text("daily.archiveButton", bundle: .module)
+                } icon: {
+                    Image(systemName: "archivebox")
                 }
             }
         }
+        #endif
+    }
+
+    /// mac 32pt 密度 / iOS 56pt 卡片高度（block 樣式留呼吸）
+    private var rowMinHeight: CGFloat {
+        #if os(macOS)
+        return 32
+        #else
+        return 56
+        #endif
+    }
+
+    /// mac 12h × 0v（緊湊）/ iOS 14h × 14v（卡片 padding）
+    private var rowPaddingH: CGFloat {
+        #if os(macOS)
+        return 12
+        #else
+        return 14
+        #endif
+    }
+
+    private var rowPaddingV: CGFloat {
+        #if os(macOS)
+        return 0
+        #else
+        return 14
+        #endif
+    }
+
+    @ViewBuilder
+    private var rowBackground: some View {
+        #if os(macOS)
+        if isHovered {
+            Color.nudgeHoverFill
+        } else {
+            Color.nudgeBackground
+        }
+        #else
+        // iOS block 卡片：完成 2% / 一般 4% (foreground @ opacity)
+        // RoundedRect 12pt corner — 對齊 Cards tab CardListItemView 結構
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .fill(Color.nudgeForeground.opacity(assignment.isCompleted ? 0.02 : 0.04))
+        #endif
     }
 }

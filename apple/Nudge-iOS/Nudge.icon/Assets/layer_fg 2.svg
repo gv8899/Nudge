@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Foreground layer: top card + N (as path, no font dependency) + rust accent -->
+  <rect x="262" y="192" width="500" height="640" rx="14" fill="#F2E7CF"/>
+
+  <!-- N: extracted from Avenir Next Condensed Heavy, embedded as outline path
+       scale=0.46 (font-size 460 / units_per_em 1000), Y flipped, centered on (512,512) -->
+  <g transform="translate(367.1 674.84) scale(0.46 -0.46)" fill="#3D2D1F">
+    <path d="M240 334H237L245 0H52V708H283L394 363H398L392 708H578V0H353Z"/>
+  </g>
+
+  <!-- Rust today-line -->
+  <rect x="616" y="788" width="100" height="8" fill="#A55C36"/>
+</svg>

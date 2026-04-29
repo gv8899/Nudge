@@ -14,7 +14,9 @@
     "a11y": {
       "expanded": "已展開",
       "collapsed": "已收合"
-    }
+    },
+    "errorSaving": "儲存失敗，請再試一次。",
+    "back": "返回"
   },
   "settings": {
     "title": "設定",
@@ -70,7 +72,11 @@
       "eveningEnabled": "夜間摘要",
       "eveningTime": "夜間時間",
       "eveningContent": "夜間內容",
-      "perTaskEnabled": "個別任務提醒"
+      "perTaskEnabled": "個別任務提醒",
+      "platformNote": "推播由 iOS app 接收。Web 僅做設定。"
+    },
+    "dangerZone": {
+      "section": "危險操作"
     }
   },
   "tags": {
@@ -101,7 +107,9 @@
   "login": {
     "tagline": "輕量型每日任務推進工具",
     "signInWithGoogle": "使用 Google 帳號登入",
-    "loginFailed": "登入失敗，請再試一次"
+    "loginFailed": "登入失敗，請再試一次",
+    "signInWithApple": "用 Apple 登入",
+    "signingIn": "登入中…"
   },
   "task": {
     "dragReorder": "拖曳排序：{title}",
@@ -180,7 +188,22 @@
     "skipThisOccurrence": "跳過這次",
     "setRecurring": "設成重複任務…",
     "setReminder": "設定提醒…",
-    "rowMenu": "任務動作"
+    "rowMenu": "任務動作",
+    "completedSection": "已完成 ({n})",
+    "skipConfirmTitle": "跳過這次發生？",
+    "skipConfirmBody": "「{title}」這次會被跳過。下次發生會照重複規則繼續。",
+    "skipConfirmAction": "跳過",
+    "todayAria": "今天",
+    "dashboardCalendarTitle": "行事曆",
+    "dashboardCalendarDisconnected": "在設定中連結 Google 行事曆，今日預定就會顯示在這。",
+    "dashboardCalendarEmpty": "這天沒有行程。",
+    "dashboardCardsTitle": "最近卡片",
+    "dashboardToggleCalendar": "顯示行事曆欄",
+    "dashboardToggleTasks": "顯示任務欄",
+    "dashboardToggleCards": "顯示卡片欄",
+    "popoverRecurringBadge": "重複",
+    "popoverExpand": "展開",
+    "dashboardTasksTitle": "今日任務"
   },
   "cards": {
     "createAria": "新增卡片",
@@ -199,13 +222,15 @@
     "cleanConfirmButton": "確定清除",
     "cleanLoading": "清除中...",
     "toastCleaned": "已清除 {count} 張空白卡片",
-    "toastNothingToClean": "沒有需要清除的卡片"
+    "toastNothingToClean": "沒有需要清除的卡片",
+    "untitled": "未命名",
+    "emptyDescription": "記下一個想法、靈感或筆記。卡片可被搜尋與重新整理。"
   },
   "cardDetail": {
     "backToCards": "返回卡片",
     "notFound": "找不到這張卡片",
     "editTitleAria": "編輯標題",
-    "editorPlaceholder": "打 / 插入標題、清單…",
+    "editorPlaceholder": "補充細節⋯⋯",
     "titleHint": "標題",
     "createdAt": "建立 {date}",
     "updatedAt": "更新 {date}",
@@ -219,11 +244,38 @@
     "goToCanvas": "去今天的 canvas",
     "goToToday": "去今天的日誌",
     "noMoreEntries": "沒有更多日記了",
-    "canvasPlaceholder": "寫點什麼⋯⋯",
+    "canvasPlaceholder": "今天怎麼樣？",
     "canvasToggleFeedAria": "切換到 feed",
     "canvasToggleFeedTitle": "切換到 feed",
     "entryAria": "{year}年{month}月{day}日的日記",
     "monthLabel": "{month} 月"
+  },
+  "widget": {
+    "quickAdd": {
+      "label": "新增任務",
+      "iconLabel": "新增"
+    },
+    "quickAddCard": {
+      "label": "新增卡片"
+    },
+    "todayList": {
+      "title": "今日",
+      "empty": "今日無任務 ・ ＋ 新增"
+    },
+    "kind": {
+      "quickAdd": {
+        "displayName": "快速新增任務",
+        "description": "一鍵新增今日任務"
+      },
+      "quickAddCard": {
+        "displayName": "快速新增卡片",
+        "description": "一鍵新增卡片"
+      },
+      "todayList": {
+        "displayName": "今日任務",
+        "description": "顯示今日前 5 個任務"
+      }
+    }
   },
   "calendar": {
     "section": "行事曆",
@@ -267,7 +319,14 @@
       "afternoon": "下午",
       "evening": "晚上"
     },
-    "checkingStatus": "確認連線狀態中…"
+    "checkingStatus": "確認連線狀態中…",
+    "prevWeek": "上一週",
+    "nextWeek": "下一週",
+    "prevMonth": "上個月",
+    "nextMonth": "下個月",
+    "eventCount": "{n} 個事件",
+    "connectedEmailLabel": "已連結",
+    "modePickerAria": "檢視模式"
   },
   "offline": {
     "banner": "離線中。上次更新於 {time}"
@@ -297,7 +356,8 @@
       "nthN": "第 {n} 個",
       "last": "最後一個",
       "nthLabel": "第幾個",
-      "weekday": "星期"
+      "weekday": "星期",
+      "weekdaysLabel": "星期"
     },
     "preset": {
       "daily": "每天",
@@ -311,7 +371,15 @@
     "reminder": {
       "enabled": "提醒",
       "timeOfDay": "時段",
-      "dateTime": "提醒時間"
+      "dateTime": "提醒時間",
+      "label": "提醒時間",
+      "placeholder": "不提醒",
+      "clear": "清除",
+      "requiresPreset": "選擇重複規則才能設定提醒時間。"
+    },
+    "validation": {
+      "endBeforeStart": "結束日必須晚於起始日。",
+      "weeklyNeedsWeekday": "至少選一個星期。"
     }
   },
   "notifications": {

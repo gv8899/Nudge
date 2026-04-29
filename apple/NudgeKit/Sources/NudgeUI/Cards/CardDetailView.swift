@@ -79,6 +79,27 @@ public struct CardDetailView: View {
                 Text("common.cancel", bundle: .module)
             }
         }
+        #else
+        // macOS — title 顯示在視窗 title bar (window's navigationTitle)。
+        // 「重新命名 / 排程 / 標籤」全部入口在 toolbar 的 ... menu，與
+        // iOS 對齊。原本 mac 完全沒這些入口，使用者打開卡片只能編輯文字。
+        .navigationTitle(title.isEmpty ? untitledLabel : title)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                moreMenu
+            }
+        }
+        .alert(Text("cardDetail.renameTitle", bundle: .module), isPresented: $showRenameAlert) {
+            TextField("", text: $pendingTitle)
+            Button(action: commitRename) {
+                Text("common.save", bundle: .module)
+            }
+            Button(role: .cancel) {
+                pendingTitle = title
+            } label: {
+                Text("common.cancel", bundle: .module)
+            }
+        }
         #endif
         .onAppear {
             pendingTitle = title
@@ -154,7 +175,6 @@ public struct CardDetailView: View {
         }
     }
 
-    #if os(iOS)
     private var untitledLabel: String {
         nudgeLocalized("cardDetail.untitled", locale: locale)
     }
@@ -198,6 +218,7 @@ public struct CardDetailView: View {
                 .contentShape(Rectangle())
         }
         .accessibilityLabel(Text("cardDetail.moreActions", bundle: .module))
+        .help(Text("cardDetail.moreActions", bundle: .module))
     }
 
     private func commitRename() {
@@ -206,7 +227,6 @@ public struct CardDetailView: View {
         title = trimmed
         debouncedSaveTitle(trimmed)
     }
-    #endif
 
     private func debouncedSaveTitle(_ newValue: String) {
         titleSaveWorkItem?.cancel()

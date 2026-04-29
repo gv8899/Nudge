@@ -11,9 +11,14 @@ public struct OverdueSectionView: View {
     public let onSkipThisOccurrence: (DailyAssignmentDTO) -> Void
     public let onSetRecurrence: (DailyAssignmentDTO) -> Void
     public let onSetReminder: (DailyAssignmentDTO) -> Void
+    public let onOpen: (DailyAssignmentDTO) -> Void
 
     @Environment(\.locale) private var locale
     @State private var isExpanded: Bool
+    #if os(macOS)
+    @State private var hoveredTaskId: String?
+    @State private var popoverTaskId: String?
+    #endif
 
     public init(
         overdueTasks: [DailyAssignmentDTO],
@@ -24,7 +29,8 @@ public struct OverdueSectionView: View {
         onArchive: @escaping (DailyAssignmentDTO) -> Void,
         onSkipThisOccurrence: @escaping (DailyAssignmentDTO) -> Void,
         onSetRecurrence: @escaping (DailyAssignmentDTO) -> Void,
-        onSetReminder: @escaping (DailyAssignmentDTO) -> Void
+        onSetReminder: @escaping (DailyAssignmentDTO) -> Void,
+        onOpen: @escaping (DailyAssignmentDTO) -> Void
     ) {
         self.overdueTasks = overdueTasks
         self.currentDate = currentDate
@@ -35,6 +41,7 @@ public struct OverdueSectionView: View {
         self.onSkipThisOccurrence = onSkipThisOccurrence
         self.onSetRecurrence = onSetRecurrence
         self.onSetReminder = onSetReminder
+        self.onOpen = onOpen
         _isExpanded = State(initialValue: Self.defaultExpanded(for: currentDate))
     }
 
@@ -54,9 +61,17 @@ public struct OverdueSectionView: View {
             VStack(alignment: .leading, spacing: 8) {
                 header
                 if isExpanded {
-                    ForEach(overdueTasks, id: \.id) { task in
-                        overdueRow(task)
+                    // iOS：cards 縮 16pt 外邊距，視覺上跟 today task 區
+                    // 對齊；header 維持原寬（label 跨整列較顯眼）。
+                    // mac：維持原扁平 row，無額外 padding。
+                    VStack(spacing: 8) {
+                        ForEach(overdueTasks, id: \.id) { task in
+                            overdueRow(task)
+                        }
                     }
+                    #if os(iOS)
+                    .padding(.horizontal, 16)
+                    #endif
                 }
             }
             .padding(.vertical, 12)
@@ -81,11 +96,11 @@ public struct OverdueSectionView: View {
                     format: nudgeLocalized("daily.overdueLabel", locale: locale),
                     overdueTasks.count
                 ))
-                    .font(.subheadline.weight(.semibold))
+                    .nudgeFont(.sectionHeader)
                     .foregroundStyle(Color.nudgePrimary)
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
+                    .nudgeFont(.sectionChevron)
                     .rotationEffect(.degrees(isExpanded ? 90 : 0))
                     .foregroundStyle(Color.nudgePrimary)
             }
@@ -112,11 +127,11 @@ public struct OverdueSectionView: View {
             )
 
             Text(task.task.title)
+                .nudgeFont(.primaryRowTitle)
                 .foregroundStyle(task.isCompleted ? Color.nudgeTextDim : Color.nudgeForeground)
                 .strikethrough(task.isCompleted)
                 .lineLimit(1)
-
-            Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             // Overdue rows are by definition not "today", so the menu's
             // "Move to today" entry is always shown via isToday: false.
@@ -131,8 +146,133 @@ public struct OverdueSectionView: View {
                 onArchive: { onArchive(task) }
             )
         }
-        // Match TaskRowView's horizontal padding so the checkbox column
-        // lines up across overdue and today sections.
-        .padding(.horizontal, 12)
+        // iOS card padding 14×14 / mac 維持 12×0 緊湊。
+        .padding(.horizontal, rowPaddingH)
+        .padding(.vertical, rowPaddingV)
+        .frame(minHeight: rowMinHeight)
+        .background(rowBackground(for: task.id))
+        // Whole-row tap to open detail — was: only the title text was
+        // tappable (and even that wasn't wired in the overdue row),
+        // so users couldn't open a card from the overdue list.
+        // NudgeCheckbox / TaskRowMenu consume their own taps.
+        .contentShape(Rectangle())
+        #if os(iOS)
+        .onTapGesture { onOpen(task) }
+        #endif
+        #if os(macOS)
+        // mac：tap → 視窗中央 sheet（quick-edit），sheet「展開」鍵才
+        // 走 onOpen 推到右側 detail。跟 TaskRowView 同 UX。
+        .onTapGesture { popoverTaskId = task.id }
+        .sheet(
+            isPresented: Binding(
+                get: { popoverTaskId == task.id },
+                set: { if !$0 && popoverTaskId == task.id { popoverTaskId = nil } }
+            )
+        ) {
+            TaskPopoverView(
+                assignment: task,
+                onToggleComplete: {
+                    onToggleComplete(task)
+                    popoverTaskId = nil
+                },
+                onExpand: {
+                    popoverTaskId = nil
+                    onOpen(task)
+                }
+            )
+        }
+        .onHover { hovered in
+            hoveredTaskId = hovered ? task.id : (hoveredTaskId == task.id ? nil : hoveredTaskId)
+        }
+        .contextMenu {
+            Button { onToggleComplete(task) } label: {
+                Label {
+                    Text(task.isCompleted ? "task.uncomplete" : "task.complete", bundle: .module)
+                } icon: {
+                    Image(systemName: task.isCompleted ? "circle" : "checkmark.circle")
+                }
+            }
+            Divider()
+            Button { onReschedule(task, currentDate) } label: {
+                Label {
+                    Text("daily.moveToToday", bundle: .module)
+                } icon: {
+                    Image(systemName: "calendar.badge.checkmark")
+                }
+            }
+            Button { onMoveTo(task) } label: {
+                Label {
+                    Text("daily.moveToOtherDate", bundle: .module)
+                } icon: {
+                    Image(systemName: "calendar")
+                }
+            }
+            if task.isRecurring {
+                Button { onSkipThisOccurrence(task) } label: {
+                    Label {
+                        Text("daily.skipThisOccurrence", bundle: .module)
+                    } icon: {
+                        Image(systemName: "forward")
+                    }
+                }
+            }
+            Button { onSetReminder(task) } label: {
+                Label {
+                    Text("daily.setReminder", bundle: .module)
+                } icon: {
+                    Image(systemName: "bell")
+                }
+            }
+            Divider()
+            Button(role: .destructive) { onArchive(task) } label: {
+                Label {
+                    Text("daily.archiveButton", bundle: .module)
+                } icon: {
+                    Image(systemName: "archivebox")
+                }
+            }
+        }
+        #endif
+    }
+
+    private var rowMinHeight: CGFloat {
+        #if os(macOS)
+        return 32
+        #else
+        return 56
+        #endif
+    }
+
+    private var rowPaddingH: CGFloat {
+        #if os(macOS)
+        return 12
+        #else
+        return 14
+        #endif
+    }
+
+    private var rowPaddingV: CGFloat {
+        #if os(macOS)
+        return 0
+        #else
+        return 14
+        #endif
+    }
+
+    @ViewBuilder
+    private func rowBackground(for id: String) -> some View {
+        #if os(macOS)
+        if hoveredTaskId == id {
+            Color.nudgeHoverFill
+        } else {
+            Color.clear
+        }
+        #else
+        // iOS overdue 卡片：warning tint 8% 表達「過期、需要關注」。
+        // 比 task tab 一般 row (foreground 4%) 視覺上明顯區隔，但不會
+        // 像紅 / orange 那樣搶眼。
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .fill(Color.nudgeWarning.opacity(0.08))
+        #endif
     }
 }

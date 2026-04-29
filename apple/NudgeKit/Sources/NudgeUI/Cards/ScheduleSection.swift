@@ -2,7 +2,8 @@ import SwiftUI
 import NudgeCore
 
 /// Card-detail "schedule" block: recurrence rule + reminder time.
-/// Auto-saves via the Recurrence and Card repositories on every change.
+/// Auto-saves via the Recurrence and Card repositories with a 500 ms
+/// debounce so rapid picker / stepper changes collapse into one PUT.
 public struct ScheduleSection: View {
     public let taskId: String
     public let taskTitle: String
@@ -27,6 +28,11 @@ public struct ScheduleSection: View {
     @State private var hasReminder: Bool = false
     @State private var absoluteRemindAt: Date? = nil
 
+    /// Single shared debounce timer for both save paths — saveRecurrence
+    /// and saveReminder both schedule into it; only the latest intent
+    /// fires after 500 ms idle, preventing rapid-toggle race conditions.
+    @State private var saveDebounce: DispatchWorkItem?
+
     public init(
         taskId: String,
         taskTitle: String,
@@ -44,20 +50,16 @@ public struct ScheduleSection: View {
     public var body: some View {
         Group {
             if isLoaded {
-                VStack(alignment: .leading, spacing: 14) {
+                // No outer card: the sheet (.presentationBackground) is
+                // already the surface; an inner RoundedRectangle filled
+                // with the same nudgeBackground produced the invisible
+                // "card-within-card" stroke and added a layer of nothing.
+                VStack(alignment: .leading, spacing: 20) {
                     recurrenceBlock
                     Divider().background(Color.nudgeBorderLight)
                     reminderBlock
                 }
-                .padding(14)
-                .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color.nudgeBackground)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(Color.nudgeBorder, lineWidth: 1)
-                        )
-                )
+                .padding(16)
             } else {
                 ProgressView()
                     .frame(maxWidth: .infinity)
@@ -71,7 +73,7 @@ public struct ScheduleSection: View {
 
     @ViewBuilder
     private var recurrenceBlock: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("schedule.recurrenceTitle", bundle: .module)
                     .font(.subheadline.weight(.semibold))
@@ -84,9 +86,13 @@ public struct ScheduleSection: View {
                     }
                 } label: { EmptyView() }
                 .pickerStyle(.menu)
-                .tint(Color.nudgePrimary)
+                // Match SettingsView pickers: tint is the label colour
+                // so selected value reads as continuation, not a tinted
+                // CTA. (Was nudgePrimary, fought the rest of the page.)
+                .tint(Color.nudgeForeground)
                 .onChange(of: preset) { _, _ in saveRecurrence() }
             }
+            .frame(minHeight: 44)
 
             if preset == .weekly || preset == .biweekly {
                 weekdaysPicker
@@ -96,6 +102,7 @@ public struct ScheduleSection: View {
                     Text("schedule.recurrence.monthDayN \(monthDay)", bundle: .module)
                         .foregroundStyle(Color.nudgeForeground)
                 }
+                .frame(minHeight: 44)
                 .onChange(of: monthDay) { _, _ in saveRecurrence() }
             }
             if preset == .monthly_nth_weekday {
@@ -106,12 +113,16 @@ public struct ScheduleSection: View {
                     Text("schedule.recurrence.startDate", bundle: .module)
                         .foregroundStyle(Color.nudgeForeground)
                 }
+                .frame(minHeight: 44)
+                .tint(Color.nudgeForeground)
                 .onChange(of: startDate) { _, _ in saveRecurrence() }
 
                 Toggle(isOn: $hasEndDate) {
                     Text("schedule.recurrence.hasEndDate", bundle: .module)
                         .foregroundStyle(Color.nudgeForeground)
                 }
+                .tint(Color.nudgeForeground)
+                .frame(minHeight: 44)
                 .onChange(of: hasEndDate) { _, on in
                     if on, endDate == nil { endDate = startDate }
                     saveRecurrence()
@@ -121,9 +132,15 @@ public struct ScheduleSection: View {
                         get: { endDate ?? startDate },
                         set: { endDate = $0 }
                     ), displayedComponents: .date) {
+                        // Visually subordinate — the toggle above is the
+                        // decision; this row is the consequence.
                         Text("schedule.recurrence.endDate", bundle: .module)
-                            .foregroundStyle(Color.nudgeForeground)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.nudgeTextDim)
                     }
+                    .frame(minHeight: 44)
+                    .tint(Color.nudgeForeground)
+                    .padding(.leading, 16)
                     .onChange(of: endDate) { _, _ in saveRecurrence() }
                 }
             }
@@ -132,6 +149,10 @@ public struct ScheduleSection: View {
 
     @ViewBuilder
     private var weekdaysPicker: some View {
+        // Each button cell expands to fill row width evenly; the visual
+        // circle stays 32 pt while the tap target spans the full cell
+        // height (44 pt) — fixes the iOS HIG 44 pt touch-target violation
+        // without crowding the visible glyphs.
         HStack(spacing: 6) {
             ForEach(1...7, id: \.self) { day in
                 let active = weekdays.contains(day)
@@ -147,6 +168,8 @@ public struct ScheduleSection: View {
                             Circle().fill(active ? Color.nudgePrimary : Color.clear)
                         )
                         .overlay(Circle().stroke(Color.nudgeBorder, lineWidth: 1))
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(Text(weekdayShort(day)))
@@ -165,28 +188,31 @@ public struct ScheduleSection: View {
                 Text("schedule.recurrence.last", bundle: .module).tag(5)
             } label: { Text("schedule.recurrence.nthLabel", bundle: .module) }
             .pickerStyle(.menu)
-            .tint(Color.nudgePrimary)
+            .tint(Color.nudgeForeground)
             .onChange(of: monthNth) { _, _ in saveRecurrence() }
 
             Picker(selection: $monthNthWeekday) {
                 ForEach(1...7, id: \.self) { Text(weekdayShort($0)).tag($0) }
             } label: { Text("schedule.recurrence.weekday", bundle: .module) }
             .pickerStyle(.menu)
-            .tint(Color.nudgePrimary)
+            .tint(Color.nudgeForeground)
             .onChange(of: monthNthWeekday) { _, _ in saveRecurrence() }
         }
+        .frame(minHeight: 44)
     }
 
     // MARK: - Reminder block
 
     @ViewBuilder
     private var reminderBlock: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             Toggle(isOn: $hasReminder) {
                 Text("schedule.reminder.enabled", bundle: .module)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.nudgeForeground)
             }
+            .tint(Color.nudgeForeground)
+            .frame(minHeight: 44)
             .onChange(of: hasReminder) { _, on in
                 if !on {
                     remindTimeOfDay = nil
@@ -207,6 +233,8 @@ public struct ScheduleSection: View {
                         Text("schedule.reminder.timeOfDay", bundle: .module)
                             .foregroundStyle(Color.nudgeForeground)
                     }
+                    .frame(minHeight: 44)
+                    .tint(Color.nudgeForeground)
                     .onChange(of: remindTimeOfDay) { _, _ in saveReminder() }
                 } else {
                     DatePicker(
@@ -219,6 +247,8 @@ public struct ScheduleSection: View {
                         Text("schedule.reminder.dateTime", bundle: .module)
                             .foregroundStyle(Color.nudgeForeground)
                     }
+                    .frame(minHeight: 44)
+                    .tint(Color.nudgeForeground)
                     .onChange(of: absoluteRemindAt) { _, _ in saveReminder() }
                 }
             }
@@ -282,44 +312,57 @@ public struct ScheduleSection: View {
         }
     }
 
-    private func saveRecurrence() {
+    /// Coalesce rapid changes — picker scrolls, weekday taps, stepper
+    /// repeats — into a single PUT after 500 ms of idle. Without this
+    /// scrolling a DatePicker fires dozens of writes and the last one
+    /// wins by network race rather than user intent.
+    private func scheduleSave(_ work: @escaping @Sendable () async -> Void) {
         guard isLoaded else { return }
-        Task {
-            do {
-                if let p = preset {
-                    let body = RecurrenceRepository.UpsertBody(
-                        preset: p.rawValue,
-                        weekdays: (p == .weekly || p == .biweekly)
-                            ? weekdays.sorted().map(String.init).joined(separator: ",")
-                            : nil,
-                        monthDay: p == .monthly_day ? monthDay : nil,
-                        monthNth: p == .monthly_nth_weekday ? monthNth : nil,
-                        monthNthWeekday: p == .monthly_nth_weekday ? monthNthWeekday : nil,
-                        startDate: isoDate(startDate),
-                        endDate: hasEndDate ? endDate.map(isoDate) : nil,
-                        remindAtTimeOfDay: hasReminder ? remindTimeOfDay.map(hmString) : nil
-                    )
-                    let saved = try await recurrenceRepo.upsert(taskId: taskId, body: body)
-                    onRecurrenceChanged(saved)
-                    #if os(iOS)
-                    await NotificationScheduler.shared.rescheduleTaskReminder(
-                        taskId: taskId,
-                        title: taskTitle,
-                        absoluteRemindAt: nil,
-                        recurrence: saved
-                    )
-                    await NotificationScheduler.shared.dumpPending()
-                    #endif
-                } else {
-                    try await recurrenceRepo.delete(taskId: taskId)
-                    onRecurrenceChanged(nil)
-                    #if os(iOS)
-                    await NotificationScheduler.shared.cancelTaskReminder(taskId: taskId)
-                    #endif
-                }
-            } catch {
-                print("[ScheduleSection] saveRecurrence failed: \(error)")
+        saveDebounce?.cancel()
+        let item = DispatchWorkItem { Task { await work() } }
+        saveDebounce = item
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: item)
+    }
+
+    private func saveRecurrence() {
+        scheduleSave { await self.performSaveRecurrence() }
+    }
+
+    private func performSaveRecurrence() async {
+        do {
+            if let p = preset {
+                let body = RecurrenceRepository.UpsertBody(
+                    preset: p.rawValue,
+                    weekdays: (p == .weekly || p == .biweekly)
+                        ? weekdays.sorted().map(String.init).joined(separator: ",")
+                        : nil,
+                    monthDay: p == .monthly_day ? monthDay : nil,
+                    monthNth: p == .monthly_nth_weekday ? monthNth : nil,
+                    monthNthWeekday: p == .monthly_nth_weekday ? monthNthWeekday : nil,
+                    startDate: isoDate(startDate),
+                    endDate: hasEndDate ? endDate.map(isoDate) : nil,
+                    remindAtTimeOfDay: hasReminder ? remindTimeOfDay.map(hmString) : nil
+                )
+                let saved = try await recurrenceRepo.upsert(taskId: taskId, body: body)
+                onRecurrenceChanged(saved)
+                #if os(iOS)
+                await NotificationScheduler.shared.rescheduleTaskReminder(
+                    taskId: taskId,
+                    title: taskTitle,
+                    absoluteRemindAt: nil,
+                    recurrence: saved
+                )
+                await NotificationScheduler.shared.dumpPending()
+                #endif
+            } else {
+                try await recurrenceRepo.delete(taskId: taskId)
+                onRecurrenceChanged(nil)
+                #if os(iOS)
+                await NotificationScheduler.shared.cancelTaskReminder(taskId: taskId)
+                #endif
             }
+        } catch {
+            print("[ScheduleSection] saveRecurrence failed: \(error)")
         }
     }
 
@@ -329,22 +372,26 @@ public struct ScheduleSection: View {
             // Recurrence reminder lives in the same upsert.
             saveRecurrence()
         } else {
-            let value = hasReminder ? absoluteRemindAt.map { isoDateTime($0) } : nil
+            scheduleSave { await self.performSaveAbsoluteReminder() }
+        }
+    }
+
+    private func performSaveAbsoluteReminder() async {
+        let value = hasReminder ? absoluteRemindAt.map { isoDateTime($0) } : nil
+        await MainActor.run {
             initialAbsoluteRemindAt = value
             onChangeAbsoluteRemindAt(value)
-            #if os(iOS)
-            let absoluteDate = hasReminder ? absoluteRemindAt : nil
-            Task {
-                await NotificationScheduler.shared.rescheduleTaskReminder(
-                    taskId: taskId,
-                    title: taskTitle,
-                    absoluteRemindAt: absoluteDate,
-                    recurrence: nil
-                )
-                await NotificationScheduler.shared.dumpPending()
-            }
-            #endif
         }
+        #if os(iOS)
+        let absoluteDate = hasReminder ? absoluteRemindAt : nil
+        await NotificationScheduler.shared.rescheduleTaskReminder(
+            taskId: taskId,
+            title: taskTitle,
+            absoluteRemindAt: absoluteDate,
+            recurrence: nil
+        )
+        await NotificationScheduler.shared.dumpPending()
+        #endif
     }
 
     // MARK: - Date helpers

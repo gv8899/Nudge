@@ -14,7 +14,9 @@
     "a11y": {
       "expanded": "Expanded",
       "collapsed": "Collapsed"
-    }
+    },
+    "errorSaving": "Couldn't save. Try again.",
+    "back": "Back"
   },
   "settings": {
     "title": "Settings",
@@ -70,7 +72,11 @@
       "eveningEnabled": "Evening summary",
       "eveningTime": "Evening time",
       "eveningContent": "Evening content",
-      "perTaskEnabled": "Per-task reminders"
+      "perTaskEnabled": "Per-task reminders",
+      "platformNote": "Push notifications are delivered by the iOS app. Web is for configuration only."
+    },
+    "dangerZone": {
+      "section": "Danger zone"
     }
   },
   "tags": {
@@ -101,7 +107,9 @@
   "login": {
     "tagline": "A lightweight nudge for your daily tasks",
     "signInWithGoogle": "Sign in with Google",
-    "loginFailed": "Sign-in failed. Please try again."
+    "loginFailed": "Sign-in failed. Please try again.",
+    "signInWithApple": "Sign in with Apple",
+    "signingIn": "Signing in…"
   },
   "task": {
     "dragReorder": "Drag to reorder: {title}",
@@ -180,7 +188,22 @@
     "skipThisOccurrence": "Skip this one",
     "setRecurring": "Repeat…",
     "setReminder": "Set reminder…",
-    "rowMenu": "Task actions"
+    "rowMenu": "Task actions",
+    "completedSection": "Completed ({n})",
+    "skipConfirmTitle": "Skip this occurrence?",
+    "skipConfirmBody": "\"{title}\" will be skipped this time. The next occurrence will follow the recurrence rule.",
+    "skipConfirmAction": "Skip",
+    "todayAria": "Today",
+    "dashboardCalendarTitle": "Calendar",
+    "dashboardCalendarDisconnected": "Connect Google Calendar in Settings to see today's schedule here.",
+    "dashboardCalendarEmpty": "No events for this day.",
+    "dashboardCardsTitle": "Recent Cards",
+    "dashboardToggleCalendar": "Show Calendar column",
+    "dashboardToggleTasks": "Show Tasks column",
+    "dashboardToggleCards": "Show Cards column",
+    "popoverRecurringBadge": "Recurring",
+    "popoverExpand": "Expand",
+    "dashboardTasksTitle": "Today's Tasks"
   },
   "cards": {
     "createAria": "New card",
@@ -199,13 +222,15 @@
     "cleanConfirmButton": "Confirm delete",
     "cleanLoading": "Cleaning...",
     "toastCleaned": "Cleaned {count} untitled card(s)",
-    "toastNothingToClean": "No cards to clean"
+    "toastNothingToClean": "No cards to clean",
+    "untitled": "Untitled",
+    "emptyDescription": "Capture a thought, idea, or note. Cards are searchable and re-discoverable."
   },
   "cardDetail": {
     "backToCards": "Back to cards",
     "notFound": "Card not found",
     "editTitleAria": "Edit title",
-    "editorPlaceholder": "Type / to insert headings, lists…",
+    "editorPlaceholder": "Add details...",
     "titleHint": "Title",
     "createdAt": "Created {date}",
     "updatedAt": "Updated {date}",
@@ -219,11 +244,38 @@
     "goToCanvas": "Go to today's canvas",
     "goToToday": "Go to today's journal",
     "noMoreEntries": "No more entries",
-    "canvasPlaceholder": "Write something...",
+    "canvasPlaceholder": "How was your day?",
     "canvasToggleFeedAria": "Switch to feed",
     "canvasToggleFeedTitle": "Switch to feed",
     "entryAria": "Journal for {month}/{day}/{year}",
     "monthLabel": "{month}"
+  },
+  "widget": {
+    "quickAdd": {
+      "label": "New task",
+      "iconLabel": "Add"
+    },
+    "quickAddCard": {
+      "label": "New card"
+    },
+    "todayList": {
+      "title": "Today",
+      "empty": "No tasks today · + Add"
+    },
+    "kind": {
+      "quickAdd": {
+        "displayName": "Quick Add",
+        "description": "Add a task in one tap"
+      },
+      "quickAddCard": {
+        "displayName": "Quick Add Card",
+        "description": "Add a card in one tap"
+      },
+      "todayList": {
+        "displayName": "Today's Tasks",
+        "description": "Shows your top 5 tasks today"
+      }
+    }
   },
   "calendar": {
     "section": "Calendar",
@@ -267,7 +319,14 @@
       "afternoon": "Afternoon",
       "evening": "Evening"
     },
-    "checkingStatus": "Checking…"
+    "checkingStatus": "Checking…",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "eventCount": "{n} events",
+    "connectedEmailLabel": "Connected",
+    "modePickerAria": "View mode"
   },
   "offline": {
     "banner": "Offline. Last updated at {time}."
@@ -297,7 +356,8 @@
       "nthN": "{n}",
       "last": "Last",
       "nthLabel": "Which",
-      "weekday": "Weekday"
+      "weekday": "Weekday",
+      "weekdaysLabel": "Weekdays"
     },
     "preset": {
       "daily": "Daily",
@@ -311,7 +371,15 @@
     "reminder": {
       "enabled": "Reminder",
       "timeOfDay": "Time of day",
-      "dateTime": "Reminder time"
+      "dateTime": "Reminder time",
+      "label": "Reminder time",
+      "placeholder": "No reminder",
+      "clear": "Clear",
+      "requiresPreset": "Pick a recurrence rule to set a reminder."
+    },
+    "validation": {
+      "endBeforeStart": "End date must be after start date.",
+      "weeklyNeedsWeekday": "Pick at least one weekday."
     }
   },
   "notifications": {

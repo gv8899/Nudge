@@ -240,6 +240,19 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
         webView.evaluateJavaScript("NudgeEditor.setLabels(\(json))")
     }
 
+    /// Push the SwiftUI-supplied placeholder string into the JS bundle so
+    /// TipTap's Placeholder extension can render `data-placeholder`.
+    /// Called after `.ready` because the editor doesn't exist before then.
+    func pushPlaceholder() {
+        guard isReady, let webView else { return }
+        guard let data = try? JSONSerialization.data(
+            withJSONObject: [placeholder], options: [.fragmentsAllowed]
+        ),
+              let json = String(data: data, encoding: .utf8) else { return }
+        let arg = json.trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
+        webView.evaluateJavaScript("NudgeEditor.setPlaceholder(\(arg))")
+    }
+
     func exec(_ command: EditorCommand) {
         guard isReady, let webView else { return }
         let js: String
@@ -284,8 +297,12 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
             print("[EditorCoordinator] loading initial HTML (\(initial.count) chars)")
             lastEmittedHTML = initial
             let escaped = escapeForJS(initial)
-            webView?.evaluateJavaScript("NudgeEditor.load(\(escaped))") { _, err in
+            // pushPlaceholder() AFTER load() so the placeholder decoration
+            // applies on the post-setContent state — not the pre-load state
+            // that load() then replaces.
+            webView?.evaluateJavaScript("NudgeEditor.load(\(escaped))") { [weak self] _, err in
                 if let err { print("[EditorCoordinator] load() eval error: \(err)") }
+                self?.pushPlaceholder()
             }
             pendingLoadHTML = nil
         case .change(let html):

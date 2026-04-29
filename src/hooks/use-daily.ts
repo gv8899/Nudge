@@ -9,6 +9,12 @@ export function useDaily(date: string) {
     {
       keepPreviousData: true,
       shouldRetryOnError: false,
+      // Smart polling — 每 30s 檢查；server 回 304 時瀏覽器 HTTP cache
+      // 自動命中（Cache-Control: no-cache + ETag），SWR 拿到「相同資料」
+      // 不會 re-render。
+      refreshInterval: 30000,
+      refreshWhenHidden: false,
+      refreshWhenOffline: false,
     }
   );
 

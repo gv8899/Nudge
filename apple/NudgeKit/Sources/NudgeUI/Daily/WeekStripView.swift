@@ -20,16 +20,10 @@ public struct WeekStripView: View {
     }
 
     public var body: some View {
+        // 上方原本 macOS 有大日期 + chevron header；現已移到 DailyHostView
+        // 的視窗 toolbar（subtitle 顯示日期、leading 三顆按鈕做週導覽），
+        // 視 strip 只保留 7 顆日期 cell，避免上下兩列重複的日期資訊。
         VStack(spacing: 8) {
-            #if os(macOS)
-            // macOS still shows the big date + prev/next chevrons inside
-            // this view. iOS has moved the date to a smaller eyebrow
-            // above the page title (see DailyHostView.iOSLayout), so the
-            // header is suppressed here on iOS to avoid duplication.
-            header
-                .padding(.horizontal, 16)
-            #endif
-
             HStack(spacing: 4) {
                 ForEach(currentWeekDates(), id: \.self) { dateString in
                     dayCell(dateString)
@@ -54,47 +48,6 @@ public struct WeekStripView: View {
         .animation(.easeOut(duration: 0.2), value: selectedDate)
     }
 
-    @ViewBuilder
-    private var header: some View {
-        #if os(iOS)
-        Text(formattedSelectedDate())
-            .font(.title2.weight(.semibold))
-            .foregroundStyle(Color.nudgeForeground)
-            .frame(maxWidth: .infinity, alignment: .center)
-        #else
-        HStack {
-            IconButton(
-                systemName: "chevron.left",
-                accessibilityLabel: "daily.prevWeekAria",
-                action: { onWeekOffset(-1) }
-            )
-
-            Spacer()
-
-            Text(formattedSelectedDate())
-                .font(.title2.weight(.semibold))
-                .foregroundStyle(Color.nudgeForeground)
-
-            Spacer()
-
-            IconButton(
-                systemName: "chevron.right",
-                accessibilityLabel: "daily.nextWeekAria",
-                action: { onWeekOffset(1) }
-            )
-        }
-        #endif
-    }
-
-    private func formattedSelectedDate() -> String {
-        guard let date = DateFormatters.parseISODate(selectedDate) else { return selectedDate }
-        let cal = Calendar(identifier: .gregorian)
-        let m = cal.component(.month, from: date)
-        let d = cal.component(.day, from: date)
-        let y = cal.component(.year, from: date)
-        return "\(m)/\(d), \(y)"
-    }
-
     private func currentWeekDates() -> [String] {
         guard let date = DateFormatters.parseISODate(selectedDate) else { return [] }
         let startOfWeek = DateFormatters.startOfWeek(date)
@@ -112,30 +65,47 @@ public struct WeekStripView: View {
 
         Button(action: { onSelectDate(date) }) {
             VStack(spacing: 4) {
+                // Weekday label stays neutral — was nudgePrimary on
+                // selected, which combined with the filled circle and
+                // the dot to put three primary-color elements in one
+                // cell. The fill alone is enough selection signal.
                 Text(weekdayKey(date), bundle: .module)
-                    .font(.caption2)
-                    .foregroundStyle(isSelected ? Color.nudgePrimary : Color.nudgeTextDim)
+                    .nudgeFont(.weekdayLabel)
+                    .foregroundStyle(Color.nudgeTextDim)
 
                 Text(dayNumber)
-                    .font(.headline)
+                    .nudgeFont(.weekdayNumber)
                     .foregroundStyle(isSelected ? Color.nudgePrimaryForeground : Color.nudgeForeground)
-                    .frame(width: 32, height: 32)
+                    .frame(width: 36, height: 36)
                     .background(
                         Circle()
                             .fill(isSelected ? Color.nudgePrimary : Color.clear)
                     )
 
+                // Hide the hasTasks dot on the selected day — it's
+                // information redundant with the filled circle. Keeps
+                // the cell from carrying three concurrent primary-color
+                // accents.
                 Circle()
-                    .fill(hasTasks ? Color.nudgePrimary : Color.clear)
+                    .fill(hasTasks && !isSelected ? Color.nudgePrimary : Color.clear)
                     .frame(width: 4, height: 4)
             }
-            .frame(maxWidth: .infinity, minHeight: 56)
+            // mac 用滑鼠不需要 56pt 觸控目標；iOS 觸控維持 56pt。
+            .frame(maxWidth: .infinity, minHeight: dayCellMinHeight)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(verbatim: dayNumber))
         .accessibilityValue(Text(weekdayKey(date), bundle: .module))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var dayCellMinHeight: CGFloat {
+        #if os(macOS)
+        return 44
+        #else
+        return 56
+        #endif
     }
 
     private func weekdayKey(_ dateString: String) -> LocalizedStringKey {

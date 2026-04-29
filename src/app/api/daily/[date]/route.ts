@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { db } from "@/lib/db";
 import {
   dailyTaskAssignments,
@@ -12,7 +13,7 @@ import { occurs, type RecurrenceRule } from "@/lib/recurrence";
 import { nanoid } from "nanoid";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ date: string }> },
 ) {
   const user = await getUser();
@@ -62,6 +63,7 @@ export async function GET(
           isCompleted: false,
           isSkipped: false,
           sortOrder: 0,
+          updatedAt: new Date().toISOString(),
         })
         .onConflictDoNothing();
     }
@@ -76,6 +78,7 @@ export async function GET(
       isCompleted: dailyTaskAssignments.isCompleted,
       isSkipped: dailyTaskAssignments.isSkipped,
       sortOrder: dailyTaskAssignments.sortOrder,
+      assignmentUpdatedAt: dailyTaskAssignments.updatedAt,
       isRecurring: sql<boolean>`(${taskRecurrences.id} IS NOT NULL)`,
       task: {
         id: tasks.id,
@@ -113,6 +116,7 @@ export async function GET(
       isCompleted: dailyTaskAssignments.isCompleted,
       isSkipped: dailyTaskAssignments.isSkipped,
       sortOrder: dailyTaskAssignments.sortOrder,
+      assignmentUpdatedAt: dailyTaskAssignments.updatedAt,
       isRecurring: sql<boolean>`(${taskRecurrences.id} IS NOT NULL)`,
       task: {
         id: tasks.id,
@@ -149,10 +153,54 @@ export async function GET(
     .where(and(eq(dailyNotes.date, date), eq(dailyNotes.userId, user.id)))
     .limit(1);
 
-  return NextResponse.json({
-    date,
-    assignments,
-    overdueTasks,
-    noteContent: note?.content || "",
-  });
+  // ETag — weak hash of logical state for this date. 變動就變、沒變動
+  // 回 304 + 空 body 短路。
+  //
+  // 採 max(assignment.updatedAt) 而非 task.updatedAt：勾/解勾 / 跳過 /
+  // 排序 / 移日只動 daily_task_assignments，不會 bump tasks.updatedAt，
+  // 用後者會漏抓變動（過去的 bug：「前幾天」勾掉沒消失、4/27 解勾後今天
+  // overdue 沒重現）。assignment.updatedAt 由 PATCH endpoints 統一維護。
+  //
+  // Note 用 content.length 而非 updatedAt 因為 dailyNotes schema 沒有
+  // updatedAt 欄位（schema.ts:86）。Note length 必須是獨立 component —
+  // 直接丟進 max(...timestamps) 會被毫秒級數字完全淹沒，note 改了
+  // ETag 不會變、client 拿不到更新。
+  const allUpdatedAts: number[] = [];
+  for (const a of assignments) {
+    allUpdatedAts.push(new Date(a.assignmentUpdatedAt).getTime());
+  }
+  for (const a of overdueTasks) {
+    allUpdatedAts.push(new Date(a.assignmentUpdatedAt).getTime());
+  }
+  const maxUpdated = allUpdatedAts.length > 0 ? Math.max(...allUpdatedAts) : 0;
+  const noteLength = note?.content?.length ?? 0;
+  const etagSource = `${date}|${maxUpdated}|${assignments.length}|${overdueTasks.length}|${noteLength}`;
+  const etag = `W/"${createHash("md5").update(etagSource).digest("hex")}"`;
+
+  // Honor If-None-Match — 一致就回 304，不送 body
+  const ifNoneMatch = request.headers.get("if-none-match");
+  if (ifNoneMatch === etag) {
+    return new NextResponse(null, {
+      status: 304,
+      headers: {
+        ETag: etag,
+        "Cache-Control": "no-cache",
+      },
+    });
+  }
+
+  return NextResponse.json(
+    {
+      date,
+      assignments,
+      overdueTasks,
+      noteContent: note?.content || "",
+    },
+    {
+      headers: {
+        ETag: etag,
+        "Cache-Control": "no-cache",
+      },
+    }
+  );
 }

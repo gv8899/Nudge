@@ -39,6 +39,14 @@ public struct NotesHostView: View {
                                 bundle: .module
                             )
                         )
+                        .help(
+                            Text(
+                                showFeed
+                                    ? "notes.backToCanvasTitle"
+                                    : "notes.canvasToggleFeedTitle",
+                                bundle: .module
+                            )
+                        )
                     }
                 }
                 .navigationDestination(for: NotesRoute.self) { route in

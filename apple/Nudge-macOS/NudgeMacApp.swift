@@ -15,6 +15,10 @@ struct NudgeMacApp: App {
     @State private var noteRepo: NoteRepository
     @State private var recurrenceRepo: RecurrenceRepository
     @State private var notificationPrefsRepo: NotificationPreferencesRepository
+    /// 字級倍率，由選單 ⌘+ / ⌘- / ⌘0 調整。透過
+    /// `\.nudgeFontScale` env 注入給 NudgeUI 內所有 `.nudgeFont(...)`
+    /// modifier 使用。Range 0.85-1.4 (clamp 在 listener)。
+    @AppStorage("nudgeFontScale") private var fontScale: Double = 1.0
     private let container: ModelContainer
     private let googleSignIn: GoogleSignInServiceMacOS
 
@@ -79,17 +83,55 @@ struct NudgeMacApp: App {
                     _ = GIDSignIn.sharedInstance.handle(url)
                 }
                 .frame(minWidth: 900, minHeight: 600)
+                // ⌘+ / ⌘- / ⌘0 字級縮放 — 0.85x 到 1.4x，每次 ±0.1。
+                // 0.85 是底線（再小 mac 已經接近不可讀），1.4 是上限
+                // (再大 row layout 會擠到變不可用)。值持久化在
+                // @AppStorage("nudgeFontScale")，下次開啟保留設定。
+                .environment(\.nudgeFontScale, CGFloat(fontScale))
+                .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.zoomInNotification)) { _ in
+                    fontScale = min(fontScale + 0.1, 1.4)
+                }
+                .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.zoomOutNotification)) { _ in
+                    fontScale = max(fontScale - 0.1, 0.85)
+                }
+                .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.zoomResetNotification)) { _ in
+                    fontScale = 1.0
+                }
             }
         }
         .modelContainer(container)
+        // Window chrome — open at a comfortable laptop-friendly size
+        // (1100×720 fits a 13" without overflowing), constrained to
+        // the content's min size so users can't resize below 900×600
+        // and break the sidebar layout. Unified title bar is the
+        // current macOS default look.
+        .defaultSize(width: 1100, height: 720)
+        .windowResizability(.contentMinSize)
+        .windowToolbarStyle(.unified(showsTitle: false))
         .commands {
-            NudgeCommands()
+            NudgeCommandsMenu()
         }
 
+        // Settings scene — ⌘, opens this. Previously this was a
+        // "Settings (Phase 5)" stub while the real SettingsView lived
+        // as a sidebar item; that meant two settings entry points,
+        // one of which was a placeholder. Consolidating to the
+        // platform-standard Settings scene and removing the sidebar
+        // item.
         Settings {
-            Text(verbatim: "Settings (Phase 5)")
-                .padding(40)
+            NudgePreferencesApplier {
+                SettingsView(auth: auth)
+                    .environment(taskRepo)
+                    .environment(tagRepo)
+                    .environment(calendarRepo)
+                    .environment(cardRepo)
+                    .environment(noteRepo)
+                    .environment(recurrenceRepo)
+                    .environment(notificationPrefsRepo)
+                    .frame(minWidth: 560, minHeight: 520)
+            }
         }
+        .modelContainer(container)
     }
 
     private func performLogin() async -> Result<Void, Error> {

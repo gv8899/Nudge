@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7"/>
+      <feColorMatrix values="0 0 0 0 0.24
+                             0 0 0 0 0.18
+                             0 0 0 0 0.12
+                             0 0 0 0.06 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/>
+    </filter>
+  </defs>
+
+  <!-- Background layer: solid cream paper, full bleed, with grain -->
+  <rect width="1024" height="1024" fill="#DCCEB1"/>
+  <rect width="1024" height="1024" filter="url(#grain)" opacity="0.55"/>
+</svg>

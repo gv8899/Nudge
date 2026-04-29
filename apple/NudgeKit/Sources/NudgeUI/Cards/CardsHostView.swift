@@ -4,20 +4,28 @@ import NudgeCore
 public struct CardsHostView: View {
     @Environment(CardRepository.self) private var cardRepo
     @Environment(TagRepository.self) private var tagRepo
+    #if os(iOS)
+    @Environment(NotificationRouter.self) private var notificationRouter
+    #endif
 
     @State private var cards: [CardDTO] = []
     @State private var nextCursor: String?
     @State private var isLoading = false
     @State private var isLoadingMore = false
     @State private var hasError = false
-    @State private var pushedCard: CardDTO?
-
     // Search + tag filtering now lives in the dedicated
     // `Tab(role: .search)` surface (CardSearchView). This host view is
     // an unfiltered list of all cards.
 
+    // iOS push-detail；macOS 改用 selectedCard 切換 centered list ↔ split
+    // detail，不需要 NavigationStack push。
     #if os(iOS)
     @State private var navigationPath = NavigationPath()
+    #endif
+    #if os(macOS)
+    /// Mac 端選中的卡片 — nil 時 list 置中、選中時 list 變窄欄、右側
+    /// 展開 CardDetailView (Mail-style split)。
+    @State private var selectedCard: CardDTO?
     #endif
 
     public init() {}
@@ -56,6 +64,17 @@ public struct CardsHostView: View {
             }
         }
         .task { await firstPage() }
+        // Widget deep link: PlatformRootView switches the tab on
+        // `pendingNewCard`, but TabView lazily mounts CardsHostView the
+        // FIRST time the tab is selected — by then `pendingNewCard` is
+        // already `true`, so a plain `.onChange` would never see a
+        // transition. `initial: true` re-fires with the current value at
+        // mount, catching the widget-tap scenario.
+        .onChange(of: notificationRouter.pendingNewCard, initial: true) { _, isPending in
+            guard isPending else { return }
+            createCard()
+            notificationRouter.clear()
+        }
     }
 
     /// iOS 26 glass FAB for creating a new card. `.glass` (neutral,
@@ -64,15 +83,15 @@ public struct CardsHostView: View {
     /// like one pattern rather than two bespoke buttons.
     private var createFAB: some View {
         Button(action: createCard) {
+            // 同 Daily FAB — frame + contentShape 必須在 label 內，整個
+            // 60×60 圓形範圍才是 button 的 hit area。原本 frame 加在
+            // 外面，hit area 只有中央 28pt，使用者點偏一點就 miss。
             Image(systemName: "plus")
                 .font(.title2.weight(.semibold))
-                .frame(width: 28, height: 28)
+                .frame(width: 60, height: 60)
+                .contentShape(Circle())
         }
-        // Match the Daily FAB exactly — glassEffect with the same
-        // material the system search pill uses, so all primary
-        // affordances read as one family.
         .buttonStyle(.plain)
-        .frame(width: 56, height: 56)
         .glassEffect(.regular, in: .circle)
         .tint(.primary)
         .accessibilityLabel(Text("cards.createAria", bundle: .module))
@@ -80,37 +99,78 @@ public struct CardsHostView: View {
     #endif
 
     #if os(macOS)
+    /// List 在置中與 split 兩種狀態下使用同一個寬度，使用者點卡片進
+    /// detail 時 list 不會縮、也不會放大 — 只是 detail 從右側展開、
+    /// list 從置中變成左對齊。720pt 沿用置中模式的閱讀寬度（~75ch）。
+    /// HSplitView 模式下使用者仍可拖 divider 微調比例。
+    private static let listColumnWidth: CGFloat = 720
+
+    /// Mac layout：未選 = list 置中固定寬度。已選 = HSplitView 左 list
+    /// （同寬，可拖）右 detail（flex）。
     private var macOSLayout: some View {
-        NavigationSplitView {
-            content
-                .background(Color.nudgeBackground)
-                .navigationTitle(Text("nav.cards", bundle: .module))
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        IconButton(
-                            systemName: "plus",
-                            accessibilityLabel: "cards.createAria",
-                            action: createCard
-                        )
-                    }
+        Group {
+            if let card = selectedCard {
+                HSplitView {
+                    content
+                        .frame(minWidth: 320, idealWidth: Self.listColumnWidth)
+                    cardDetailPane(card)
+                        .frame(minWidth: 480)
                 }
-                .frame(minWidth: 300)
-        } detail: {
-            if let card = pushedCard {
-                CardDetailView(
-                    card: card,
-                    onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
-                    onUpdateDescription: { updateDescription(cardId: card.id, html: $0) },
-                    onUpdateTags: { newIds in await updateTags(cardId: card.id, tagIds: newIds) }
-                )
             } else {
-                Text(verbatim: "—")
-                    .foregroundStyle(Color.nudgeTextDim)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.nudgeBackground)
+                HStack(spacing: 0) {
+                    Spacer(minLength: 0)
+                    content
+                        .frame(width: Self.listColumnWidth)
+                    Spacer(minLength: 0)
+                }
+            }
+        }
+        .background(Color.nudgeBackground)
+        .navigationTitle(Text("nav.cards", bundle: .module))
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: createCard) {
+                    Image(systemName: "plus")
+                }
+                .help(Text("cards.createAria", bundle: .module))
             }
         }
         .task { await firstPage() }
+    }
+
+    /// 右側 detail 面板。頂端有 X 按鈕（清空 selectedCard 回到置中
+    /// list），下方是 CardDetailView 標準完整功能（標題、編輯器、
+    /// rename / schedule / tags toolbar menu 都在）。
+    private func cardDetailPane(_ card: CardDTO) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                Button { selectedCard = nil } label: {
+                    Image(systemName: "xmark")
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(Color.nudgeTextDim)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(Text("common.done", bundle: .module))
+                .keyboardShortcut(.cancelAction)
+
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+
+            Divider()
+                .background(Color.nudgeBorderLight)
+
+            CardDetailView(
+                card: card,
+                onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
+                onUpdateDescription: { updateDescription(cardId: card.id, html: $0) },
+                onUpdateTags: { newIds in await updateTags(cardId: card.id, tagIds: newIds) }
+            )
+        }
+        .background(Color.nudgeBackground)
     }
     #endif
 
@@ -120,61 +180,130 @@ public struct CardsHostView: View {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if cards.isEmpty && hasError {
-            emptyState(key: "error.unknown")
+            ContentUnavailableView {
+                Label {
+                    Text("error.unknown", bundle: .module)
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle")
+                }
+            }
         } else if cards.isEmpty {
-            emptyState(key: "cards.emptyNoCards")
+            ContentUnavailableView {
+                Label {
+                    Text("cards.emptyNoCards", bundle: .module)
+                } icon: {
+                    Image(systemName: "square.stack")
+                }
+            } description: {
+                Text("cards.emptyDescription", bundle: .module)
+            } actions: {
+                Button(action: createCard) {
+                    Text("cards.createAria", bundle: .module)
+                }
+            }
         } else {
             list
         }
     }
 
-    private func emptyState(key: LocalizedStringKey) -> some View {
-        VStack {
-            Spacer()
-            Text(key, bundle: .module)
-                .font(.subheadline)
-                .foregroundStyle(Color.nudgeTextDim)
-            Spacer()
+    private var list: some View {
+        // 桌機寬度由 macOSLayout 的外層 wrapper（centered HStack 或
+        // HSplitView 左欄 frame）決定，這裡不再 cap。iOS 直接吃滿。
+        // mac 改 LazyVGrid；iOS 維持 LazyVStack（手機螢幕窄、grid 沒
+        // 意義）。
+        ScrollView {
+            #if os(macOS)
+            macGrid
+            #else
+            iOSList
+            #endif
         }
-        .frame(maxWidth: .infinity)
     }
 
-    private var list: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(cards) { card in
-                    CardListItemView(card: card) {
-                        openDetail(card)
+    #if os(macOS)
+    /// 自適應 grid columns — 卡片最小 220pt（720pt 置中時 ≈3 欄；
+    /// 380pt split mode 時 1 欄），自動隨欄寬調整。
+    private var gridColumns: [GridItem] {
+        [GridItem(.adaptive(minimum: 220), spacing: 12)]
+    }
+
+    @ViewBuilder
+    private var macGrid: some View {
+        LazyVGrid(columns: gridColumns, spacing: 12) {
+            ForEach(cards) { card in
+                CardGridItemView(
+                    card: card,
+                    isSelected: selectedCard?.id == card.id,
+                    onTap: { openDetail(card) }
+                )
+                .onAppear {
+                    if card.id == cards.last?.id {
+                        Task { await loadMore() }
                     }
-                    .onAppear {
-                        if card.id == cards.last?.id {
-                            Task { await loadMore() }
-                        }
-                    }
-                    Divider()
-                        .background(Color.nudgeBorderLight)
-                        .padding(.leading, 16)
-                }
-                if isLoadingMore {
-                    Text("cards.loadMore", bundle: .module)
-                        .font(.caption)
-                        .foregroundStyle(Color.nudgeTextDim)
-                        .padding(12)
-                } else if nextCursor == nil && !cards.isEmpty {
-                    Text("cards.noMore", bundle: .module)
-                        .font(.caption)
-                        .foregroundStyle(Color.nudgeTextDim)
-                        .padding(12)
                 }
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
+
+        paginationFooter
+    }
+    #endif
+
+    @ViewBuilder
+    private var iOSList: some View {
+        LazyVStack(spacing: 8) {
+            ForEach(cards) { card in
+                CardListItemView(card: card) {
+                    openDetail(card)
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(rowBackground(for: card))
+                )
+                .onAppear {
+                    if card.id == cards.last?.id {
+                        Task { await loadMore() }
+                    }
+                }
+            }
+            paginationFooter
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+    }
+
+    @ViewBuilder
+    private var paginationFooter: some View {
+        if isLoadingMore {
+            Text("cards.loadMore", bundle: .module)
+                .font(.caption)
+                .foregroundStyle(Color.nudgeTextDim)
+                .padding(12)
+        } else if nextCursor == nil && !cards.isEmpty {
+            Text("cards.noMore", bundle: .module)
+                .font(.caption)
+                .foregroundStyle(Color.nudgeTextDim)
+                .padding(12)
+        }
+    }
+
+    /// macOS split mode 下選中的卡片要有視覺 highlight，使用者才知道
+    /// 「右邊 detail 顯示的是哪個」。iOS 直接走預設背景。
+    private func rowBackground(for card: CardDTO) -> Color {
+        #if os(macOS)
+        if selectedCard?.id == card.id {
+            return Color.nudgeSelectedFill
+        }
+        #endif
+        return Color.nudgeForeground.opacity(0.04)
     }
 
     private func openDetail(_ card: CardDTO) {
-        #if os(iOS)
-        navigationPath.append(card)
+        #if os(macOS)
+        selectedCard = card
         #else
-        pushedCard = card
+        navigationPath.append(card)
         #endif
     }
 

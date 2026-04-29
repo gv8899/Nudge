@@ -12,8 +12,8 @@ import Suggestion from "@tiptap/suggestion";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
 import Link from "@tiptap/extension-link";
+import { NudgeTaskItem } from "./task-item-no-focus";
 import {
   SLASH_COMMAND_DEFS,
   filterSlashItems,
@@ -30,6 +30,13 @@ interface LabelDict {
 
 let editor: Editor | null = null;
 let labels: LabelDict = {};
+// Single source of truth for the Placeholder extension. Read via a function
+// passed to Placeholder.configure() so mutations are picked up on every
+// decoration recompute. Mutating `ext.options.placeholder` directly does NOT
+// work because Tiptap's ExtensionManager clones extensions — the instance
+// returned by `extensionManager.extensions.find()` is not the same object the
+// plugin's `this` closes over.
+let currentPlaceholder = "";
 
 function buildSlashItems(): SlashCommandItem[] {
   return SLASH_COMMAND_DEFS.map((def) => {
@@ -121,14 +128,17 @@ function createSlashCommandExtension() {
   });
 }
 
-function createEditor(placeholder: string) {
+function createEditor() {
   editor = new Editor({
     element: document.getElementById("editor") as HTMLElement,
     extensions: [
       StarterKit.configure({ codeBlock: false }),
-      Placeholder.configure({ placeholder }),
+      Placeholder.configure({
+        placeholder: () => currentPlaceholder,
+        showOnlyCurrent: false,
+      }),
       TaskList,
-      TaskItem.configure({ nested: false }),
+      NudgeTaskItem.configure({ nested: false }),
       // openOnClick: false — contenteditable 裡 ProseMirror 直接 open
       // 會和 caret 移動衝突。我們在 DOM 層自己攔 click → postToNative,
       // Swift 用 UIApplication.open() 開外部瀏覽器。
@@ -218,6 +228,7 @@ interface NudgeEditorAPI {
   focus(): void;
   setTheme(tokens: Record<string, string>): void;
   setLabels(dict: LabelDict): void;
+  setPlaceholder(text: string): void;
 }
 
 const api: NudgeEditorAPI = {
@@ -279,9 +290,17 @@ const api: NudgeEditorAPI = {
   setLabels(dict: LabelDict) {
     labels = dict;
   },
+  setPlaceholder(text: string) {
+    currentPlaceholder = text;
+    // updateState() forces ProseMirror to re-run the Placeholder ext's
+    // decoration callback, which reads `currentPlaceholder` via closure.
+    if (editor) {
+      editor.view.updateState(editor.state);
+    }
+  },
 };
 
 (window as any).NudgeEditor = api;
 
-createEditor("");
+createEditor();
 postToNative({ kind: "ready" });

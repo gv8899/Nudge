@@ -9,6 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
 import { TagPicker } from "@/components/tags/tag-picker";
+import { ScheduleSection } from "@/components/task/schedule-section";
 import { useTags } from "@/hooks/use-tags";
 
 interface CardDetailProps {
@@ -209,6 +210,9 @@ export function CardDetail({ id }: CardDetailProps) {
               selectedTags={cardTags}
               onTagsChange={handleTagsChange}
             />
+          </div>
+          <div className="border-t border-border pt-4 mt-4">
+            <ScheduleSection taskId={id} />
           </div>
           <div className="flex items-center gap-3 text-xs text-text-dim">
             <span>{t("createdAt", { date: format(parseISO(data.createdAt), "yyyy/MM/dd") })}</span>

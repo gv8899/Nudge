@@ -92,9 +92,19 @@ public struct TaskRowMenu: View {
             Image(systemName: "ellipsis")
                 .font(.body.weight(.medium))
                 .foregroundStyle(Color.nudgeTextDim)
-                .frame(width: 44, height: 44)
+                .frame(width: rowMenuSize, height: rowMenuSize)
                 .contentShape(Rectangle())
         }
         .accessibilityLabel(Text("daily.rowMenu", bundle: .module))
+        .help(Text("daily.rowMenu", bundle: .module))
+    }
+
+    /// macOS 32pt（密度桌機）；iOS 維持 44pt 觸控目標。
+    private var rowMenuSize: CGFloat {
+        #if os(macOS)
+        return 32
+        #else
+        return 44
+        #endif
     }
 }

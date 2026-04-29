@@ -53,7 +53,8 @@ public struct SettingsView: View {
                 appearanceGroup
                 languageGroup
                 tagsGroup
-                maintenanceGroup
+                dangerZoneGroup
+                versionFooter
             }
             .padding(16)
         }
@@ -120,12 +121,14 @@ public struct SettingsView: View {
     // MARK: - Groups
 
     private var accountGroup: some View {
-        SettingsGroup(header: "settings.account.section") {
+        SettingsGroup(header: "settings.account.section", icon: "person.crop.circle") {
             if let user = auth.currentUser {
                 SettingsRow {
                     Text("settings.account.email", bundle: .module)
                 } trailing: {
                     Text(verbatim: user.email)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
                 }
                 SettingsDivider()
                 SettingsRow {
@@ -133,30 +136,23 @@ public struct SettingsView: View {
                 } trailing: {
                     if let name = user.name, !name.isEmpty {
                         Text(verbatim: name)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
                     } else {
                         Text("settings.account.unnamed", bundle: .module)
+                            .foregroundStyle(Color.nudgeTextDim)
                     }
                 }
-                SettingsDivider()
-            }
-            SettingsActionRow(
-                labelKey: "settings.logout.button",
-                role: .destructive
-            ) {
-                showLogoutConfirm = true
             }
         }
     }
 
     private var calendarGroup: some View {
-        SettingsGroup(header: "calendar.section") {
-            // While `hasInitialized` is false the connection state is
-            // unknown — show a skeleton row sized to the connected
-            // (email + disconnect) layout so the section doesn't grow
-            // when state arrives. Skipping this caused the section to
-            // pop up by ~44pt on first Settings open and shifted the
-            // groups below it.
+        SettingsGroup(header: "calendar.section", icon: "calendar") {
             if !calendarRepo.hasInitialized {
+                // Loading skeleton sized to the connected (label + value
+                // + disconnect) layout so the section doesn't grow when
+                // state arrives.
                 SettingsRow {
                     HStack(spacing: 8) {
                         ProgressView().controlSize(.small)
@@ -170,10 +166,15 @@ public struct SettingsView: View {
                 .frame(minHeight: 88)
             } else if calendarRepo.isConnected {
                 if !calendarRepo.connectedEmail.isEmpty {
+                    // Same [label][value] structure as Email/Name above
+                    // — was a single "Connected as xxx" full-width row,
+                    // which broke the column rhythm of the page.
                     SettingsRow {
-                        Text("calendar.connectedAs \(calendarRepo.connectedEmail)", bundle: .module)
+                        Text("calendar.connectedEmailLabel", bundle: .module)
                     } trailing: {
-                        EmptyView()
+                        Text(verbatim: calendarRepo.connectedEmail)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
                     }
                     SettingsDivider()
                 }
@@ -193,9 +194,10 @@ public struct SettingsView: View {
                 if let connectError {
                     SettingsDivider()
                     SettingsRow {
-                        Text(connectError)
+                        Text(verbatim: connectError)
                             .font(.footnote)
                             .foregroundStyle(Color.nudgeDestructive)
+                            .lineLimit(2)
                     } trailing: {
                         EmptyView()
                     }
@@ -205,7 +207,7 @@ public struct SettingsView: View {
     }
 
     private var appearanceGroup: some View {
-        SettingsGroup(header: "settings.appearance.section") {
+        SettingsGroup(header: "settings.appearance.section", icon: "paintpalette") {
             SettingsRow {
                 Text("settings.theme.section", bundle: .module)
             } trailing: {
@@ -218,15 +220,13 @@ public struct SettingsView: View {
                 }
                 .pickerStyle(.menu)
                 .labelsHidden()
-                // Match the row label colour so the value reads as
-                // continuation of the same line, not a tinted action.
                 .tint(Color.nudgeForeground)
             }
         }
     }
 
     private var languageGroup: some View {
-        SettingsGroup(header: "settings.language.section") {
+        SettingsGroup(header: "settings.language.section", icon: "globe") {
             SettingsRow {
                 Text("settings.language.section", bundle: .module)
             } trailing: {
@@ -240,21 +240,30 @@ public struct SettingsView: View {
                 }
                 .pickerStyle(.menu)
                 .labelsHidden()
-                // Match the row label colour so the value reads as
-                // continuation of the same line, not a tinted action.
                 .tint(Color.nudgeForeground)
             }
         }
     }
 
     private var tagsGroup: some View {
-        SettingsGroup(header: "settings.tags.section") {
+        SettingsGroup(header: "settings.tags.section", icon: "tag") {
             TagManagerView()
         }
     }
 
-    private var maintenanceGroup: some View {
-        SettingsGroup(header: nil) {
+    /// Logout + Clean cards collected into one section so all
+    /// destructive / unrecoverable actions live in one place — was
+    /// scattered: logout in account, clean cards in an unlabelled
+    /// orphan group at the bottom.
+    private var dangerZoneGroup: some View {
+        SettingsGroup(header: "settings.dangerZone.section", icon: "exclamationmark.triangle") {
+            SettingsActionRow(
+                labelKey: "settings.logout.button",
+                role: .destructive
+            ) {
+                showLogoutConfirm = true
+            }
+            SettingsDivider()
             SettingsActionRow(
                 labelKey: isCleaning ? "settings.cleanUntitled.labelLoading" : "settings.cleanUntitled.label",
                 role: .destructive,
@@ -263,6 +272,23 @@ public struct SettingsView: View {
                 showCleanCardsConfirm = true
             }
         }
+    }
+
+    /// Build version footer at the very bottom — TestFlight users
+    /// reporting bugs need to know which build they're on without
+    /// digging into the TestFlight app.
+    private var versionFooter: some View {
+        let info = Bundle.main.infoDictionary
+        let short = (info?["CFBundleShortVersionString"] as? String) ?? "?"
+        let build = (info?["CFBundleVersion"] as? String) ?? "?"
+        return HStack {
+            Spacer()
+            Text(verbatim: "Nudge \(short) (\(build))")
+                .font(.caption2)
+                .foregroundStyle(Color.nudgeTextDim)
+            Spacer()
+        }
+        .padding(.top, 8)
     }
 
     private func connectCalendar() {
@@ -277,9 +303,27 @@ public struct SettingsView: View {
             } catch CalendarOAuthCoordinator.ConnectError.userCancelled {
                 // silent — user chose to back out
             } catch {
-                connectError = String(describing: error)
+                connectError = friendlyError(error)
             }
         }
+    }
+
+    /// Translate raw exceptions into localized, user-readable copy.
+    /// Was: `String(describing: error)` which dumped enum cases like
+    /// "APIError.server(statusCode: 500, message: nil)" straight into
+    /// the UI, leaking backend detail and confusing the user.
+    private func friendlyError(_ error: Error) -> String {
+        if let apiError = error as? APIError {
+            switch apiError {
+            case .network:
+                return nudgeLocalized("error.network", locale: locale)
+            case .unauthorized:
+                return nudgeLocalized("error.unauthorized", locale: locale)
+            default:
+                return nudgeLocalized("error.unknown", locale: locale)
+            }
+        }
+        return nudgeLocalized("error.unknown", locale: locale)
     }
 
     private func cleanUntitledCards() {
@@ -307,24 +351,45 @@ public struct SettingsView: View {
 
 private struct SettingsGroup<Content: View>: View {
     let header: LocalizedStringKey?
+    let icon: String?
     @ViewBuilder let content: () -> Content
+
+    init(
+        header: LocalizedStringKey? = nil,
+        icon: String? = nil,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.header = header
+        self.icon = icon
+        self.content = content
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let header {
-                Text(header, bundle: .module)
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(Color.nudgeTextDim)
-                    .textCase(.uppercase)
-                    .padding(.horizontal, 4)
+                HStack(spacing: 6) {
+                    if let icon {
+                        Image(systemName: icon)
+                            .font(.caption.weight(.medium))
+                    }
+                    Text(header, bundle: .module)
+                        .font(.caption.weight(.medium))
+                        .textCase(.uppercase)
+                }
+                .foregroundStyle(Color.nudgeTextDim)
+                .padding(.horizontal, 4)
             }
+            // Elevated surface — was 1pt borderLight outline which was
+            // invisible on dark mode. Matches Cards/Notes elevated card
+            // treatment so all grouped surfaces in the app share one
+            // visual language.
             VStack(spacing: 0) {
                 content()
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
+            .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.nudgeBorderLight, lineWidth: 1)
+                    .fill(Color.nudgeForeground.opacity(0.04))
             )
         }
     }
@@ -342,7 +407,9 @@ private struct SettingsRow<Leading: View, Trailing: View>: View {
         }
         .frame(minHeight: 44)
         .padding(.horizontal, 16)
-        .padding(.vertical, 6)
+        // Vertical padding 6 → 10 so the row breathes when Dynamic Type
+        // is large; the minHeight 44 still guarantees touch target.
+        .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
@@ -350,7 +417,9 @@ private struct SettingsRow<Leading: View, Trailing: View>: View {
 private struct SettingsDivider: View {
     var body: some View {
         Rectangle()
-            .fill(Color.nudgeBorderLight)
+            // Slightly stronger than borderLight so it reads on the
+            // elevated surface (which itself uses ~4% opacity bg).
+            .fill(Color.nudgeForeground.opacity(0.08))
             .frame(height: 1)
     }
 }
@@ -374,7 +443,7 @@ private struct SettingsActionRow: View {
             }
             .frame(minHeight: 44)
             .padding(.horizontal, 16)
-            .padding(.vertical, 6)
+            .padding(.vertical, 10)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
