@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nudge
 
-## Getting Started
+輕量的個人任務 / 日誌 app。每天知道該做什麼、做了什麼，工具等你不是追你。
 
-First, run the development server:
+跨平台：**Web (Next.js)** + **iOS (SwiftUI)** + **macOS (SwiftUI)**，三邊共用同一個後端 + 同一份 i18n string。Apple 端的 rich-text editor 跟 Web 共用 TipTap source（透過 WKWebView bundle），確保體驗一致。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Repo 結構
+
+```
+nudge/
+├── src/                 ← Next.js web + API routes (App Router)
+├── drizzle/             ← Postgres migrations (drizzle-orm)
+├── apple/               ← Swift app (iOS + macOS + NudgeKit shared package + Widget)
+│   └── NudgeEditor/     ← TipTap bundle (Vite) for WKWebView
+├── i18n/                ← Canonical translation source + sync tool
+└── docs/superpowers/    ← Feature specs + implementation plans
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+各子系統都有自己的 README：
+- [`apple/README.md`](apple/README.md) — Swift app bootstrap, xcodegen, build 指令
+- [`apple/NudgeEditor/README.md`](apple/NudgeEditor/README.md) — TipTap bundle build / dev 流程
+- [`i18n/README.md`](i18n/README.md) — 對話式翻譯 workflow（不需 API key）
+- [`AGENTS.md`](AGENTS.md) — Web + Apple 的設計系統規則（color tokens / i18n / 元件慣例）
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Quick Start (Web + API)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+需要 Node.js 20+ 跟 Postgres 16+。
 
-## Learn More
+```bash
+npm install
+cp .env.example .env.local      # 填 DATABASE_URL / AUTH_GOOGLE_* / AUTH_SECRET / CALENDAR_TOKEN_KEY
+npm run dev                     # http://localhost:3000
+```
 
-To learn more about Next.js, take a look at the following resources:
+跑 migration：
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+psql "$DATABASE_URL" -f drizzle/0000_freezing_master_mold.sql
+# ... 依序跑到最新一支 SQL
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+> ⚠️ **Dev / prod 共用同一個 Postgres** 時做 migration，先確保新 code 已經 deploy（避免 schema 領先 code 的危險窗口）。
 
-## Deploy on Vercel
+## Apple App
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+brew install xcodegen
+cd apple && xcodegen generate
+open Nudge.xcodeproj
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+iOS Debug build 預設打 `http://localhost:3000`（DEBUG = development），Release / TestFlight 打 `https://nudge.tw`（看 `apple/NudgeKit/Sources/NudgeCore/APIConfiguration.swift`）。
+
+詳細 build / archive / TestFlight 流程看 [`apple/README.md`](apple/README.md)。
+
+## Stack
+
+| 層 | 技術 |
+|---|---|
+| Web UI | Next.js 16 (App Router) + React 19 + Tailwind + shadcn/ui-style tokens |
+| API | Next.js Route Handlers + auth.js (Google OAuth) |
+| DB | Postgres + drizzle-orm |
+| 即時同步 | 30s polling + ETag conditional GET (304 短路) |
+| Editor | TipTap 3 (Web 用 React adapter；iOS/macOS 用 Vite bundle 跑在 WKWebView) |
+| iOS / macOS | Swift 6 + SwiftUI（iOS 26 / macOS 15 deployment target）+ WidgetKit + SwiftData cache |
+| i18n | 自製 sync tool，canonical zh-TW + LLM 生成 en/ja → 鏡像到 web `src/messages` 與 Apple xcstrings |
+| Deploy | Zeabur（Next.js + Postgres）+ TestFlight (iOS) |
+
+## 主要功能
+
+- 每日任務清單（per-day assignments，獨立於 task entity，可重複歸日）
+- 「前幾天」未完成任務 rollup（overdue 區塊）
+- 重複任務（每日 / 每週 / 每月，含「跳過這次」menu）
+- 智慧通知（早上 / 晚上時間點 + per-task 提醒）
+- Daily note（每天一段自由文字）
+- 三平台 rich-text editor（task description / daily note）
+- iOS Widget v1（home screen 顯示今日任務 + 跨日切換邏輯）
+- Google Calendar 整合（顯示今日 events）
+- 三語介面（zh-TW / en / ja）
+
+## Branch / 部署流程
+
+- `main` 是部署 branch；Zeabur 偵測 push 自動 build + deploy
+- branch protection：禁止直 push main，所有改動走 PR
+- TestFlight：bump `apple/project.yml` 的 `CURRENT_PROJECT_VERSION` → PR → merge → `xcodebuild archive` → Organizer upload
+
+> 細節看 `docs/superpowers/specs/` 和 `docs/superpowers/plans/`，每個 feature 都有對應 spec + plan markdown。
