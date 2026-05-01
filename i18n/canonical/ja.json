@@ -150,7 +150,10 @@
     "prevWeekAria": "前の週",
     "nextWeekAria": "次の週",
     "dateAria": "{month}月{day}日 {weekday}",
-    "todayButton": "今日"
+    "todayButton": "今日",
+    "todayAria": "今日に戻る",
+    "todaySectionTitle": "今日 ({count})",
+    "toggleRightPanel": "サイドパネルを切り替え"
   },
   "cards": {
     "createAria": "新しいカード",

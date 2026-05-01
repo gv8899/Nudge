@@ -134,7 +134,10 @@ struct MacSidebarRoot: View {
                         Label {
                             Text("nav.tasks", bundle: .module)
                         } icon: {
-                            Image(systemName: "sun.max")
+                            // 對齊 iOS Tab bar 的 checkmark.circle —
+                            // sidebar / tab bar 同 icon 讓 user 在兩
+                            // 平台間切換時 muscle memory 一致。
+                            Image(systemName: "checkmark.circle")
                         }
                     }
                     NavigationLink(value: SidebarItem.calendar) {
@@ -183,18 +186,24 @@ struct MacSidebarRoot: View {
             // 毫秒重要。
             // 參考：Apple Dev Forums "Preserving navigation state in
             // NavigationSplitView detail" + Hacking with Swift forums。
+            // 每個 host 傳 embedded: !isActive — Mac sidebar ZStack 同時
+            // mount 全部 5 個 host（保留 navigation state），但 inactive
+            // host 的 .toolbar items 會 bubble 上來污染外層 NavigationSplitView
+            // 共用 toolbar。embedded=true 讓 inactive host 跳過自己的
+            // chrome (toolbar / navigationTitle)，只留 active 那個貢獻
+            // toolbar items。SettingsView 沒 toolbar items 不需要這個。
             ZStack {
                 detailHost(.today, isActive: selection == .today) {
-                    DailyHostView(auth: auth)
+                    DailyHostView(auth: auth, embedded: selection != .today)
                 }
                 detailHost(.calendar, isActive: selection == .calendar) {
-                    CalendarHostView()
+                    CalendarHostView(embedded: selection != .calendar)
                 }
                 detailHost(.cards, isActive: selection == .cards) {
-                    CardsHostView()
+                    CardsHostView(embedded: selection != .cards)
                 }
                 detailHost(.notes, isActive: selection == .notes) {
-                    NotesHostView()
+                    NotesHostView(embedded: selection != .notes)
                 }
                 detailHost(.settings, isActive: selection == .settings) {
                     SettingsView(auth: auth)

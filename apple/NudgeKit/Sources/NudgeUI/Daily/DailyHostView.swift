@@ -4,6 +4,12 @@ import NudgeData
 
 public struct DailyHostView: View {
     let auth: AuthRepository
+    /// Mac MacSidebarRoot 用 ZStack 同時 mount 所有 5 個 host（保留
+    /// navigation state），inactive view 的 toolbar items 會 bubble 到
+    /// 外層 NavigationSplitView 共用 toolbar，污染畫面。embedded = true
+    /// 跳過 .toolbar / .navigationTitle / .navigationSubtitle，讓 inactive
+    /// 時 toolbar 完全不貢獻。Active host 傳 false (default) 行為不變。
+    let embedded: Bool
 
     @Environment(TaskRepository.self) private var taskRepo
     @Environment(TagRepository.self) private var tagRepo
@@ -57,16 +63,33 @@ public struct DailyHostView: View {
     @State private var dashboardCardSearchResults: [CardDTO] = []
     @State private var dashboardCardSearchIsLoading = false
     @State private var dashboardCardHasSearched = false
+    /// Cards 區搜尋 / 標籤區塊預設收合 — 點 header 右側放大鏡才展開。
+    /// 收合時搜尋條件不清空，再次展開可看到上次 query / tag 選擇。
+    @State private var dashboardCardSearchExpanded: Bool = false
 
-    // 兩欄收合狀態 — 至少留一欄打開（toggle 邏輯在 toolbar 端禁用最後
-    // 一個 active 的 toggle）。剩單欄時，dashboardContent 會包進
-    // HStack + Spacer，限縮最大寬度避免文字過寬。
-    @State private var dashboardShowTasks = true
-    @State private var dashboardShowCards = true
+    // Right panel — 使用者可選的副面板。預設關閉，開啟時內容由
+    // `dashboardRightPanelKind` 在 Calendar / Cards 之間切換。Tasks 主
+    // 欄不論面板開不開都維持置中 + 760pt max-width；面板開啟時走
+    // HSplitView 把面板放在右邊，使用者可拖拉欄寬。@AppStorage 持久
+    // 偏好，下次開啟保留狀態。
+    @AppStorage("daily.mac.rightPanelOpen") private var dashboardRightPanelOpen: Bool = false
+    @AppStorage("daily.mac.rightPanelKind") private var dashboardRightPanelKindRaw: String = DashboardRightPanelKind.calendar.rawValue
+    /// Right panel 寬度（pt）— 自製 resize handle 拖拉時更新；重開保留。
+    /// 280 ~ 720 clamp 避免擠到 tasks 欄或瘦到 panel 不可用。
+    @AppStorage("daily.mac.rightPanelWidth") private var dashboardRightPanelWidth: Double = 400
+    @State private var dashboardRightPanelDragStart: Double? = nil
+    /// hover 在 resize zone 時顯示分隔線 + 雙箭頭 cursor。drag 期間也維持
+    /// 顯示，避免拖到一半線消失。Heptabase pattern。
+    @State private var dashboardResizeHandleHovered: Bool = false
+    enum DashboardRightPanelKind: String { case calendar, cards }
+    private var dashboardRightPanelKind: DashboardRightPanelKind {
+        get { DashboardRightPanelKind(rawValue: dashboardRightPanelKindRaw) ?? .calendar }
+    }
     #endif
 
-    public init(auth: AuthRepository) {
+    public init(auth: AuthRepository, embedded: Bool = false) {
         self.auth = auth
+        self.embedded = embedded
     }
 
     enum LoadState: Equatable {
@@ -341,12 +364,16 @@ public struct DailyHostView: View {
         createTask(title)
     }
 
-    /// iOS 26 neutral glass FAB — `.glass` (not `.glassProminent`) so
-    /// the disk stays transparent instead of carrying a tint. Matches
-    /// the unemphasized liquid-glass affordance the system uses for
-    /// toolbar and tab-bar buttons.
+    #endif
+
+    /// iOS 26 / macOS 15+ neutral glass FAB — `.glass` (not
+    /// `.glassProminent`) so the disk stays transparent instead of
+    /// carrying a tint. Matches the unemphasized liquid-glass affordance
+    /// the system uses for toolbar and tab-bar buttons. iOS 浮在 daily
+    /// view 右下；mac 浮在 centered tasks 欄右下（透過 ZStack）。
+    @ViewBuilder
     private var createTaskFAB: some View {
-        Button {
+        let core = Button {
             quickAddText = ""
             showQuickAdd = true
         } label: {
@@ -360,12 +387,22 @@ public struct DailyHostView: View {
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .glassEffect(.regular, in: .circle)
         .tint(.primary)
         .accessibilityLabel(Text("task.createPlaceholder", bundle: .module))
-    }
 
-    #endif
+        // glassEffect 在 iOS 是 26.0+、macOS 也是 26.0+。低於這個版本的
+        // mac (deployment target 15.0) fallback 用 Material.regular +
+        // shadow 模擬 glass 質感，視覺接近、不需要 OS 26。
+        if #available(iOS 26.0, macOS 26.0, *) {
+            core.glassEffect(.regular, in: .circle)
+        } else {
+            core.background(
+                Circle()
+                    .fill(.regularMaterial)
+                    .shadow(color: Color.nudgeForeground.opacity(0.15), radius: 8, x: 0, y: 4)
+            )
+        }
+    }
 
     // MARK: - macOS layout
 
@@ -374,65 +411,11 @@ public struct DailyHostView: View {
         // NavigationStack so tap-task pushes detail into the same
         // column instead of opening a sheet (mac convention). Sheet
         // is reserved for create / move-to-date / schedule which are
-        // discrete modal actions.
+        // discrete modal actions. Chrome (toolbar / title) 由 macOSContent
+        // 條件套用 — embedded=true 時跳過避免 inactive sidebar host 的
+        // toolbar items 漂進外層 NavigationSplitView 共用 toolbar。
         NavigationStack(path: $navigationPath) {
-            // dashboardContent 處理：3 欄 HSplitView（多欄時）vs 單欄
-            // 居中 + max-width（單欄時）。每欄可被 toolbar toggle 收
-            // 合，最後一欄 toggle 會 disable 避免清空。
-            dashboardContent
-            .background(Color.nudgeBackground)
-            .navigationTitle(Text("nav.tasks", bundle: .module))
-            .navigationSubtitle(Text(verbatim: formattedSelectedDate))
-            .toolbar {
-                ToolbarItemGroup(placement: .navigation) {
-                    Button { offsetWeek(-1) } label: {
-                        Image(systemName: "chevron.left")
-                    }
-                    .help(Text("daily.prevWeekAria", bundle: .module))
-
-                    Button { selectedDate = DateFormatters.isoDate(Date()) } label: {
-                        Image(systemName: "calendar.badge.clock")
-                    }
-                    .help(Text("daily.todayAria", bundle: .module))
-
-                    Button { offsetWeek(1) } label: {
-                        Image(systemName: "chevron.right")
-                    }
-                    .help(Text("daily.nextWeekAria", bundle: .module))
-                }
-                ToolbarItemGroup(placement: .primaryAction) {
-                    // 兩欄收合 toggle — 用 Toggle + .button style 拿到
-                    // mac 原生「按下凹陷」感。最後一欄 disabled，避免
-                    // 全收合產生空畫面。
-                    Toggle(isOn: $dashboardShowTasks) {
-                        Image(systemName: "checklist")
-                    }
-                    .toggleStyle(.button)
-                    .help(Text("daily.dashboardToggleTasks", bundle: .module))
-                    .disabled(dashboardShowTasks && dashboardOpenColumnCount == 1)
-
-                    Toggle(isOn: $dashboardShowCards) {
-                        Image(systemName: "square.stack")
-                    }
-                    .toggleStyle(.button)
-                    .help(Text("daily.dashboardToggleCards", bundle: .module))
-                    .disabled(dashboardShowCards && dashboardOpenColumnCount == 1)
-
-                    Button {
-                        quickAddText = ""
-                        showQuickAdd = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                    .help(Text("task.createPlaceholder", bundle: .module))
-                }
-            }
-            // mac 點 task 走 sheet → openTaskInRightColumn 設右欄
-            // detail，不再 push navigation stack。原本的 DailyAssignmentDTO
-            // / TaskIdRoute navigationDestination 是 iOS 用，mac 上等
-            // 於死碼，已移除避免誤導。NavigationStack(path:) 仍保留
-            // 以利 .toolbar / .navigationTitle 等 modifier 接管視窗
-            // chrome。
+            macOSContent
         }
         .animation(.easeOut(duration: 0.2), value: loadState)
         .sheet(item: $moveSheetAssignment) { assignment in
@@ -514,6 +497,75 @@ public struct DailyHostView: View {
         }
     }
 
+    /// dashboardContent + chrome (background / title / toolbar)。embedded
+    /// 時只套 background，跳掉 title / toolbar，inactive 時不污染外層
+    /// NavigationSplitView 的共用 toolbar。
+    @ViewBuilder
+    private var macOSContent: some View {
+        let core = dashboardContent.background(Color.nudgeBackground)
+        if embedded {
+            core
+        } else {
+            core
+                .navigationTitle(Text("nav.tasks", bundle: .module))
+                .navigationSubtitle(Text(verbatim: formattedSelectedDate))
+                .toolbar {
+                    ToolbarItemGroup(placement: .navigation) {
+                        Button { offsetWeek(-1) } label: {
+                            Image(systemName: "chevron.left")
+                        }
+                        .help(Text("daily.prevWeekAria", bundle: .module))
+
+                        Button { selectedDate = DateFormatters.isoDate(Date()) } label: {
+                            Text("daily.todayButton", bundle: .module)
+                        }
+                        .help(Text("daily.todayAria", bundle: .module))
+
+                        Button { offsetWeek(1) } label: {
+                            Image(systemName: "chevron.right")
+                        }
+                        .help(Text("daily.nextWeekAria", bundle: .module))
+                    }
+                    // .principal 放一個 Spacer 把 primaryAction 推到
+                    // 右邊。macOS NavigationStack 沒 principal 內容
+                    // 時，toolbar 把所有 items 擠在左邊；給個 Spacer
+                    // 撐開中間，primaryAction 才會走到 trailing。
+                    ToolbarItem(placement: .principal) {
+                        Spacer()
+                    }
+                    ToolbarItemGroup(placement: .primaryAction) {
+                        // Toggle 放左、picker 從 toggle 右側展開。
+                        // .tint(Color.nudgePrimary) 覆蓋系統 accent
+                        // (預設藍) → ON-state 用品牌色 cream/brown 實心。
+                        Toggle(isOn: $dashboardRightPanelOpen) {
+                            Image(systemName: "sidebar.right")
+                        }
+                        .toggleStyle(.button)
+                        .tint(Color.nudgePrimary)
+                        .help(Text("daily.toggleRightPanel", bundle: .module))
+
+                        // Right panel 開啟時才顯示 Calendar / Cards
+                        // segmented picker；同樣 .tint 用品牌色，避免
+                        // 選中 segment 顯示為系統藍。
+                        if dashboardRightPanelOpen {
+                            Picker(selection: $dashboardRightPanelKindRaw) {
+                                Text("nav.calendar", bundle: .module)
+                                    .tag(DashboardRightPanelKind.calendar.rawValue)
+                                Text("nav.cards", bundle: .module)
+                                    .tag(DashboardRightPanelKind.cards.rawValue)
+                            } label: {
+                                EmptyView()
+                            }
+                            .pickerStyle(.segmented)
+                            .controlSize(.small)
+                            .fixedSize()
+                            .tint(Color.nudgePrimary)
+                        }
+                    }
+                }
+        }
+    }
+
     private func offsetDay(_ days: Int) {
         guard let date = DateFormatters.parseISODate(selectedDate),
               let next = Calendar(identifier: .gregorian).date(byAdding: .day, value: days, to: date)
@@ -521,63 +573,146 @@ public struct DailyHostView: View {
         selectedDate = DateFormatters.isoDate(next)
     }
 
-    // MARK: - macOS dashboard 兩欄
+    // MARK: - macOS dashboard 主欄 + 可選 right panel
 
-    /// 目前打開的欄位數（0-2）。toolbar 兩顆 toggle 用此值決定是否禁用
-    /// 「最後一個 active」按鈕、避免清空所有欄位。
-    private var dashboardOpenColumnCount: Int {
-        var count = 0
-        if dashboardShowTasks { count += 1 }
-        if dashboardShowCards { count += 1 }
-        return count
+    /// 主欄（tasks）永遠置中 + 760pt max-width，不論 right panel 開不
+    /// 開。Right panel 開啟時走 HSplitView，使用者可拖拉欄寬調整左右
+    /// 比例；面板內由 picker 切 Calendar / Cards。
+    /// Heptabase-style slide-in 右側面板：永遠是同一棵 HStack（parent 樹
+    /// 不變），open 時把 right panel 條件 insert + .transition(.move(edge:
+    /// .trailing))，SwiftUI 才會做正確的 slide-in 動畫。
+    /// 之前用 if-else 切換 `HSplitView ↔ centeredTasksColumn` SwiftUI 看
+    /// 成兩棵不同 view tree，預設 crossfade → 「啪一下」感。
+    /// Trade-off：失去 HSplitView 的拖拉欄寬；用固定 width 換到順動畫，
+    /// 拖拉之後再加。
+    private var dashboardContent: some View {
+        HStack(spacing: 0) {
+            centeredTasksColumn
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if dashboardRightPanelOpen {
+                // resize handle + panel 包成一個 HStack，整段一起 slide
+                // (transition 掛在外層)。之前 handle / panel 各自分離、
+                // 動畫時兩者錯開、視覺上像「條 + 區塊」分兩段進來。
+                HStack(spacing: 0) {
+                    resizeHandle
+                    dashboardRightPanel
+                        .frame(width: dashboardRightPanelWidth)
+                        .frame(maxHeight: .infinity)
+                }
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                    removal: .move(edge: .trailing).combined(with: .opacity)
+                ))
+            }
+        }
+        .animation(.spring(response: 0.32, dampingFraction: 0.86), value: dashboardRightPanelOpen)
+        .clipped()
     }
 
-    /// 兩欄 / 單欄路由：兩欄都打開走 HSplitView；剩單欄時用 HStack +
-    /// Spacer 居中並限縮最大寬度（避免內容被視窗撐到滿寬）。
-    @ViewBuilder
-    private var dashboardContent: some View {
-        if dashboardOpenColumnCount == 1 {
-            HStack(spacing: 0) {
-                Spacer(minLength: 0)
-                Group {
-                    if dashboardShowTasks { dashboardTasksColumn }
-                    else if dashboardShowCards { dashboardCardsColumn }
+    /// 自製 resize handle — 8pt 透明 hit zone，**只在 hover / drag 時**
+    /// 才浮出 3pt 粗線，平常完全隱形（Heptabase pattern：兩個區塊看起
+    /// 來無縫，hover 才顯示分隔線）。線用 .easeOut(0.15) fade in/out。
+    /// .global coordinate space 算 drag translation，避免 handle 隨
+    /// panel 變窄往右移、cursor-handle 相對座標 feedback 抖動。
+    private var resizeHandle: some View {
+        let lineVisible = dashboardResizeHandleHovered || dashboardRightPanelDragStart != nil
+        return ZStack {
+            // 8pt 透明 hit zone — 略寬好抓。
+            Color.clear
+                .contentShape(Rectangle())
+            // 中央 3pt 粗線（從原本 1pt 提到 3pt 視覺更明顯）：hover /
+            // drag 才顯示。Color.nudgePrimary 用品牌主色，跟 Heptabase
+            // 預設藍 cursor highlight 同感。.frame(maxHeight: .infinity)
+            // 確保線從 dashboardContent 頂端拉到底端，不被父層 ZStack
+            // 子 view 的 intrinsic height 限制住。
+            Rectangle()
+                .fill(Color.nudgePrimary)
+                .frame(width: 3)
+                .frame(maxHeight: .infinity)
+                .opacity(lineVisible ? 1 : 0)
+                .animation(.easeOut(duration: 0.15), value: lineVisible)
+        }
+        .frame(width: 8)
+        .frame(maxHeight: .infinity)
+        #if os(macOS)
+        .onHover { hovering in
+            dashboardResizeHandleHovered = hovering
+            if hovering {
+                NSCursor.resizeLeftRight.set()
+            } else {
+                NSCursor.arrow.set()
+            }
+        }
+        #endif
+        .gesture(
+            // .global 避免 handle 隨 panel 寬度變動而位移、translation
+            // 又重算的 feedback 迴圈（→ 抖動 root cause）。global 座標
+            // 下 handle 怎麼動、cursor 螢幕絕對位置不變、translation 穩。
+            DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                .onChanged { value in
+                    // 第一次 onChanged 記下 drag 開始時的 width，
+                    // 整段 drag 都從這個基準算 delta，避免每幀累加漂移。
+                    if dashboardRightPanelDragStart == nil {
+                        dashboardRightPanelDragStart = dashboardRightPanelWidth
+                    }
+                    let base = dashboardRightPanelDragStart ?? dashboardRightPanelWidth
+                    // panel 在右邊，divider 往右拖 = panel 變窄
+                    // (translation.width 正值 = 往右)，所以減。
+                    let proposed = base - Double(value.translation.width)
+                    dashboardRightPanelWidth = max(280, min(720, proposed))
                 }
-                // 760pt 是閱讀友善的最大寬（~75ch）。視窗寬大於此會出現
-                // 兩側留白，把使用者注意力收斂到內容上。
-                .frame(maxWidth: 760)
-                Spacer(minLength: 0)
-            }
-        } else {
-            // 兩欄並列 — Cards 是主閱讀區。
-            // HSplitView 穩定欄寬的關鍵（Apple Dev Forums + onmyway133）：
-            //   1. 每個 pane 加 .frame(maxWidth/Height: .infinity)，
-            //      pane 才會 claim full 分配空間，HSplitView 不會看到
-            //      不同 intrinsic size 而 rebalance。
-            //   2. 不要設 idealWidth — idealWidth 會被 HSplitView 在
-            //      content 變動時當「重設目標」用，造成切 list ↔ detail
-            //      時欄寬跳動。
-            //   3. 主 pane 加 .layoutPriority(1)，告訴 SwiftUI「壓縮
-            //      時優先犧牲別人」。
-            HSplitView {
+                .onEnded { _ in
+                    dashboardRightPanelDragStart = nil
+                }
+        )
+    }
+
+    /// Tasks 欄置中 wrapper — 兩側 Spacer + 760pt max-width。Min spacer
+    /// 16pt 確保內容不會貼到視窗邊；視窗夠寬就自然出現對稱留白，把使
+    /// 用者注意力收斂到 reading column 上。
+    /// ZStack(.bottomTrailing) 把 FAB 浮在 column 右下，跟 iOS 同位置／
+    /// 同 glass 外觀；FAB 只屬於 tasks 欄不會跟著 right panel 跑。
+    private var centeredTasksColumn: some View {
+        HStack(spacing: 0) {
+            Spacer(minLength: 16)
+            ZStack(alignment: .bottomTrailing) {
                 dashboardTasksColumn
-                    .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
-                dashboardCardsColumn
-                    .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
-                    .layoutPriority(1)
+                createTaskFAB
+                    // trailing 24 + bottom 40 — 上移離視窗底邊一點，
+                    // 比 iOS (20/20) 高，因為 mac 底邊沒有 home indicator
+                    // 視覺壓力，FAB 太貼底會像被切掉。
+                    .padding(.trailing, 24)
+                    .padding(.bottom, 40)
             }
+            .frame(maxWidth: 760)
+            Spacer(minLength: 16)
+        }
+    }
+
+    /// Right panel：picker 已挪到 toolbar（panel 開啟時才顯示），這裡
+    /// 直接顯示對應內容，內容從 panel 頂端開始，跟左欄 dashboardDateHeader
+    /// 的 Friday eyebrow 對齊。
+    @ViewBuilder
+    private var dashboardRightPanel: some View {
+        switch dashboardRightPanelKind {
+        case .calendar:
+            // embedded: true 避免 CalendarHostView 的 modePicker
+            // (square.grid.2x2) bubble 到外層視窗 toolbar。
+            CalendarHostView(embedded: true)
+        case .cards:
+            dashboardCardsColumn
         }
     }
 
     @ViewBuilder
     private var dashboardTasksColumn: some View {
         VStack(spacing: 0) {
-            // 跟 Cards 欄對齊：欄頂統一用 dashboardColumnHeader
-            // (titleKey + count)，視覺上兩欄頭部對齊。
-            dashboardColumnHeader(
-                titleKey: "daily.dashboardTasksTitle",
-                count: dailyData?.assignments.count ?? 0
-            )
+            // 取代原本小字「今日任務 N」的 column header — 改成兩行
+            // hierarchy：weekday eyebrow（小、dim）+ 大字 H1 日期。Mac
+            // window subtitle 太弱，需要在 content 內把日期撐起來，跟
+            // iOS 用 nav bar large title 對等。
+            dashboardDateHeader
             statusBanner
             WeekStripView(
                 selectedDate: selectedDate,
@@ -599,6 +734,15 @@ public struct DailyHostView: View {
                         onSetReminder: { openScheduleSheet(for: $0) },
                         onOpen: openTaskInRightColumn
                     )
+                    // 「今天 (N)」section divider — 把今天的任務跟前
+                    // 幾天 rollup 視覺分清楚。只在當日有任務、且 user
+                    // 看的是 today 時才出（其他日期看不需要這個 cue，
+                    // 因為日期 H1 已經點明）。
+                    if isViewingToday,
+                       let count = dailyData?.assignments.count,
+                       count > 0 {
+                        todaySectionHeader(count: count)
+                    }
                     TaskListView(
                         assignments: dailyData?.assignments ?? [],
                         isLoading: loadState == .loading,
@@ -613,18 +757,22 @@ public struct DailyHostView: View {
                         onSetRecurrence: { openScheduleSheet(for: $0) },
                         onSetReminder: { openScheduleSheet(for: $0) }
                     )
-                    .frame(minHeight: 300)
+                    // alignment: .top — frame minHeight 300 是給 drop
+                    // zone 用的，但沒指定 alignment 預設置中，內容變
+                    // 「漂在 frame 中央」上下各空一截。明確 top 固定。
+                    .frame(minHeight: 300, alignment: .top)
                 }
             }
         }
     }
 
-    /// 點 task → 在右欄顯示對應卡片 detail。如果右欄被收起來會自動
-    /// 打開，這樣使用者點下去就一定有東西可以看。fetch 完才更新 state，
-    /// 期間維持上次的 detail（避免閃爍）。
+    /// 點 task → 在 right panel 顯示對應卡片 detail。若 right panel 收
+    /// 起或正在顯示 Calendar，自動切到 Cards 並打開，確保點下去一定有
+    /// 東西可看。fetch 完才更新 state，期間維持上次的 detail（避免閃爍）。
     private func openTaskInRightColumn(_ assignment: DailyAssignmentDTO) {
-        if !dashboardShowCards {
-            dashboardShowCards = true
+        if !dashboardRightPanelOpen { dashboardRightPanelOpen = true }
+        if dashboardRightPanelKind != .cards {
+            dashboardRightPanelKindRaw = DashboardRightPanelKind.cards.rawValue
         }
         Task {
             do {
@@ -657,17 +805,17 @@ public struct DailyHostView: View {
 
     @ViewBuilder
     private var dashboardCardsColumnList: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            dashboardColumnHeader(
-                titleKey: "daily.dashboardCardsTitle",
-                count: displayedDashboardCards.count
-            )
-            dashboardCardsSearchField
-            if !dashboardCardAllTags.isEmpty {
-                dashboardCardsTagChips
+        // VStack spacing 16 — 統一 token，不需要再各自加 padding/divider；
+        // header / search / chips / grid 用空白分隔，不畫線（Heptabase 同
+        // pattern：用 spacing 而不是 divider 強化區塊感）。
+        VStack(alignment: .leading, spacing: 16) {
+            dashboardCardsHeaderWithSearchToggle
+            if dashboardCardSearchExpanded {
+                dashboardCardsSearchField
+                if !dashboardCardAllTags.isEmpty {
+                    dashboardCardsTagChips
+                }
             }
-            Divider()
-                .background(Color.nudgeBorderLight)
             if displayedDashboardCards.isEmpty {
                 if dashboardCardSearchIsLoading {
                     ProgressView()
@@ -686,11 +834,13 @@ public struct DailyHostView: View {
                 }
             } else {
                 ScrollView {
-                    // 跟 Cards tab 一致使用 LazyVGrid + CardGridItemView，
-                    // 同 minimum 220pt adaptive；窄欄會降到 1 欄、寬欄
-                    // 自動排 2 欄。
+                    // adaptive minimum 280pt — 220 在 ~700pt 面板寬會
+                    // 排到 3 欄，每張卡片字被擠到不可讀（user feedback
+                    // 「很擠」）。280 讓 ~700pt 面板降為 2 欄、>900pt 才
+                    // 再升為 3 欄。Cards tab 全寬視圖在大視窗仍可排 5+
+                    // 欄，不影響該情境。
                     LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 220), spacing: 10)],
+                        columns: [GridItem(.adaptive(minimum: 280), spacing: 10)],
                         spacing: 10
                     ) {
                         ForEach(displayedDashboardCards) { card in
@@ -859,6 +1009,84 @@ public struct DailyHostView: View {
             }
         }
         dashboardCardSearchIsLoading = false
+    }
+
+    /// Daily 視圖頂端日期 header — 兩行 hierarchy：
+    ///   1. eyebrow：weekday 全名（locale-aware），nudgeTextDim
+    ///   2. H1：完整日期（年月日），nudgeForeground 大字
+    /// 統一用 weekday 跟 dateTitle font tokens，受 ⌘+/- 字級縮放影響。
+    /// 對齊 Heptabase / Things-style mac app 的 page header 慣例：日期
+    /// 用大字、week strip / content 跟著。
+    private var dashboardDateHeader: some View {
+        let date = DateFormatters.parseISODate(selectedDate) ?? Date()
+        let weekday = date.formatted(.dateTime.weekday(.wide).locale(locale))
+        let fullDate = date.formatted(
+            .dateTime.year().month(.wide).day().locale(locale)
+        )
+        return VStack(alignment: .leading, spacing: 4) {
+            Text(verbatim: weekday)
+                .nudgeFont(.dateEyebrow)
+                .foregroundStyle(Color.nudgeTextDim)
+            Text(verbatim: fullDate)
+                .nudgeFont(.dateTitle)
+                .foregroundStyle(Color.nudgeForeground)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 24)
+        .padding(.top, 16)
+        .padding(.bottom, 12)
+        .animation(.easeOut(duration: 0.2), value: selectedDate)
+    }
+
+    /// 「今天 (N)」section divider — 跟 OverdueSectionView header 視覺
+    /// 對齊（同 sectionHeader font + nudgeTextDim 顏色 + 同 padding）。
+    /// 純文字、不可展開（今天本來就是主要內容、不需要 collapsed by
+    /// default）。
+    private func todaySectionHeader(count: Int) -> some View {
+        HStack(spacing: 6) {
+            Text(String(
+                format: nudgeLocalized("daily.todaySectionTitle", locale: locale),
+                count
+            ))
+                .nudgeFont(.sectionHeader)
+                .foregroundStyle(Color.nudgeTextDim)
+            Spacer()
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 12)
+        .padding(.bottom, 6)
+    }
+
+    /// Cards 專用 header — 跟 dashboardColumnHeader 視覺一致 (同 font /
+    /// padding / count style)，多右側放大鏡 toggle 來展開搜尋 / tag 區。
+    /// 用既有 IconButton (44×44 hit target + a11y label) 對齊設計系統。
+    /// 切換用 .easeOut(0.2) 動畫，跟 OverdueSection 展開動畫同 spec。
+    private var dashboardCardsHeaderWithSearchToggle: some View {
+        HStack(spacing: 6) {
+            Text("daily.dashboardCardsTitle", bundle: .module)
+                .nudgeFont(.columnTitle)
+                .foregroundStyle(Color.nudgeForeground)
+            if displayedDashboardCards.count > 0 {
+                Text(verbatim: "\(displayedDashboardCards.count)")
+                    .nudgeFont(.columnTitleAccessory)
+                    .foregroundStyle(Color.nudgeTextDim)
+            }
+            Spacer()
+            IconButton(
+                systemName: dashboardCardSearchExpanded ? "magnifyingglass.circle.fill" : "magnifyingglass",
+                accessibilityLabel: "cards.searchAria",
+                foreground: dashboardCardSearchExpanded ? .nudgePrimary : .nudgeTextDim
+            ) {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    dashboardCardSearchExpanded.toggle()
+                }
+            }
+        }
+        // padding(.top, 16) 對齊左欄 dashboardDateHeader 的 padding(.top, 16)，
+        // Recent Cards 跟 Friday eyebrow 同一條基準線。
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+        .padding(.bottom, 10)
     }
 
     private func dashboardColumnHeader(titleKey: LocalizedStringKey, count: Int) -> some View {

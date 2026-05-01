@@ -36,6 +36,8 @@ public enum NudgeFontToken: Hashable, Sendable {
     case columnDetailTitle
     case weekdayLabel
     case weekdayNumber
+    case dateEyebrow
+    case dateTitle
 
     /// scale 通常從 `EnvironmentValues.nudgeFontScale` 取得（透過
     /// `.nudgeFont(_:)` modifier）。clamping 在 modifier 那層做。
@@ -173,6 +175,25 @@ public enum NudgeFontToken: Hashable, Sendable {
             #else
             return .headline
             #endif
+
+        case .dateEyebrow:
+            // 日期 eyebrow — Daily 視圖頂端「週四」/「Friday」小字標
+            // 籤。比 column header 小、weight 中等、配 nudgeTextDim 用。
+            #if os(macOS)
+            return .system(size: 12 * scale, weight: .medium)
+            #else
+            return .footnote.weight(.medium)
+            #endif
+
+        case .dateTitle:
+            // 日期 H1 — Daily 視圖頂端「May 1, 2026」大字標題。Mac 上
+            // 給足 reading hierarchy；iOS 因為 nav bar 已有 large title
+            // 不會用到這個 token，但保留對等定義備用。
+            #if os(macOS)
+            return .system(size: 28 * scale, weight: .bold)
+            #else
+            return .largeTitle.weight(.bold)
+            #endif
         }
     }
 }
@@ -202,6 +223,8 @@ public extension Font {
     static var nudgeColumnDetailTitle: Font { NudgeFontToken.columnDetailTitle.font() }
     static var nudgeWeekdayLabel: Font { NudgeFontToken.weekdayLabel.font() }
     static var nudgeWeekdayNumber: Font { NudgeFontToken.weekdayNumber.font() }
+    static var nudgeDateEyebrow: Font { NudgeFontToken.dateEyebrow.font() }
+    static var nudgeDateTitle: Font { NudgeFontToken.dateTitle.font() }
 }
 
 // MARK: - Environment scale

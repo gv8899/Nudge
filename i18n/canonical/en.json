@@ -150,7 +150,10 @@
     "prevWeekAria": "Previous week",
     "nextWeekAria": "Next week",
     "dateAria": "{month}/{day} {weekday}",
-    "todayButton": "Today"
+    "todayButton": "Today",
+    "todayAria": "Jump to today",
+    "todaySectionTitle": "Today ({count})",
+    "toggleRightPanel": "Toggle side panel"
   },
   "cards": {
     "createAria": "New card",

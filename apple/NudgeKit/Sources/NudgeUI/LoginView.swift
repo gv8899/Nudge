@@ -43,6 +43,11 @@ public struct LoginView: View {
 
             // Auth buttons. Google 在上（目前唯一可用的方式）；
             // Apple 在下、disabled + opacity 0.4 — 保留位置等之後 policy 啟用。
+            //
+            // Mac 視窗寬時 .frame(maxWidth: .infinity) 的 button 會被
+            // 撐到視窗整條寬，看起來像 banner 而不是 button。限縮 400pt
+            // max-width 並置中，回到「button」尺度；iOS 維持原本全寬
+            // (扣 32pt padding)。
             VStack(spacing: 12) {
                 googleButton
                 appleButton
@@ -55,7 +60,13 @@ public struct LoginView: View {
                         .padding(.top, 4)
                 }
             }
+            #if os(macOS)
+            .frame(maxWidth: 400)
             .padding(.horizontal, 32)
+            .frame(maxWidth: .infinity)
+            #else
+            .padding(.horizontal, 32)
+            #endif
 
             Spacer().frame(height: 32)
 

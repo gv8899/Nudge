@@ -45,18 +45,37 @@ public struct SettingsView: View {
         #endif
     }
 
+    /// Settings groups — iOS / mac 共用內容；wrapper（padding / 置中）
+    /// 由 contentScroll 平台分支處理。
+    private var settingsGroups: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            accountGroup
+            calendarGroup
+            appearanceGroup
+            languageGroup
+            tagsGroup
+            dangerZoneGroup
+            versionFooter
+        }
+    }
+
     private var contentScroll: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                accountGroup
-                calendarGroup
-                appearanceGroup
-                languageGroup
-                tagsGroup
-                dangerZoneGroup
-                versionFooter
+            #if os(macOS)
+            // Mac 不吃滿寬 — 跟 Daily 一樣兩邊留白置中（max-width 720pt）。
+            // iOS 維持全寬（手機本來就窄、不需要置中）。Spacer minLength
+            // 16 確保視窗極窄時 content 不貼邊。
+            HStack(spacing: 0) {
+                Spacer(minLength: 16)
+                settingsGroups
+                    .frame(maxWidth: 720)
+                    .padding(16)
+                Spacer(minLength: 16)
             }
-            .padding(16)
+            #else
+            settingsGroups
+                .padding(16)
+            #endif
         }
         .background(Color.nudgeBackground)
         .task { await calendarRepo.refreshConnectionStatusIfNeeded() }

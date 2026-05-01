@@ -97,12 +97,12 @@ public struct OverdueSectionView: View {
                     overdueTasks.count
                 ))
                     .nudgeFont(.sectionHeader)
-                    .foregroundStyle(Color.nudgePrimary)
+                    .foregroundStyle(Color.nudgeTextDim)
                 Spacer()
                 Image(systemName: "chevron.right")
                     .nudgeFont(.sectionChevron)
                     .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                    .foregroundStyle(Color.nudgePrimary)
+                    .foregroundStyle(Color.nudgeTextDim)
             }
             .padding(.horizontal, 24)
             .frame(minHeight: 44)
