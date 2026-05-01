@@ -62,3 +62,8 @@ apple/**/.swiftpm/
 apple/**/DerivedData/
 # Archive / IPA output from `xcodebuild archive + exportArchive`
 apple/build/
+
+# Flutter mobile (退役) — i18n sync 還會寫到 mobile/lib/l10n/*.arb，
+# 但 Flutter binary 不再 build / ship；產物無 consumer，gitignore 防
+# 止每次 sync 完 git status 出現 untracked 噪音。
+/mobile/
