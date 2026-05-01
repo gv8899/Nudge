@@ -9,11 +9,36 @@ public struct NotesHostView: View {
     @State private var showFeed: Bool = false
     @State private var navigationPath = NavigationPath()
 
-    public init() {}
+    /// Mac MacSidebarRoot 用 ZStack 同時 mount 全部 5 個 host，inactive
+    /// 視窗的 toolbar items 會 bubble 到外層共用 toolbar。embedded = true
+    /// 跳過 .toolbar / .navigationTitle，避免 list.bullet / pencil.line
+    /// 在 user 看 Today 時也漂出來。
+    private let embedded: Bool
+
+    public init(embedded: Bool = false) {
+        self.embedded = embedded
+    }
 
     public var body: some View {
         NavigationStack(path: $navigationPath) {
-            rootContent
+            content
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        let core = rootContent
+            .navigationDestination(for: NotesRoute.self) { route in
+                switch route {
+                case .date(let date):
+                    NotesCanvasView(date: date)
+                }
+            }
+
+        if embedded {
+            core
+        } else {
+            core
                 .navigationTitle(Text("nav.notes", bundle: .module))
                 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
@@ -25,9 +50,6 @@ public struct NotesHostView: View {
                                 showFeed.toggle()
                             }
                         } label: {
-                            // Explicit foregroundStyle overrides the
-                            // .tint(Color.nudgePrimary) inherited from
-                            // PlatformRootView's TabView root.
                             Image(systemName: showFeed ? "pencil.line" : "list.bullet")
                                 .foregroundStyle(Color.nudgeForeground)
                         }
@@ -47,12 +69,6 @@ public struct NotesHostView: View {
                                 bundle: .module
                             )
                         )
-                    }
-                }
-                .navigationDestination(for: NotesRoute.self) { route in
-                    switch route {
-                    case .date(let date):
-                        NotesCanvasView(date: date)
                     }
                 }
         }

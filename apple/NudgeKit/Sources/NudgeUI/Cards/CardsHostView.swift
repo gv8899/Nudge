@@ -8,6 +8,12 @@ public struct CardsHostView: View {
     @Environment(NotificationRouter.self) private var notificationRouter
     #endif
 
+    /// 當 host 被當作右側面板嵌入到 DailyHostView 時設 true。為 true 時
+    /// 不掛 .toolbar / .navigationTitle — 否則它們會 bubble up 到外層
+    /// NavigationStack 的 window toolbar、跟 DailyHostView 自己的 toolbar
+    /// item 擠在一起。
+    private let embedded: Bool
+
     @State private var cards: [CardDTO] = []
     @State private var nextCursor: String?
     @State private var isLoading = false
@@ -28,7 +34,9 @@ public struct CardsHostView: View {
     @State private var selectedCard: CardDTO?
     #endif
 
-    public init() {}
+    public init(embedded: Bool = false) {
+        self.embedded = embedded
+    }
 
     public var body: some View {
         #if os(iOS)
@@ -107,8 +115,9 @@ public struct CardsHostView: View {
 
     /// Mac layout：未選 = list 置中固定寬度。已選 = HSplitView 左 list
     /// （同寬，可拖）右 detail（flex）。
+    @ViewBuilder
     private var macOSLayout: some View {
-        Group {
+        let core = Group {
             if let card = selectedCard {
                 HSplitView {
                     content
@@ -126,16 +135,25 @@ public struct CardsHostView: View {
             }
         }
         .background(Color.nudgeBackground)
-        .navigationTitle(Text("nav.cards", bundle: .module))
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: createCard) {
-                    Image(systemName: "plus")
-                }
-                .help(Text("cards.createAria", bundle: .module))
-            }
-        }
         .task { await firstPage() }
+
+        // embedded = 嵌在 DailyHostView 右側面板用，不能掛 toolbar /
+        // navigationTitle —— 它們會 bubble 到外層 NavigationStack 的視
+        // 窗 toolbar，擠掉 Daily 自己的按鈕。
+        if embedded {
+            core
+        } else {
+            core
+                .navigationTitle(Text("nav.cards", bundle: .module))
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(action: createCard) {
+                            Image(systemName: "plus")
+                        }
+                        .help(Text("cards.createAria", bundle: .module))
+                    }
+                }
+        }
     }
 
     /// 右側 detail 面板。頂端有 X 按鈕（清空 selectedCard 回到置中

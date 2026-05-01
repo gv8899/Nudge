@@ -21,7 +21,13 @@ public struct CalendarHostView: View {
         return c
     }()
 
-    public init() {}
+    /// 嵌入到 DailyHostView 右側面板用。為 true 時跳過 .toolbar /
+    /// .navigationTitle，避免 modePicker bubble up 到 Daily 視窗 toolbar。
+    private let embedded: Bool
+
+    public init(embedded: Bool = false) {
+        self.embedded = embedded
+    }
 
     private var mode: CalendarViewMode {
         CalendarViewMode(rawValue: modeRaw) ?? .day
@@ -38,23 +44,7 @@ public struct CalendarHostView: View {
 
     public var body: some View {
         NavigationStack {
-            Group {
-                if !calendarRepo.isConnected {
-                    CalendarConnectPrompt()
-                } else {
-                    modeContent
-                }
-            }
-            .background(Color.nudgeBackground)
-            .navigationTitle(Text("nav.calendar", bundle: .module))
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    modePicker
-                }
-            }
+            content
         }
         .task(id: rangeKey) { await reload() }
         .onChange(of: scenePhase) { _, phase in
@@ -78,6 +68,36 @@ public struct CalendarHostView: View {
             }
         }
         #endif
+    }
+
+    /// 把 chrome（toolbar / navigationTitle）跟 core content 拆出來，
+    /// 才能用 embedded flag 條件套用。embedded = true 時不掛 toolbar /
+    /// navigationTitle，避免 modePicker bubble 到外層 NavigationStack。
+    @ViewBuilder
+    private var content: some View {
+        let core = Group {
+            if !calendarRepo.isConnected {
+                CalendarConnectPrompt()
+            } else {
+                modeContent
+            }
+        }
+        .background(Color.nudgeBackground)
+
+        if embedded {
+            core
+        } else {
+            core
+                .navigationTitle(Text("nav.calendar", bundle: .module))
+                #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        modePicker
+                    }
+                }
+        }
     }
 
     @ViewBuilder

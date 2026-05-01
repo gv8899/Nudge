@@ -150,7 +150,10 @@
     "prevWeekAria": "上一週",
     "nextWeekAria": "下一週",
     "dateAria": "{month}月{day}日 {weekday}",
-    "todayButton": "今天"
+    "todayButton": "今天",
+    "todayAria": "回到今天",
+    "todaySectionTitle": "今天 ({count})",
+    "toggleRightPanel": "顯示 / 隱藏側邊面板"
   },
   "cards": {
     "createAria": "新增卡片",
