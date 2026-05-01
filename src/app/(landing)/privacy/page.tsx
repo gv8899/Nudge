@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 const APP_NAME = "Nudge";
 const CONTACT_EMAIL = "gv88999@gmail.com";
-const EFFECTIVE_DATE = "April 15, 2026";
+const EFFECTIVE_DATE = "May 1, 2026";
 const HOMEPAGE = "https://nudge.tw";
 
 export default function PrivacyPolicyPage() {
@@ -235,7 +235,7 @@ export default function PrivacyPolicyPage() {
 
       <section className="space-y-4 mb-12">
         <h2 className="text-2xl font-bold">隱私權政策（繁體中文摘要）</h2>
-        <p className="text-sm text-text-dim">生效日期：2026 年 4 月 15 日</p>
+        <p className="text-sm text-text-dim">生效日期：2026 年 5 月 1 日</p>
         <p>
           {APP_NAME} 是一款每日任務管理工具。本政策說明我們收集哪些資訊、如何使用、如何保護，以及你擁有的選擇。
         </p>
