@@ -10,8 +10,26 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://nudge.tw"),
   title: "Nudge",
   description: "輕量型每日任務推進工具",
+  // icons 走 Next.js App Router file conventions：app/favicon.ico、
+  // app/icon.png、app/apple-icon.png 自動被 hoist 成 link tag，不需要
+  // 在這裡顯式列。openGraph / twitter 走 app/opengraph-image.png 跟
+  // app/twitter-image.png 也是同套 file convention。
+  openGraph: {
+    title: "Nudge",
+    description: "輕量型每日任務推進工具",
+    url: "https://nudge.tw",
+    siteName: "Nudge",
+    locale: "zh_TW",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nudge",
+    description: "輕量型每日任務推進工具",
+  },
 };
 
 export const viewport: Viewport = {
