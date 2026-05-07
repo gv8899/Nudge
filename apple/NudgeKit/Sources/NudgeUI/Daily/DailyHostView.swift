@@ -81,7 +81,15 @@ public struct DailyHostView: View {
     /// hover 在 resize zone 時顯示分隔線 + 雙箭頭 cursor。drag 期間也維持
     /// 顯示，避免拖到一半線消失。Heptabase pattern。
     @State private var dashboardResizeHandleHovered: Bool = false
-    enum DashboardRightPanelKind: String { case calendar, cards }
+    enum DashboardRightPanelKind: String, CaseIterable {
+        case calendar, cards
+        var labelKey: LocalizedStringKey {
+            switch self {
+            case .calendar: return "nav.calendar"
+            case .cards: return "nav.cards"
+            }
+        }
+    }
     private var dashboardRightPanelKind: DashboardRightPanelKind {
         get { DashboardRightPanelKind(rawValue: dashboardRightPanelKindRaw) ?? .calendar }
     }
@@ -533,21 +541,37 @@ public struct DailyHostView: View {
                     ToolbarItem(placement: .principal) {
                         Spacer()
                     }
-                    ToolbarItemGroup(placement: .primaryAction) {
-                        // Toggle 放左、picker 從 toggle 右側展開。
-                        // .tint(Color.nudgePrimary) 覆蓋系統 accent
-                        // (預設藍) → ON-state 用品牌色 cream/brown 實心。
+                    // 側邊欄開關獨立一顆 ToolbarItem。macOS 26 (Tahoe)
+                    // 預設會把同 placement 相鄰的 item 用 shared Liquid
+                    // Glass material 包成同一個視覺 capsule，必須用
+                    // `ToolbarSpacer` 顯式破開、強制兩個 item 各自一顆。
+                    ToolbarItem(placement: .primaryAction) {
                         Toggle(isOn: $dashboardRightPanelOpen) {
                             Image(systemName: "sidebar.right")
                         }
                         .toggleStyle(.button)
                         .tint(Color.nudgePrimary)
                         .help(Text("daily.toggleRightPanel", bundle: .module))
+                    }
 
-                        // Right panel 開啟時才顯示 Calendar / Cards
-                        // segmented picker；同樣 .tint 用品牌色，避免
-                        // 選中 segment 顯示為系統藍。
-                        if dashboardRightPanelOpen {
+                    // 強制把上面 toggle 跟下面 picker 隔成兩個獨立 toolbar
+                    // group / 各自的 Liquid Glass capsule。沒這條 spacer，
+                    // macOS 26 (Tahoe) 會把同 placement 相鄰 item auto-merge
+                    // 進同一個 glass material。ToolbarSpacer 是 macOS 26+ 的
+                    // 新 API，舊版 macOS 沒有 auto-merge 行為所以也不需要。
+                    if dashboardRightPanelOpen {
+                        if #available(macOS 26.0, *) {
+                            ToolbarSpacer(.fixed, placement: .primaryAction)
+                        }
+
+                        // Calendar / Cards picker — 用 .pickerStyle(.palette)
+                        // 而非 .segmented：palette 的選中 segment 是齊平
+                        // 的填色 pill、貼齊外殼邊緣，跟 iOS 26 bottom bar
+                        // tab 切換視覺對齊。.segmented 在 macOS 26 上選中
+                        // segment 會內縮一圈、邊距感太重。toolbar 自身的
+                        // Liquid Glass capsule 仍包在外面（前面 ToolbarSpacer
+                        // 隔開不會跟 sidebar toggle merge）。
+                        ToolbarItem(placement: .primaryAction) {
                             Picker(selection: $dashboardRightPanelKindRaw) {
                                 Text("nav.calendar", bundle: .module)
                                     .tag(DashboardRightPanelKind.calendar.rawValue)
@@ -556,10 +580,9 @@ public struct DailyHostView: View {
                             } label: {
                                 EmptyView()
                             }
-                            .pickerStyle(.segmented)
-                            .controlSize(.small)
-                            .fixedSize()
+                            .pickerStyle(.palette)
                             .tint(Color.nudgePrimary)
+                            .animation(.spring(response: 0.32, dampingFraction: 0.78), value: dashboardRightPanelKindRaw)
                         }
                     }
                 }
@@ -702,7 +725,17 @@ public struct DailyHostView: View {
             // externalSelectedDate: 把 Daily 左欄選定的日期注入 calendar，
             // 行程跟左欄日期同步；同時觸發 calendar 隱藏自己的 WeekStripView，
             // 避免左右兩欄各有一條日期 bar。
-            CalendarHostView(embedded: true, externalSelectedDate: $selectedDate)
+            VStack(spacing: 0) {
+                // 用 .hidden() 真實 dashboardDateHeader 占同高、pixel-perfect
+                // 對齊：右欄第一個 section header ("上午") 的基準線剛好對到
+                // 左欄 WeekStripView 的 "日"/"一" weekday label。estimate 79pt
+                // magic number 在不同 locale / 字級下會有 1-2pt 誤差，這個寫法
+                // 完全不需要估。
+                dashboardDateHeader
+                    .hidden()
+                    .accessibilityHidden(true)
+                CalendarHostView(embedded: true, externalSelectedDate: selectedDate)
+            }
         case .cards:
             dashboardCardsColumn
         }

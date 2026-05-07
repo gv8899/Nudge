@@ -25,12 +25,15 @@ public struct CalendarHostView: View {
     /// .navigationTitle，避免 modePicker bubble up 到 Daily 視窗 toolbar。
     private let embedded: Bool
 
-    /// 從外層（DailyHostView）注入的日期 binding。設了之後 calendar
-    /// 的 selectedDate 會跟著外層同步、不再獨立導覽，並隱藏內建的
-    /// WeekStripView（避免雙日期條）。Daily mac dashboard 用。
-    private let externalSelectedDate: Binding<String>?
+    /// 從外層（DailyHostView）注入的日期。傳 value 而非 Binding 因為
+    /// SwiftUI 對 Binding 沒有結構性 equality，子 view 不會因為 source
+    /// state 變動而重新 render → .onChange 不會觸發。傳 String 才會讓
+    /// CalendarHostView 在外層日期變更時 propagate update。
+    /// 設了之後 calendar 隱藏內建的 WeekStripView（避免雙日期條）。
+    /// Daily mac dashboard 用。
+    private let externalSelectedDate: String?
 
-    public init(embedded: Bool = false, externalSelectedDate: Binding<String>? = nil) {
+    public init(embedded: Bool = false, externalSelectedDate: String? = nil) {
         self.embedded = embedded
         self.externalSelectedDate = externalSelectedDate
     }
@@ -55,10 +58,10 @@ public struct CalendarHostView: View {
         .task(id: rangeKey) { await reload() }
         .onAppear {
             if let ext = externalSelectedDate {
-                selectedDate = ext.wrappedValue
+                selectedDate = ext
             }
         }
-        .onChange(of: externalSelectedDate?.wrappedValue) { _, new in
+        .onChange(of: externalSelectedDate) { _, new in
             if let new { selectedDate = new }
         }
         .onChange(of: scenePhase) { _, phase in
@@ -99,6 +102,9 @@ public struct CalendarHostView: View {
         .background(Color.nudgeBackground)
 
         if embedded {
+            // 嵌入 Daily 右欄時，dashboard header spacer 由外層
+            // DailyHostView 用 `.hidden()` 真實 dashboardDateHeader 處理
+            // （pixel-perfect 對齊），這裡不再自己估高度。
             core
         } else {
             core

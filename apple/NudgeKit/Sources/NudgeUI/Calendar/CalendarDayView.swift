@@ -52,10 +52,13 @@ public struct CalendarDayView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // 嵌入 Daily 右側面板時，外層 DailyHostView 已經有自己
-            // 的 WeekStripView，這裡用 .hidden() 蓋掉但保留版面，避免
-            // 行程往上移、改變使用者熟悉的位置。
-            weekStrip
+            // 嵌入 Daily 右側面板時，外層 DailyHostView 已經有自己的
+            // WeekStripView；右欄不再生 WeekStrip 也不留 placeholder，
+            // 讓 "上午" 段落 header 上移到跟左欄 dateHeader 平齊（垂直
+            // 對齊由 CalendarHostView 補的 dashboard header spacer 控制）。
+            if !hideWeekStrip {
+                weekStrip
+            }
 
             if isLoading && dayEvents.isEmpty {
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -80,17 +83,12 @@ public struct CalendarDayView: View {
 
     @ViewBuilder
     private var weekStrip: some View {
-        let strip = WeekStripView(
+        WeekStripView(
             selectedDate: selectedDate,
             datesWithTasks: weekDates,
             onSelectDate: { selectedDate = $0 },
             onWeekOffset: onWeekOffset
         )
-        if hideWeekStrip {
-            strip.hidden()
-        } else {
-            strip
-        }
     }
 
     // MARK: - Section / event rendering
