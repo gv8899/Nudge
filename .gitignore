@@ -62,6 +62,10 @@ apple/**/.swiftpm/
 apple/**/DerivedData/
 # Archive / IPA output from `xcodebuild archive + exportArchive`
 apple/build/
+# Developer ID provisioning profile — 從 developer.apple.com 下載、放在
+# apple/ 給 build-dmg.sh 嵌進 .app/Contents/embedded.provisionprofile。
+# 跟憑證一樣不該進 repo（profile 含 cert public key + team identity）。
+apple/*.provisionprofile
 
 # Flutter mobile (退役) — i18n sync 還會寫到 mobile/lib/l10n/*.arb，
 # 但 Flutter binary 不再 build / ship；產物無 consumer，gitignore 防

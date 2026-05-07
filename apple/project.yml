@@ -138,7 +138,26 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Nudge
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2026 Nudge. All rights reserved."
-        ENABLE_APP_SANDBOX: YES
+        # Swift 5 mode + minimal concurrency — Swift 6 strict concurrency
+        # runtime checking 跟 ASWebAuthenticationSession (Swift 5
+        # framework) 跨 module 邊界 isolation inference 出錯：closure
+        # 被 implicit 標成 @MainActor，AS 從 XPC 背景 queue invoke 它
+        # 時 dispatch_assert_queue → SIGTRAP。Swift issue #75453 已知
+        # 但未修。降到 Swift 5 mode 關掉這層 runtime check，是目前唯一
+        # 可靠的 workaround。iOS target 仍可保 base 的 Swift 6 + complete。
+        SWIFT_VERSION: "5"
+        SWIFT_STRICT_CONCURRENCY: minimal
+        # Sandbox 關掉 — Direct distribution via Developer ID 不要求
+        # sandbox（那是 Mac App Store 需求）；同時 sandbox + Google
+        # Sign-In SDK 需要 keychain-access-groups (restricted entitlement)，
+        # 又要 Developer ID provisioning profile，繞太大圈。Hardened
+        # Runtime 仍開（notarization 必要、不影響此 trade-off）。
+        ENABLE_APP_SANDBOX: NO
+        # Hardened Runtime 是 notarization 的必要條件 — Apple 不會
+        # notarize 沒開的 binary。對 sandboxed app 沒額外限制，僅多
+        # 一層執行期保護（library validation / dyld restrictions /
+        # debugger 阻擋）。Release 跟 Debug 都開，行為一致。
+        ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_ENTITLEMENTS: Nudge-macOS/Nudge-macOS.entitlements
     info:
       path: Nudge-macOS/Info.plist
