@@ -25,8 +25,14 @@ public struct CalendarHostView: View {
     /// .navigationTitle，避免 modePicker bubble up 到 Daily 視窗 toolbar。
     private let embedded: Bool
 
-    public init(embedded: Bool = false) {
+    /// 從外層（DailyHostView）注入的日期 binding。設了之後 calendar
+    /// 的 selectedDate 會跟著外層同步、不再獨立導覽，並隱藏內建的
+    /// WeekStripView（避免雙日期條）。Daily mac dashboard 用。
+    private let externalSelectedDate: Binding<String>?
+
+    public init(embedded: Bool = false, externalSelectedDate: Binding<String>? = nil) {
         self.embedded = embedded
+        self.externalSelectedDate = externalSelectedDate
     }
 
     private var mode: CalendarViewMode {
@@ -47,6 +53,14 @@ public struct CalendarHostView: View {
             content
         }
         .task(id: rangeKey) { await reload() }
+        .onAppear {
+            if let ext = externalSelectedDate {
+                selectedDate = ext.wrappedValue
+            }
+        }
+        .onChange(of: externalSelectedDate?.wrappedValue) { _, new in
+            if let new { selectedDate = new }
+        }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 Task { await reload() }
@@ -110,7 +124,8 @@ public struct CalendarHostView: View {
                 events: events,
                 isLoading: isLoading,
                 onWeekOffset: offsetWeek,
-                onEventTap: { selectedEvent = $0 }
+                onEventTap: { selectedEvent = $0 },
+                hideWeekStrip: externalSelectedDate != nil
             )
         case .week:
             let start = weekStart(selectedDateObj)

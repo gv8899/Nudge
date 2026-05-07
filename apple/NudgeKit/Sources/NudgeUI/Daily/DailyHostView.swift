@@ -699,7 +699,10 @@ public struct DailyHostView: View {
         case .calendar:
             // embedded: true 避免 CalendarHostView 的 modePicker
             // (square.grid.2x2) bubble 到外層視窗 toolbar。
-            CalendarHostView(embedded: true)
+            // externalSelectedDate: 把 Daily 左欄選定的日期注入 calendar，
+            // 行程跟左欄日期同步；同時觸發 calendar 隱藏自己的 WeekStripView，
+            // 避免左右兩欄各有一條日期 bar。
+            CalendarHostView(embedded: true, externalSelectedDate: $selectedDate)
         case .cards:
             dashboardCardsColumn
         }
