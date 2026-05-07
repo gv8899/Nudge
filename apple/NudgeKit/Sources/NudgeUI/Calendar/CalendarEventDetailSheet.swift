@@ -18,17 +18,11 @@ public struct CalendarEventDetailSheet: View {
     }
 
     public var body: some View {
-        // mac 跟 iOS chrome 不同 — iOS 走 NavigationStack 利用 sheet
-        // drag indicator + .topBarTrailing 「完成」；mac 沒 drag indicator，
-        // 而 NavigationStack 的 .confirmationAction toolbar 在 mac sheet 會
-        // 渲染成底部白色 material 條，跟 sheet 的 cream bg 撞色。改成 mac
-        // 直接 inline 「完成」按鈕、不掛 NavigationStack。
+        // mac: popover 自帶「點外面 / Esc 就關」，不需要「完成」按鈕。
+        // iOS: 仍走 sheet + drag indicator（下滑可關）。
         #if os(macOS)
-        VStack(spacing: 0) {
-            content
-            macFooter
-        }
-        .background(Color.nudgeBackground)
+        content
+            .background(Color.nudgeBackground)
         #else
         NavigationStack {
             content
@@ -42,6 +36,11 @@ public struct CalendarEventDetailSheet: View {
     @ViewBuilder
     private var content: some View {
         ScrollView {
+            // .frame(maxWidth: .infinity, alignment: .leading) 強制 VStack
+            // 撐滿 ScrollView 寬度。沒這條時，短 content（單純事件，無
+            // join button / 與會者）的 VStack intrinsic 寬度 < ScrollView，
+            // 會被 ScrollView 預設水平置中 → 跟有 join button 那種展開到
+            // 滿寬的事件視覺風格不一致。
             VStack(alignment: .leading, spacing: 20) {
                 timeAndTitle
 
@@ -56,10 +55,10 @@ public struct CalendarEventDetailSheet: View {
                 infoRow(systemImage: "calendar", text: event.calendarName)
 
                 if let desc = event.description, !desc.isEmpty {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text("calendar.description", bundle: .module)
-                            .font(.footnote.weight(.medium))
-                            .foregroundStyle(Color.nudgeTextDim)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.nudgeForeground)
                         Text(verbatim: desc)
                             .font(.body)
                             .foregroundStyle(Color.nudgeForeground)
@@ -67,10 +66,14 @@ public struct CalendarEventDetailSheet: View {
                 }
 
                 if !event.attendees.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
+                    // 與會者 section 跟上方 infoRow 之間加細分隔線，建立
+                    // chunk 邊界、減少一坨 cream 沒層次的閱讀疲勞。
+                    Divider()
+                        .background(Color.nudgeBorderLight)
+                    VStack(alignment: .leading, spacing: 10) {
                         Text(verbatim: "\(nudgeLocalized("calendar.attendees", locale: locale)) (\(event.attendees.count))")
-                            .font(.footnote.weight(.medium))
-                            .foregroundStyle(Color.nudgeTextDim)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.nudgeForeground)
                         VStack(alignment: .leading, spacing: 6) {
                             ForEach(event.attendees, id: \.self) { a in
                                 attendeeRow(a)
@@ -79,34 +82,19 @@ public struct CalendarEventDetailSheet: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(20)
         }
     }
 
-    #if os(macOS)
-    private var macFooter: some View {
-        HStack {
-            Spacer()
-            Button { dismiss() } label: {
-                Text("common.done", bundle: .module)
-            }
-            .keyboardShortcut(.cancelAction)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        // 底部 footer 維持 sheet 同色 — 不額外加 material / divider，
-        // 視覺上 footer 就是內容區的延伸。
-    }
-    #endif
-
     private var timeAndTitle: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // 時間 row — 含日期前綴：避免多場會議放一起時對不上是哪天。
-            // all-day / timed 都會顯示日期。
+            // 時間 row — 主要 metadata，從 nudgeTextDim 拉成 nudgeForeground
+            // 70% 對比，比原本灰更好讀但仍弱於標題。
             Text(verbatim: timeRowText)
                 .font(.subheadline.weight(.semibold))
                 .monospacedDigit()
-                .foregroundStyle(Color.nudgeTextDim)
+                .foregroundStyle(Color.nudgeForeground.opacity(0.7))
             Text(verbatim: event.title)
                 .font(.title2.weight(.semibold))
                 .foregroundStyle(Color.nudgeForeground)
@@ -161,8 +149,8 @@ public struct CalendarEventDetailSheet: View {
     private func attendeeRow(_ name: String) -> some View {
         HStack(spacing: 10) {
             Circle()
-                .fill(Color.nudgeTextDim.opacity(0.5))
-                .frame(width: 5, height: 5)
+                .fill(Color.nudgeTextDim.opacity(0.8))
+                .frame(width: 6, height: 6)
                 .frame(width: 20, alignment: .center)
             Text(verbatim: name)
                 .font(.body)

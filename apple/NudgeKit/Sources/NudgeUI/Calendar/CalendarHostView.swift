@@ -33,13 +33,31 @@ public struct CalendarHostView: View {
     /// Daily mac dashboard 用。
     private let externalSelectedDate: String?
 
-    public init(embedded: Bool = false, externalSelectedDate: String? = nil) {
+    /// Event tap callback — 嵌入 Daily 右欄時，event detail 改由外層
+    /// DailyHostView 顯示置中 overlay（blur backdrop + 大卡片）。傳此
+    /// closure → CalendarHostView 不再 own 自己的 selectedEvent / popover。
+    /// nil 時走內建 popover (mac) / sheet (iOS)，給 standalone Calendar tab 用。
+    private let onEventTap: ((CalendarEventDTO) -> Void)?
+
+    public init(
+        embedded: Bool = false,
+        externalSelectedDate: String? = nil,
+        onEventTap: ((CalendarEventDTO) -> Void)? = nil
+    ) {
         self.embedded = embedded
         self.externalSelectedDate = externalSelectedDate
+        self.onEventTap = onEventTap
     }
 
     private var mode: CalendarViewMode {
-        CalendarViewMode(rawValue: modeRaw) ?? .day
+        // 嵌入 Daily 右欄（externalSelectedDate 有值）時強制走 .day —
+        // 這個位置是「今日行程」面板、永遠顯示選定日的事件列表。
+        // 不能跟 standalone Calendar tab 共用 @AppStorage(viewMode)，
+        // 否則 user 在 standalone 切到 month / week 後，右欄會變月曆 / 週曆。
+        if externalSelectedDate != nil {
+            return .day
+        }
+        return CalendarViewMode(rawValue: modeRaw) ?? .day
     }
 
     private var selectedDateObj: Date {
@@ -52,8 +70,19 @@ public struct CalendarHostView: View {
     }
 
     public var body: some View {
-        NavigationStack {
-            content
+        // embedded 時跳過 NavigationStack — macOS 上 NavigationStack 會
+        // reserve invisible toolbar 區 + 透過 safe area inset propagate
+        // up，把外層 VStack 的所有 sibling 往下推（包括 dashboardCalendarHeader），
+        // 跟 cards column header 對不齊。embedded 沒 toolbar item 不需要
+        // NavigationStack 容器；standalone 才需要它掛 modePicker / title。
+        Group {
+            if embedded {
+                content
+            } else {
+                NavigationStack {
+                    content
+                }
+            }
         }
         .task(id: rangeKey) { await reload() }
         .onAppear {
@@ -69,15 +98,22 @@ public struct CalendarHostView: View {
                 Task { await reload() }
             }
         }
+        // Event detail presentation — embedded with onEventTap callback
+        // 時，detail 改由外層 DailyHostView 畫 centered overlay；
+        // standalone Calendar tab 仍用內建 popover (mac) / sheet (iOS)。
+        // 條件包在 modeContent 的 onEventTap 處理 (見下方)；這裡的
+        // popover/sheet 只在 callback nil 時才實際 present
+        // (selectedEvent 永遠不會被 set 當 callback 存在)。
+        #if os(macOS)
+        .popover(item: $selectedEvent, arrowEdge: .top) { event in
+            CalendarEventDetailSheet(event: event)
+                .frame(width: 480, height: 380)
+        }
+        #else
         .sheet(item: $selectedEvent) { event in
             CalendarEventDetailSheet(event: event)
-                #if os(macOS)
-                // mac 端原本是裸 .sheet — 沒尺寸、無背景 token，
-                // 視窗大小變不可預測。給最小尺寸 + token 背景。
-                .frame(minWidth: 480, minHeight: 360)
-                .background(Color.nudgeBackground)
-                #endif
         }
+        #endif
         #if os(macOS)
         .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.switchCalendarModeNotification)) { note in
             if let raw = note.object as? String, CalendarViewMode(rawValue: raw) != nil {
@@ -92,6 +128,10 @@ public struct CalendarHostView: View {
     /// navigationTitle，避免 modePicker bubble 到外層 NavigationStack。
     @ViewBuilder
     private var content: some View {
+        // Standalone calendar tab：自己鋪 nudgeBackground 確保整頁滿底色。
+        // Embedded（嵌入 Daily 右欄）：底色由外層 dashboardRightPanel 的
+        // `Color.nudgeForeground.opacity(0.025)` tint 提供，這裡不要再蓋
+        // 一層 nudgeBackground、否則 tint 只會在 hidden header 那塊露出來。
         let core = Group {
             if !calendarRepo.isConnected {
                 CalendarConnectPrompt()
@@ -99,7 +139,7 @@ public struct CalendarHostView: View {
                 modeContent
             }
         }
-        .background(Color.nudgeBackground)
+        .background(embedded ? Color.clear : Color.nudgeBackground)
 
         if embedded {
             // 嵌入 Daily 右欄時，dashboard header spacer 由外層
@@ -120,6 +160,17 @@ public struct CalendarHostView: View {
         }
     }
 
+    /// 統一處理 event 點擊：有外部 callback (embedded mode 由 DailyHostView
+    /// 處理 centered overlay) 就轉給外部、否則 fall back 到內建 popover
+    /// (selectedEvent state)。
+    private func handleEventTap(_ event: CalendarEventDTO) {
+        if let onEventTap {
+            onEventTap(event)
+        } else {
+            selectedEvent = event
+        }
+    }
+
     @ViewBuilder
     private var modeContent: some View {
         switch mode {
@@ -130,7 +181,7 @@ public struct CalendarHostView: View {
                 events: events,
                 isLoading: isLoading,
                 onWeekOffset: offsetWeek,
-                onEventTap: { selectedEvent = $0 },
+                onEventTap: handleEventTap,
                 hideWeekStrip: externalSelectedDate != nil
             )
         case .week:
@@ -144,7 +195,7 @@ public struct CalendarHostView: View {
                 onPrevWeek: { offsetWeek(-1) },
                 onNextWeek: { offsetWeek(1) },
                 onThisWeek: { selectedDate = DateFormatters.isoDate(Date()) },
-                onEventTap: { selectedEvent = $0 }
+                onEventTap: handleEventTap
             )
         case .month:
             CalendarMonthView(
@@ -155,7 +206,7 @@ public struct CalendarHostView: View {
                 onPrevMonth: { offsetMonth(-1) },
                 onNextMonth: { offsetMonth(1) },
                 onThisMonth: { selectedDate = DateFormatters.isoDate(Date()) },
-                onEventTap: { selectedEvent = $0 },
+                onEventTap: handleEventTap,
                 onDayDoubleTap: { _ in
                     modeRaw = CalendarViewMode.day.rawValue
                 }

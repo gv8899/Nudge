@@ -86,14 +86,14 @@ public struct CardGridItemView: View {
     private var titleText: some View {
         if card.title.isEmpty {
             Text("cards.untitled", bundle: .module)
-                .nudgeFont(.rowTitleEmphasized)
+                .nudgeFont(.cardTitle)
                 .italic()
                 .foregroundStyle(Color.nudgeTextDim)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
         } else {
             Text(verbatim: card.title)
-                .nudgeFont(.rowTitleEmphasized)
+                .nudgeFont(.cardTitle)
                 .foregroundStyle(Color.nudgeForeground)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)

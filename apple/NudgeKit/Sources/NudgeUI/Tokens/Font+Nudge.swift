@@ -38,6 +38,7 @@ public enum NudgeFontToken: Hashable, Sendable {
     case weekdayNumber
     case dateEyebrow
     case dateTitle
+    case cardTitle
 
     /// scale 通常從 `EnvironmentValues.nudgeFontScale` 取得（透過
     /// `.nudgeFont(_:)` modifier）。clamping 在 modifier 那層做。
@@ -193,6 +194,16 @@ public enum NudgeFontToken: Hashable, Sendable {
             return .system(size: 28 * scale, weight: .bold)
             #else
             return .largeTitle.weight(.bold)
+            #endif
+
+        case .cardTitle:
+            // 卡片格內標題 — 比 .rowTitleEmphasized (13pt) 大兩級，跟卡片
+            // body content (.rowBody / 12pt) 拉開明顯對比，避免標題不夠
+            // 凸顯。CardGridItemView / dashboard cards list 用。
+            #if os(macOS)
+            return .system(size: 16 * scale, weight: .semibold)
+            #else
+            return .headline
             #endif
         }
     }

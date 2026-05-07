@@ -66,6 +66,7 @@ public struct DailyHostView: View {
     /// Cards 區搜尋 / 標籤區塊預設收合 — 點 header 右側放大鏡才展開。
     /// 收合時搜尋條件不清空，再次展開可看到上次 query / tag 選擇。
     @State private var dashboardCardSearchExpanded: Bool = false
+    @FocusState private var dashboardCardSearchFieldFocused: Bool
 
     // Right panel — 使用者可選的副面板。預設關閉，開啟時內容由
     // `dashboardRightPanelKind` 在 Calendar / Cards 之間切換。Tasks 主
@@ -81,6 +82,10 @@ public struct DailyHostView: View {
     /// hover 在 resize zone 時顯示分隔線 + 雙箭頭 cursor。drag 期間也維持
     /// 顯示，避免拖到一半線消失。Heptabase pattern。
     @State private var dashboardResizeHandleHovered: Bool = false
+    /// 點 calendar event 觸發 → 顯示置中 blurred overlay (而非 popover)。
+    /// State 放在 DailyHostView 級別，overlay 可以蓋滿整個 dashboardContent
+    /// (任務區塊)、不被右欄 calendar 邊界限制。
+    @State private var selectedCalendarEvent: CalendarEventDTO?
     enum DashboardRightPanelKind: String, CaseIterable {
         case calendar, cards
         var labelKey: LocalizedStringKey {
@@ -631,6 +636,44 @@ public struct DailyHostView: View {
         }
         .animation(.spring(response: 0.32, dampingFraction: 0.86), value: dashboardRightPanelOpen)
         .clipped()
+        // 真正 blur 同視窗內 SwiftUI content：用 .blur(radius:) 在 content
+        // 自己上。Material 在 mac 是 NSVisualEffectView wrap、只 blur 視窗
+        // 後面的東西（桌面 / 其他視窗），同一視窗內的 SwiftUI 不吃。
+        .blur(radius: selectedCalendarEvent != nil ? 4 : 0)
+        // .overlay 的 content 不受上面 .blur 影響（layer 隔離），所以卡片
+        // 仍清晰、只有底下 dashboard 模糊。
+        // 動畫完全用 withAnimation 驅動 (selectedCalendarEvent set 時已 wrap)；
+        // 之前同時用 .animation(_:value:) + .transition 兩條路徑會打架，
+        // overlay 消失時 SwiftUI 保留 stale hit-test layer 卡在 content 上、
+        // 導致 user 「關閉後所有點擊失效」。
+        .overlay {
+            if let event = selectedCalendarEvent {
+                eventDetailOverlay(event)
+            }
+        }
+    }
+
+    private func eventDetailOverlay(_ event: CalendarEventDTO) -> some View {
+        ZStack {
+            // Backdrop：半透明黑當 dim 層 + tap 觸發關閉。實際 blur 由外層
+            // `.blur(radius:)` 在 dashboardContent 上做，這裡不用 material
+            // (mac 上 material 只 blur 視窗外、會渲成不透明 cream 把 content
+            // 整個蓋掉)。
+            Color.black.opacity(0.18)
+                .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    selectedCalendarEvent = nil
+                }
+
+            // 置中卡片：自身的 onTapGesture 攔住 tap 不冒泡到 backdrop。
+            CalendarEventDetailSheet(event: event)
+                .frame(width: 580, height: 520)
+                .background(Color.nudgeBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .shadow(color: Color.black.opacity(0.25), radius: 24, x: 0, y: 8)
+                .onTapGesture {} // swallow taps inside card
+        }
     }
 
     /// 自製 resize handle — 8pt 透明 hit zone，**只在 hover / drag 時**
@@ -716,29 +759,44 @@ public struct DailyHostView: View {
     /// Right panel：picker 已挪到 toolbar（panel 開啟時才顯示），這裡
     /// 直接顯示對應內容，內容從 panel 頂端開始，跟左欄 dashboardDateHeader
     /// 的 Friday eyebrow 對齊。
+    /// 整個 panel 內容用 2.5% nudgeForeground tint + 12pt 圓角包成 card，
+    /// 上下左右留 8pt 邊距讓圓角可見。calendar / cards 共用同一個外殼。
     @ViewBuilder
     private var dashboardRightPanel: some View {
-        switch dashboardRightPanelKind {
-        case .calendar:
-            // embedded: true 避免 CalendarHostView 的 modePicker
-            // (square.grid.2x2) bubble 到外層視窗 toolbar。
-            // externalSelectedDate: 把 Daily 左欄選定的日期注入 calendar，
-            // 行程跟左欄日期同步；同時觸發 calendar 隱藏自己的 WeekStripView，
-            // 避免左右兩欄各有一條日期 bar。
-            VStack(spacing: 0) {
-                // 用 .hidden() 真實 dashboardDateHeader 占同高、pixel-perfect
-                // 對齊：右欄第一個 section header ("上午") 的基準線剛好對到
-                // 左欄 WeekStripView 的 "日"/"一" weekday label。estimate 79pt
-                // magic number 在不同 locale / 字級下會有 1-2pt 誤差，這個寫法
-                // 完全不需要估。
-                dashboardDateHeader
-                    .hidden()
-                    .accessibilityHidden(true)
-                CalendarHostView(embedded: true, externalSelectedDate: selectedDate)
+        Group {
+            switch dashboardRightPanelKind {
+            case .calendar:
+                // embedded: true 避免 CalendarHostView 的 modePicker
+                // (square.grid.2x2) bubble 到外層視窗 toolbar。
+                // externalSelectedDate: 把 Daily 左欄選定的日期注入 calendar，
+                // 行程跟左欄日期同步；同時觸發 calendar 隱藏自己的 WeekStripView，
+                // 避免左右兩欄各有一條日期 bar。
+                //
+                // VStack 結構（alignment / spacing / frame）刻意鏡像
+                // dashboardCardsColumnList，這樣切 calendar / cards 時兩
+                // 邊 column header 在同一個 Y 上、不會跳行。
+                VStack(alignment: .leading, spacing: 16) {
+                    dashboardCalendarHeader
+                    CalendarHostView(
+                        embedded: true,
+                        externalSelectedDate: selectedDate,
+                        onEventTap: { event in
+                            selectedCalendarEvent = event
+                        }
+                    )
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            case .cards:
+                dashboardCardsColumn
             }
-        case .cards:
-            dashboardCardsColumn
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.nudgeForeground.opacity(0.025))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .padding(.vertical, 8)
+        .padding(.trailing, 8)
+        // 左側不留 padding：resize handle 已經在 panel 左側，再補 padding
+        // 會讓 handle 跟 card 邊緣間多一條空白 cream 條、視覺斷層。
     }
 
     @ViewBuilder
@@ -833,7 +891,8 @@ public struct DailyHostView: View {
                 dashboardCardsColumnList
             }
         }
-        .background(Color.nudgeForeground.opacity(0.025))
+        // bg 由外層 dashboardRightPanel 統一套（含圓角 + 邊距），這裡不再
+        // 鋪 tint，避免 calendar / cards 兩種模式 bg 不一致。
         .task { await loadDashboardCardTags() }
         .task(id: dashboardCardSearchQuery) { await debounceDashboardCardSearch() }
         .task(id: dashboardCardSearchKey) { await fetchDashboardCardSearch() }
@@ -938,6 +997,10 @@ public struct DailyHostView: View {
             .textFieldStyle(.plain)
             .nudgeFont(.fieldText)
             .foregroundStyle(Color.nudgeForeground)
+            // .tint 控制 TextField 的 cursor / selection accent — 用品牌
+            // primary 色取代系統預設藍。
+            .tint(Color.nudgePrimary)
+            .focused($dashboardCardSearchFieldFocused)
             if !dashboardCardSearchQuery.isEmpty {
                 Button { dashboardCardSearchQuery = "" } label: {
                     Image(systemName: "xmark.circle.fill")
@@ -955,54 +1018,61 @@ public struct DailyHostView: View {
         )
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
+        // 點搜尋 icon 展開 → field 一出現就 auto focus，cursor 直接落在
+        // 輸入框，user 不用再點一下 field 才能打字。
+        .onAppear { dashboardCardSearchFieldFocused = true }
     }
 
     @ViewBuilder
     private var dashboardCardsTagChips: some View {
-        // 橫向 scrollable chip 列。窄欄寬不適合 FlowLayout 折行，改成
-        // 一條橫向 strip — 最右側多 1 顆 clear 鍵清空。
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                ForEach(dashboardCardAllTags) { tag in
-                    let active = dashboardCardSelectedTagIds.contains(tag.id)
-                    Button {
-                        if active {
-                            dashboardCardSelectedTagIds.remove(tag.id)
-                        } else {
-                            dashboardCardSelectedTagIds.insert(tag.id)
-                        }
-                    } label: {
-                        Text(verbatim: tag.name)
-                            .nudgeFont(.chipLabel)
-                            .foregroundStyle(active ? Color.nudgePrimaryForeground : Color.nudgeForeground)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(
-                                Capsule()
-                                    .fill(active ? Color.nudgePrimary : Color.nudgeForeground.opacity(0.06))
-                            )
+        // 標籤多時 FlowLayout 自動折行（之前用 horizontal ScrollView 一條
+        // 橫向 strip，user 反映想看到所有標籤、不要被截掉只能 scroll）。
+        // lineSpacing 10 比 horizontal spacing 大 — 折行後上下需要更多
+        // 視覺呼吸，否則 chip 黏成一塊很擠。
+        FlowLayout(spacing: 6, lineSpacing: 10) {
+            ForEach(dashboardCardAllTags) { tag in
+                let active = dashboardCardSelectedTagIds.contains(tag.id)
+                Button {
+                    if active {
+                        dashboardCardSelectedTagIds.remove(tag.id)
+                    } else {
+                        dashboardCardSelectedTagIds.insert(tag.id)
                     }
-                    .buttonStyle(.plain)
+                } label: {
+                    Text(verbatim: tag.name)
+                        // 在 dashboard cards 這邊把 chip label 字體放大（11pt
+                        // → 13pt medium）— 全頁裡 .chipLabel 預設最小，user
+                        // 反映吃力。其他 .chipLabel call site (TaskPopoverView)
+                        // 維持不動，所以不改 token、改 inline。
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(active ? Color.nudgePrimaryForeground : Color.nudgeForeground)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(active ? Color.nudgePrimary : Color.nudgeForeground.opacity(0.06))
+                        )
                 }
-                if !dashboardCardSelectedTagIds.isEmpty {
-                    Button {
-                        dashboardCardSelectedTagIds.removeAll()
-                    } label: {
-                        HStack(spacing: 3) {
-                            Image(systemName: "xmark")
-                                .nudgeFont(.chipLabel)
-                            Text("common.clear", bundle: .module)
-                                .nudgeFont(.chipLabel)
-                        }
-                        .foregroundStyle(Color.nudgePrimary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                    }
-                    .buttonStyle(.plain)
-                }
+                .buttonStyle(.plain)
             }
-            .padding(.horizontal, 12)
+            if !dashboardCardSelectedTagIds.isEmpty {
+                Button {
+                    dashboardCardSelectedTagIds.removeAll()
+                } label: {
+                    HStack(spacing: 3) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .medium))
+                        Text("common.clear", bundle: .module)
+                            .font(.system(size: 13, weight: .medium))
+                    }
+                    .foregroundStyle(Color.nudgePrimary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                }
+                .buttonStyle(.plain)
+            }
         }
+        .padding(.horizontal, 12)
         .padding(.bottom, 8)
     }
 
@@ -1093,6 +1163,26 @@ public struct DailyHostView: View {
         .padding(.bottom, 6)
     }
 
+    /// Calendar 專用 header — 跟 dashboardCardsHeaderWithSearchToggle 同
+    /// 字體 / padding，標題改 "今日行程"，無 search toggle。
+    /// `.frame(minHeight: 44)` 是為了跟 cards header 對齊：cards 那邊的
+    /// HStack 因為塞了 44×44 IconButton（放大鏡），整條被撐成 44pt 高、
+    /// 標題文字被 .center 垂直置中、實際 Y 比靠頂偏下 ~11pt。calendar
+    /// 沒有 IconButton 預設 HStack 只有 22pt，不加 minHeight 兩邊
+    /// column title Y 會差 11pt。
+    private var dashboardCalendarHeader: some View {
+        HStack(spacing: 6) {
+            Text("calendar.panelTitle", bundle: .module)
+                .nudgeFont(.columnTitle)
+                .foregroundStyle(Color.nudgeForeground)
+            Spacer()
+        }
+        .frame(minHeight: 44)
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+        .padding(.bottom, 10)
+    }
+
     /// Cards 專用 header — 跟 dashboardColumnHeader 視覺一致 (同 font /
     /// padding / count style)，多右側放大鏡 toggle 來展開搜尋 / tag 區。
     /// 用既有 IconButton (44×44 hit target + a11y label) 對齊設計系統。
@@ -1108,13 +1198,21 @@ public struct DailyHostView: View {
                     .foregroundStyle(Color.nudgeTextDim)
             }
             Spacer()
+            // 展開時 icon 換成 xmark.circle.fill，user 看到 X 馬上知道
+            // 點下去會關掉 search panel。imageFont 18pt 比 IconButton 預設
+            // 系統字級 (~13pt) 大一截，跟 column title 14-15pt 對等、不會
+            // 在 header 裡縮成一個小 icon。
             IconButton(
-                systemName: dashboardCardSearchExpanded ? "magnifyingglass.circle.fill" : "magnifyingglass",
+                systemName: dashboardCardSearchExpanded ? "xmark.circle.fill" : "magnifyingglass",
                 accessibilityLabel: "cards.searchAria",
-                foreground: dashboardCardSearchExpanded ? .nudgePrimary : .nudgeTextDim
+                foreground: dashboardCardSearchExpanded ? .nudgePrimary : .nudgeTextDim,
+                imageFont: .system(size: 18, weight: .medium)
             ) {
                 withAnimation(.easeOut(duration: 0.2)) {
                     dashboardCardSearchExpanded.toggle()
+                }
+                if !dashboardCardSearchExpanded {
+                    dashboardCardSearchFieldFocused = false
                 }
             }
         }
