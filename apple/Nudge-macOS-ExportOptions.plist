@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+        Developer ID 分發 (給 nudge.tw 網站下載用，不上 Mac App Store)。
+        method = developer-id 配合 keychain 內 Developer ID Application
+        cert，xcodebuild exportArchive 會出 .app + entitlements 完整、
+        可以直接 notarize。signingStyle automatic 讓 Xcode 自己挑對的
+        identity (我們 keychain 只有一張 Developer ID Application、不
+        會挑錯)。
+    -->
+    <key>method</key>
+    <string>developer-id</string>
+    <key>teamID</key>
+    <string>B9NC8LR2HQ</string>
+    <key>signingStyle</key>
+    <string>automatic</string>
+    <!-- App-store-bundle 的 NSAppleEventsUsageDescription 才用得到，
+         此處留 false。 -->
+    <key>uploadSymbols</key>
+    <false/>
+</dict>
+</plist>

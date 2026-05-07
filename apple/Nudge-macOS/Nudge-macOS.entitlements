@@ -2,15 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>com.apple.security.app-sandbox</key>
-	<true/>
-	<key>com.apple.security.network.client</key>
-	<true/>
-	<key>com.apple.security.files.user-selected.read-write</key>
-	<true/>
-	<key>keychain-access-groups</key>
-	<array>
-		<string>$(AppIdentifierPrefix)tw.nudge.mac</string>
-	</array>
+	<!--
+		Mac Developer ID 分發版本 — entitlements 完全清空。
+
+		不加 App Sandbox：Developer ID 分發不要求；要求是 Mac App Store。
+		不加 keychain-access-groups：是 restricted entitlement，Apple
+		要求 .app 內嵌 Developer ID provisioning profile + 完整 entitlement
+		對齊。實測在 macOS 26.x 加上去反而讓 AMFI 直接 SIGKILL launch
+		過程，比沒加更糟。
+
+		Google Sign-In SDK 在 macOS 內部寫 keychain 會炸 (code -2)，
+		但 OAuth 本身會完成，idToken 能從 GIDSignIn.sharedInstance
+		.currentUser 抓出來。GoogleSignInService+macOS.swift 在 catch
+		裡 fallback 走這條路。
+
+		Hardened Runtime 仍由 build setting (project.yml) 開、不需在這
+		個 entitlements 檔指定 (notarization 必要條件)。
+	-->
 </dict>
 </plist>
