@@ -1727,14 +1727,8 @@ private struct DashboardColumnCardDetail: View {
             Divider()
                 .background(Color.nudgeBorderLight)
 
-            // 標準格式工具列 — 與 Notes / 全 Cards detail 共用 EditorToolbar
-            // 元件，輸入體驗一致。
-            EditorToolbar(
-                activeMarks: activeMarks,
-                commandBus: commandBus,
-                onDismissKeyboard: nil
-            )
-
+            // EditorToolbar 拿掉 — mac 改用 TipTap slash command menu
+            // (`/` 觸發)，跟 web 一致。
             RichTextEditor(
                 html: $descriptionHTML,
                 placeholder: nudgeLocalized("cardDetail.editorPlaceholder", locale: locale),

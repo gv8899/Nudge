@@ -104,9 +104,18 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
         let ucc = webView.configuration.userContentController
         ucc.add(self, name: "editor")
         ucc.add(self, name: "editorConsole")
+        // Platform flag — JS-side gates platform-specific behaviour
+        // (e.g. mac enables slash menu; iOS skips it because of WKWebView
+        // input swallow bug). 必須 atDocumentStart 設、editor.js 取用前。
+        #if os(macOS)
+        let platform = "macos"
+        #else
+        let platform = "ios"
+        #endif
         // Forward console.* to Swift so we can see runtime errors that happen
         // before our own error handler attaches.
         let js = """
+        window.NUDGE_PLATFORM = '\(platform)';
         (function() {
             function forward(level, args) {
                 try {

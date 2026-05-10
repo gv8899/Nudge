@@ -45,13 +45,9 @@ public struct CardDetailView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            #if os(macOS)
-            EditorToolbar(
-                activeMarks: activeMarks,
-                commandBus: commandBus,
-                onDismissKeyboard: nil
-            )
-            #endif
+            // mac: EditorToolbar 拿掉 — 改用 TipTap slash command menu
+            // (`/` 觸發)，跟 web 一致。iOS 仍走 EditorAccessoryView
+            // (鍵盤上方 input accessory)，那是另一個元件、不在這裡。
             scrollContent
         }
         .background(Color.nudgeBackground)

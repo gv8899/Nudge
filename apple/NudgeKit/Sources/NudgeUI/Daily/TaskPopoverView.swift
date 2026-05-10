@@ -69,12 +69,8 @@ struct TaskPopoverView: View {
             .focused($titleFocused)
             .onChange(of: title) { _, new in debouncedSaveTitle(new) }
 
-            EditorToolbar(
-                activeMarks: activeMarks,
-                commandBus: commandBus,
-                onDismissKeyboard: nil
-            )
-
+            // EditorToolbar 拿掉 — mac 改用 TipTap slash command menu
+            // (`/` 觸發)，跟 web 一致。
             editorBody
         }
         // 視窗正中央 modal — 比 popover anchor 到 row 自然得多，使用
