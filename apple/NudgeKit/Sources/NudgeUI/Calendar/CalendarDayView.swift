@@ -23,6 +23,10 @@ public struct CalendarDayView: View {
     let isLoading: Bool
     let onWeekOffset: (Int) -> Void
     let onEventTap: (CalendarEventDTO) -> Void
+    /// 嵌入 Daily 右側面板時 = true，把 WeekStripView 用 .hidden() 蓋掉
+    /// 但保留版面空間 — 用 user 要求「下方行程不上移、維持原本位置」。
+    /// 日期改由外層 DailyHostView 的 WeekStrip 驅動同步。
+    let hideWeekStrip: Bool
 
     public init(
         selectedDate: Binding<String>,
@@ -30,7 +34,8 @@ public struct CalendarDayView: View {
         events: [CalendarEventDTO],
         isLoading: Bool,
         onWeekOffset: @escaping (Int) -> Void,
-        onEventTap: @escaping (CalendarEventDTO) -> Void
+        onEventTap: @escaping (CalendarEventDTO) -> Void,
+        hideWeekStrip: Bool = false
     ) {
         _selectedDate = selectedDate
         _weekDates = weekDates
@@ -38,6 +43,7 @@ public struct CalendarDayView: View {
         self.isLoading = isLoading
         self.onWeekOffset = onWeekOffset
         self.onEventTap = onEventTap
+        self.hideWeekStrip = hideWeekStrip
     }
 
     private var dayEvents: [CalendarEventDTO] {
@@ -46,12 +52,13 @@ public struct CalendarDayView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            WeekStripView(
-                selectedDate: selectedDate,
-                datesWithTasks: weekDates,
-                onSelectDate: { selectedDate = $0 },
-                onWeekOffset: onWeekOffset
-            )
+            // 嵌入 Daily 右側面板時，外層 DailyHostView 已經有自己的
+            // WeekStripView；右欄不再生 WeekStrip 也不留 placeholder，
+            // 讓 "上午" 段落 header 上移到跟左欄 dateHeader 平齊（垂直
+            // 對齊由 CalendarHostView 補的 dashboard header spacer 控制）。
+            if !hideWeekStrip {
+                weekStrip
+            }
 
             if isLoading && dayEvents.isEmpty {
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -72,6 +79,16 @@ public struct CalendarDayView: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private var weekStrip: some View {
+        WeekStripView(
+            selectedDate: selectedDate,
+            datesWithTasks: weekDates,
+            onSelectDate: { selectedDate = $0 },
+            onWeekOffset: onWeekOffset
+        )
     }
 
     // MARK: - Section / event rendering
