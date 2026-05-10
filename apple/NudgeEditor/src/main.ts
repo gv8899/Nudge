@@ -129,6 +129,14 @@ function createSlashCommandExtension() {
 }
 
 function createEditor() {
+  // Slash-command extension：mac 啟用、iOS 仍關閉。Suggestion plugin
+  // 在 ProseMirror plugin 層裝 keydown handler，iOS WKWebView 上會
+  // 吞掉輸入事件 (歷史 bug)。mac WKWebView 沒這問題、用 web 一樣的
+  // `/` slash menu 取代以前掛在 view 上方的 EditorToolbar。Swift 端
+  // 在 EditorBridge 用 WKUserScript atDocumentStart 注入 NUDGE_PLATFORM。
+  const platform = (window as unknown as { NUDGE_PLATFORM?: string }).NUDGE_PLATFORM;
+  const enableSlashMenu = platform === "macos";
+
   editor = new Editor({
     element: document.getElementById("editor") as HTMLElement,
     extensions: [
@@ -153,11 +161,7 @@ function createEditor() {
       // appendTransaction walks the doc on every transaction; theoretical
       // risk of interacting with hardware-keyboard-path input delivery.
       // SplitTaskList,
-      // Slash-command extension temporarily disabled — its Suggestion
-      // plugin installs a keydown handler at the ProseMirror plugin layer;
-      // suspected of swallowing input events on iOS WKWebView. Will
-      // reintroduce once input path is confirmed solid.
-      // createSlashCommandExtension(),
+      ...(enableSlashMenu ? [createSlashCommandExtension()] : []),
     ],
     content: "",
     editorProps: {

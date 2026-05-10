@@ -25,13 +25,9 @@ public struct NotesCanvasView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            #if os(macOS)
-            EditorToolbar(
-                activeMarks: activeMarks,
-                commandBus: commandBus,
-                onDismissKeyboard: nil
-            )
-            #endif
+            // EditorToolbar 拿掉 — mac 改用 TipTap slash command menu
+            // (`/` 觸發)，跟 web 一致。iOS 仍走 EditorAccessoryView (鍵盤
+            // 上方 input accessory)，那不是這裡的元件。
             editor
         }
         .background(Color.nudgeBackground)
