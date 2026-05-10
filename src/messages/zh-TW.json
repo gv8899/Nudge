@@ -153,7 +153,14 @@
     "todayButton": "今天",
     "todayAria": "回到今天",
     "todaySectionTitle": "今天 ({count})",
-    "toggleRightPanel": "顯示 / 隱藏側邊面板"
+    "toggleRightPanel": "顯示 / 隱藏側邊面板",
+    "rowMenu": "任務動作",
+    "skipThisOccurrence": "跳過這次",
+    "setRecurring": "設成重複任務…",
+    "setReminder": "設定提醒…"
+  },
+  "schedule": {
+    "recurrenceTitle": "重複"
   },
   "cards": {
     "createAria": "新增卡片",

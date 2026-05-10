@@ -153,7 +153,14 @@
     "todayButton": "今日",
     "todayAria": "今日に戻る",
     "todaySectionTitle": "今日 ({count})",
-    "toggleRightPanel": "サイドパネルを切り替え"
+    "toggleRightPanel": "サイドパネルを切り替え",
+    "rowMenu": "タスク操作",
+    "skipThisOccurrence": "今回をスキップ",
+    "setRecurring": "繰り返し設定…",
+    "setReminder": "リマインダーを設定…"
+  },
+  "schedule": {
+    "recurrenceTitle": "繰り返し"
   },
   "cards": {
     "createAria": "新しいカード",

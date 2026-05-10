@@ -153,7 +153,14 @@
     "todayButton": "Today",
     "todayAria": "Jump to today",
     "todaySectionTitle": "Today ({count})",
-    "toggleRightPanel": "Toggle side panel"
+    "toggleRightPanel": "Toggle side panel",
+    "rowMenu": "Task actions",
+    "skipThisOccurrence": "Skip this one",
+    "setRecurring": "Repeat…",
+    "setReminder": "Set reminder…"
+  },
+  "schedule": {
+    "recurrenceTitle": "Repeat"
   },
   "cards": {
     "createAria": "New card",
