@@ -9,7 +9,14 @@ public struct CalendarConnectPrompt: View {
     @State private var isConnecting = false
     @State private var error: String?
 
-    public init() {}
+    /// `embedded = true` 時不鋪自己的 `nudgeBackground`，讓外層 (Daily
+    /// 右欄 card) 的 2.5% tint 透過來、跟 header 同色。standalone Calendar
+    /// tab 仍然要 cream bg 鋪滿。
+    private let embedded: Bool
+
+    public init(embedded: Bool = false) {
+        self.embedded = embedded
+    }
 
     public var body: some View {
         VStack(spacing: 20) {
@@ -49,7 +56,7 @@ public struct CalendarConnectPrompt: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.nudgeBackground)
+        .background(embedded ? Color.clear : Color.nudgeBackground)
     }
 
     private func connect() {

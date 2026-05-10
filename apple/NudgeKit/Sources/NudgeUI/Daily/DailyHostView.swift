@@ -539,12 +539,17 @@ public struct DailyHostView: View {
                         }
                         .help(Text("daily.nextWeekAria", bundle: .module))
                     }
-                    // .principal 放一個 Spacer 把 primaryAction 推到
-                    // 右邊。macOS NavigationStack 沒 principal 內容
-                    // 時，toolbar 把所有 items 擠在左邊；給個 Spacer
-                    // 撐開中間，primaryAction 才會走到 trailing。
-                    ToolbarItem(placement: .principal) {
-                        Spacer()
+                    // 推 primaryAction 到 trailing：
+                    // - macOS 26: ToolbarSpacer(.flexible) — 官方 toolbar
+                    //   layout API，在 tab 切換 / 視窗 resize 時穩定。
+                    // - macOS 15-25: .principal Spacer 是當時唯一可行 hack；
+                    //   舊系統沒有 ToolbarSpacer。
+                    if #available(macOS 26.0, *) {
+                        ToolbarSpacer(.flexible, placement: .primaryAction)
+                    } else {
+                        ToolbarItem(placement: .principal) {
+                            Spacer()
+                        }
                     }
                     // 側邊欄開關獨立一顆 ToolbarItem。macOS 26 (Tahoe)
                     // 預設會把同 placement 相鄰的 item 用 shared Liquid

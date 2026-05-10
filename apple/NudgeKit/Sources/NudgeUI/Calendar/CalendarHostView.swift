@@ -134,7 +134,7 @@ public struct CalendarHostView: View {
         // 一層 nudgeBackground、否則 tint 只會在 hidden header 那塊露出來。
         let core = Group {
             if !calendarRepo.isConnected {
-                CalendarConnectPrompt()
+                CalendarConnectPrompt(embedded: embedded)
             } else {
                 modeContent
             }
