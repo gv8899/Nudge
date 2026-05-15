@@ -146,6 +146,18 @@ struct NudgeiOSApp: App {
                 }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active {
+                        // Consume widget AppIntent flags — set by
+                        // QuickAddTaskIntent / QuickAddCardIntent
+                        // (取代之前的 .widgetURL deep link 路徑，避免 iOS
+                        // cold-launch URL replay)。consume 是 read+clear
+                        // atomically，下一次 scenePhase active 不會重觸。
+                        let flagStore = SharedQuickAddFlagStore()
+                        if flagStore.consumeTaskPending() {
+                            notificationRouter.pendingNewTask = true
+                        }
+                        if flagStore.consumeCardPending() {
+                            notificationRouter.pendingNewCard = true
+                        }
                         Task {
                             // Refresh widget snapshot every time the App
                             // returns to foreground — handles day rollover
