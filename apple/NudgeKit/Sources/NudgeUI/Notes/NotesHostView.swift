@@ -1,18 +1,22 @@
 import SwiftUI
 import NudgeCore
 
-/// Root of the 日誌 (journal) tab. Renders today's canvas by default and
-/// lets the user toggle to the timeline feed via a toolbar button.
-/// Historical entries pushed from the feed re-use `NotesCanvasView`
-/// pointed at a past date.
+/// Root of the 日誌 (journal) tab.
+///
+/// **Mac**: 永久 split — 左 feed list、右 canvas（預設今日空白、選一筆
+/// 顯示那筆）。沒有 toggle 按鈕。
+///
+/// **iOS**: 預設今日 canvas + toolbar 切換看 feed (showFeed flag)；feed
+/// 內點 row push 過去 NotesCanvasView(date:) 全螢幕顯示，符合手機慣例。
 public struct NotesHostView: View {
-    @State private var showFeed: Bool = false
+    #if os(iOS)
+    @AppStorage("notes.mac.showFeed") private var showFeed: Bool = false
+    #endif
     @State private var navigationPath = NavigationPath()
 
-    /// Mac MacSidebarRoot 用 ZStack 同時 mount 全部 5 個 host，inactive
-    /// 視窗的 toolbar items 會 bubble 到外層共用 toolbar。embedded = true
-    /// 跳過 .toolbar / .navigationTitle，避免 list.bullet / pencil.line
-    /// 在 user 看 Today 時也漂出來。
+    /// MacSidebarRoot 用 ZStack 同時 mount 全部 5 個 host；inactive host 的
+    /// `.navigationTitle` 會 bubble 到外層 NavigationSplitView 共用 chrome、
+    /// 蓋掉 active host 的 title。embedded=true 時跳過。
     private let embedded: Bool
 
     public init(embedded: Bool = false) {
@@ -28,23 +32,28 @@ public struct NotesHostView: View {
     @ViewBuilder
     private var content: some View {
         let core = rootContent
+            #if os(iOS)
             .navigationDestination(for: NotesRoute.self) { route in
                 switch route {
                 case .date(let date):
                     NotesCanvasView(date: date)
                 }
             }
+            #endif
 
         if embedded {
             core
         } else {
-            core
+            let titled = core
                 .navigationTitle(Text("nav.notes", bundle: .module))
                 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
                 #endif
+
+            #if os(iOS)
+            titled
                 .toolbar {
-                    ToolbarItem(placement: toolbarTrailing) {
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button {
                             withAnimation(.easeOut(duration: 0.2)) {
                                 showFeed.toggle()
@@ -71,23 +80,24 @@ public struct NotesHostView: View {
                         )
                     }
                 }
+            #else
+            titled
+            #endif
         }
     }
 
     @ViewBuilder
     private var rootContent: some View {
+        #if os(macOS)
+        // Mac 永久 split — NotesFeedView 內部處理 list + canvas 雙欄。
+        NotesFeedView()
+        #else
+        // iOS: toggle 切換 feed / canvas single-screen。
         if showFeed {
             NotesFeedView()
         } else {
             NotesCanvasView(date: DateFormatters.isoDate(Date()))
         }
-    }
-
-    private var toolbarTrailing: ToolbarItemPlacement {
-        #if os(iOS)
-        .topBarTrailing
-        #else
-        .primaryAction
         #endif
     }
 }

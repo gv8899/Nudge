@@ -147,16 +147,24 @@ public struct CalendarHostView: View {
             // （pixel-perfect 對齊），這裡不再自己估高度。
             core
         } else {
-            core
+            // Mac mode picker 上提到 MacSidebarRoot 的 root toolbar；
+            // iOS toolbar 行為不變（NavigationSplitView 沒這個 cache bug）。
+            let titled = core
                 .navigationTitle(Text("nav.calendar", bundle: .module))
                 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
                 #endif
+
+            #if os(iOS)
+            titled
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         modePicker
                     }
                 }
+            #else
+            titled
+            #endif
         }
     }
 

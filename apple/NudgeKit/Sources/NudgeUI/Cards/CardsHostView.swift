@@ -107,33 +107,54 @@ public struct CardsHostView: View {
     #endif
 
     #if os(macOS)
-    /// List 在置中與 split 兩種狀態下使用同一個寬度，使用者點卡片進
-    /// detail 時 list 不會縮、也不會放大 — 只是 detail 從右側展開、
-    /// list 從置中變成左對齊。720pt 沿用置中模式的閱讀寬度（~75ch）。
-    /// HSplitView 模式下使用者仍可拖 divider 微調比例。
+    /// List 用 maxWidth: 720 — 沒選卡片時 Spacer 兩側 padding 把它置中；
+    /// 選了卡片時剩餘寬度被 detail 吃掉、list 自動收窄但仍試圖置中。
     private static let listColumnWidth: CGFloat = 720
 
-    /// Mac layout：未選 = list 置中固定寬度。已選 = HSplitView 左 list
-    /// （同寬，可拖）右 detail（flex）。
+    /// Detail pane 寬度（pt）— resize handle 拖拉時更新；重開保留。
+    /// 360 ~ 900 clamp：min 360 維持 card editor 可讀寬度，max 900 避免
+    /// 把 list 擠到 <320pt 不堪用。Daily 用 400 default；Cards default
+    /// 拉到 520，因為 card detail 含 title + rich text editor 比 Daily
+    /// 的 calendar / cards summary panel 內容多。
+    @AppStorage("cards.mac.detailWidth") private var detailWidth: Double = 520
+
+    /// Mac layout — Heptabase-style slide-in detail：永遠是同一棵 HStack
+    /// (parent 樹不變)，selectedCard 非 nil 時條件 insert detail pane +
+    /// .transition(.move(edge: .trailing))。
+    ///
+    /// 之前用 HSplitView (有 selection) vs HStack (無 selection) 二選一，
+    /// SwiftUI 看成兩棵不同 view tree 在切換。除了動畫不順，更嚴重的問
+    /// 題：HSplitView 在 macOS 底層是 NSSplitView，appear / disappear
+    /// 會 trigger window responder chain 變動，連帶讓 NavigationSplitView
+    /// 的 NSToolbar 重新評估 item layout — 結果是 Fix D 已經修好的「切
+    /// 分頁後 Daily toolbar 按鈕跑到 leading」bug 又透過「點卡片→切回
+    /// Daily」這條路徑復發 (Calendar / Notes 不引入 HSplitView，所以
+    /// 不觸發)。改成 stable HStack 後 NSSplitView 不再上下台、cache
+    /// 不再被打亂。Trade-off：失去 HSplitView 的拖拉欄寬。Daily 也是
+    /// 為了類似原因放棄 HSplitView (見 dashboardContent doc)。
     @ViewBuilder
     private var macOSLayout: some View {
-        let core = Group {
+        let core = HStack(spacing: 0) {
+            centeredList
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
             if let card = selectedCard {
-                HSplitView {
-                    content
-                        .frame(minWidth: 320, idealWidth: Self.listColumnWidth)
-                    cardDetailPane(card)
-                        .frame(minWidth: 480)
-                }
-            } else {
+                // handle + detail 包成同一個 HStack 整段 slide（跟
+                // DailyHostView.dashboardContent 一致 pattern），避免
+                // handle / detail 動畫錯開。
                 HStack(spacing: 0) {
-                    Spacer(minLength: 0)
-                    content
-                        .frame(width: Self.listColumnWidth)
-                    Spacer(minLength: 0)
+                    ResizeHandle(width: $detailWidth, range: 360...900)
+                    cardDetailPane(card)
+                        .frame(width: detailWidth)
+                        .frame(maxHeight: .infinity)
                 }
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                    removal: .move(edge: .trailing).combined(with: .opacity)
+                ))
             }
         }
+        .animation(.spring(response: 0.32, dampingFraction: 0.86), value: selectedCard?.id)
         .background(Color.nudgeBackground)
         .task { await firstPage() }
 
@@ -143,16 +164,24 @@ public struct CardsHostView: View {
         if embedded {
             core
         } else {
+            // "+" 按鈕上提到 MacSidebarRoot 的 root toolbar；host 透過
+            // createCardNotification 接到觸發。
             core
                 .navigationTitle(Text("nav.cards", bundle: .module))
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button(action: createCard) {
-                            Image(systemName: "plus")
-                        }
-                        .help(Text("cards.createAria", bundle: .module))
-                    }
+                .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.createCardNotification)) { _ in
+                    createCard()
                 }
+        }
+    }
+
+    /// 內部自帶置中 — Spacer + content(maxWidth: listColumnWidth) + Spacer。
+    /// 父層 HStack 空間夠寬時內外 Spacer 推 content 至 720pt 置中；空間
+    /// 不夠 (detail 開啟把 right pane 吃走) content 自動收窄、Spacer 吸收 0。
+    private var centeredList: some View {
+        HStack(spacing: 0) {
+            Spacer(minLength: 0)
+            content.frame(maxWidth: Self.listColumnWidth)
+            Spacer(minLength: 0)
         }
     }
 
@@ -187,6 +216,12 @@ public struct CardsHostView: View {
                 onUpdateDescription: { updateDescription(cardId: card.id, html: $0) },
                 onUpdateTags: { newIds in await updateTags(cardId: card.id, tagIds: newIds) }
             )
+            // 強制 SwiftUI 把 CardDetailView 視為「不同 view」當切換卡片時。
+            // CardDetailView 用 `_title = State(initialValue: card.title)` 在 init
+            // 灌 @State；SwiftUI 預設只在 identity 第一次建立時 run init，
+            // 所以同位置切不同 card 不會重新讀新 card 的欄位。給 .id(card.id)
+            // 讓 identity 跟著 card 換，整個 view 重 mount、@State 重灌。
+            .id(card.id)
         }
         .background(Color.nudgeBackground)
     }

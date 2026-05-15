@@ -113,6 +113,13 @@ public struct NotesCanvasView: View {
     private func save(_ content: String) async {
         do {
             try await noteRepo.save(date: date, content: content)
+            #if os(macOS)
+            // Mac feed split：永久顯示 list、user typing 完成後 list 要
+            // 馬上反映今日 entry（前一秒空白 → 一秒後出現），不能等下次
+            // tab 切換才 refetch。NotesFeedView 監聽這個通知 refetch
+            // firstPage。
+            NotificationCenter.default.post(name: NudgeCommands.noteSavedNotification, object: date)
+            #endif
         } catch {
             if APIError.isCancellation(error) { return }
             print("[NotesCanvasView] save failed: \(error)")

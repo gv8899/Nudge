@@ -37,7 +37,28 @@ public struct RichTextEditor: View {
     }
 
     public var body: some View {
+        #if os(macOS)
+        // WKWebView 上面是可編輯文字 → WebKit 進入時設 I-beam（正確）；
+        // 但離開 WebView 到 SwiftUI 一般區域時，WebKit 不會主動釋放 cursor
+        // 回 arrow → 整個視窗都卡 I-beam。兩條 reset 路徑：
+        //
+        // 1. `.onHover { hovering=false }`：滑鼠正常移出 editor bounds。
+        // 2. `.onDisappear`：editor 被父層替換（例 Notes canvas→feed
+        //    切換、tab 切換、card detail 關閉）的剎那，滑鼠仍在 editor
+        //    座標上、hover 不會 fire false，但 view 消失了 cursor 還卡
+        //    著 → onDisappear 補一刀。
         editorView
+            .onHover { hovering in
+                if !hovering {
+                    NSCursor.arrow.set()
+                }
+            }
+            .onDisappear {
+                NSCursor.arrow.set()
+            }
+        #else
+        editorView
+        #endif
     }
 
     @ViewBuilder

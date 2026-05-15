@@ -75,13 +75,10 @@ public struct DailyHostView: View {
     // 偏好，下次開啟保留狀態。
     @AppStorage("daily.mac.rightPanelOpen") private var dashboardRightPanelOpen: Bool = false
     @AppStorage("daily.mac.rightPanelKind") private var dashboardRightPanelKindRaw: String = DashboardRightPanelKind.calendar.rawValue
-    /// Right panel 寬度（pt）— 自製 resize handle 拖拉時更新；重開保留。
+    /// Right panel 寬度（pt）— resize handle 拖拉時更新；重開保留。
     /// 280 ~ 720 clamp 避免擠到 tasks 欄或瘦到 panel 不可用。
+    /// hover / drag 視覺狀態現在由共用 `ResizeHandle` 內部管理。
     @AppStorage("daily.mac.rightPanelWidth") private var dashboardRightPanelWidth: Double = 400
-    @State private var dashboardRightPanelDragStart: Double? = nil
-    /// hover 在 resize zone 時顯示分隔線 + 雙箭頭 cursor。drag 期間也維持
-    /// 顯示，避免拖到一半線消失。Heptabase pattern。
-    @State private var dashboardResizeHandleHovered: Bool = false
     /// 點 calendar event 觸發 → 顯示置中 blurred overlay (而非 popover)。
     /// State 放在 DailyHostView 級別，overlay 可以蓋滿整個 dashboardContent
     /// (任務區塊)、不被右欄 calendar 邊界限制。
@@ -519,83 +516,15 @@ public struct DailyHostView: View {
         if embedded {
             core
         } else {
+            // Toolbar items moved to MacSidebarRoot — declared once at
+            // NavigationSplitView level so NSToolbar identity cache
+            // can't break the push-to-trailing layout on tab switch.
+            // (Root reads dashboardRightPanelOpen / Raw via matching
+            // @AppStorage keys; week-nav buttons fire the existing
+            // prev/next/todayWeek notifications.)
             core
                 .navigationTitle(Text("nav.tasks", bundle: .module))
                 .navigationSubtitle(Text(verbatim: formattedSelectedDate))
-                .toolbar {
-                    ToolbarItemGroup(placement: .navigation) {
-                        Button { offsetWeek(-1) } label: {
-                            Image(systemName: "chevron.left")
-                        }
-                        .help(Text("daily.prevWeekAria", bundle: .module))
-
-                        Button { selectedDate = DateFormatters.isoDate(Date()) } label: {
-                            Text("daily.todayButton", bundle: .module)
-                        }
-                        .help(Text("daily.todayAria", bundle: .module))
-
-                        Button { offsetWeek(1) } label: {
-                            Image(systemName: "chevron.right")
-                        }
-                        .help(Text("daily.nextWeekAria", bundle: .module))
-                    }
-                    // 推 primaryAction 到 trailing：
-                    // - macOS 26: ToolbarSpacer(.flexible) — 官方 toolbar
-                    //   layout API，在 tab 切換 / 視窗 resize 時穩定。
-                    // - macOS 15-25: .principal Spacer 是當時唯一可行 hack；
-                    //   舊系統沒有 ToolbarSpacer。
-                    if #available(macOS 26.0, *) {
-                        ToolbarSpacer(.flexible, placement: .primaryAction)
-                    } else {
-                        ToolbarItem(placement: .principal) {
-                            Spacer()
-                        }
-                    }
-                    // 側邊欄開關獨立一顆 ToolbarItem。macOS 26 (Tahoe)
-                    // 預設會把同 placement 相鄰的 item 用 shared Liquid
-                    // Glass material 包成同一個視覺 capsule，必須用
-                    // `ToolbarSpacer` 顯式破開、強制兩個 item 各自一顆。
-                    ToolbarItem(placement: .primaryAction) {
-                        Toggle(isOn: $dashboardRightPanelOpen) {
-                            Image(systemName: "sidebar.right")
-                        }
-                        .toggleStyle(.button)
-                        .tint(Color.nudgePrimary)
-                        .help(Text("daily.toggleRightPanel", bundle: .module))
-                    }
-
-                    // 強制把上面 toggle 跟下面 picker 隔成兩個獨立 toolbar
-                    // group / 各自的 Liquid Glass capsule。沒這條 spacer，
-                    // macOS 26 (Tahoe) 會把同 placement 相鄰 item auto-merge
-                    // 進同一個 glass material。ToolbarSpacer 是 macOS 26+ 的
-                    // 新 API，舊版 macOS 沒有 auto-merge 行為所以也不需要。
-                    if dashboardRightPanelOpen {
-                        if #available(macOS 26.0, *) {
-                            ToolbarSpacer(.fixed, placement: .primaryAction)
-                        }
-
-                        // Calendar / Cards picker — 用 .pickerStyle(.palette)
-                        // 而非 .segmented：palette 的選中 segment 是齊平
-                        // 的填色 pill、貼齊外殼邊緣，跟 iOS 26 bottom bar
-                        // tab 切換視覺對齊。.segmented 在 macOS 26 上選中
-                        // segment 會內縮一圈、邊距感太重。toolbar 自身的
-                        // Liquid Glass capsule 仍包在外面（前面 ToolbarSpacer
-                        // 隔開不會跟 sidebar toggle merge）。
-                        ToolbarItem(placement: .primaryAction) {
-                            Picker(selection: $dashboardRightPanelKindRaw) {
-                                Text("nav.calendar", bundle: .module)
-                                    .tag(DashboardRightPanelKind.calendar.rawValue)
-                                Text("nav.cards", bundle: .module)
-                                    .tag(DashboardRightPanelKind.cards.rawValue)
-                            } label: {
-                                EmptyView()
-                            }
-                            .pickerStyle(.palette)
-                            .tint(Color.nudgePrimary)
-                            .animation(.spring(response: 0.32, dampingFraction: 0.78), value: dashboardRightPanelKindRaw)
-                        }
-                    }
-                }
         }
     }
 
@@ -681,62 +610,10 @@ public struct DailyHostView: View {
         }
     }
 
-    /// 自製 resize handle — 8pt 透明 hit zone，**只在 hover / drag 時**
-    /// 才浮出 3pt 粗線，平常完全隱形（Heptabase pattern：兩個區塊看起
-    /// 來無縫，hover 才顯示分隔線）。線用 .easeOut(0.15) fade in/out。
-    /// .global coordinate space 算 drag translation，避免 handle 隨
-    /// panel 變窄往右移、cursor-handle 相對座標 feedback 抖動。
+    /// Daily 右欄 resize handle — 共用 `ResizeHandle` component (see
+    /// `Components/ResizeHandle.swift`)，width 範圍 280-720pt。
     private var resizeHandle: some View {
-        let lineVisible = dashboardResizeHandleHovered || dashboardRightPanelDragStart != nil
-        return ZStack {
-            // 8pt 透明 hit zone — 略寬好抓。
-            Color.clear
-                .contentShape(Rectangle())
-            // 中央 3pt 粗線（從原本 1pt 提到 3pt 視覺更明顯）：hover /
-            // drag 才顯示。Color.nudgePrimary 用品牌主色，跟 Heptabase
-            // 預設藍 cursor highlight 同感。.frame(maxHeight: .infinity)
-            // 確保線從 dashboardContent 頂端拉到底端，不被父層 ZStack
-            // 子 view 的 intrinsic height 限制住。
-            Rectangle()
-                .fill(Color.nudgePrimary)
-                .frame(width: 3)
-                .frame(maxHeight: .infinity)
-                .opacity(lineVisible ? 1 : 0)
-                .animation(.easeOut(duration: 0.15), value: lineVisible)
-        }
-        .frame(width: 8)
-        .frame(maxHeight: .infinity)
-        #if os(macOS)
-        .onHover { hovering in
-            dashboardResizeHandleHovered = hovering
-            if hovering {
-                NSCursor.resizeLeftRight.set()
-            } else {
-                NSCursor.arrow.set()
-            }
-        }
-        #endif
-        .gesture(
-            // .global 避免 handle 隨 panel 寬度變動而位移、translation
-            // 又重算的 feedback 迴圈（→ 抖動 root cause）。global 座標
-            // 下 handle 怎麼動、cursor 螢幕絕對位置不變、translation 穩。
-            DragGesture(minimumDistance: 0, coordinateSpace: .global)
-                .onChanged { value in
-                    // 第一次 onChanged 記下 drag 開始時的 width，
-                    // 整段 drag 都從這個基準算 delta，避免每幀累加漂移。
-                    if dashboardRightPanelDragStart == nil {
-                        dashboardRightPanelDragStart = dashboardRightPanelWidth
-                    }
-                    let base = dashboardRightPanelDragStart ?? dashboardRightPanelWidth
-                    // panel 在右邊，divider 往右拖 = panel 變窄
-                    // (translation.width 正值 = 往右)，所以減。
-                    let proposed = base - Double(value.translation.width)
-                    dashboardRightPanelWidth = max(280, min(720, proposed))
-                }
-                .onEnded { _ in
-                    dashboardRightPanelDragStart = nil
-                }
-        )
+        ResizeHandle(width: $dashboardRightPanelWidth, range: 280...720)
     }
 
     /// Tasks 欄置中 wrapper — 兩側 Spacer + 760pt max-width。Min spacer

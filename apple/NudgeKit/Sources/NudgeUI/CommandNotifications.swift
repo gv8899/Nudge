@@ -22,6 +22,14 @@ public enum NudgeCommands {
     /// Daily 週導覽。
     public static let prevWeekNotification = Notification.Name("nudge.prevWeek")
     public static let nextWeekNotification = Notification.Name("nudge.nextWeek")
+    /// Cards 新增卡片 — root toolbar "+" 按鈕觸發。
+    public static let createCardNotification = Notification.Name("nudge.createCard")
+    /// Notes feed / canvas 切換 — root toolbar 按鈕觸發。
+    public static let notesToggleFeedNotification = Notification.Name("nudge.notesToggleFeed")
+    /// Note 儲存完成 — `object` 為 date (YYYY-MM-DD)。Mac 永久 split 下
+    /// 左側 feed list 用這個觸發 refetch，typing 完成後今日 entry 馬上
+    /// 出現在 list（不用切分頁再切回來才更新）。
+    public static let noteSavedNotification = Notification.Name("nudge.noteSaved")
 }
 
 /// macOS app menu bar — 開放以下命令：
