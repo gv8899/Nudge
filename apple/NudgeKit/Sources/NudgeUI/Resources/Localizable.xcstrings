@@ -2789,6 +2789,28 @@
         }
       }
     },
+    "notes.todayPlaceholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today — start writing"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日 — まだ書いていません"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天 — 還沒開始寫"
+          }
+        }
+      }
+    },
     "notes.noMoreEntries": {
       "localizations": {
         "en": {

@@ -122,6 +122,26 @@ struct MacSidebarRoot: View {
     // restoring to "Today" is a sensible default anyway.
     @State private var selection: SidebarItem = .today
 
+    // Toolbar state lifted from individual hosts. Previously each host
+    // declared its own `.toolbar { }` on the active branch, which let
+    // toolbar items bubble up into NavigationSplitView's shared
+    // NSToolbar. When the user switched sidebar selection, host A's
+    // items "detached" and host B's "attached" — NSToolbar's identity
+    // cache got confused and snapped `.primaryAction` items back to
+    // their default leading position (the `.principal Spacer` push-to-
+    // trailing hack stopped applying). Symptom: after one tab switch,
+    // Daily toolbar items jumped from trailing to leading.
+    //
+    // Fix D: declare a single `.toolbar { }` at the root level and
+    // switch its contents on `selection`. The toolbar itself is never
+    // remounted — only its items swap — so NSToolbar can't lose the
+    // push-to-trailing layout. Per-host shared state arrives via
+    // matching @AppStorage keys (UserDefaults syncs both sides) or
+    // NotificationCenter (existing menu-command pattern).
+    @AppStorage("daily.mac.rightPanelOpen") private var dashboardRightPanelOpen: Bool = false
+    @AppStorage("daily.mac.rightPanelKind") private var dashboardRightPanelKindRaw: String = "calendar"
+    @AppStorage(CalendarPreferenceKey.viewMode) private var calendarModeRaw: String = CalendarViewMode.day.rawValue
+
     var body: some View {
         // 2 欄 NavigationSplitView。content view 自己負責 NavigationStack
         // 與 push detail (Cards/Daily 在 detail 內 push 卡片頁)。
@@ -209,6 +229,7 @@ struct MacSidebarRoot: View {
                     SettingsView(auth: auth)
                 }
             }
+            .toolbar { rootToolbar }
         }
         // Mac sidebar selection should track the user's system accent
         // (Appearance preferences). The previous version forced
@@ -218,6 +239,128 @@ struct MacSidebarRoot: View {
                 selection = item
             }
         }
+    }
+
+    /// Per-tab toolbar items. Declared once at the NavigationSplitView
+    /// level — never remounted across tab switches, so NSToolbar's
+    /// identity cache can't break the push-to-trailing layout for Daily.
+    @ToolbarContentBuilder
+    private var rootToolbar: some ToolbarContent {
+        // switch over selection — @ToolbarContentBuilder turns this
+        // into a single discriminator, avoiding the deeply-nested
+        // EitherToolbarContent the type-checker times out on for long
+        // if/else-if chains. .settings emits no items.
+        switch selection {
+        case .today: dailyToolbar
+        case .calendar: calendarToolbar
+        case .cards: cardsToolbar
+        case .notes: notesToolbar
+        case .settings: settingsToolbar
+        }
+    }
+
+    /// SettingsView 沒 toolbar items；ToolbarContentBuilder switch 需要
+    /// 每個 case 都 emit ToolbarContent，所以塞一個空的 placeholder
+    /// (`Spacer()` 在 `.principal` 不會佔位也不渲染按鈕)。
+    @ToolbarContentBuilder
+    private var settingsToolbar: some ToolbarContent {
+        ToolbarItem(placement: .principal) { EmptyView() }
+    }
+
+    @ToolbarContentBuilder
+    private var dailyToolbar: some ToolbarContent {
+        ToolbarItemGroup(placement: .navigation) {
+            Button { NotificationCenter.default.post(name: NudgeCommands.prevWeekNotification, object: nil) } label: {
+                Image(systemName: "chevron.left")
+            }
+            .help(Text("daily.prevWeekAria", bundle: .module))
+
+            Button { NotificationCenter.default.post(name: NudgeCommands.todayNotification, object: nil) } label: {
+                Text("daily.todayButton", bundle: .module)
+            }
+            .help(Text("daily.todayAria", bundle: .module))
+
+            Button { NotificationCenter.default.post(name: NudgeCommands.nextWeekNotification, object: nil) } label: {
+                Image(systemName: "chevron.right")
+            }
+            .help(Text("daily.nextWeekAria", bundle: .module))
+        }
+        // 推 primaryAction 到 trailing — 同 DailyHostView 原本的 hack。
+        // 因為這個 .toolbar { } 掛在 NavigationSplitView、不會被 host
+        // 切換 unmount，NSToolbar 不會錯用 cache、Spacer push 持續生效。
+        if #available(macOS 26.0, *) {
+            ToolbarSpacer(.flexible, placement: .primaryAction)
+        } else {
+            ToolbarItem(placement: .principal) {
+                Spacer()
+            }
+        }
+        ToolbarItem(placement: .primaryAction) {
+            Toggle(isOn: $dashboardRightPanelOpen) {
+                Image(systemName: "sidebar.right")
+            }
+            .toggleStyle(.button)
+            .tint(Color.nudgePrimary)
+            .help(Text("daily.toggleRightPanel", bundle: .module))
+        }
+        if dashboardRightPanelOpen {
+            if #available(macOS 26.0, *) {
+                ToolbarSpacer(.fixed, placement: .primaryAction)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Picker(selection: $dashboardRightPanelKindRaw) {
+                    Text("nav.calendar", bundle: .module).tag("calendar")
+                    Text("nav.cards", bundle: .module).tag("cards")
+                } label: {
+                    EmptyView()
+                }
+                .pickerStyle(.palette)
+                .tint(Color.nudgePrimary)
+                .animation(.spring(response: 0.32, dampingFraction: 0.78), value: dashboardRightPanelKindRaw)
+            }
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var calendarToolbar: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            Menu {
+                ForEach(CalendarViewMode.allCases) { m in
+                    Button {
+                        calendarModeRaw = m.rawValue
+                    } label: {
+                        HStack {
+                            if calendarModeRaw == m.rawValue { Image(systemName: "checkmark") }
+                            Text(m.labelKey, bundle: .module)
+                        }
+                    }
+                }
+            } label: {
+                Image(systemName: "square.grid.2x2")
+                    .foregroundStyle(Color.nudgeForeground)
+            }
+            .help(Text("calendar.modePickerAria", bundle: .module))
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var cardsToolbar: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            Button {
+                NotificationCenter.default.post(name: NudgeCommands.createCardNotification, object: nil)
+            } label: {
+                Image(systemName: "plus")
+            }
+            .help(Text("cards.createAria", bundle: .module))
+        }
+    }
+
+    /// Notes Mac 版改成永久 split layout (list 左 + canvas 右)，feed/canvas
+    /// 切換按鈕拿掉；ToolbarContentBuilder switch 每個 case 都得 emit 一個
+    /// ToolbarContent，給空 placeholder 走形式。
+    @ToolbarContentBuilder
+    private var notesToolbar: some ToolbarContent {
+        ToolbarItem(placement: .principal) { EmptyView() }
     }
 
     /// 把 detail host 包成 opacity 切換 + 禁掉非 active view 的 hit test
