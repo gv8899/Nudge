@@ -165,6 +165,13 @@ export async function GET(
   // updatedAt 欄位（schema.ts:86）。Note length 必須是獨立 component —
   // 直接丟進 max(...timestamps) 會被毫秒級數字完全淹沒，note 改了
   // ETag 不會變、client 拿不到更新。
+  //
+  // **Recurrence**：response 帶 `isRecurring`（來自 leftJoin task_recurrences），
+  // 但 recurrence add/delete 不動 daily_task_assignments → maxUpdated 不變
+  // → ETag 不變 → 304 假陽性 → client 拿不到新 isRecurring。fix：把
+  // user 範圍內 recurrences 的 max(updatedAt) + count 也 fold 進 etagSource。
+  // count 處理「刪除最新」與「刪除非最新」兩種 case（max 可能不變但 count
+  // 變）。
   const allUpdatedAts: number[] = [];
   for (const a of assignments) {
     allUpdatedAts.push(new Date(a.assignmentUpdatedAt).getTime());
@@ -174,7 +181,19 @@ export async function GET(
   }
   const maxUpdated = allUpdatedAts.length > 0 ? Math.max(...allUpdatedAts) : 0;
   const noteLength = note?.content?.length ?? 0;
-  const etagSource = `${date}|${maxUpdated}|${assignments.length}|${overdueTasks.length}|${noteLength}`;
+  const [recurrenceStats] = await db
+    .select({
+      maxUpdated: sql<string | null>`MAX(${taskRecurrences.updatedAt})`,
+      count: sql<number>`COUNT(*)::int`,
+    })
+    .from(taskRecurrences)
+    .innerJoin(tasks, eq(taskRecurrences.taskId, tasks.id))
+    .where(eq(tasks.userId, user.id));
+  const recurrenceMaxUpdated = recurrenceStats?.maxUpdated
+    ? new Date(recurrenceStats.maxUpdated).getTime()
+    : 0;
+  const recurrenceCount = recurrenceStats?.count ?? 0;
+  const etagSource = `${date}|${maxUpdated}|${assignments.length}|${overdueTasks.length}|${noteLength}|${recurrenceMaxUpdated}|${recurrenceCount}`;
   const etag = `W/"${createHash("md5").update(etagSource).digest("hex")}"`;
 
   // Honor If-None-Match — 一致就回 304，不送 body
