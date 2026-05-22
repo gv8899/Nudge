@@ -136,6 +136,10 @@
     "slashDividerKeywords": "hr|divider|separator|区切り"
   },
   "daily": {
+    "a11y": {
+      "recurring": "繰り返し",
+      "hasReminder": "リマインダーあり"
+    },
     "emptyToday": "今日のタスクはまだありません",
     "overdueSectionAria": "以前のタスク",
     "overdueLabel": "以前のタスク ({count})",

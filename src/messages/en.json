@@ -136,6 +136,10 @@
     "slashDividerKeywords": "hr|divider|separator|line"
   },
   "daily": {
+    "a11y": {
+      "recurring": "Recurring",
+      "hasReminder": "Has reminder"
+    },
     "emptyToday": "No tasks for today",
     "overdueSectionAria": "Tasks from previous days",
     "overdueLabel": "From earlier ({count})",

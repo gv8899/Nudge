@@ -1,6 +1,6 @@
 import Foundation
 
-public struct DailyAssignmentDTO: Codable, Equatable, Sendable {
+public struct DailyAssignmentDTO: Codable, Equatable, Sendable, Identifiable {
     public let id: String
     public let taskId: String
     public let date: String
@@ -8,6 +8,9 @@ public struct DailyAssignmentDTO: Codable, Equatable, Sendable {
     public let isSkipped: Bool
     public let sortOrder: Int
     public let isRecurring: Bool
+    /// 是否有設提醒 — 一次性提醒 (`task.remindAt`) 或重複任務的
+    /// `recurrence.remindAtTimeOfDay` 任一有值。由 API 算好回傳。
+    public let hasReminder: Bool
     public let task: TaskDTO
 
     public init(
@@ -18,6 +21,7 @@ public struct DailyAssignmentDTO: Codable, Equatable, Sendable {
         isSkipped: Bool = false,
         sortOrder: Int,
         isRecurring: Bool = false,
+        hasReminder: Bool = false,
         task: TaskDTO
     ) {
         self.id = id
@@ -27,11 +31,12 @@ public struct DailyAssignmentDTO: Codable, Equatable, Sendable {
         self.isSkipped = isSkipped
         self.sortOrder = sortOrder
         self.isRecurring = isRecurring
+        self.hasReminder = hasReminder
         self.task = task
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, taskId, date, isCompleted, isSkipped, sortOrder, isRecurring, task
+        case id, taskId, date, isCompleted, isSkipped, sortOrder, isRecurring, hasReminder, task
     }
 
     public init(from decoder: Decoder) throws {
@@ -43,6 +48,7 @@ public struct DailyAssignmentDTO: Codable, Equatable, Sendable {
         isSkipped = try c.decodeIfPresent(Bool.self, forKey: .isSkipped) ?? false
         sortOrder = try c.decode(Int.self, forKey: .sortOrder)
         isRecurring = try c.decodeIfPresent(Bool.self, forKey: .isRecurring) ?? false
+        hasReminder = try c.decodeIfPresent(Bool.self, forKey: .hasReminder) ?? false
         task = try c.decode(TaskDTO.self, forKey: .task)
     }
 }

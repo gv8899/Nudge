@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { ChevronDown, ChevronRight, CalendarClock, Archive } from "lucide-react";
-import { format, parseISO, isWeekend } from "date-fns";
+import { ChevronDown, ChevronRight, CalendarClock, Archive, Repeat, Bell } from "lucide-react";
+import { format, parseISO } from "date-fns";
 import { enUS, ja, zhTW } from "date-fns/locale";
 import {
   Dialog,
@@ -33,8 +33,8 @@ export function OverdueSection({
   const tCommon = useTranslations("common");
   const locale = useLocale();
   const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
-  // 六日預設收合
-  const [isExpanded, setIsExpanded] = useState(() => !isWeekend(parseISO(currentDate)));
+  // 一律預設展開 — 不論平日/週末（對齊 mac / iOS app）。
+  const [isExpanded, setIsExpanded] = useState(true);
   const [archiveTarget, setArchiveTarget] = useState<{ assignmentId: string; taskId: string; title: string } | null>(null);
 
   if (overdueTasks.length === 0) return null;
@@ -89,6 +89,18 @@ export function OverdueSection({
                   {format(parseISO(a.date), "M/d")}
                 </span>
               </div>
+
+              {/* 狀態標示（重複 / 提醒）— placement B */}
+              {(a.isRecurring || a.hasReminder) && (
+                <span className="flex items-center gap-2 shrink-0 text-text-dim">
+                  {a.isRecurring && (
+                    <Repeat className="h-4 w-4" aria-label={t("a11y.recurring")} />
+                  )}
+                  {a.hasReminder && (
+                    <Bell className="h-4 w-4" aria-label={t("a11y.hasReminder")} />
+                  )}
+                </span>
+              )}
 
               {/* 右側操作區 */}
               <button

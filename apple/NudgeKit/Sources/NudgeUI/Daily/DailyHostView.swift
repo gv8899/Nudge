@@ -26,8 +26,12 @@ public struct DailyHostView: View {
     @State private var loadState: LoadState = .idle
     @State private var lastUpdated: String = ""
     @State private var moveSheetAssignment: DailyAssignmentDTO?
+    // 排程 modal — iOS 走 `.sheet`；macOS 改由 MacSidebarRoot overlay 渲染
+    // (見 openScheduleSheet)、不用本地 state。
+    #if os(iOS)
     @State private var scheduleSheetAssignment: DailyAssignmentDTO?
     @State private var scheduleSheetRemindAt: String?
+    #endif
 
     // Haptic feedback triggers (iOS 17+)
     @State private var completionTicker: Int = 0
@@ -200,7 +204,7 @@ public struct DailyHostView: View {
                                 currentDate: selectedDate,
                                 onToggleComplete: toggleComplete,
                                 onReschedule: { moveAssignment($0, to: $1) },
-                                onMoveTo: { moveSheetAssignment = $0 },
+                                onMoveTo: requestMoveToDate,
                                 onArchive: { archiveTask($0) },
                                 onSkipThisOccurrence: { skipOccurrence($0) },
                                 onSetRecurrence: { openScheduleSheet(for: $0) },
@@ -215,7 +219,7 @@ public struct DailyHostView: View {
                                 onOpen: { navigationPath.append($0) },
                                 onMove: handleMove,
                                 onArchive: { archiveTask($0) },
-                                onMoveTo: { moveSheetAssignment = $0 },
+                                onMoveTo: requestMoveToDate,
                                 onMoveToToday: { moveAssignment($0, to: DateFormatters.isoDate(Date())) },
                                 onSkipThisOccurrence: { skipOccurrence($0) },
                                 onSetRecurrence: { openScheduleSheet(for: $0) },
@@ -384,8 +388,7 @@ public struct DailyHostView: View {
     @ViewBuilder
     private var createTaskFAB: some View {
         let core = Button {
-            quickAddText = ""
-            showQuickAdd = true
+            requestQuickAdd()
         } label: {
             // Frame + contentShape 必須在 label 內，整個 60×60 圓形
             // 才是 button 的 hit area。之前 frame 加在 button 外面只
@@ -428,61 +431,36 @@ public struct DailyHostView: View {
             macOSContent
         }
         .animation(.easeOut(duration: 0.2), value: loadState)
-        .sheet(item: $moveSheetAssignment) { assignment in
-            MoveToDatePickerView(
-                initialDate: assignment.date,
-                onPick: { newDate in
-                    moveSheetAssignment = nil
-                    moveAssignment(assignment, to: newDate)
-                },
-                onCancel: { moveSheetAssignment = nil }
-            )
-            .frame(minWidth: 360, minHeight: 320)
+        // macOS 全部 modal（排程 / move-to-date / quick-add / task popover）
+        // 都上移到 MacSidebarRoot 用 window-level overlay 渲染（支援點外取消）。
+        // 這裡只負責 listen 各自的 callback notification、做對應 data 操作。
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.scheduleClosedNotification)) { _ in
+            Task { await reload() }
         }
-        .sheet(item: $scheduleSheetAssignment) { assignment in
-            ScheduleEditSheet(
-                taskId: assignment.task.id,
-                taskTitle: assignment.task.title,
-                initialAbsoluteRemindAt: $scheduleSheetRemindAt,
-                onChangeAbsoluteRemindAt: { newValue in
-                    Task {
-                        do {
-                            try await cardRepo.updateRemindAt(
-                                cardId: assignment.task.id,
-                                remindAt: newValue
-                            )
-                        } catch {
-                            print("[DailyHostView] updateRemindAt failed: \(error)")
-                        }
-                    }
-                },
-                onDone: {
-                    scheduleSheetAssignment = nil
-                    Task { await reload() }
-                }
-            )
-            .frame(minWidth: 480, minHeight: 420)
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.expandTaskNotification)) { note in
+            if let assignment = note.object as? DailyAssignmentDTO {
+                openTaskInRightColumn(assignment)
+            }
         }
-        .sheet(isPresented: $showQuickAdd, onDismiss: { quickAddText = "" }) {
-            QuickAddTaskSheet(
-                text: $quickAddText,
-                onSubmit: {
-                    let title = quickAddText.trimmingCharacters(in: .whitespaces)
-                    guard !title.isEmpty else { return }
-                    createTask(title)
-                    showQuickAdd = false
-                },
-                onCancel: { showQuickAdd = false }
-            )
-            .frame(minWidth: 420, minHeight: 180)
+        .onReceive(NotificationCenter.default.publisher(for: CardRepository.cardDidChangeNotification)) { _ in
+            Task { await reloadDashboardCards() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.submitQuickAddNotification)) { note in
+            if let title = note.object as? String {
+                createTask(title)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.moveToDateNotification)) { note in
+            if let result = note.object as? MoveToDateResult {
+                moveAssignment(result.assignment, to: result.date)
+            }
         }
         // Menu bar / keyboard command listeners (declared in
         // CommandNotifications.swift). Posted by NudgeCommandsMenu in
         // the app target; received here so Daily reacts to ⌘N, ⌘←,
         // ⌘→, ⌘T, ⇧⌘← / ⇧⌘→.
         .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.newTaskNotification)) { _ in
-            quickAddText = ""
-            showQuickAdd = true
+            requestQuickAdd()
         }
         .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.prevDayNotification)) { _ in
             offsetDay(-1)
@@ -627,11 +605,10 @@ public struct DailyHostView: View {
             ZStack(alignment: .bottomTrailing) {
                 dashboardTasksColumn
                 createTaskFAB
-                    // trailing 24 + bottom 40 — 上移離視窗底邊一點，
-                    // 比 iOS (20/20) 高，因為 mac 底邊沒有 home indicator
-                    // 視覺壓力，FAB 太貼底會像被切掉。
+                    // trailing 24 + bottom 80 — 視窗底部視覺重心夠輕，
+                    // FAB 拉高一點離得不那麼貼底、操作 zone 也更舒服。
                     .padding(.trailing, 24)
-                    .padding(.bottom, 40)
+                    .padding(.bottom, 80)
             }
             .frame(maxWidth: 760)
             Spacer(minLength: 16)
@@ -703,7 +680,7 @@ public struct DailyHostView: View {
                         currentDate: selectedDate,
                         onToggleComplete: toggleComplete,
                         onReschedule: { moveAssignment($0, to: $1) },
-                        onMoveTo: { moveSheetAssignment = $0 },
+                        onMoveTo: requestMoveToDate,
                         onArchive: { archiveTask($0) },
                         onSkipThisOccurrence: { skipOccurrence($0) },
                         onSetRecurrence: { openScheduleSheet(for: $0) },
@@ -727,7 +704,7 @@ public struct DailyHostView: View {
                         onOpen: openTaskInRightColumn,
                         onMove: handleMove,
                         onArchive: { archiveTask($0) },
-                        onMoveTo: { moveSheetAssignment = $0 },
+                        onMoveTo: requestMoveToDate,
                         onMoveToToday: { moveAssignment($0, to: DateFormatters.isoDate(Date())) },
                         onSkipThisOccurrence: { skipOccurrence($0) },
                         onSetRecurrence: { openScheduleSheet(for: $0) },
@@ -1363,6 +1340,7 @@ extension DailyHostView {
                 isSkipped: a.isSkipped,
                 sortOrder: a.sortOrder,
                 isRecurring: a.isRecurring,
+                hasReminder: a.hasReminder,
                 task: a.task
             )
         }
@@ -1422,7 +1400,48 @@ extension DailyHostView {
     /// Presents the schedule sheet for `assignment`. Fetches the latest
     /// remindAt from the server first so the sheet's reminder DatePicker
     /// initializes correctly when the task is non-recurring.
+    /// 快速新增 — macOS 走 root overlay（post notification），iOS 走本地
+    /// `.alert` (`showQuickAdd`)。
+    private func requestQuickAdd() {
+        #if os(macOS)
+        NotificationCenter.default.post(name: NudgeCommands.openQuickAddNotification, object: nil)
+        #else
+        quickAddText = ""
+        showQuickAdd = true
+        #endif
+    }
+
+    /// 移到其他日期 — macOS 走 root overlay（post notification），iOS 走
+    /// 本地 `.sheet` (`moveSheetAssignment`)。
+    private func requestMoveToDate(_ assignment: DailyAssignmentDTO) {
+        #if os(macOS)
+        NotificationCenter.default.post(name: NudgeCommands.openMoveToDateNotification, object: assignment)
+        #else
+        moveSheetAssignment = assignment
+        #endif
+    }
+
     func openScheduleSheet(for assignment: DailyAssignmentDTO) {
+        #if os(macOS)
+        // macOS：preload card 拿 remindAt，再 post notification 給
+        // MacSidebarRoot 用 window-level overlay 渲染 modal（支援點外取消）。
+        Task {
+            var remindAt: String?
+            do {
+                remindAt = try await cardRepo.get(cardId: assignment.task.id).remindAt
+            } catch {
+                print("[DailyHostView] preloadCard failed: \(error)")
+            }
+            NotificationCenter.default.post(
+                name: NudgeCommands.openScheduleNotification,
+                object: ScheduleSheetRequest(
+                    taskId: assignment.task.id,
+                    taskTitle: assignment.task.title,
+                    remindAt: remindAt
+                )
+            )
+        }
+        #else
         scheduleSheetRemindAt = nil
         scheduleSheetAssignment = assignment
         Task {
@@ -1435,6 +1454,7 @@ extension DailyHostView {
                 print("[DailyHostView] preloadCard failed: \(error)")
             }
         }
+        #endif
     }
 
     /// Marks a recurring assignment as skipped for its specific date,
@@ -1505,12 +1525,18 @@ extension DailyHostView {
         guard let data = dailyData else { return }
         func rewrap(_ a: DailyAssignmentDTO) -> DailyAssignmentDTO {
             guard a.task.id == taskId else { return a }
+            // isSkipped / isRecurring / hasReminder 一定要帶 — positional init
+            // 它們有 default false，漏掉就把 flag 洗掉（recurring / reminder
+            // badge 會消失）。
             return DailyAssignmentDTO(
                 id: a.id,
                 taskId: a.taskId,
                 date: a.date,
                 isCompleted: a.isCompleted,
+                isSkipped: a.isSkipped,
                 sortOrder: a.sortOrder,
+                isRecurring: a.isRecurring,
+                hasReminder: a.hasReminder,
                 task: patch(a.task)
             )
         }
@@ -1531,7 +1557,7 @@ extension DailyHostView {
     }
 }
 
-extension DailyAssignmentDTO: Identifiable {}
+// Identifiable 已在 NudgeCore 的 struct 宣告（給 .sheet(item:) 用）。
 
 extension DailyAssignmentDTO: Hashable {
     public func hash(into hasher: inout Hasher) {
@@ -1576,8 +1602,11 @@ private struct DashboardColumnCardDetail: View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
                 Button(action: onBack) {
+                    // chevron 字級對齊 title (columnDetailTitle = 17pt
+                    // semibold)，原本 .callout.weight(.medium) ~13pt medium
+                    // 太細、跟 17pt 粗體 title 排在一起視覺壓不住。
                     Image(systemName: "chevron.left")
-                        .font(.callout.weight(.medium))
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(Color.nudgePrimary)
                         .frame(width: 28, height: 28)
                         .contentShape(Rectangle())
@@ -1601,8 +1630,8 @@ private struct DashboardColumnCardDetail: View {
             .padding(.vertical, 8)
             .background(Color.nudgeBackground)
 
-            Divider()
-                .background(Color.nudgeBorderLight)
+            // 拿掉 header / editor 之間的 Divider — header 跟 editor 同
+            // 個 nudgeBackground，視覺已無縫；divider 反而切斷沉浸感。
 
             // EditorToolbar 拿掉 — mac 改用 TipTap slash command menu
             // (`/` 觸發)，跟 web 一致。

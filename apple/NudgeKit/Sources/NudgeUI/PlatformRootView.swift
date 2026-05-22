@@ -142,6 +142,17 @@ struct MacSidebarRoot: View {
     @AppStorage("daily.mac.rightPanelKind") private var dashboardRightPanelKindRaw: String = "calendar"
     @AppStorage(CalendarPreferenceKey.viewMode) private var calendarModeRaw: String = CalendarViewMode.day.rawValue
 
+    // 排程 modal — 在 root 層級用 overlay 渲染（而非 DailyHostView `.sheet`），
+    // 這樣 dim backdrop 蓋得到整個 window、「點 modal 外取消」才有「外面」
+    // 可點。macOS `.sheet` size-to-content、撐不開、沒有可點的外部區域。
+    @Environment(CardRepository.self) private var cardRepo
+    @State private var scheduleRequest: ScheduleSheetRequest?
+    @State private var scheduleRemindAt: String?
+    @State private var taskPopoverAssignment: DailyAssignmentDTO?
+    @State private var quickAddVisible = false
+    @State private var quickAddText = ""
+    @State private var moveToDateAssignment: DailyAssignmentDTO?
+
     var body: some View {
         // 2 欄 NavigationSplitView。content view 自己負責 NavigationStack
         // 與 push detail (Cards/Daily 在 detail 內 push 卡片頁)。
@@ -239,6 +250,124 @@ struct MacSidebarRoot: View {
                 selection = item
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.openScheduleNotification)) { note in
+            if let req = note.object as? ScheduleSheetRequest {
+                scheduleRemindAt = req.remindAt
+                scheduleRequest = req
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.openTaskPopoverNotification)) { note in
+            if let assignment = note.object as? DailyAssignmentDTO {
+                taskPopoverAssignment = assignment
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.openQuickAddNotification)) { _ in
+            quickAddText = ""
+            quickAddVisible = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.openMoveToDateNotification)) { note in
+            if let assignment = note.object as? DailyAssignmentDTO {
+                moveToDateAssignment = assignment
+            }
+        }
+        // Modal 用 custom `.overlay` 呈現（不是 `.sheet`）— 因為 mac `.sheet`
+        // 撐不到全視窗、沒有可點的「外面」。代價：overlay 是 SwiftUI content
+        // 層、蓋不到 NSToolbar（titlebar 層）→ 用 rootToolbar 的 modalShowing
+        // 把 toolbar 清空來補。`.animation` 掛在 Group 內部、不掛
+        // NavigationSplitView（掛外層會跟 navigation push 轉場打架、跑版）。
+        .overlay {
+            Group {
+                if let req = scheduleRequest {
+                    NudgeModalOverlay(onDismiss: { closeScheduleModal() }) {
+                        ScheduleEditSheet(
+                            taskId: req.taskId,
+                            taskTitle: req.taskTitle,
+                            initialAbsoluteRemindAt: $scheduleRemindAt,
+                            onChangeAbsoluteRemindAt: { newValue in
+                                Task {
+                                    do {
+                                        try await cardRepo.updateRemindAt(cardId: req.taskId, remindAt: newValue)
+                                    } catch {
+                                        print("[MacSidebarRoot] updateRemindAt failed: \(error)")
+                                    }
+                                }
+                            },
+                            onRecurrenceChanged: { _ in
+                                NotificationCenter.default.post(
+                                    name: NudgeCommands.scheduleClosedNotification, object: nil
+                                )
+                            },
+                            onDone: { closeScheduleModal() }
+                        )
+                        .frame(width: 480, height: 560)
+                    }
+                } else if let assignment = taskPopoverAssignment {
+                    NudgeModalOverlay(onDismiss: { taskPopoverAssignment = nil }) {
+                        TaskPopoverView(
+                            assignment: assignment,
+                            onExpand: {
+                                taskPopoverAssignment = nil
+                                NotificationCenter.default.post(
+                                    name: NudgeCommands.expandTaskNotification, object: assignment
+                                )
+                            }
+                        )
+                        .frame(width: 680, height: 640)
+                    }
+                } else if quickAddVisible {
+                    NudgeModalOverlay(onDismiss: { quickAddVisible = false }) {
+                        QuickAddTaskSheet(
+                            text: $quickAddText,
+                            onSubmit: {
+                                let title = quickAddText.trimmingCharacters(in: .whitespaces)
+                                guard !title.isEmpty else { return }
+                                NotificationCenter.default.post(
+                                    name: NudgeCommands.submitQuickAddNotification, object: title
+                                )
+                                quickAddVisible = false
+                            },
+                            onCancel: { quickAddVisible = false }
+                        )
+                        .frame(width: 460, height: QuickAddTaskSheet.fittedHeight)
+                    }
+                } else if let assignment = moveToDateAssignment {
+                    NudgeModalOverlay(onDismiss: { moveToDateAssignment = nil }) {
+                        MoveToDatePickerView(
+                            initialDate: assignment.date,
+                            onPick: { newDate in
+                                NotificationCenter.default.post(
+                                    name: NudgeCommands.moveToDateNotification,
+                                    object: MoveToDateResult(assignment: assignment, date: newDate)
+                                )
+                                moveToDateAssignment = nil
+                            },
+                            onCancel: { moveToDateAssignment = nil }
+                        )
+                        .frame(width: 400, height: 480)
+                    }
+                }
+            }
+            .animation(.easeOut(duration: 0.18), value: scheduleRequest != nil)
+            .animation(.easeOut(duration: 0.18), value: taskPopoverAssignment != nil)
+            .animation(.easeOut(duration: 0.18), value: quickAddVisible)
+            .animation(.easeOut(duration: 0.18), value: moveToDateAssignment != nil)
+        }
+    }
+
+    private func closeScheduleModal() {
+        scheduleRequest = nil
+        // DailyHostView 收到後 reload daily（recurrence / reminder 變動校正）。
+        NotificationCenter.default.post(
+            name: NudgeCommands.scheduleClosedNotification, object: nil
+        )
+    }
+
+    /// 任何 custom-overlay modal 開啟中。
+    private var modalShowing: Bool {
+        scheduleRequest != nil
+            || taskPopoverAssignment != nil
+            || quickAddVisible
+            || moveToDateAssignment != nil
     }
 
     /// Per-tab toolbar items. Declared once at the NavigationSplitView
@@ -246,16 +375,23 @@ struct MacSidebarRoot: View {
     /// identity cache can't break the push-to-trailing layout for Daily.
     @ToolbarContentBuilder
     private var rootToolbar: some ToolbarContent {
-        // switch over selection — @ToolbarContentBuilder turns this
-        // into a single discriminator, avoiding the deeply-nested
-        // EitherToolbarContent the type-checker times out on for long
-        // if/else-if chains. .settings emits no items.
-        switch selection {
-        case .today: dailyToolbar
-        case .calendar: calendarToolbar
-        case .cards: cardsToolbar
-        case .notes: notesToolbar
-        case .settings: settingsToolbar
+        // Modal (custom overlay) 開啟時清空 toolbar — NSToolbar 在 AppKit
+        // titlebar 層、SwiftUI overlay 蓋不到它，不清空會「浮」在 modal 上。
+        // 清空後 modal 視覺上才在最上層；關閉後 items 回來。
+        if modalShowing {
+            settingsToolbar // 空 placeholder
+        } else {
+            // switch over selection — @ToolbarContentBuilder turns this
+            // into a single discriminator, avoiding the deeply-nested
+            // EitherToolbarContent the type-checker times out on for long
+            // if/else-if chains. .settings emits no items.
+            switch selection {
+            case .today: dailyToolbar
+            case .calendar: calendarToolbar
+            case .cards: cardsToolbar
+            case .notes: notesToolbar
+            case .settings: settingsToolbar
+            }
         }
     }
 
@@ -297,7 +433,11 @@ struct MacSidebarRoot: View {
         }
         ToolbarItem(placement: .primaryAction) {
             Toggle(isOn: $dashboardRightPanelOpen) {
+                // 13pt（picker 的 calendar/cards 是 16pt）— sidebar.right
+                // glyph 視覺重量比較重，縮小才跟隔壁 icon 看起來一樣大。
                 Image(systemName: "sidebar.right")
+                    .font(.system(size: 13, weight: .regular))
+                    .symbolRenderingMode(.monochrome)
             }
             .toggleStyle(.button)
             .tint(Color.nudgePrimary)
@@ -308,9 +448,23 @@ struct MacSidebarRoot: View {
                 ToolbarSpacer(.fixed, placement: .primaryAction)
             }
             ToolbarItem(placement: .primaryAction) {
+                // 三個 toolbar icon (sidebar toggle / calendar / cards) 統一
+                // `.font(.system(size: 16, weight: .regular))` +
+                // `.symbolRenderingMode(.monochrome)` 強制等大、等粗、單色
+                // 渲染。SF symbol 內在密度差異 (calendar 有格線 + 日期數字、
+                // square.stack 是實心堆疊) 無法完全抹平，但鎖住 point size
+                // / weight 後不會再因 toolbar 預設行為各自漂移。
                 Picker(selection: $dashboardRightPanelKindRaw) {
-                    Text("nav.calendar", bundle: .module).tag("calendar")
-                    Text("nav.cards", bundle: .module).tag("cards")
+                    Image(systemName: "calendar")
+                        .font(.system(size: 16, weight: .regular))
+                        .symbolRenderingMode(.monochrome)
+                        .accessibilityLabel(Text("nav.calendar", bundle: .module))
+                        .tag("calendar")
+                    Image(systemName: "square.stack")
+                        .font(.system(size: 16, weight: .regular))
+                        .symbolRenderingMode(.monochrome)
+                        .accessibilityLabel(Text("nav.cards", bundle: .module))
+                        .tag("cards")
                 } label: {
                     EmptyView()
                 }

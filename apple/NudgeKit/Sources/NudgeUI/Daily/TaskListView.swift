@@ -16,7 +16,8 @@ public struct TaskListView: View {
     public let onSetReminder: (DailyAssignmentDTO) -> Void
 
     @Environment(\.locale) private var locale
-    @State private var isCompletedExpanded: Bool = false
+    // 預設展開 — user 要求「已完成」section 不要預設收合。
+    @State private var isCompletedExpanded: Bool = true
 
     public init(
         assignments: [DailyAssignmentDTO],

@@ -1,6 +1,7 @@
 #if os(macOS)
 import Foundation
 import SwiftUI
+import NudgeCore
 
 /// macOS 選單列命令統一接點：常數 (`Notification.Name`) 與 Commands 視圖
 /// (`NudgeCommandsMenu`) 都集中在 NudgeUI，這樣 feature view 可以
@@ -30,6 +31,54 @@ public enum NudgeCommands {
     /// 左側 feed list 用這個觸發 refetch，typing 完成後今日 entry 馬上
     /// 出現在 list（不用切分頁再切回來才更新）。
     public static let noteSavedNotification = Notification.Name("nudge.noteSaved")
+    /// 開啟排程 modal — `object` 為 `ScheduleSheetRequest`。Mac 上排程 modal
+    /// 由 `MacSidebarRoot` 用 overlay 在 window 層級渲染（而非 DailyHostView
+    /// 的 `.sheet`），這樣 backdrop 能蓋到整個視窗、支援「點 modal 外取消」。
+    /// macOS `.sheet` 是 size-to-content、撐不到全視窗、沒有可點的「外面」。
+    public static let openScheduleNotification = Notification.Name("nudge.openSchedule")
+    /// 排程 modal 關閉 / recurrence 變動 — DailyHostView 收到後 reload daily。
+    public static let scheduleClosedNotification = Notification.Name("nudge.scheduleClosed")
+    /// 開啟 task quick-edit popover — `object` 為 `DailyAssignmentDTO`。
+    /// 同排程 modal：在 root 用 overlay 渲染、支援點外取消。
+    public static let openTaskPopoverNotification = Notification.Name("nudge.openTaskPopover")
+    /// Task popover 的「展開」— `object` 為 `DailyAssignmentDTO`，DailyHostView
+    /// 收到後 push 到完整 detail 頁。
+    public static let expandTaskNotification = Notification.Name("nudge.expandTask")
+    /// 開啟快速新增 modal（FAB / ⌘N 觸發）。Mac 在 root overlay 渲染。
+    public static let openQuickAddNotification = Notification.Name("nudge.openQuickAdd")
+    /// 快速新增送出 — `object` 為 title String，DailyHostView 收到後建 task。
+    public static let submitQuickAddNotification = Notification.Name("nudge.submitQuickAdd")
+    /// 開啟「移到其他日期」modal — `object` 為 `DailyAssignmentDTO`。
+    public static let openMoveToDateNotification = Notification.Name("nudge.openMoveToDate")
+    /// 「移到其他日期」選定 — `object` 為 `MoveToDateResult`。
+    public static let moveToDateNotification = Notification.Name("nudge.moveToDate")
+}
+
+/// 「移到其他日期」選定結果 payload。
+public struct MoveToDateResult {
+    public let assignment: DailyAssignmentDTO
+    public let date: String
+
+    public init(assignment: DailyAssignmentDTO, date: String) {
+        self.assignment = assignment
+        self.date = date
+    }
+}
+
+/// 開啟排程 modal 的 payload — 透過 `openScheduleNotification` 的 `object`
+/// 從 DailyHostView 傳到 MacSidebarRoot。Identifiable 讓它能餵 `.sheet(item:)`。
+public struct ScheduleSheetRequest: Identifiable {
+    public let taskId: String
+    public let taskTitle: String
+    public let remindAt: String?
+
+    public var id: String { taskId }
+
+    public init(taskId: String, taskTitle: String, remindAt: String?) {
+        self.taskId = taskId
+        self.taskTitle = taskTitle
+        self.remindAt = remindAt
+    }
 }
 
 /// macOS app menu bar — 開放以下命令：

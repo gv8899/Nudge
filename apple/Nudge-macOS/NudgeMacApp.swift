@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UserNotifications
 import GoogleSignIn
 import NudgeCore
 import NudgeData
@@ -15,6 +16,8 @@ struct NudgeMacApp: App {
     @State private var noteRepo: NoteRepository
     @State private var recurrenceRepo: RecurrenceRepository
     @State private var notificationPrefsRepo: NotificationPreferencesRepository
+    @State private var notificationRouter: NotificationRouter
+    private let reminderRepo: ReminderRepository
     /// 字級倍率，由選單 ⌘+ / ⌘- / ⌘0 調整。透過
     /// `\.nudgeFontScale` env 注入給 NudgeUI 內所有 `.nudgeFont(...)`
     /// modifier 使用。Range 0.85-1.4 (clamp 在 listener)。
@@ -24,6 +27,14 @@ struct NudgeMacApp: App {
 
     init() {
         NudgeAppearance.configure()
+        // Foreground banner support — without this, notifications stay
+        // silent while the app is open and "通知沒觸發" looks like a no-op.
+        UNUserNotificationCenter.current().delegate = NudgeNotificationDelegate.shared
+        // Router lets the delegate hand a tapped notification's task id
+        // off to DailyHostView for navigation, without coupling the
+        // delegate to the view layer.
+        let router = NotificationRouter()
+        NudgeNotificationDelegate.router = router
 
         let keychain = KeychainStorage(service: "tw.nudge.mac")
         let tokenProvider: APIClient.TokenProvider = {
@@ -56,6 +67,8 @@ struct NudgeMacApp: App {
         self._noteRepo = State(initialValue: noteRepo)
         self._recurrenceRepo = State(initialValue: recurrenceRepo)
         self._notificationPrefsRepo = State(initialValue: notificationPrefsRepo)
+        self._notificationRouter = State(initialValue: router)
+        self.reminderRepo = ReminderRepository(client: client)
         self.container = container
         self.googleSignIn = GoogleSignInServiceMacOS.fromInfoPlist()
     }
@@ -75,9 +88,21 @@ struct NudgeMacApp: App {
                         .environment(noteRepo)
                         .environment(recurrenceRepo)
                         .environment(notificationPrefsRepo)
+                        .environment(notificationRouter)
                 }
                 .task {
                     await auth.restoreSession()
+                    // Rebuild per-task reminders from server state on launch.
+                    // Local notifications are per-device — without this sync
+                    // a reminder set on iPhone would never fire on this Mac
+                    // (and vice versa). requestAuthIfNeeded runs inside.
+                    do {
+                        let reminders = try await reminderRepo.all()
+                        await NotificationScheduler.shared
+                            .rescheduleAllTaskReminders(reminders)
+                    } catch {
+                        print("[NudgeMacApp] reminder sync failed: \(error)")
+                    }
                 }
                 .onOpenURL { url in
                     _ = GIDSignIn.sharedInstance.handle(url)
