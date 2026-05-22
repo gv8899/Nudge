@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AppKit
 import UserNotifications
 import GoogleSignIn
 import NudgeCore
@@ -18,6 +19,11 @@ struct NudgeMacApp: App {
     @State private var notificationPrefsRepo: NotificationPreferencesRepository
     @State private var notificationRouter: NotificationRouter
     private let reminderRepo: ReminderRepository
+    /// Throttle for the foreground reminder re-sync. A Mac app often
+    /// stays open for days, so we re-sync on `didBecomeActive` to catch
+    /// reminders set on another device — but skip if we synced very
+    /// recently (rapid ⌘-Tab shouldn't hammer the API).
+    @State private var lastReminderSync: Date = .distantPast
     /// 字級倍率，由選單 ⌘+ / ⌘- / ⌘0 調整。透過
     /// `\.nudgeFontScale` env 注入給 NudgeUI 內所有 `.nudgeFont(...)`
     /// modifier 使用。Range 0.85-1.4 (clamp 在 listener)。
@@ -92,17 +98,15 @@ struct NudgeMacApp: App {
                 }
                 .task {
                     await auth.restoreSession()
-                    // Rebuild per-task reminders from server state on launch.
-                    // Local notifications are per-device — without this sync
-                    // a reminder set on iPhone would never fire on this Mac
-                    // (and vice versa). requestAuthIfNeeded runs inside.
-                    do {
-                        let reminders = try await reminderRepo.all()
-                        await NotificationScheduler.shared
-                            .rescheduleAllTaskReminders(reminders)
-                    } catch {
-                        print("[NudgeMacApp] reminder sync failed: \(error)")
-                    }
+                    await syncReminders(force: true)
+                }
+                // Re-sync when the Mac app returns to the foreground —
+                // catches reminders set on another device while this app
+                // was open (it doesn't get relaunched like a phone app).
+                .onReceive(NotificationCenter.default.publisher(
+                    for: NSApplication.didBecomeActiveNotification)
+                ) { _ in
+                    Task { await syncReminders(force: false) }
                 }
                 .onOpenURL { url in
                     _ = GIDSignIn.sharedInstance.handle(url)
@@ -125,12 +129,13 @@ struct NudgeMacApp: App {
             }
         }
         .modelContainer(container)
-        // Window chrome — open at a comfortable laptop-friendly size
-        // (1100×720 fits a 13" without overflowing), constrained to
-        // the content's min size so users can't resize below 900×600
-        // and break the sidebar layout. Unified title bar is the
-        // current macOS default look.
-        .defaultSize(width: 1100, height: 720)
+        // Window chrome — open at a comfortable default size. 1380×900
+        // gives the three columns (sidebar / daily / cards) room to
+        // breathe; still fits a 14"/16" comfortably and a 13" with the
+        // window near-maximized. Constrained to the content's min size
+        // so users can't resize below 900×600 and break the sidebar
+        // layout. Unified title bar is the current macOS default look.
+        .defaultSize(width: 1380, height: 900)
         .windowResizability(.contentMinSize)
         .windowToolbarStyle(.unified(showsTitle: false))
         .commands {
@@ -157,6 +162,25 @@ struct NudgeMacApp: App {
             }
         }
         .modelContainer(container)
+    }
+
+    /// Rebuilds per-task reminders from server state. Local notifications
+    /// are per-device — without this sync a reminder set on the iPhone
+    /// would never fire on this Mac (and vice versa). `requestAuthIfNeeded`
+    /// runs inside `rescheduleAllTaskReminders`.
+    ///
+    /// `force` bypasses the throttle (used on launch); foreground re-syncs
+    /// pass `false` so rapid ⌘-Tab doesn't hammer the API.
+    @MainActor
+    private func syncReminders(force: Bool) async {
+        if !force, Date().timeIntervalSince(lastReminderSync) < 30 { return }
+        lastReminderSync = Date()
+        do {
+            let reminders = try await reminderRepo.all()
+            await NotificationScheduler.shared.rescheduleAllTaskReminders(reminders)
+        } catch {
+            print("[NudgeMacApp] reminder sync failed: \(error)")
+        }
     }
 
     private func performLogin() async -> Result<Void, Error> {

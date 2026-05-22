@@ -58,11 +58,8 @@ public struct TaskRowView: View {
                 .foregroundStyle(assignment.isCompleted ? Color.nudgeTextDim : Color.nudgeForeground)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Status 標示（重複 / 提醒）— placement B：靠右、動作 icon 左邊。
-            TaskStatusIndicators(
-                isRecurring: assignment.isRecurring,
-                hasReminder: assignment.hasReminder
-            )
+            // 重複 / 提醒狀態標示已移到點任務彈出的 popover 內，row 上
+            // 不再顯示 — 保持列表乾淨。
 
             // Unified `…` menu — TaskRowMenu's inner Menu/Button consumes
             // its own taps so the row-level onTapGesture (below) doesn't
