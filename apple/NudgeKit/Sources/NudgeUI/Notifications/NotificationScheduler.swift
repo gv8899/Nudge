@@ -1,4 +1,4 @@
-#if os(iOS)
+#if os(iOS) || os(macOS)
 import Foundation
 import UserNotifications
 import os
@@ -141,6 +141,38 @@ public final class NotificationScheduler {
         log.info("task \(taskId, privacy: .public) recurrence: \(scheduled) occurrences scheduled at \(timeOfDay, privacy: .public)")
     }
 
+    /// Rebuilds the entire per-task reminder schedule from server state.
+    /// Call on launch / foreground so reminders set on another device
+    /// (local notifications are per-device) get armed here too — and so
+    /// that reminders survive an app reinstall / cache clear.
+    ///
+    /// Clears every `task-reminder-*` pending request first, then re-arms
+    /// each task in `reminders`. Tasks no longer in the list (reminder
+    /// removed, task archived/completed) simply don't get re-added.
+    public func rescheduleAllTaskReminders(_ reminders: [TaskReminderDTO]) async {
+        let granted = await requestAuthIfNeeded()
+        guard granted else {
+            log.error("rescheduleAll: auth not granted, skipping")
+            return
+        }
+        let center = UNUserNotificationCenter.current()
+        let pending = await center.pendingNotificationRequests()
+        let stale = pending
+            .filter { $0.identifier.hasPrefix(prefix) }
+            .map(\.identifier)
+        center.removePendingNotificationRequests(withIdentifiers: stale)
+
+        for reminder in reminders {
+            await rescheduleTaskReminder(
+                taskId: reminder.taskId,
+                title: reminder.title,
+                absoluteRemindAt: reminder.remindAt.flatMap(Self.parseISODateTime),
+                recurrence: reminder.recurrence
+            )
+        }
+        log.info("rescheduleAll: cleared \(stale.count), re-armed \(reminders.count) task(s)")
+    }
+
     /// Removes every pending reminder belonging to `taskId`.
     public func cancelTaskReminder(taskId: String) async {
         let center = UNUserNotificationCenter.current()
@@ -199,6 +231,17 @@ public final class NotificationScheduler {
             let next = trig?.nextTriggerDate().map(String.init(describing:)) ?? "nil"
             log.info("  - \(req.identifier, privacy: .public) → next=\(next, privacy: .public), repeats=\(trig?.repeats ?? false)")
         }
+    }
+
+    /// Parses an ISO-8601 datetime string (with or without fractional
+    /// seconds) into a Date. Used to turn the server's `remindAt` text
+    /// back into the `absoluteRemindAt` Date the scheduler expects.
+    static func parseISODateTime(_ s: String) -> Date? {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = f.date(from: s) { return d }
+        f.formatOptions = [.withInternetDateTime]
+        return f.date(from: s)
     }
 
     private func parseHM(_ s: String) -> (Int, Int) {

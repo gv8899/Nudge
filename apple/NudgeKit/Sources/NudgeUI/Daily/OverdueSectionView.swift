@@ -17,7 +17,6 @@ public struct OverdueSectionView: View {
     @State private var isExpanded: Bool
     #if os(macOS)
     @State private var hoveredTaskId: String?
-    @State private var popoverTaskId: String?
     #endif
 
     public init(
@@ -45,9 +44,10 @@ public struct OverdueSectionView: View {
         _isExpanded = State(initialValue: Self.defaultExpanded(for: currentDate))
     }
 
+    /// 一律預設展開 — user 要求「前幾天的」section 不論平日/週末都不要
+    /// 預設收合。保留 function（onChange 仍呼叫）方便未來要改回條件式。
     private static func defaultExpanded(for dateString: String) -> Bool {
-        let parsed = DateFormatters.parseISODate(dateString) ?? Date()
-        return !DateFormatters.isWeekend(parsed)
+        return true
     }
 
     public var body: some View {
@@ -133,6 +133,12 @@ public struct OverdueSectionView: View {
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
+            // Status 標示（重複 / 提醒）— placement B。
+            TaskStatusIndicators(
+                isRecurring: task.isRecurring,
+                hasReminder: task.hasReminder
+            )
+
             // Overdue rows are by definition not "today", so the menu's
             // "Move to today" entry is always shown via isToday: false.
             TaskRowMenu(
@@ -160,25 +166,12 @@ public struct OverdueSectionView: View {
         .onTapGesture { onOpen(task) }
         #endif
         #if os(macOS)
-        // mac：tap → 視窗中央 sheet（quick-edit），sheet「展開」鍵才
-        // 走 onOpen 推到右側 detail。跟 TaskRowView 同 UX。
-        .onTapGesture { popoverTaskId = task.id }
-        .sheet(
-            isPresented: Binding(
-                get: { popoverTaskId == task.id },
-                set: { if !$0 && popoverTaskId == task.id { popoverTaskId = nil } }
-            )
-        ) {
-            TaskPopoverView(
-                assignment: task,
-                onToggleComplete: {
-                    onToggleComplete(task)
-                    popoverTaskId = nil
-                },
-                onExpand: {
-                    popoverTaskId = nil
-                    onOpen(task)
-                }
+        // mac：tap → post notification，MacSidebarRoot 用 window-level
+        // overlay 彈 quick-edit popover（支援點外取消）。跟 TaskRowView 同 UX。
+        .onTapGesture {
+            NotificationCenter.default.post(
+                name: NudgeCommands.openTaskPopoverNotification,
+                object: task
             )
         }
         .onHover { hovered in
@@ -262,11 +255,10 @@ public struct OverdueSectionView: View {
     @ViewBuilder
     private func rowBackground(for id: String) -> some View {
         #if os(macOS)
-        if hoveredTaskId == id {
-            Color.nudgeHoverFill
-        } else {
-            Color.clear
-        }
+        // hover fill 8pt 圓角 + 8pt inset，跟 TaskRowView 的 hover 一致。
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .fill(hoveredTaskId == id ? Color.nudgeHoverFill : Color.clear)
+            .padding(.horizontal, 8)
         #else
         // iOS overdue 卡片：warning tint 8% 表達「過期、需要關注」。
         // 比 task tab 一般 row (foreground 4%) 視覺上明顯區隔，但不會

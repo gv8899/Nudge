@@ -34,6 +34,8 @@ export interface DailyTaskAssignment {
   isCompleted: boolean;
   isSkipped: boolean;
   isRecurring: boolean;
+  /** 有設提醒 — 一次性提醒或重複任務的 remind_at_time_of_day。 */
+  hasReminder: boolean;
   sortOrder: number;
   task: Task;
 }

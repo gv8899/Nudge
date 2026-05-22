@@ -80,6 +80,9 @@ export async function GET(
       sortOrder: dailyTaskAssignments.sortOrder,
       assignmentUpdatedAt: dailyTaskAssignments.updatedAt,
       isRecurring: sql<boolean>`(${taskRecurrences.id} IS NOT NULL)`,
+      // hasReminder：一次性提醒看 tasks.remind_at；重複任務的提醒存在
+      // recurrence 的 remind_at_time_of_day。任一有值就算「有提醒」。
+      hasReminder: sql<boolean>`(${tasks.remindAt} IS NOT NULL OR ${taskRecurrences.remindAtTimeOfDay} IS NOT NULL)`,
       task: {
         id: tasks.id,
         title: tasks.title,
@@ -118,6 +121,9 @@ export async function GET(
       sortOrder: dailyTaskAssignments.sortOrder,
       assignmentUpdatedAt: dailyTaskAssignments.updatedAt,
       isRecurring: sql<boolean>`(${taskRecurrences.id} IS NOT NULL)`,
+      // hasReminder：一次性提醒看 tasks.remind_at；重複任務的提醒存在
+      // recurrence 的 remind_at_time_of_day。任一有值就算「有提醒」。
+      hasReminder: sql<boolean>`(${tasks.remindAt} IS NOT NULL OR ${taskRecurrences.remindAtTimeOfDay} IS NOT NULL)`,
       task: {
         id: tasks.id,
         title: tasks.title,
@@ -193,7 +199,15 @@ export async function GET(
     ? new Date(recurrenceStats.maxUpdated).getTime()
     : 0;
   const recurrenceCount = recurrenceStats?.count ?? 0;
-  const etagSource = `${date}|${maxUpdated}|${assignments.length}|${overdueTasks.length}|${noteLength}|${recurrenceMaxUpdated}|${recurrenceCount}`;
+  // tasks.updated_at 也 fold 進來 — response 帶 task.title / description /
+  // remind_at（hasReminder 來源之一）等欄位，但這些只 bump tasks.updated_at
+  // 不動 daily_task_assignments。沒這項的話改 title / 設一次性提醒後 client
+  // 會吃到 304 stale。只在這日 / overdue 出現的 task 範圍內取 max。
+  const taskUpdatedAts = [...assignments, ...overdueTasks].map((a) =>
+    new Date(a.task.updatedAt).getTime(),
+  );
+  const tasksMaxUpdated = taskUpdatedAts.length > 0 ? Math.max(...taskUpdatedAts) : 0;
+  const etagSource = `${date}|${maxUpdated}|${assignments.length}|${overdueTasks.length}|${noteLength}|${recurrenceMaxUpdated}|${recurrenceCount}|${tasksMaxUpdated}`;
   const etag = `W/"${createHash("md5").update(etagSource).digest("hex")}"`;
 
   // Honor If-None-Match — 一致就回 304，不送 body

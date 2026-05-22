@@ -6,6 +6,11 @@ import Observation
 public final class CardRepository {
     private let client: APIClient
 
+    /// Card 內容（title / description）變動後 broadcast — 讓「最近卡片」之類
+    /// 的 list 知道要 refetch（不然編輯完卡片不會跳到 list 最上面）。定義在
+    /// NudgeCore 是因為 CardRepository 在這個 module、NudgeUI 才能反向 listen。
+    public static let cardDidChangeNotification = Notification.Name("nudge.cardDidChange")
+
     public init(client: APIClient) {
         self.client = client
     }
@@ -73,6 +78,7 @@ public final class CardRepository {
     public func updateTitle(cardId: String, title: String) async throws {
         struct Body: Codable { let title: String }
         try await client.patchVoid("/api/tasks/\(cardId)", body: Body(title: title))
+        NotificationCenter.default.post(name: Self.cardDidChangeNotification, object: cardId)
     }
 
     /// PATCHes the rich-text description of an existing card.
@@ -81,6 +87,7 @@ public final class CardRepository {
     public func updateDescription(cardId: String, html: String) async throws {
         struct Body: Codable { let description: String }
         try await client.patchVoid("/api/tasks/\(cardId)", body: Body(description: html))
+        NotificationCenter.default.post(name: Self.cardDidChangeNotification, object: cardId)
     }
 
     /// PATCHes the absolute one-shot reminder time on a non-recurring task.

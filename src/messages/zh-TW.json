@@ -136,6 +136,10 @@
     "slashDividerKeywords": "hr|divider|separator|分隔|分隔線"
   },
   "daily": {
+    "a11y": {
+      "recurring": "重複任務",
+      "hasReminder": "已設提醒"
+    },
     "emptyToday": "今天還沒有任務",
     "overdueSectionAria": "前幾天的任務",
     "overdueLabel": "前幾天的 ({count})",

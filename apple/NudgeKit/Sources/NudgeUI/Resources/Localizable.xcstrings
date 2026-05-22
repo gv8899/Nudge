@@ -2789,6 +2789,64 @@
         }
       }
     },
+    "daily.a11y.recurring": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Recurring" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "繰り返し" } },
+        "zh-Hant": { "stringUnit": { "state": "translated", "value": "重複任務" } }
+      }
+    },
+    "daily.a11y.hasReminder": {
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Has reminder" } },
+        "ja": { "stringUnit": { "state": "translated", "value": "リマインダーあり" } },
+        "zh-Hant": { "stringUnit": { "state": "translated", "value": "已設提醒" } }
+      }
+    },
+    "schedule.recurrence.frequency": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frequency"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "頻度"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "週期"
+          }
+        }
+      }
+    },
+    "task.pressEnterToAdd": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press Enter to add"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter キーで追加"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按 Enter 新增任務"
+          }
+        }
+      }
+    },
     "notes.todayPlaceholder": {
       "localizations": {
         "en": {
@@ -3273,6 +3331,28 @@
         }
       }
     },
+    "schedule.recurrence.monthDayLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Day of month"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日にち"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每月日期"
+          }
+        }
+      }
+    },
     "schedule.recurrence.nthLabel": {
       "localizations": {
         "en": {
@@ -3432,19 +3512,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reminder"
+            "value": "Push notification"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "リマインダー"
+            "value": "プッシュ通知"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "提醒"
+            "value": "推播通知"
           }
         }
       }

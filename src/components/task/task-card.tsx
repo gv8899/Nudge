@@ -15,7 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { FileText, GripVertical, MoreHorizontal } from "lucide-react";
+import { FileText, GripVertical, MoreHorizontal, Repeat, Bell } from "lucide-react";
 import type { DailyTaskAssignment } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
 
@@ -202,6 +202,18 @@ export function TaskCard({
             >
               {task.title}
             </button>
+          )}
+
+          {/* 狀態標示（重複 / 提醒）— placement B：標題右側、動作 icon 左邊 */}
+          {(isRecurring || assignment.hasReminder) && (
+            <span className="flex items-center gap-2 shrink-0 text-text-dim">
+              {isRecurring && (
+                <Repeat className="h-4 w-4" aria-label={tDaily("a11y.recurring")} />
+              )}
+              {assignment.hasReminder && (
+                <Bell className="h-4 w-4" aria-label={tDaily("a11y.hasReminder")} />
+              )}
+            </span>
           )}
 
           {/* 移動日期 */}

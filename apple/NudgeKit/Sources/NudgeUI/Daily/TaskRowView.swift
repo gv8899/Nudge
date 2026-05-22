@@ -15,7 +15,6 @@ public struct TaskRowView: View {
 
     #if os(macOS)
     @State private var isHovered = false
-    @State private var showQuickPopover = false
     #endif
 
     public init(
@@ -59,6 +58,12 @@ public struct TaskRowView: View {
                 .foregroundStyle(assignment.isCompleted ? Color.nudgeTextDim : Color.nudgeForeground)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
+            // Status 標示（重複 / 提醒）— placement B：靠右、動作 icon 左邊。
+            TaskStatusIndicators(
+                isRecurring: assignment.isRecurring,
+                hasReminder: assignment.hasReminder
+            )
+
             // Unified `…` menu — TaskRowMenu's inner Menu/Button consumes
             // its own taps so the row-level onTapGesture (below) doesn't
             // fire when the user opens the menu.
@@ -89,21 +94,13 @@ public struct TaskRowView: View {
         .onTapGesture(perform: onOpen)
         #endif
         #if os(macOS)
-        // mac：tap → 視窗中央彈 sheet quick-edit（Heptabase pop-out 風
-        // 格），sheet 內按 ↗ 才走 onOpen 推到右側 detail。iOS 維持直
-        // 接 push。
-        .onTapGesture { showQuickPopover = true }
-        .sheet(isPresented: $showQuickPopover) {
-            TaskPopoverView(
-                assignment: assignment,
-                onToggleComplete: {
-                    onToggleComplete()
-                    showQuickPopover = false
-                },
-                onExpand: {
-                    showQuickPopover = false
-                    onOpen()
-                }
+        // mac：tap → post notification，MacSidebarRoot 用 window-level
+        // overlay 彈 quick-edit popover（支援點外取消）。popover 內按 ↗
+        // 才走 onOpen 推到右側 detail。iOS 維持直接 push。
+        .onTapGesture {
+            NotificationCenter.default.post(
+                name: NudgeCommands.openTaskPopoverNotification,
+                object: assignment
             )
         }
         .onHover { isHovered = $0 }
@@ -226,11 +223,12 @@ public struct TaskRowView: View {
     @ViewBuilder
     private var rowBackground: some View {
         #if os(macOS)
-        if isHovered {
-            Color.nudgeHoverFill
-        } else {
-            Color.nudgeBackground
-        }
+        // hover fill 用 8pt 圓角 RoundedRectangle（之前是直角 Color 填滿、
+        // 邊到邊）。8pt 橫向 inset 讓圓角 highlight 像「浮起來的選取塊」、
+        // 不貼齊容器邊。
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .fill(isHovered ? Color.nudgeHoverFill : Color.clear)
+            .padding(.horizontal, 8)
         #else
         // iOS block 卡片：完成 2% / 一般 4% (foreground @ opacity)
         // RoundedRect 12pt corner — 對齊 Cards tab CardListItemView 結構

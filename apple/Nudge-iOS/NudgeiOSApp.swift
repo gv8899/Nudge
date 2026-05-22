@@ -40,6 +40,7 @@ struct NudgeiOSApp: App {
     @State private var recurrenceRepo: RecurrenceRepository
     @State private var notificationPrefsRepo: NotificationPreferencesRepository
     @State private var notificationRouter: NotificationRouter
+    private let reminderRepo: ReminderRepository
     private let container: ModelContainer
     private let googleSignIn: GoogleSignInServiceIOS
     private let keychain: KeychainStorage
@@ -83,6 +84,7 @@ struct NudgeiOSApp: App {
         let recurrenceRepo = RecurrenceRepository(client: client)
         let notificationPrefsRepo = NotificationPreferencesRepository(client: client)
         let notificationRouter = router
+        self.reminderRepo = ReminderRepository(client: client)
 
         // Wire 401 handler after repos are live
         client.setUnauthorizedHandler { [weak authRepo] in
@@ -197,6 +199,15 @@ struct NudgeiOSApp: App {
         UNUserNotificationCenter.current().removePendingNotificationRequests(
             withIdentifiers: ["daily-batch-morning", "daily-batch-evening"]
         )
+        // Rebuild per-task reminders from server state. Local notifications
+        // are per-device — without this, a reminder set on the Mac never
+        // fires on this iPhone (and reminders wouldn't survive a reinstall).
+        do {
+            let reminders = try await reminderRepo.all()
+            await NotificationScheduler.shared.rescheduleAllTaskReminders(reminders)
+        } catch {
+            print("[rescheduleNotifications] reminder sync failed: \(error)")
+        }
     }
 
     private func performLogin() async -> Result<Void, Error> {

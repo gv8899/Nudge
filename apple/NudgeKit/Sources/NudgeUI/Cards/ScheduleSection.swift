@@ -4,10 +4,17 @@ import NudgeCore
 /// Card-detail "schedule" block: recurrence rule + reminder time.
 /// Auto-saves via the Recurrence and Card repositories with a 500 ms
 /// debounce so rapid picker / stepper changes collapse into one PUT.
+///
+/// **Design system**: 全部用自刻 SwiftUI primitives (`NudgeDropdown`,
+/// `NudgeSwitch`, `NudgeDateField`, `NudgeCalendar`) 替換系統 `Picker(.menu)`,
+/// `Toggle`, `DatePicker(.graphical)` — 系統 control 在 macOS 都走 AppKit
+/// native renderer、tint/background 被吃掉，整片視覺跟 Nudge 品牌打架。
+/// 詳見 [feedback_swiftui_appkit_hybrid_controls]。time picker 例外維持
+/// 系統 `.compact` style（時分輸入框，自刻成本過高、視覺干擾較小）。
 public struct ScheduleSection: View {
     public let taskId: String
     public let taskTitle: String
-    @Binding var initialAbsoluteRemindAt: String?  // tasks.remindAt (ISO-8601)
+    @Binding var initialAbsoluteRemindAt: String?
     public let onChangeAbsoluteRemindAt: (String?) -> Void
     public let onRecurrenceChanged: (TaskRecurrenceDTO?) -> Void
 
@@ -16,7 +23,7 @@ public struct ScheduleSection: View {
 
     @State private var isLoaded = false
 
-    @State private var preset: RecurrencePreset? = nil   // nil = no recurrence
+    @State private var preset: RecurrencePreset? = nil
     @State private var weekdays: Set<Int> = []
     @State private var monthDay: Int = 1
     @State private var monthNth: Int = 1
@@ -28,38 +35,37 @@ public struct ScheduleSection: View {
     @State private var hasReminder: Bool = false
     @State private var absoluteRemindAt: Date? = nil
 
-    /// Single shared debounce timer for both save paths — saveRecurrence
-    /// and saveReminder both schedule into it; only the latest intent
-    /// fires after 500 ms idle, preventing rapid-toggle race conditions.
     @State private var saveDebounce: DispatchWorkItem?
+    /// Track 最後一次 immediate save 的 Task — parent (ScheduleEditSheet) 在
+    /// 「完成」按下時 await 這個 Task 確認 server write 完成、再 dismiss +
+    /// trigger reload。沒這個的話 reload 跟 save 會 race (toggle off → 完成
+    /// → reload 拿到 stale isRecurring=true)。
+    @Binding var pendingSaveTask: Task<Void, Never>?
 
     public init(
         taskId: String,
         taskTitle: String,
         initialAbsoluteRemindAt: Binding<String?>,
         onChangeAbsoluteRemindAt: @escaping (String?) -> Void,
-        onRecurrenceChanged: @escaping (TaskRecurrenceDTO?) -> Void = { _ in }
+        onRecurrenceChanged: @escaping (TaskRecurrenceDTO?) -> Void = { _ in },
+        pendingSaveTask: Binding<Task<Void, Never>?> = .constant(nil)
     ) {
         self.taskId = taskId
         self.taskTitle = taskTitle
         self._initialAbsoluteRemindAt = initialAbsoluteRemindAt
         self.onChangeAbsoluteRemindAt = onChangeAbsoluteRemindAt
         self.onRecurrenceChanged = onRecurrenceChanged
+        self._pendingSaveTask = pendingSaveTask
     }
 
     public var body: some View {
         Group {
             if isLoaded {
-                // No outer card: the sheet (.presentationBackground) is
-                // already the surface; an inner RoundedRectangle filled
-                // with the same nudgeBackground produced the invisible
-                // "card-within-card" stroke and added a layer of nothing.
-                VStack(alignment: .leading, spacing: 20) {
-                    recurrenceBlock
-                    Divider().background(Color.nudgeBorderLight)
-                    reminderBlock
+                // Section 之間 18pt 隔開 — 之前 12pt 太擠。
+                VStack(alignment: .leading, spacing: 18) {
+                    sectionCard { recurrenceBlock }
+                    sectionCard { reminderBlock }
                 }
-                .padding(16)
             } else {
                 ProgressView()
                     .frame(maxWidth: .infinity)
@@ -69,96 +75,144 @@ public struct ScheduleSection: View {
         .task(id: taskId) { await load() }
     }
 
-    // MARK: - Recurrence block
+    /// Section card wrapper — nudgeForeground @ 4% bg + 14pt corner。
+    /// Padding 拉大：horizontal 18 / vertical 6（外殼跟內部 row 都呼吸）。
+    @ViewBuilder
+    private func sectionCard<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            content()
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.nudgeForeground.opacity(0.04))
+        )
+    }
+
+    // MARK: - Recurrence
 
     @ViewBuilder
     private var recurrenceBlock: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("schedule.recurrenceTitle", bundle: .module)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.nudgeForeground)
+        // animation 綁在 preset / hasEndDate — toggle 切換時新出/消失的 rows
+        // 平滑展開收合（之前是 view tree 直接砍出/補進去，snap 感很重）。
+        VStack(alignment: .leading, spacing: 0) {
+            // Row 1: 重複 on/off
+            row {
+                rowLabel("schedule.recurrenceTitle", emphasized: true)
                 Spacer()
-                Picker(selection: presetBinding) {
-                    Text("schedule.recurrence.off", bundle: .module).tag(Optional<RecurrencePreset>.none)
-                    ForEach(RecurrencePreset.allCases) { p in
-                        Text(p.localizedKey, bundle: .module).tag(Optional(p))
-                    }
-                } label: { EmptyView() }
-                .pickerStyle(.menu)
-                // Match SettingsView pickers: tint is the label colour
-                // so selected value reads as continuation, not a tinted
-                // CTA. (Was nudgePrimary, fought the rest of the page.)
-                .tint(Color.nudgeForeground)
-                .onChange(of: preset) { _, _ in saveRecurrence() }
+                NudgeSwitch(isOn: recurrenceEnabledBinding)
             }
-            .frame(minHeight: 44)
+
+            if preset != nil {
+                rowDivider
+                // Row 2: 週期
+                row {
+                    rowLabel("schedule.recurrence.frequency")
+                    Spacer()
+                    NudgeDropdown(
+                        selection: $preset,
+                        options: presetOptions,
+                        trigger: presetTriggerText
+                    )
+                    // dropdown 是一槍打中 → 立刻寄。
+                    .onChange(of: preset) { _, _ in saveRecurrenceImmediately() }
+                }
+            }
 
             if preset == .weekly || preset == .biweekly {
+                rowDivider
                 weekdaysPicker
+                    .padding(.vertical, 10)
             }
             if preset == .monthly_day {
-                Stepper(value: $monthDay, in: 1...31, step: 1) {
-                    Text("schedule.recurrence.monthDayN \(monthDay)", bundle: .module)
-                        .foregroundStyle(Color.nudgeForeground)
+                rowDivider
+                row {
+                    rowLabel("schedule.recurrence.monthDayLabel")
+                    Spacer()
+                    Stepper(value: $monthDay, in: 1...31, step: 1) {
+                        Text("schedule.recurrence.monthDayN \(monthDay)", bundle: .module)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.nudgeForeground)
+                    }
+                    .labelsHidden()
+                    .onChange(of: monthDay) { _, _ in saveRecurrence() }
                 }
-                .frame(minHeight: 44)
-                .onChange(of: monthDay) { _, _ in saveRecurrence() }
             }
             if preset == .monthly_nth_weekday {
-                monthlyNthPickers
-            }
-            if preset != nil {
-                DatePicker(selection: $startDate, displayedComponents: .date) {
-                    Text("schedule.recurrence.startDate", bundle: .module)
-                        .foregroundStyle(Color.nudgeForeground)
-                }
-                .frame(minHeight: 44)
-                .tint(Color.nudgeForeground)
-                .onChange(of: startDate) { _, _ in saveRecurrence() }
-
-                Toggle(isOn: $hasEndDate) {
-                    Text("schedule.recurrence.hasEndDate", bundle: .module)
-                        .foregroundStyle(Color.nudgeForeground)
-                }
-                .tint(Color.nudgeForeground)
-                .frame(minHeight: 44)
-                .onChange(of: hasEndDate) { _, on in
-                    if on, endDate == nil { endDate = startDate }
-                    saveRecurrence()
-                }
-                if hasEndDate {
-                    DatePicker(selection: Binding(
-                        get: { endDate ?? startDate },
-                        set: { endDate = $0 }
-                    ), displayedComponents: .date) {
-                        // Visually subordinate — the toggle above is the
-                        // decision; this row is the consequence.
-                        Text("schedule.recurrence.endDate", bundle: .module)
-                            .font(.subheadline)
-                            .foregroundStyle(Color.nudgeTextDim)
+                rowDivider
+                row {
+                    rowLabel("schedule.recurrence.nthLabel")
+                    Spacer()
+                    HStack(spacing: 6) {
+                        NudgeDropdown(
+                            selection: $monthNth,
+                            options: nthOptions,
+                            trigger: nthTriggerText
+                        )
+                        .onChange(of: monthNth) { _, _ in saveRecurrenceImmediately() }
+                        NudgeDropdown(
+                            selection: $monthNthWeekday,
+                            options: weekdayOptions,
+                            trigger: Text(weekdayShort(monthNthWeekday))
+                        )
+                        .onChange(of: monthNthWeekday) { _, _ in saveRecurrenceImmediately() }
                     }
-                    .frame(minHeight: 44)
-                    .tint(Color.nudgeForeground)
-                    .padding(.leading, 16)
-                    .onChange(of: endDate) { _, _ in saveRecurrence() }
+                }
+            }
+
+            if preset != nil {
+                rowDivider
+                row {
+                    rowLabel("schedule.recurrence.startDate")
+                    Spacer()
+                    NudgeDateField(date: $startDate)
+                        // 單次選日、立刻寄。
+                        .onChange(of: startDate) { _, _ in saveRecurrenceImmediately() }
+                }
+
+                rowDivider
+                row {
+                    rowLabel("schedule.recurrence.hasEndDate")
+                    Spacer()
+                    NudgeSwitch(isOn: $hasEndDate)
+                        .onChange(of: hasEndDate) { _, on in
+                            if on, endDate == nil { endDate = startDate }
+                            // toggle 立刻寄。
+                            saveRecurrenceImmediately()
+                        }
+                }
+
+                if hasEndDate {
+                    rowDivider
+                    row {
+                        rowLabel("schedule.recurrence.endDate")
+                        Spacer()
+                        NudgeDateField(date: Binding(
+                            get: { endDate ?? startDate },
+                            set: { endDate = $0 }
+                        ))
+                        .onChange(of: endDate) { _, _ in saveRecurrenceImmediately() }
+                    }
                 }
             }
         }
+        // value: 是「nil / 非 nil」這個 boolean 變化 — preset 物件本身切換
+        // (.daily ↔ .weekly) 時 view tree 結構也會變（weekdaysPicker
+        // 出現/消失），所以三條 animation 都監聽。
+        .animation(.smooth(duration: 0.25), value: preset)
+        .animation(.smooth(duration: 0.25), value: hasEndDate)
     }
 
     @ViewBuilder
     private var weekdaysPicker: some View {
-        // Each button cell expands to fill row width evenly; the visual
-        // circle stays 32 pt while the tap target spans the full cell
-        // height (44 pt) — fixes the iOS HIG 44 pt touch-target violation
-        // without crowding the visible glyphs.
         HStack(spacing: 6) {
             ForEach(1...7, id: \.self) { day in
                 let active = weekdays.contains(day)
                 Button {
                     if active { weekdays.remove(day) } else { weekdays.insert(day) }
-                    saveRecurrence()
+                    // 星期按鈕 tap = 單次事件、立刻寄。
+                    saveRecurrenceImmediately()
                 } label: {
                     Text(weekdayShort(day))
                         .font(.caption.weight(.medium))
@@ -181,82 +235,158 @@ public struct ScheduleSection: View {
     @ViewBuilder
     private var monthlyNthPickers: some View {
         HStack(spacing: 8) {
-            Picker(selection: $monthNth) {
-                ForEach(1...4, id: \.self) {
-                    Text("schedule.recurrence.nthN \($0)", bundle: .module).tag($0)
-                }
-                Text("schedule.recurrence.last", bundle: .module).tag(5)
-            } label: { Text("schedule.recurrence.nthLabel", bundle: .module) }
-            .pickerStyle(.menu)
-            .tint(Color.nudgeForeground)
-            .onChange(of: monthNth) { _, _ in saveRecurrence() }
+            NudgeDropdown(
+                selection: $monthNth,
+                options: nthOptions,
+                trigger: nthTriggerText
+            )
+            .onChange(of: monthNth) { _, _ in saveRecurrenceImmediately() }
 
-            Picker(selection: $monthNthWeekday) {
-                ForEach(1...7, id: \.self) { Text(weekdayShort($0)).tag($0) }
-            } label: { Text("schedule.recurrence.weekday", bundle: .module) }
-            .pickerStyle(.menu)
-            .tint(Color.nudgeForeground)
-            .onChange(of: monthNthWeekday) { _, _ in saveRecurrence() }
+            NudgeDropdown(
+                selection: $monthNthWeekday,
+                options: weekdayOptions,
+                trigger: Text(weekdayShort(monthNthWeekday))
+            )
+            .onChange(of: monthNthWeekday) { _, _ in saveRecurrenceImmediately() }
         }
         .frame(minHeight: 44)
     }
 
-    // MARK: - Reminder block
+    // MARK: - Reminder
 
     @ViewBuilder
     private var reminderBlock: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Toggle(isOn: $hasReminder) {
-                Text("schedule.reminder.enabled", bundle: .module)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.nudgeForeground)
-            }
-            .tint(Color.nudgeForeground)
-            .frame(minHeight: 44)
-            .onChange(of: hasReminder) { _, on in
-                if !on {
-                    remindTimeOfDay = nil
-                    absoluteRemindAt = nil
-                }
-                saveReminder()
+        VStack(alignment: .leading, spacing: 0) {
+            row {
+                rowLabel("schedule.reminder.enabled", emphasized: true)
+                Spacer()
+                NudgeSwitch(isOn: $hasReminder)
+                    .onChange(of: hasReminder) { _, on in
+                        if !on {
+                            remindTimeOfDay = nil
+                            absoluteRemindAt = nil
+                        }
+                        // toggle 立刻寄，避免 race-with-reload。
+                        saveReminderImmediately()
+                    }
             }
 
             if hasReminder {
+                rowDivider
                 if preset != nil {
-                    DatePicker(
-                        selection: Binding(
+                    row {
+                        rowLabel("schedule.reminder.timeOfDay")
+                        Spacer()
+                        NudgeTimeField(date: Binding(
                             get: { remindTimeOfDay ?? defaultReminderTime() },
                             set: { remindTimeOfDay = $0 }
-                        ),
-                        displayedComponents: .hourAndMinute
-                    ) {
-                        Text("schedule.reminder.timeOfDay", bundle: .module)
-                            .foregroundStyle(Color.nudgeForeground)
+                        ))
+                        .onChange(of: remindTimeOfDay) { _, _ in saveReminder() }
                     }
-                    .frame(minHeight: 44)
-                    .tint(Color.nudgeForeground)
-                    .onChange(of: remindTimeOfDay) { _, _ in saveReminder() }
                 } else {
-                    DatePicker(
-                        selection: Binding(
-                            get: { absoluteRemindAt ?? Date().addingTimeInterval(3600) },
-                            set: { absoluteRemindAt = $0 }
-                        ),
-                        displayedComponents: [.date, .hourAndMinute]
-                    ) {
-                        Text("schedule.reminder.dateTime", bundle: .module)
-                            .foregroundStyle(Color.nudgeForeground)
+                    row {
+                        rowLabel("schedule.reminder.dateTime")
+                        Spacer()
+                        HStack(spacing: 6) {
+                            NudgeDateField(date: Binding(
+                                get: { absoluteRemindAt ?? Date().addingTimeInterval(3600) },
+                                set: { absoluteRemindAt = $0 }
+                            ))
+                            NudgeTimeField(date: Binding(
+                                get: { absoluteRemindAt ?? Date().addingTimeInterval(3600) },
+                                set: { absoluteRemindAt = $0 }
+                            ))
+                        }
                     }
-                    .frame(minHeight: 44)
-                    .tint(Color.nudgeForeground)
                     .onChange(of: absoluteRemindAt) { _, _ in saveReminder() }
                 }
             }
         }
+        // 提醒 toggle 切換時平滑展開 timeOfDay row。
+        .animation(.smooth(duration: 0.25), value: hasReminder)
     }
 
-    private var presetBinding: Binding<RecurrencePreset?> {
-        Binding(get: { preset }, set: { preset = $0 })
+    // MARK: - Row primitives
+
+    /// 標準 row：48pt min height + 8pt vertical padding = 整 row 跨距 ~64pt，
+    /// 有明確視覺呼吸（之前 44+4 太擠）。
+    @ViewBuilder
+    private func row<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        HStack {
+            content()
+        }
+        .frame(minHeight: 48)
+        .padding(.vertical, 8)
+    }
+
+    private func rowLabel(_ key: LocalizedStringKey, emphasized: Bool = false) -> some View {
+        // emphasized rows (重複 / 提醒) 用 design system `.sectionHeader`
+        // (14pt semibold)；sub rows (週期 / 起始日 / 結束日) 用 `.primaryRowTitle`
+        // (14pt regular)。之前 `.subheadline` 在 mac 是 ~11pt 太小。
+        Text(key, bundle: .module)
+            .nudgeFont(emphasized ? .sectionHeader : .primaryRowTitle)
+            .foregroundStyle(Color.nudgeForeground)
+    }
+
+    /// Row 之間的細線分隔 — 1pt nudgeBorderLight，跟 section card bg 形成
+    /// 微弱層次（同 iOS Settings 卡片內部 row 分隔）。
+    private var rowDivider: some View {
+        Rectangle()
+            .fill(Color.nudgeBorderLight.opacity(0.6))
+            .frame(height: 1)
+    }
+
+    // MARK: - Dropdown options
+
+    /// "重複" on/off toggle binding — preset nil ↔ off。Toggle ON 時 default
+    /// 到 .daily（最常用），ON → OFF 清掉 preset、其他子設定 (weekdays /
+    /// dates) 透過 preset == nil 條件自然消失。
+    private var recurrenceEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { preset != nil },
+            set: { on in
+                if on, preset == nil {
+                    preset = .daily
+                } else if !on {
+                    preset = nil
+                }
+                // toggle 是一槍打中事件 → 立刻寄、不 debounce，避免 user 切完
+                // 馬上按完成時 reload 拿到 stale 資料。
+                saveRecurrenceImmediately()
+            }
+        )
+    }
+
+    /// Dropdown options — toggle 開啟後才出現，所以不含 nil case。
+    private var presetOptions: [(RecurrencePreset?, Text)] {
+        RecurrencePreset.allCases.map { (Optional($0), Text($0.localizedKey, bundle: .module)) }
+    }
+
+    private var presetTriggerText: Text {
+        if let p = preset {
+            return Text(p.localizedKey, bundle: .module)
+        }
+        return Text("schedule.recurrence.off", bundle: .module)
+    }
+
+    private var nthOptions: [(Int, Text)] {
+        var opts: [(Int, Text)] = []
+        for i in 1...4 {
+            opts.append((i, Text("schedule.recurrence.nthN \(i)", bundle: .module)))
+        }
+        opts.append((5, Text("schedule.recurrence.last", bundle: .module)))
+        return opts
+    }
+
+    private var nthTriggerText: Text {
+        if monthNth == 5 {
+            return Text("schedule.recurrence.last", bundle: .module)
+        }
+        return Text("schedule.recurrence.nthN \(monthNth)", bundle: .module)
+    }
+
+    private var weekdayOptions: [(Int, Text)] {
+        (1...7).map { ($0, Text(weekdayShort($0))) }
     }
 
     private func weekdayShort(_ d: Int) -> String {
@@ -272,7 +402,7 @@ public struct ScheduleSection: View {
         return cal.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date()
     }
 
-    // MARK: - Load / save
+    // MARK: - Load / save (unchanged logic)
 
     private func load() async {
         do {
@@ -312,10 +442,6 @@ public struct ScheduleSection: View {
         }
     }
 
-    /// Coalesce rapid changes — picker scrolls, weekday taps, stepper
-    /// repeats — into a single PUT after 500 ms of idle. Without this
-    /// scrolling a DatePicker fires dozens of writes and the last one
-    /// wins by network race rather than user intent.
     private func scheduleSave(_ work: @escaping @Sendable () async -> Void) {
         guard isLoaded else { return }
         saveDebounce?.cancel()
@@ -326,6 +452,18 @@ public struct ScheduleSection: View {
 
     private func saveRecurrence() {
         scheduleSave { await self.performSaveRecurrence() }
+    }
+
+    /// 用於 toggle / 單次選擇等「一槍打中」的事件 — 取消 debounce 直接觸發
+    /// 儲存。修 race-with-reload bug：之前 toggle off → debounce 0.5 秒
+    /// 倒數 → user 立刻按「完成」→ reload 拿到 stale 資料、UI 還顯示重複。
+    /// 滑動 type (Stepper / TimeScrollWheel) 仍走 debounced 版本。
+    private func saveRecurrenceImmediately() {
+        guard isLoaded else { return }
+        saveDebounce?.cancel()
+        saveDebounce = nil
+        // Track Task → parent 可 await 確認完成後才 reload。
+        pendingSaveTask = Task { await performSaveRecurrence() }
     }
 
     private func performSaveRecurrence() async {
@@ -345,7 +483,7 @@ public struct ScheduleSection: View {
                 )
                 let saved = try await recurrenceRepo.upsert(taskId: taskId, body: body)
                 onRecurrenceChanged(saved)
-                #if os(iOS)
+                #if os(iOS) || os(macOS)
                 await NotificationScheduler.shared.rescheduleTaskReminder(
                     taskId: taskId,
                     title: taskTitle,
@@ -357,7 +495,7 @@ public struct ScheduleSection: View {
             } else {
                 try await recurrenceRepo.delete(taskId: taskId)
                 onRecurrenceChanged(nil)
-                #if os(iOS)
+                #if os(iOS) || os(macOS)
                 await NotificationScheduler.shared.cancelTaskReminder(taskId: taskId)
                 #endif
             }
@@ -369,10 +507,20 @@ public struct ScheduleSection: View {
     private func saveReminder() {
         guard isLoaded else { return }
         if preset != nil {
-            // Recurrence reminder lives in the same upsert.
             saveRecurrence()
         } else {
             scheduleSave { await self.performSaveAbsoluteReminder() }
+        }
+    }
+
+    private func saveReminderImmediately() {
+        guard isLoaded else { return }
+        if preset != nil {
+            saveRecurrenceImmediately()
+        } else {
+            saveDebounce?.cancel()
+            saveDebounce = nil
+            pendingSaveTask = Task { await performSaveAbsoluteReminder() }
         }
     }
 
@@ -382,7 +530,7 @@ public struct ScheduleSection: View {
             initialAbsoluteRemindAt = value
             onChangeAbsoluteRemindAt(value)
         }
-        #if os(iOS)
+        #if os(iOS) || os(macOS)
         let absoluteDate = hasReminder ? absoluteRemindAt : nil
         await NotificationScheduler.shared.rescheduleTaskReminder(
             taskId: taskId,
@@ -394,7 +542,7 @@ public struct ScheduleSection: View {
         #endif
     }
 
-    // MARK: - Date helpers
+    // MARK: - Date helpers (unchanged)
 
     private func parseISODate(_ s: String) -> Date? {
         let f = DateFormatter()
