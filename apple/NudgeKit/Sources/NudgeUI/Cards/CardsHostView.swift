@@ -118,6 +118,17 @@ public struct CardsHostView: View {
     /// 的 calendar / cards summary panel 內容多。
     @AppStorage("cards.mac.detailWidth") private var detailWidth: Double = 520
 
+    /// 搜尋 / tag 篩選狀態（macOS Cards tab 常駐 search bar）。命名與
+    /// DailyHostView 的 dashboard 卡片搜尋對稱。
+    @State private var searchQuery = ""
+    @State private var debouncedQuery = ""
+    @State private var selectedTagIds: Set<String> = []
+    @State private var allTags: [TagDTO] = []
+    @State private var searchResults: [CardDTO] = []
+    @State private var searchIsLoading = false
+    @State private var hasSearched = false
+    @FocusState private var searchFocused: Bool
+
     /// Mac layout — Heptabase-style slide-in detail：永遠是同一棵 HStack
     /// (parent 樹不變)，selectedCard 非 nil 時條件 insert detail pane +
     /// .transition(.move(edge: .trailing))。
@@ -157,6 +168,9 @@ public struct CardsHostView: View {
         .animation(.spring(response: 0.32, dampingFraction: 0.86), value: selectedCard?.id)
         .background(Color.nudgeBackground)
         .task { await firstPage() }
+        .task { await loadAllTags() }
+        .task(id: searchQuery) { await debounceSearch() }
+        .task(id: searchKey) { await fetchSearch() }
 
         // embedded = 嵌在 DailyHostView 右側面板用，不能掛 toolbar /
         // navigationTitle —— 它們會 bubble 到外層 NavigationStack 的視
@@ -180,9 +194,27 @@ public struct CardsHostView: View {
     private var centeredList: some View {
         HStack(spacing: 0) {
             Spacer(minLength: 0)
-            content.frame(maxWidth: Self.listColumnWidth)
+            VStack(spacing: 0) {
+                searchBar
+                content
+            }
+            .frame(maxWidth: Self.listColumnWidth)
             Spacer(minLength: 0)
         }
+    }
+
+    /// Cards tab 常駐搜尋列：search field +（有 tag 時）tag chips。
+    /// 與 Daily dashboard 不同，這裡不收合（全寬空間足夠、常駐更易發現）。
+    private var searchBar: some View {
+        VStack(spacing: 10) {
+            CardSearchField(query: $searchQuery, isFocused: $searchFocused)
+            if !allTags.isEmpty {
+                CardTagChips(allTags: allTags, selectedTagIds: $selectedTagIds)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
     }
 
     /// 右側 detail 面板。頂端有 X 按鈕（清空 selectedCard 回到置中
@@ -229,6 +261,17 @@ public struct CardsHostView: View {
 
     @ViewBuilder
     private var content: some View {
+        #if os(macOS)
+        macContentBody
+        #else
+        iOSContentBody
+        #endif
+    }
+
+    #if os(iOS)
+    /// iOS 維持原本「全部卡片」清單（iOS 搜尋走獨立 CardSearchView tab）。
+    @ViewBuilder
+    private var iOSContentBody: some View {
         if cards.isEmpty && isLoading {
             ProgressView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -255,23 +298,78 @@ public struct CardsHostView: View {
                 }
             }
         } else {
-            list
+            ScrollView { iOSList }
+        }
+    }
+    #endif
+
+    #if os(macOS)
+    /// macOS：filtering 時顯示搜尋結果、否則顯示全部卡片分頁列表。
+    @ViewBuilder
+    private var macContentBody: some View {
+        if displayedCards.isEmpty {
+            if isFiltering {
+                if searchIsLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if hasSearched {
+                    ContentUnavailableView {
+                        Label {
+                            Text("cards.emptyWithQuery", bundle: .module)
+                        } icon: {
+                            Image(systemName: "magnifyingglass")
+                        }
+                    }
+                } else {
+                    // 剛開始 filtering、fetch 尚未回 — 撐版避免閃 empty。
+                    Color.clear.frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            } else if isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if hasError {
+                ContentUnavailableView {
+                    Label {
+                        Text("error.unknown", bundle: .module)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                    }
+                }
+            } else {
+                ContentUnavailableView {
+                    Label {
+                        Text("cards.emptyNoCards", bundle: .module)
+                    } icon: {
+                        Image(systemName: "square.stack")
+                    }
+                } description: {
+                    Text("cards.emptyDescription", bundle: .module)
+                } actions: {
+                    Button(action: createCard) {
+                        Text("cards.createAria", bundle: .module)
+                    }
+                }
+            }
+        } else {
+            ScrollView { macGrid }
         }
     }
 
-    private var list: some View {
-        // 桌機寬度由 macOSLayout 的外層 wrapper（centered HStack 或
-        // HSplitView 左欄 frame）決定，這裡不再 cap。iOS 直接吃滿。
-        // mac 改 LazyVGrid；iOS 維持 LazyVStack（手機螢幕窄、grid 沒
-        // 意義）。
-        ScrollView {
-            #if os(macOS)
-            macGrid
-            #else
-            iOSList
-            #endif
-        }
+    private var isFiltering: Bool {
+        !debouncedQuery.isEmpty || !selectedTagIds.isEmpty
     }
+
+    /// filtering → 搜尋結果；否則 → 全部卡片（分頁快取）。
+    private var displayedCards: [CardDTO] {
+        isFiltering ? searchResults : cards
+    }
+
+    /// debouncedQuery + 選中 tag 一起 key — chip 切換也觸發 re-fetch。
+    private var searchKey: String {
+        let tags = selectedTagIds.sorted().joined(separator: ",")
+        return "\(debouncedQuery)|\(tags)"
+    }
+    #endif
 
     #if os(macOS)
     /// 自適應 grid columns — 卡片最小 220pt（720pt 置中時 ≈3 欄；
@@ -283,14 +381,16 @@ public struct CardsHostView: View {
     @ViewBuilder
     private var macGrid: some View {
         LazyVGrid(columns: gridColumns, spacing: 12) {
-            ForEach(cards) { card in
+            ForEach(displayedCards) { card in
                 CardGridItemView(
                     card: card,
                     isSelected: selectedCard?.id == card.id,
                     onTap: { openDetail(card) }
                 )
                 .onAppear {
-                    if card.id == cards.last?.id {
+                    // 分頁只在「全部卡片」模式有意義；filtering 結果只取
+                    // 第一頁（與 Daily / iOS CardSearchView 一致），不續抓。
+                    if !isFiltering, card.id == cards.last?.id {
                         Task { await loadMore() }
                     }
                 }
@@ -299,7 +399,9 @@ public struct CardsHostView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 12)
 
-        paginationFooter
+        if !isFiltering {
+            paginationFooter
+        }
     }
     #endif
 
@@ -393,6 +495,48 @@ public struct CardsHostView: View {
         }
         isLoadingMore = false
     }
+
+    #if os(macOS)
+    private func loadAllTags() async {
+        do {
+            allTags = try await tagRepo.list()
+        } catch {
+            if !APIError.isCancellation(error) {
+                print("[CardsHostView] loadAllTags failed: \(error)")
+            }
+        }
+    }
+
+    private func debounceSearch() async {
+        try? await Task.sleep(nanoseconds: 300_000_000)
+        if !Task.isCancelled {
+            debouncedQuery = searchQuery.trimmingCharacters(in: .whitespaces)
+        }
+    }
+
+    private func fetchSearch() async {
+        let q = debouncedQuery
+        let tagIds = Array(selectedTagIds)
+        guard !q.isEmpty || !tagIds.isEmpty else {
+            searchResults = []
+            hasSearched = false
+            return
+        }
+        searchIsLoading = true
+        do {
+            let page = try await cardRepo.list(query: q, cursor: nil, tagIds: tagIds)
+            searchResults = page.cards
+            hasSearched = true
+        } catch {
+            if !APIError.isCancellation(error) {
+                print("[CardsHostView] fetchSearch failed: \(error)")
+                searchResults = []
+                hasSearched = true
+            }
+        }
+        searchIsLoading = false
+    }
+    #endif
 
     private func createCard() {
         Task {
