@@ -574,9 +574,9 @@ public struct CardsHostView: View {
     private func updateTags(cardId: String, tagIds: Set<String>) async {
         do {
             try await tagRepo.setTaskTags(taskId: cardId, tagIds: Array(tagIds))
+            let refreshedTags = try await tagRepo.list()
             // Refresh in-memory list so chips show in row + detail next time.
-            let allTags = try await tagRepo.list()
-            let nextTags = allTags.filter { tagIds.contains($0.id) }
+            let nextTags = refreshedTags.filter { tagIds.contains($0.id) }
             if let idx = cards.firstIndex(where: { $0.id == cardId }) {
                 let c = cards[idx]
                 cards[idx] = CardDTO(
@@ -615,6 +615,6 @@ public struct CardsHostView: View {
 }
 
 // `TagFilterChip` / `PressableChipStyle` live in
-// `Tags/TagFilterChip.swift`; the dedicated Search tab (CardSearchView)
-// is the only consumer now that this host view no longer filters
-// inline. Retained in the shared component file for future reuse.
+// `Tags/TagFilterChip.swift` and back the iOS `CardSearchView` search
+// surface. The macOS Cards tab filters inline via the shared
+// `CardSearchField` / `CardTagChips` components (see Cards/CardSearchComponents.swift).
