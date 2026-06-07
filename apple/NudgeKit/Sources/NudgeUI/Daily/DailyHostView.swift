@@ -188,7 +188,6 @@ public struct DailyHostView: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.horizontal, 16)
                         .padding(.top, 6)
-                        .animation(.easeOut(duration: 0.2), value: selectedDate)
 
                     statusBanner
                     WeekStripView(
@@ -253,7 +252,6 @@ public struct DailyHostView: View {
                     .accessibilityLabel(Text("nav.settings", bundle: .module))
                 }
             }
-            .animation(.easeOut(duration: 0.2), value: loadState)
             .sensoryFeedback(.success, trigger: completionTicker)
             .sensoryFeedback(.impact(weight: .medium), trigger: archiveTicker)
             .sensoryFeedback(.selection, trigger: moveTicker)
@@ -430,7 +428,6 @@ public struct DailyHostView: View {
         NavigationStack(path: $navigationPath) {
             macOSContent
         }
-        .animation(.easeOut(duration: 0.2), value: loadState)
         // macOS 全部 modal（排程 / move-to-date / quick-add / task popover）
         // 都上移到 MacSidebarRoot 用 window-level overlay 渲染（支援點外取消）。
         // 這裡只負責 listen 各自的 callback notification、做對應 data 操作。
@@ -443,7 +440,14 @@ public struct DailyHostView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: CardRepository.cardDidChangeNotification)) { _ in
-            Task { await reloadDashboardCards() }
+            // 卡片內容變動後（popover / 右欄 detail 改標題、內文）：右欄
+            // 「最近卡片」要刷新，左側行動清單的 row 也得跟著更新。popover
+            // 走 cardRepo 直接 PATCH，不像 iOS 的 updateTaskTitle 會做樂觀
+            // patch — 少了 reloadSilently()，row 標題會一直停在舊值。
+            Task {
+                await reloadDashboardCards()
+                await reloadSilently()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.submitQuickAddNotification)) { note in
             if let title = note.object as? String {
@@ -1000,7 +1004,6 @@ public struct DailyHostView: View {
         .padding(.horizontal, 24)
         .padding(.top, 16)
         .padding(.bottom, 12)
-        .animation(.easeOut(duration: 0.2), value: selectedDate)
     }
 
     /// 「今天 (N)」section divider — 跟 OverdueSectionView header 視覺
@@ -1489,6 +1492,11 @@ extension DailyHostView {
         Task {
             do {
                 try await taskRepo.updateTitle(taskId: taskId, title: title)
+                // 樂觀 patch 之後再跟 server 對帳 —— 對齊 toggleComplete /
+                // moveAssignment 等其它 mutation。改名是從 detail 的 debounce
+                // callback 跨 view 觸發，樂觀 patch 一旦沒套用到，少了這步
+                // 行動清單的 row 標題就會永遠停在舊值。
+                await reloadSilently()
             } catch {
                 print("[DailyHostView] updateTitle failed: \(error)")
             }
