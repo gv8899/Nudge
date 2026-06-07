@@ -5,9 +5,13 @@ import {
   taskRecurrences,
   dailyTaskAssignments,
 } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
-import { occurs, type RecurrenceRule } from "@/lib/recurrence";
+import {
+  occurs,
+  assignmentsToReap,
+  type RecurrenceRule,
+} from "@/lib/recurrence";
 import { nanoid } from "nanoid";
 
 async function ownsTask(taskId: string, userId: string): Promise<boolean> {
@@ -119,6 +123,32 @@ export async function PUT(
       .onConflictDoNothing();
   }
 
+  // Reconcile：編輯既有規則時，回收舊規則 materialize 出來、現在落在新窗外
+  // 的未來 occurrence，否則它們會變孤兒（永遠卡 overdue，或日期=今天時誤
+  // 出現在「今天」）。只在 existing 時做 — 首次建立沒有前一版規則的孤兒，
+  // 且避免誤刪使用者手動排進未來的 occurrence。
+  if (existing) {
+    const taskAssignments = await db
+      .select({
+        date: dailyTaskAssignments.date,
+        isCompleted: dailyTaskAssignments.isCompleted,
+        isSkipped: dailyTaskAssignments.isSkipped,
+      })
+      .from(dailyTaskAssignments)
+      .where(eq(dailyTaskAssignments.taskId, taskId));
+    const reapDates = assignmentsToReap(taskAssignments, rule, today);
+    if (reapDates.length > 0) {
+      await db
+        .delete(dailyTaskAssignments)
+        .where(
+          and(
+            eq(dailyTaskAssignments.taskId, taskId),
+            inArray(dailyTaskAssignments.date, reapDates),
+          ),
+        );
+    }
+  }
+
   const [saved] = await db
     .select()
     .from(taskRecurrences)
@@ -129,7 +159,9 @@ export async function PUT(
 
 /**
  * DELETE /api/tasks/[id]/recurrence — 移除重複規則，task 本體保留為普通
- * 任務。已 materialize 的未來 assignments 不動，讓使用者自己決定 archive。
+ * 任務。並回收未來、未完成、未跳過的已 materialize occurrence（沒了規則
+ * 它們全是孤兒，留著會卡 overdue / 誤現在今天）。過去 + 今天 + 已完成 +
+ * 已跳過保留，當歷史紀錄。
  */
 export async function DELETE(
   _req: NextRequest,
@@ -143,5 +175,27 @@ export async function DELETE(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await db.delete(taskRecurrences).where(eq(taskRecurrences.taskId, taskId));
+
+  const today = new Date().toISOString().slice(0, 10);
+  const taskAssignments = await db
+    .select({
+      date: dailyTaskAssignments.date,
+      isCompleted: dailyTaskAssignments.isCompleted,
+      isSkipped: dailyTaskAssignments.isSkipped,
+    })
+    .from(dailyTaskAssignments)
+    .where(eq(dailyTaskAssignments.taskId, taskId));
+  const reapDates = assignmentsToReap(taskAssignments, null, today);
+  if (reapDates.length > 0) {
+    await db
+      .delete(dailyTaskAssignments)
+      .where(
+        and(
+          eq(dailyTaskAssignments.taskId, taskId),
+          inArray(dailyTaskAssignments.date, reapDates),
+        ),
+      );
+  }
+
   return NextResponse.json({ success: true });
 }

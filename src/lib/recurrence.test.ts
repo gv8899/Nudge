@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { occurs, occurrencesInRange, type RecurrenceRule } from "./recurrence";
+import {
+  occurs,
+  occurrencesInRange,
+  assignmentsToReap,
+  type RecurrenceRule,
+} from "./recurrence";
 
 const baseDaily: RecurrenceRule = {
   preset: "daily",
@@ -164,5 +169,73 @@ describe("occurrencesInRange", () => {
   it("daily 在範圍內全部回傳", () => {
     const result = occurrencesInRange(baseDaily, "2026-04-01", "2026-04-03");
     expect(result).toEqual(["2026-04-01", "2026-04-02", "2026-04-03"]);
+  });
+});
+
+describe("assignmentsToReap", () => {
+  const today = "2026-05-28";
+  // 規則改成只 daily 5/22–5/23（縮窗後的新規則）
+  const narrowed: RecurrenceRule = {
+    ...baseDaily,
+    startDate: "2026-05-22",
+    endDate: "2026-05-23",
+  };
+
+  it("回收未來、落在新窗外、未完成未跳過的 occurrence", () => {
+    // 5/28 在 today 之後且超出 5/23 → 該回收（重現 Premium EDM 孤兒）
+    const result = assignmentsToReap(
+      [{ date: "2026-05-30", isCompleted: false, isSkipped: false }],
+      narrowed,
+      today,
+    );
+    expect(result).toEqual(["2026-05-30"]);
+  });
+
+  it("保留落在新窗內的未來 occurrence", () => {
+    const wide: RecurrenceRule = { ...narrowed, endDate: "2026-06-30" };
+    const result = assignmentsToReap(
+      [{ date: "2026-05-30", isCompleted: false, isSkipped: false }],
+      wide,
+      today,
+    );
+    expect(result).toEqual([]);
+  });
+
+  it("不動過去與今天的 occurrence（保留歷史 / 不中途抽走）", () => {
+    const result = assignmentsToReap(
+      [
+        { date: "2026-05-23", isCompleted: false, isSkipped: false }, // 過去
+        { date: today, isCompleted: false, isSkipped: false }, // 今天
+      ],
+      narrowed,
+      today,
+    );
+    expect(result).toEqual([]);
+  });
+
+  it("不回收已完成或已跳過的未來 occurrence", () => {
+    const result = assignmentsToReap(
+      [
+        { date: "2026-05-30", isCompleted: true, isSkipped: false },
+        { date: "2026-05-31", isCompleted: false, isSkipped: true },
+      ],
+      narrowed,
+      today,
+    );
+    expect(result).toEqual([]);
+  });
+
+  it("rule = null（刪除 recurrence）回收所有未來未完成未跳過", () => {
+    const result = assignmentsToReap(
+      [
+        { date: "2026-05-30", isCompleted: false, isSkipped: false },
+        { date: "2026-06-01", isCompleted: false, isSkipped: false },
+        { date: "2026-05-23", isCompleted: false, isSkipped: false }, // 過去 → 保留
+        { date: "2026-05-30", isCompleted: true, isSkipped: false }, // 已完成 → 保留
+      ],
+      null,
+      today,
+    );
+    expect(result).toEqual(["2026-05-30", "2026-06-01"]);
   });
 });
