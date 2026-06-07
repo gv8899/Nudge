@@ -848,93 +848,21 @@ public struct DailyHostView: View {
     }
 
     private var dashboardCardsSearchField: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass")
-                .nudgeFont(.fieldIcon)
-                .foregroundStyle(Color.nudgeTextDim)
-            TextField(
-                "",
-                text: $dashboardCardSearchQuery,
-                prompt: Text("cards.searchPlaceholder", bundle: .module)
-            )
-            .textFieldStyle(.plain)
-            .nudgeFont(.fieldText)
-            .foregroundStyle(Color.nudgeForeground)
-            // .tint 控制 TextField 的 cursor / selection accent — 用品牌
-            // primary 色取代系統預設藍。
-            .tint(Color.nudgePrimary)
-            .focused($dashboardCardSearchFieldFocused)
-            if !dashboardCardSearchQuery.isEmpty {
-                Button { dashboardCardSearchQuery = "" } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .nudgeFont(.fieldIcon)
-                        .foregroundStyle(Color.nudgeTextDim)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.nudgeForeground.opacity(0.06))
+        CardSearchField(
+            query: $dashboardCardSearchQuery,
+            isFocused: $dashboardCardSearchFieldFocused
         )
+        // 容器外距與 auto-focus 留在呼叫端（元件只負責 field 本體）。
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
-        // 點搜尋 icon 展開 → field 一出現就 auto focus，cursor 直接落在
-        // 輸入框，user 不用再點一下 field 才能打字。
         .onAppear { dashboardCardSearchFieldFocused = true }
     }
 
-    @ViewBuilder
     private var dashboardCardsTagChips: some View {
-        // 標籤多時 FlowLayout 自動折行（之前用 horizontal ScrollView 一條
-        // 橫向 strip，user 反映想看到所有標籤、不要被截掉只能 scroll）。
-        // lineSpacing 10 比 horizontal spacing 大 — 折行後上下需要更多
-        // 視覺呼吸，否則 chip 黏成一塊很擠。
-        FlowLayout(spacing: 6, lineSpacing: 10) {
-            ForEach(dashboardCardAllTags) { tag in
-                let active = dashboardCardSelectedTagIds.contains(tag.id)
-                Button {
-                    if active {
-                        dashboardCardSelectedTagIds.remove(tag.id)
-                    } else {
-                        dashboardCardSelectedTagIds.insert(tag.id)
-                    }
-                } label: {
-                    Text(verbatim: tag.name)
-                        // 在 dashboard cards 這邊把 chip label 字體放大（11pt
-                        // → 13pt medium）— 全頁裡 .chipLabel 預設最小，user
-                        // 反映吃力。其他 .chipLabel call site (TaskPopoverView)
-                        // 維持不動，所以不改 token、改 inline。
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(active ? Color.nudgePrimaryForeground : Color.nudgeForeground)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(active ? Color.nudgePrimary : Color.nudgeForeground.opacity(0.06))
-                        )
-                }
-                .buttonStyle(.plain)
-            }
-            if !dashboardCardSelectedTagIds.isEmpty {
-                Button {
-                    dashboardCardSelectedTagIds.removeAll()
-                } label: {
-                    HStack(spacing: 3) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("common.clear", bundle: .module)
-                            .font(.system(size: 13, weight: .medium))
-                    }
-                    .foregroundStyle(Color.nudgePrimary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                }
-                .buttonStyle(.plain)
-            }
-        }
+        CardTagChips(
+            allTags: dashboardCardAllTags,
+            selectedTagIds: $dashboardCardSelectedTagIds
+        )
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
     }
