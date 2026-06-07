@@ -198,7 +198,10 @@ public struct CardsHostView: View {
                 searchBar
                 content
             }
-            .frame(maxWidth: Self.listColumnWidth)
+            // top 對齊 + 撐滿高度：搜尋列恆釘在頂端，content（含空態）佔
+            // 剩餘空間。否則空態高度小時整個 VStack 會被父 HStack 垂直
+            // 置中，把搜尋框推到畫面中央。
+            .frame(maxWidth: Self.listColumnWidth, maxHeight: .infinity, alignment: .top)
             Spacer(minLength: 0)
         }
     }
@@ -224,23 +227,38 @@ public struct CardsHostView: View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
                 Button { selectedCard = nil } label: {
-                    Image(systemName: "xmark")
-                        .font(.callout.weight(.medium))
-                        .foregroundStyle(Color.nudgeTextDim)
+                    // chevron.left + nudgePrimary，對齊 Daily dashboard 的
+                    // DashboardColumnCardDetail back 按鈕。
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Color.nudgePrimary)
                         .frame(width: 28, height: 28)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .help(Text("common.done", bundle: .module))
+                .help(Text("common.back", bundle: .module))
                 .keyboardShortcut(.cancelAction)
+
+                // 卡片標題（唯讀導覽用；編輯仍走 CardDetailView 的 ...
+                // menu → rename）。空標題顯示「未命名」淡色，對齊
+                // CardGridItemView 的呈現。
+                if card.title.isEmpty {
+                    Text("cards.untitled", bundle: .module)
+                        .nudgeFont(.columnDetailTitle)
+                        .foregroundStyle(Color.nudgeTextDim)
+                        .lineLimit(1)
+                } else {
+                    Text(verbatim: card.title)
+                        .nudgeFont(.columnDetailTitle)
+                        .foregroundStyle(Color.nudgeForeground)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
 
                 Spacer()
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-
-            Divider()
-                .background(Color.nudgeBorderLight)
 
             CardDetailView(
                 card: card,
@@ -320,6 +338,7 @@ public struct CardsHostView: View {
                             Image(systemName: "magnifyingglass")
                         }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     // 剛開始 filtering、fetch 尚未回 — 撐版避免閃 empty。
                     Color.clear.frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -335,6 +354,7 @@ public struct CardsHostView: View {
                         Image(systemName: "exclamationmark.triangle")
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ContentUnavailableView {
                     Label {
@@ -349,6 +369,7 @@ public struct CardsHostView: View {
                         Text("cards.createAria", bundle: .module)
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         } else {
             ScrollView { macGrid }
@@ -561,6 +582,21 @@ public struct CardsHostView: View {
                 tags: c.tags
             )
         }
+
+        #if os(macOS)
+        // selectedCard 是 detail header 標題的來源；rename 後同步它，
+        // header 標題才會即時更新（更新 cards array 不會自動帶到
+        // selectedCard）。
+        if let sel = selectedCard, sel.id == cardId {
+            selectedCard = CardDTO(
+                id: sel.id,
+                title: title,
+                description: sel.description,
+                updatedAt: sel.updatedAt,
+                tags: sel.tags
+            )
+        }
+        #endif
 
         Task {
             do {
