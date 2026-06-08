@@ -122,6 +122,14 @@ struct MacSidebarRoot: View {
     // restoring to "Today" is a sensible default anyway.
     @State private var selection: SidebarItem = .today
 
+    /// Sidebar 顯示狀態 — 綁 NavigationSplitView。視窗變窄時自動收成
+    /// .detailOnly（見 body 的 GeometryReader），避免 sidebar 進 overlay
+    /// 蓋住內容。
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    /// 目前是否處於窄視窗區間 — 用來偵測「寬↔窄交界」，只在跨界時自動
+    /// 切 columnVisibility，同一區間內手動展開/收合 sidebar 不被覆蓋。
+    @State private var sidebarIsNarrow = false
+
     // Toolbar state lifted from individual hosts. Previously each host
     // declared its own `.toolbar { }` on the active branch, which let
     // toolbar items bubble up into NavigationSplitView's shared
@@ -158,7 +166,7 @@ struct MacSidebarRoot: View {
         // 與 push detail (Cards/Daily 在 detail 內 push 卡片頁)。
         // 之前是 3 欄但 detail 永遠顯示「選擇項目」placeholder，被
         // 拿掉。
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             List(selection: $selection) {
                 Section {
                     NavigationLink(value: SidebarItem.today) {
@@ -241,6 +249,23 @@ struct MacSidebarRoot: View {
                 }
             }
             .toolbar { rootToolbar }
+        }
+        // 視窗變窄時自動收合 sidebar。只在「寬↔窄」交界時動作（用
+        // sidebarIsNarrow 記住目前區間），所以在同一寬度區間內手動展開
+        // / 收合 sidebar 不會被覆蓋。門檻 1000：視窗 min 寬 900，900~1000
+        // 自動收起、≥1000 才並排，避免 sidebar 進 overlay 蓋住內容。
+        // 用 onGeometryChange（macOS 15+，專門偵測尺寸、可靠）量視窗寬度。
+        // 先前用 .background(GeometryReader{ onChange }) 不穩：resize 後
+        // onChange 不一定 fire（debug 版剛好因每次多寫一個 state 才一直
+        // 觸發）。onGeometryChange 是正解。
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.width
+        } action: { width in
+            let narrow = width < 1000
+            if narrow != sidebarIsNarrow {
+                sidebarIsNarrow = narrow
+                columnVisibility = narrow ? .detailOnly : .all
+            }
         }
         // Mac sidebar selection should track the user's system accent
         // (Appearance preferences). The previous version forced
@@ -478,21 +503,19 @@ struct MacSidebarRoot: View {
     @ToolbarContentBuilder
     private var calendarToolbar: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
-            Menu {
+            // 日｜週｜月 segmented — 直接點擊切換，取代原本的下拉 Menu。
+            // palette style + nudgePrimary 對齊 dailyToolbar 的 calendar/
+            // cards picker。綁 @AppStorage(viewMode)，CalendarHostView 讀
+            // 同一個 key 即時跟著切。
+            Picker(selection: $calendarModeRaw) {
                 ForEach(CalendarViewMode.allCases) { m in
-                    Button {
-                        calendarModeRaw = m.rawValue
-                    } label: {
-                        HStack {
-                            if calendarModeRaw == m.rawValue { Image(systemName: "checkmark") }
-                            Text(m.labelKey, bundle: .module)
-                        }
-                    }
+                    Text(m.labelKey, bundle: .module).tag(m.rawValue)
                 }
             } label: {
-                Image(systemName: "square.grid.2x2")
-                    .foregroundStyle(Color.nudgeForeground)
+                EmptyView()
             }
+            .pickerStyle(.palette)
+            .tint(Color.nudgePrimary)
             .help(Text("calendar.modePickerAria", bundle: .module))
         }
     }

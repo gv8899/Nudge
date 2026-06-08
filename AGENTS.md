@@ -4,6 +4,24 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+# 專案速覽 & 常用指令
+
+三邊共用同一後端 + 同一份 i18n source：**Web (Next.js / `src/`)**、**iOS + macOS (SwiftUI / `apple/`)**、**Flutter mobile (`mobile/`)**。各子系統細節看自己的 README（`apple/README.md`、`apple/NudgeEditor/README.md`、`i18n/README.md`）；這份只記「跨檔開發時最容易漏」的規則。
+
+| 任務 | 指令 |
+| --- | --- |
+| Web dev server | `npm run dev` |
+| Web build（語法驗證） | `npx next build` |
+| 單元測試（vitest） | `npm test`（單檔：`npx vitest run <path>`） |
+| Lint | `npm run lint` |
+| i18n 同步 | `npm run i18n:sync`（CI 檢查：`npm run i18n:check`） |
+| Apple 重生 xcodeproj | `cd apple && xcodegen generate`（改 `project.yml` 後必跑；`.xcodeproj` 不進 git） |
+| Mac DMG 打包 | `./apple/scripts/build-dmg.sh` |
+| 裝 pre-commit hook | `./scripts/install-git-hooks.sh`（一次性，掛 Swift token lint） |
+
+- **測試慣例**：vitest，測試檔跟 source 同層放 `*.test.ts`。純邏輯（`recurrence`、`schedule-validation`、i18n transpile）都有測試 — 改這些先補 / 跑測試（紅→綠）。
+- **pre-commit hook**：`scripts/install-git-hooks.sh` 會掛 `lint-swift-tokens.sh`，commit 時擋硬編碼 Swift 色。新 clone 記得跑一次，不然 token 違規會漏出去。
+
 # 設計系統
 
 寫任何 UI 之前，先參考既有設計系統，**不要憑空挑顏色或樣式**：
@@ -15,18 +33,34 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **狀態色**：定義在 `src/lib/constants.ts` 的 `TASK_STATUSES`，每個狀態都有 `color` 和 `bgColor`
 - **既有元件對齊**：新元件的 layout、間距、checkbox 樣式應參考相似既有元件（如新任務元件先讀 `src/components/task/task-card.tsx`），不要自己另起一套
 - **禁止**：硬編碼 hex 色、隨意挑 Tailwind 預設色（`amber-400`、`blue-500` 等都不可），所有顏色必須來自 design system token
+- **i18n（重要 — 來源已換）**：UI 字串的**唯一 source 是 `i18n/canonical/zh-TW.json`**（巢狀 JSON + ICU MessageFormat）。`src/messages/*.json` 是 `npm run i18n:sync` 的**生成檔**，**不要手改**，手改會被下次 sync 蓋掉。新增 / 改 key：改 `canonical/zh-TW.json` → 跑 `npm run i18n:sync`（en/ja 待翻譯會列進 `i18n/.pending-translations.md`，在對話裡請我翻）→ 再 sync 一次轉檔到 web (`src/messages`) + flutter (`mobile/lib/l10n/*.arb`)。詳見 `i18n/README.md`。
 
 ## Apple (apple/ — iOS + macOS / SwiftUI)
 
 - **Color tokens**：只准用 `Color.nudgeXxx`（看 `apple/NudgeKit/Sources/NudgeUI/Tokens/Color+Nudge.swift`）。語義層：`nudgeDestructive` / `nudgeSuccess` / `nudgeWarning` / `nudgeInfo`。元件層：`nudgeBackground` / `nudgeForeground` / `nudgePrimary` / `nudgePrimaryForeground` / `nudgeBorder` / `nudgeBorderLight` / `nudgeTextDim`。圖表層：`nudgeChart1..5` 只給資料視覺化用，不當狀態色挪用。
 - **禁止 Swift 色**：`Color.blue` / `.red` / `.gray` / `.accentColor` / `Color(red:green:blue:)` / `"#RRGGBB"` 都不准。pre-commit hook (`scripts/lint-swift-tokens.sh`) 會擋；真需要 literal（tag hex parser 類）加 `// nudge:allow-color` 逐行白名單。
-- **i18n**：`Text("key", bundle: .module)`，`bundle: .module` 一定要帶；key 來自 `apple/NudgeKit/Sources/NudgeUI/Resources/Localizable.xcstrings`，鏡像 Web `src/messages/*.json`。**先查 Web 有沒有；有就沿用，沒有才在 Web 新增再 mirror**，不要直接在 xcstrings 生 key。
+- **i18n**：`Text("key", bundle: .module)`，`bundle: .module` 一定要帶；key 存在 `apple/NudgeKit/Sources/NudgeUI/Resources/Localizable.xcstrings`。**注意：xcstrings 不在 `i18n:sync` 範圍內，仍要手動鏡像** — 先確認 canonical (`i18n/canonical/zh-TW.json`) 有該 key（沒有就先按上面 Web i18n 流程加進 canonical 並 sync），再把同名 key + 翻譯補進 xcstrings。不要直接在 xcstrings 憑空生 key。
 - **Icon-only 按鈕**：一律用 `IconButton(systemName: accessibilityLabel: action:)`（44×44 + a11y label 已 bake 進去），不要自己組 `Button { Image(...) }`。
 - **Checkbox**：`NudgeCheckbox(isChecked: accessibilityLabel: action:)`。
 - **主要 action button**：`NudgeButton("common.xxx", variant: .primary/.secondary/.destructive, action:)`。
 - **系統元件初始化**：iOS 的 TabBar / NavigationBar 預設吃系統藍灰，靠 `NudgeAppearance.configure()` 在 App init 一次性套 token；加新系統元件（toolbar、searchbar 等）時擴充該檔而不是每個 view 自己 tint。
-- **i18n 鏡像原則**：`common.edit` / `common.confirm` 這類「通用按鈕」如果 Web 沒有，**先加到 Web messages**，再補到 xcstrings。三邊（iOS / macOS / Web）key 名與翻譯對齊。
+- **i18n 鏡像原則**：`common.edit` / `common.confirm` 這類「通用按鈕」如果還沒有，**先加到 `i18n/canonical/zh-TW.json` 並 `npm run i18n:sync`**（生成 Web messages），再把 key 補到 xcstrings。三邊（iOS / macOS / Web）key 名與翻譯對齊。
 - **Definition of Done**：SwiftUI 寫完 `swift build` 過不等於好，**必須另外跑 `xcodebuild -scheme Nudge-iOS ... build`**（SwiftUI modifier 很多只在 full target build 才報錯，例如 `Label(text:systemImage:)` 不存在這種）。iOS/macOS 互動功能必須在模擬器實測。
+
+# 資料庫 & migration
+
+- Schema source = `src/lib/db/schema.ts`（drizzle-orm）。Migration SQL 在 `drizzle/`，**依序手動跑**：`psql "$DATABASE_URL" -f drizzle/000X_xxx.sql`。package.json **沒有** `drizzle-kit push/migrate`，不要假設有自動 migrate。
+- 改 schema 流程：改 `schema.ts` → `npx drizzle-kit generate` 產新 SQL → 人工檢視 → 依序跑。
+- **部署順序雷**：production 與 dev 可能共用同一個 Postgres。跑 migration 前先確保「依賴新欄位的 code」已經上線，否則還在跑舊 code 的進程會撞到 schema 不一致。加欄位優先用 nullable / default，必要時分兩段部署（先上相容 code，再跑 migration）。
+
+# 架構備忘（容易踩雷的設計）
+
+## 重複任務 (recurrence) = lazy materialization
+
+- 規則存 `task_recurrences`；判斷某天是否 occur 的純邏輯在 `src/lib/recurrence.ts` 的 `occurs()`，**鏡像**在 iOS `NudgeCore/RecurrenceCalculator.swift`（給 local notification 排程）。**改一邊，兩邊測試都要過。**
+- occurrence 不是預先全展開：`GET /api/daily/[date]` 在被要求那天才用 `occurs()` + `ON CONFLICT DO NOTHING` 把當天 row 補進 `daily_task_assignments`。週檢視 (`/api/daily/week`) 只算虛擬圓點、**不寫 DB**。
+- **孤兒雷（這條最常炸）**：`daily_task_assignments` 沒有欄位區分「規則自動展開」vs「使用者手動排的」。所以把規則改窄 / 刪規則時，舊規則展開、現在落在窗外的未來 row 會變孤兒（永遠卡 overdue，或日期=今天時誤現在「今天」清單）。`PUT` / `DELETE /api/tasks/[id]/recurrence` 必須用 `assignmentsToReap()` 對帳回收 —— 只回收 `date > today && !isCompleted && !isSkipped && 落在新規則窗外`；過去 / 今天 / 已完成 / 已跳過一律保留。**動這條 API 時別把對帳邏輯拿掉。**
+- `/api/daily` 走 ETag 條件式 GET；ETag 計算要把 `task_recurrences` 一起算進去，否則改規則後會 304 假陽性（見 commit `0bd4f98`）。
 
 # 完成定義 (Definition of Done)
 

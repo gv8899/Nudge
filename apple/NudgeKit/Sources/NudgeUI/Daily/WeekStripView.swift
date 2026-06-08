@@ -45,7 +45,6 @@ public struct WeekStripView: View {
             #endif
         }
         .padding(.vertical, 12)
-        .animation(.easeOut(duration: 0.2), value: selectedDate)
     }
 
     private func currentWeekDates() -> [String] {

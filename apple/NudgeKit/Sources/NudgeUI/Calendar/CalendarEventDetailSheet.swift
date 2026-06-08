@@ -66,10 +66,8 @@ public struct CalendarEventDetailSheet: View {
                 }
 
                 if !event.attendees.isEmpty {
-                    // 與會者 section 跟上方 infoRow 之間加細分隔線，建立
-                    // chunk 邊界、減少一坨 cream 沒層次的閱讀疲勞。
-                    Divider()
-                        .background(Color.nudgeBorderLight)
+                    // 與會者 section — 靠 section spacing 與標題建立層次，
+                    // 不再用分隔線。
                     VStack(alignment: .leading, spacing: 10) {
                         Text(verbatim: "\(nudgeLocalized("calendar.attendees", locale: locale)) (\(event.attendees.count))")
                             .font(.subheadline.weight(.semibold))

@@ -133,11 +133,7 @@ public struct OverdueSectionView: View {
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Status 標示（重複 / 提醒）— placement B。
-            TaskStatusIndicators(
-                isRecurring: task.isRecurring,
-                hasReminder: task.hasReminder
-            )
+            // 重複 / 提醒狀態標示已移到點任務彈出的 popover 內。
 
             // Overdue rows are by definition not "today", so the menu's
             // "Move to today" entry is always shown via isToday: false.

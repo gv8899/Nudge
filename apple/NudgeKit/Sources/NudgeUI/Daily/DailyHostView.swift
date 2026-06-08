@@ -188,7 +188,6 @@ public struct DailyHostView: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.horizontal, 16)
                         .padding(.top, 6)
-                        .animation(.easeOut(duration: 0.2), value: selectedDate)
 
                     statusBanner
                     WeekStripView(
@@ -253,7 +252,6 @@ public struct DailyHostView: View {
                     .accessibilityLabel(Text("nav.settings", bundle: .module))
                 }
             }
-            .animation(.easeOut(duration: 0.2), value: loadState)
             .sensoryFeedback(.success, trigger: completionTicker)
             .sensoryFeedback(.impact(weight: .medium), trigger: archiveTicker)
             .sensoryFeedback(.selection, trigger: moveTicker)
@@ -430,7 +428,6 @@ public struct DailyHostView: View {
         NavigationStack(path: $navigationPath) {
             macOSContent
         }
-        .animation(.easeOut(duration: 0.2), value: loadState)
         // macOS 全部 modal（排程 / move-to-date / quick-add / task popover）
         // 都上移到 MacSidebarRoot 用 window-level overlay 渲染（支援點外取消）。
         // 這裡只負責 listen 各自的 callback notification、做對應 data 操作。
@@ -443,7 +440,14 @@ public struct DailyHostView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: CardRepository.cardDidChangeNotification)) { _ in
-            Task { await reloadDashboardCards() }
+            // 卡片內容變動後（popover / 右欄 detail 改標題、內文）：右欄
+            // 「最近卡片」要刷新，左側行動清單的 row 也得跟著更新。popover
+            // 走 cardRepo 直接 PATCH，不像 iOS 的 updateTaskTitle 會做樂觀
+            // patch — 少了 reloadSilently()，row 標題會一直停在舊值。
+            Task {
+                await reloadDashboardCards()
+                await reloadSilently()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.submitQuickAddNotification)) { note in
             if let title = note.object as? String {
@@ -844,93 +848,21 @@ public struct DailyHostView: View {
     }
 
     private var dashboardCardsSearchField: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass")
-                .nudgeFont(.fieldIcon)
-                .foregroundStyle(Color.nudgeTextDim)
-            TextField(
-                "",
-                text: $dashboardCardSearchQuery,
-                prompt: Text("cards.searchPlaceholder", bundle: .module)
-            )
-            .textFieldStyle(.plain)
-            .nudgeFont(.fieldText)
-            .foregroundStyle(Color.nudgeForeground)
-            // .tint 控制 TextField 的 cursor / selection accent — 用品牌
-            // primary 色取代系統預設藍。
-            .tint(Color.nudgePrimary)
-            .focused($dashboardCardSearchFieldFocused)
-            if !dashboardCardSearchQuery.isEmpty {
-                Button { dashboardCardSearchQuery = "" } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .nudgeFont(.fieldIcon)
-                        .foregroundStyle(Color.nudgeTextDim)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.nudgeForeground.opacity(0.06))
+        CardSearchField(
+            query: $dashboardCardSearchQuery,
+            isFocused: $dashboardCardSearchFieldFocused
         )
+        // 容器外距與 auto-focus 留在呼叫端（元件只負責 field 本體）。
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
-        // 點搜尋 icon 展開 → field 一出現就 auto focus，cursor 直接落在
-        // 輸入框，user 不用再點一下 field 才能打字。
         .onAppear { dashboardCardSearchFieldFocused = true }
     }
 
-    @ViewBuilder
     private var dashboardCardsTagChips: some View {
-        // 標籤多時 FlowLayout 自動折行（之前用 horizontal ScrollView 一條
-        // 橫向 strip，user 反映想看到所有標籤、不要被截掉只能 scroll）。
-        // lineSpacing 10 比 horizontal spacing 大 — 折行後上下需要更多
-        // 視覺呼吸，否則 chip 黏成一塊很擠。
-        FlowLayout(spacing: 6, lineSpacing: 10) {
-            ForEach(dashboardCardAllTags) { tag in
-                let active = dashboardCardSelectedTagIds.contains(tag.id)
-                Button {
-                    if active {
-                        dashboardCardSelectedTagIds.remove(tag.id)
-                    } else {
-                        dashboardCardSelectedTagIds.insert(tag.id)
-                    }
-                } label: {
-                    Text(verbatim: tag.name)
-                        // 在 dashboard cards 這邊把 chip label 字體放大（11pt
-                        // → 13pt medium）— 全頁裡 .chipLabel 預設最小，user
-                        // 反映吃力。其他 .chipLabel call site (TaskPopoverView)
-                        // 維持不動，所以不改 token、改 inline。
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(active ? Color.nudgePrimaryForeground : Color.nudgeForeground)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(active ? Color.nudgePrimary : Color.nudgeForeground.opacity(0.06))
-                        )
-                }
-                .buttonStyle(.plain)
-            }
-            if !dashboardCardSelectedTagIds.isEmpty {
-                Button {
-                    dashboardCardSelectedTagIds.removeAll()
-                } label: {
-                    HStack(spacing: 3) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("common.clear", bundle: .module)
-                            .font(.system(size: 13, weight: .medium))
-                    }
-                    .foregroundStyle(Color.nudgePrimary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                }
-                .buttonStyle(.plain)
-            }
-        }
+        CardTagChips(
+            allTags: dashboardCardAllTags,
+            selectedTagIds: $dashboardCardSelectedTagIds
+        )
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
     }
@@ -1000,7 +932,6 @@ public struct DailyHostView: View {
         .padding(.horizontal, 24)
         .padding(.top, 16)
         .padding(.bottom, 12)
-        .animation(.easeOut(duration: 0.2), value: selectedDate)
     }
 
     /// 「今天 (N)」section divider — 跟 OverdueSectionView header 視覺
@@ -1489,6 +1420,11 @@ extension DailyHostView {
         Task {
             do {
                 try await taskRepo.updateTitle(taskId: taskId, title: title)
+                // 樂觀 patch 之後再跟 server 對帳 —— 對齊 toggleComplete /
+                // moveAssignment 等其它 mutation。改名是從 detail 的 debounce
+                // callback 跨 view 觸發，樂觀 patch 一旦沒套用到，少了這步
+                // 行動清單的 row 標題就會永遠停在舊值。
+                await reloadSilently()
             } catch {
                 print("[DailyHostView] updateTitle failed: \(error)")
             }

@@ -120,6 +120,41 @@ export function occurs(dateStr: string, rule: RecurrenceRule): boolean {
 }
 
 /**
+ * 改 / 刪 recurrence 後，算出該回收 (delete) 的已 materialize occurrence 日期。
+ *
+ * 回收條件（全部成立才回收）：
+ *   - date > today          只動未來；過去 + 今天保留（歷史 / 不從使用者眼前抽走）
+ *   - !isCompleted          已完成的留著當紀錄
+ *   - !isSkipped            已跳過的本來就不顯示，留著
+ *   - rule == null || !occurs(date, rule)
+ *                           落在新規則窗外；刪 recurrence 時 rule=null → 全未來回收
+ *
+ * 動機：舊規則 materialize 的 occurrence 在規則縮窗 / 刪除後會變孤兒
+ * （永遠卡 overdue，或日期剛好是今天時誤現在「今天」清單）。改規則時對帳
+ * 才能清掉。不處理「規則窗內、未完成」的 overdue occurrence — 那是合法的
+ * 未完成 occurrence。
+ */
+export function assignmentsToReap(
+  assignments: ReadonlyArray<{
+    date: string;
+    isCompleted: boolean;
+    isSkipped: boolean;
+  }>,
+  rule: RecurrenceRule | null,
+  today: string,
+): string[] {
+  return assignments
+    .filter(
+      (a) =>
+        a.date > today &&
+        !a.isCompleted &&
+        !a.isSkipped &&
+        (rule === null || !occurs(a.date, rule)),
+    )
+    .map((a) => a.date);
+}
+
+/**
  * 計算 [fromISO, toISO] 範圍內 (含端點) rule 所有 occur 的日期。
  * 給 iOS notification scheduler 算「未來 30 天」用。
  */

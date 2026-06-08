@@ -55,18 +55,14 @@ struct TaskPopoverView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.nudgeBackground)
         .task { await loadCard() }
-        .task {
-            // present 與 focus 競爭：太早 set 會被 NSWindow 搶走，
-            // 60ms 後再 focus。
-            try? await Task.sleep(nanoseconds: 60_000_000)
-            titleFocused = true
-        }
     }
 
     /// 標題 + 展開 icon 同一行。展開按鈕 icon-only（移除「展開」文字）、
     /// 靠右上。checkbox / close 已拿掉（close 走 modal overlay backdrop / ⎋）。
     private var titleRow: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
+        // .center 對齊：展開按鈕帶 30×30 點擊範圍，在 .firstTextBaseline
+        // 下框內 glyph 的 baseline 會跟狀態 icon 對不齊；改置中後三者同高。
+        HStack(alignment: .center, spacing: 10) {
             TextField(
                 "",
                 text: $title,
@@ -79,27 +75,30 @@ struct TaskPopoverView: View {
             .focused($titleFocused)
             .onChange(of: title) { _, new in debouncedSaveTitle(new) }
 
-            if assignment.isRecurring {
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                    Text("daily.popoverRecurringBadge", bundle: .module)
-                }
-                .nudgeFont(.chipLabel)
-                .foregroundStyle(Color.nudgeTextDim)
-            }
+            // Trailing controls — 狀態標示 + 展開。展開按鈕的 glyph 因
+            // 30×30 點擊框內縮約 7.5pt，spacing 收到 4 讓 🔔→↗ 的視覺
+            // 間距跟 ↻→🔔 對齊；trailing padding 同步收到 14，使 ↗ 到
+            // 視窗邊的距離跟標題的 22pt 左緣對稱。
+            HStack(spacing: 4) {
+                TaskStatusIndicators(
+                    isRecurring: assignment.isRecurring,
+                    hasReminder: assignment.hasReminder
+                )
 
-            Button(action: handleExpand) {
-                Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color.nudgePrimary)
-                    .frame(width: 30, height: 30)
-                    .contentShape(Rectangle())
+                Button(action: handleExpand) {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Color.nudgePrimary)
+                        .frame(width: 30, height: 30)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(Text("daily.popoverExpand", bundle: .module))
+                .accessibilityLabel(Text("daily.popoverExpand", bundle: .module))
             }
-            .buttonStyle(.plain)
-            .help(Text("daily.popoverExpand", bundle: .module))
-            .accessibilityLabel(Text("daily.popoverExpand", bundle: .module))
         }
-        .padding(.horizontal, 22)
+        .padding(.leading, 22)
+        .padding(.trailing, 14)
         .padding(.top, 16)
         .padding(.bottom, 10)
     }

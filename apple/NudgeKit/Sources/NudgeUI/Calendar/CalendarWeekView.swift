@@ -88,7 +88,7 @@ public struct CalendarWeekView: View {
             )
             Spacer()
             Text(verbatim: headerRangeLabel)
-                .font(.subheadline.weight(.medium))
+                .font(.title3.weight(.semibold))
                 .foregroundStyle(Color.nudgeForeground)
             Spacer()
             Button(action: onThisWeek) {
@@ -122,13 +122,12 @@ public struct CalendarWeekView: View {
         let dayEvents = eventsByDate[iso] ?? []
         return VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: label)
-                .font(.caption.weight(.semibold))
-                // Empty days dim the label too, so the eye skips them
-                // when scanning for content. Was: same colour for empty
-                // and filled days, which made all 7 day blocks read at
-                // the same weight regardless of whether they had events.
-                .foregroundStyle(dayEvents.isEmpty ? Color.nudgeTextDim.opacity(0.7) : Color.nudgeTextDim)
-                .textCase(.uppercase)
+                // 星期分組標題放大到 headline，凸顯它是日期分組的主標題
+                // （事件 row 是其下的內文層級）。
+                .font(.headline)
+                // 有事件 → nudgeForeground 深色強調；空白日 → 淡色，
+                // 掃視時自然跳過。
+                .foregroundStyle(dayEvents.isEmpty ? Color.nudgeTextDim : Color.nudgeForeground)
             if !dayEvents.isEmpty {
                 ForEach(dayEvents, id: \.id) { event in
                     let past = isPast(event.end)
