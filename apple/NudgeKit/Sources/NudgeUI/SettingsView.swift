@@ -230,16 +230,11 @@ public struct SettingsView: View {
             SettingsRow {
                 Text("settings.theme.section", bundle: .module)
             } trailing: {
-                Picker(selection: theme) {
-                    Text("settings.theme.system", bundle: .module).tag(NudgeTheme.system)
-                    Text("settings.theme.light", bundle: .module).tag(NudgeTheme.light)
-                    Text("settings.theme.dark", bundle: .module).tag(NudgeTheme.dark)
-                } label: {
-                    EmptyView()
-                }
-                .pickerStyle(.menu)
-                .labelsHidden()
-                .tint(Color.nudgeForeground)
+                settingsMenu(
+                    selection: theme,
+                    options: NudgeTheme.allCases,
+                    label: themeLabel
+                )
             }
         }
     }
@@ -249,18 +244,71 @@ public struct SettingsView: View {
             SettingsRow {
                 Text("settings.language.section", bundle: .module)
             } trailing: {
-                Picker(selection: language) {
-                    Text("settings.language.auto", bundle: .module).tag(NudgeLanguage.auto)
-                    Text("settings.language.zhTW", bundle: .module).tag(NudgeLanguage.zhTW)
-                    Text("settings.language.en", bundle: .module).tag(NudgeLanguage.en)
-                    Text("settings.language.ja", bundle: .module).tag(NudgeLanguage.ja)
-                } label: {
-                    EmptyView()
-                }
-                .pickerStyle(.menu)
-                .labelsHidden()
-                .tint(Color.nudgeForeground)
+                settingsMenu(
+                    selection: language,
+                    options: NudgeLanguage.allCases,
+                    label: languageLabel
+                )
             }
+        }
+    }
+
+    // MARK: - Settings menu（取代 .pickerStyle(.menu)）
+    //
+    // macOS 上 `.pickerStyle(.menu)` 的 selected-value 文字由 AppKit
+    // (NSPopUpButton) 繪製，`.tint` 的 adaptive 色會對到 window 的
+    // NSAppearance（跟 SwiftUI `.preferredColorScheme` 不同步）→ 切 theme
+    // 後文字色反相、看不清。改用 SwiftUI `Menu` + 自繪 label：label 的
+    // `.foregroundStyle` 走 SwiftUI `\.colorScheme`，跟著 theme 正確解析。
+    // 與 CardDetailView.moreMenu 同 pattern。
+    private func settingsMenu<Value: Hashable>(
+        selection: Binding<Value>,
+        options: [Value],
+        label: @escaping (Value) -> Text
+    ) -> some View {
+        Menu {
+            ForEach(options, id: \.self) { option in
+                Button {
+                    selection.wrappedValue = option
+                } label: {
+                    if option == selection.wrappedValue {
+                        Label { label(option) } icon: { Image(systemName: "checkmark") }
+                    } else {
+                        label(option)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 6) {
+                label(selection.wrappedValue)
+                    .foregroundStyle(Color.nudgeForeground)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2)
+                    .foregroundStyle(Color.nudgeTextDim)
+            }
+            .contentShape(Rectangle())
+        }
+        .menuIndicator(.hidden)
+        .fixedSize()
+        #if os(macOS)
+        .menuStyle(.borderlessButton)
+        #endif
+    }
+
+    private func themeLabel(_ t: NudgeTheme) -> Text {
+        switch t {
+        case .system: Text("settings.theme.system", bundle: .module)
+        case .light: Text("settings.theme.light", bundle: .module)
+        case .dark: Text("settings.theme.dark", bundle: .module)
+        }
+    }
+
+    private func languageLabel(_ l: NudgeLanguage) -> Text {
+        switch l {
+        case .auto: Text("settings.language.auto", bundle: .module)
+        case .zhTW: Text("settings.language.zhTW", bundle: .module)
+        case .en: Text("settings.language.en", bundle: .module)
+        case .ja: Text("settings.language.ja", bundle: .module)
         }
     }
 
