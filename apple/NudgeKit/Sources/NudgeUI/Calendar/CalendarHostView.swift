@@ -183,7 +183,7 @@ public struct CalendarHostView: View {
     private var modeContent: some View {
         switch mode {
         case .day:
-            CalendarDayView(
+            let dayView = CalendarDayView(
                 selectedDate: $selectedDate,
                 weekDates: $weekDates,
                 events: events,
@@ -192,19 +192,30 @@ public struct CalendarHostView: View {
                 onEventTap: handleEventTap,
                 hideWeekStrip: externalSelectedDate != nil
             )
+            // standalone Calendar tab：day 檢視置中收窄、對齊 Cards 的
+            // 欄寬，不撐滿整個視窗。embedded（Daily 右欄）維持撐滿窄面板。
+            if embedded {
+                dayView
+            } else {
+                centeredColumn { dayView }
+            }
         case .week:
             let start = weekStart(selectedDateObj)
             let end = calendar.date(byAdding: .day, value: 6, to: start) ?? start
-            CalendarWeekView(
-                weekStart: start,
-                weekEnd: end,
-                events: events,
-                isLoading: isLoading,
-                onPrevWeek: { offsetWeek(-1) },
-                onNextWeek: { offsetWeek(1) },
-                onThisWeek: { selectedDate = DateFormatters.isoDate(Date()) },
-                onEventTap: handleEventTap
-            )
+            // week 僅在 standalone Calendar tab 出現（embedded 強制 day），
+            // 同樣置中收窄對齊 Cards 佈局。
+            centeredColumn {
+                CalendarWeekView(
+                    weekStart: start,
+                    weekEnd: end,
+                    events: events,
+                    isLoading: isLoading,
+                    onPrevWeek: { offsetWeek(-1) },
+                    onNextWeek: { offsetWeek(1) },
+                    onThisWeek: { selectedDate = DateFormatters.isoDate(Date()) },
+                    onEventTap: handleEventTap
+                )
+            }
         case .month:
             CalendarMonthView(
                 selectedDate: $selectedDate,
@@ -219,6 +230,22 @@ public struct CalendarHostView: View {
                     modeRaw = CalendarViewMode.day.rawValue
                 }
             )
+        }
+    }
+
+    /// standalone day/week 檢視的置中欄寬 — 對齊 Cards tab 的
+    /// `CardsHostView.listColumnWidth (720)`，讓兩個 tab 視覺一致。
+    private static let standaloneColumnWidth: CGFloat = 720
+
+    /// 把 day/week 內容置中收窄到 `standaloneColumnWidth`，兩側留白，
+    /// 不撐滿整個視窗寬度（對齊 Cards 的 centeredList 佈局）。
+    @ViewBuilder
+    private func centeredColumn<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        HStack(spacing: 0) {
+            Spacer(minLength: 0)
+            content()
+                .frame(maxWidth: Self.standaloneColumnWidth, maxHeight: .infinity)
+            Spacer(minLength: 0)
         }
     }
 

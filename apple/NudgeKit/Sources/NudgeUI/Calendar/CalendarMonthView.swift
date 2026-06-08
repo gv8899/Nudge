@@ -59,18 +59,11 @@ public struct CalendarMonthView: View {
         Dictionary(grouping: events, by: { String($0.start.prefix(10)) })
     }
 
-    private var selectedDayEvents: [CalendarEventDTO] {
-        eventsByDate[selectedDate] ?? []
-    }
-
     public var body: some View {
         VStack(spacing: 0) {
             header
             weekdayHeader
             gridView
-            Divider().background(Color.nudgeBorderLight)
-            bottomList
-            Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
@@ -84,7 +77,7 @@ public struct CalendarMonthView: View {
             )
             Spacer()
             Text(verbatim: monthTitle)
-                .font(.subheadline.weight(.semibold))
+                .font(.title3.weight(.semibold))
                 .foregroundStyle(Color.nudgeForeground)
             Spacer()
             Button(action: onThisMonth) {
@@ -122,7 +115,7 @@ public struct CalendarMonthView: View {
         return HStack(spacing: 0) {
             ForEach(0..<7, id: \.self) { i in
                 Text(keys[i], bundle: .module)
-                    .font(.caption2)
+                    .font(.footnote.weight(.medium))
                     .foregroundStyle(Color.nudgeTextDim)
                     .frame(maxWidth: .infinity)
             }
@@ -138,10 +131,17 @@ public struct CalendarMonthView: View {
                         cell(date: grid[row][col])
                     }
                 }
+                // 每週列等高分配剩餘高度 — 格子才夠高放事件 bar
+                // （TimeTree 月檢視風格）。
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .padding(.horizontal, 4)
+        .frame(maxHeight: .infinity)
     }
+
+    /// 一格最多顯示幾條事件 bar，超過用「+N」收尾（TimeTree 月檢視風格）。
+    private let maxBarsPerCell = 3
 
     private func cell(date: Date) -> some View {
         let iso = DateFormatters.isoDate(date)
@@ -149,48 +149,79 @@ public struct CalendarMonthView: View {
         let isSelected = iso == selectedDate
         let isToday = iso == todayIso
         let isPad = calendar.component(.month, from: date) != monthComponent
-        let count = eventsByDate[iso]?.count ?? 0
+        let dayEvents = eventsByDate[iso] ?? []
 
-        return Button {
+        return VStack(spacing: 3) {
+            ZStack {
+                if isToday {
+                    Circle().fill(Color.nudgePrimary)
+                        .frame(width: 24, height: 24)
+                } else if isSelected {
+                    Circle().stroke(Color.nudgeForeground, lineWidth: 2)
+                        .frame(width: 24, height: 24)
+                }
+                Text(verbatim: "\(day)")
+                    .font(.subheadline.weight(isToday ? .semibold : .regular))
+                    .foregroundStyle(dayColor(isToday: isToday, isPad: isPad))
+            }
+            .frame(height: 26)
+
+            // 事件直接列在當天格子內（標題 bar）。超過上限顯示「+N」。
+            VStack(spacing: 2) {
+                ForEach(Array(dayEvents.prefix(maxBarsPerCell))) { event in
+                    eventBar(event)
+                }
+                if dayEvents.count > maxBarsPerCell {
+                    Text(verbatim: "+\(dayEvents.count - maxBarsPerCell)")
+                        .font(.caption2)
+                        .foregroundStyle(Color.nudgeTextDim)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.leading, 4)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.horizontal, 3)
+        .padding(.top, 4)
+        // 選中日整格淡底，跟日期圈一起讓選取狀態更明顯。
+        .background(isSelected ? Color.nudgeForeground.opacity(0.04) : Color.clear)
+        .clipped()
+        .contentShape(Rectangle())
+        // 點格子空白處：選日；再點同一天 → 切到日檢視。事件 bar 是獨立
+        // Button，會優先吃掉點擊、不觸發這裡的選日。
+        .onTapGesture {
             if isSelected {
                 onDayDoubleTap(iso)
             } else {
                 selectedDate = iso
             }
-        } label: {
-            VStack(spacing: 2) {
-                ZStack {
-                    if isToday {
-                        // Today reads as a filled accent disc — strongest
-                        // visual marker of the page.
-                        Circle().fill(Color.nudgePrimary)
-                            .frame(width: 28, height: 28)
-                    } else if isSelected {
-                        // Selected (but not today) gets a 2pt foreground
-                        // stroke — was 1pt borderLight, which on dark
-                        // mode was indistinguishable from background and
-                        // left the user with no confirmation of selection.
-                        Circle().stroke(Color.nudgeForeground, lineWidth: 2)
-                            .frame(width: 28, height: 28)
-                    }
-                    // Day digit upgraded from .footnote (~13pt) to
-                    // .subheadline (~15pt): a calendar's primary visual
-                    // info is the date number, the previous size made
-                    // it the weakest text on the page.
-                    Text(verbatim: "\(day)")
-                        .font(.subheadline.weight(isToday ? .semibold : .regular))
-                        .foregroundStyle(dayColor(isToday: isToday, isPad: isPad))
-                }
-                dots(count: count)
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 48)
-            .contentShape(Rectangle())
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(date, format: .dateTime.year().month().day()))
+        .accessibilityValue(a11yValue(count: dayEvents.count, isToday: isToday))
+    }
+
+    /// 格子內單一事件 bar — 點擊開事件 detail。過去事件以半透明
+    /// primary 呈現（淡化但仍可讀），對齊 day/week 的 past 處理。
+    private func eventBar(_ event: CalendarEventDTO) -> some View {
+        let past = isPast(event.end)
+        return Button { onEventTap(event) } label: {
+            Text(verbatim: event.title)
+                .font(.caption2)
+                .foregroundStyle(past ? Color.nudgeTextDim : Color.nudgePrimaryForeground)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 2)
+                .background(
+                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                        .fill(past ? Color.nudgePrimary.opacity(0.3) : Color.nudgePrimary)
+                )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(Text(date, format: .dateTime.year().month().day()))
-        .accessibilityValue(a11yValue(count: count, isToday: isToday))
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private func a11yValue(count: Int, isToday: Bool) -> Text {
@@ -210,79 +241,6 @@ public struct CalendarMonthView: View {
         // — two stages of dim stacked failed WCAG AA contrast).
         if isPad { return .nudgeTextDim }
         return .nudgeForeground
-    }
-
-    private func dots(count: Int) -> some View {
-        HStack(spacing: 2) {
-            if count == 0 {
-                Color.clear.frame(width: 4, height: 4)
-            } else if count <= 3 {
-                ForEach(0..<count, id: \.self) { _ in
-                    Circle().fill(Color.nudgePrimary).frame(width: 4, height: 4)
-                }
-            } else {
-                // Token-aligned font (was hard-coded .system(size: 8))
-                // — now respects Dynamic Type and matches the rest of
-                // the calendar's caption hierarchy.
-                Text(verbatim: "···")
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(Color.nudgePrimary)
-            }
-        }
-        .frame(height: 6)
-    }
-
-    @ViewBuilder
-    private var bottomList: some View {
-        if isLoading {
-            ProgressView().padding(20)
-        } else if selectedDayEvents.isEmpty {
-            Text("calendar.panelEmpty", bundle: .module)
-                .font(.caption)
-                .foregroundStyle(Color.nudgeTextDim)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(16)
-        } else {
-            ScrollView {
-                VStack(spacing: 8) {
-                    ForEach(selectedDayEvents, id: \.id) { event in
-                        let past = isPast(event.end)
-                        let textColor: Color = past ? Color.nudgeTextDim : Color.nudgeForeground
-                        Button { onEventTap(event) } label: {
-                            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                                Text(event.allDay ? nudgeLocalized("calendar.eventAllDay", locale: locale) : shortTime(event.start))
-                                    .font(.body.weight(.semibold))
-                                    .monospacedDigit()
-                                    .foregroundStyle(textColor)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.85)
-                                    .fixedSize(horizontal: true, vertical: false)
-                                    .frame(minWidth: 60, alignment: .leading)
-                                Text(verbatim: event.title)
-                                    .font(.body)
-                                    .foregroundStyle(textColor)
-                                    .lineLimit(1)
-                                Spacer()
-                            }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(Color.nudgeForeground.opacity(past ? 0.02 : 0.04))
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(16)
-            }
-        }
-    }
-
-    private func shortTime(_ iso: String) -> String {
-        guard let tIndex = iso.firstIndex(of: "T") else { return iso }
-        let afterT = iso.index(after: tIndex)
-        return String(iso[afterT...].prefix(5))
     }
 
     /// 跟 CalendarDayView / WeekView 共用的判斷邏輯。
