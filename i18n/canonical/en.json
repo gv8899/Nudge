@@ -72,7 +72,8 @@
     "cards": "Cards",
     "settings": "Settings",
     "mainNavAria": "Main navigation",
-    "settingsAria": "Open settings"
+    "settingsAria": "Open settings",
+    "calendar": "Calendar"
   },
   "login": {
     "tagline": "A lightweight nudge for your daily tasks",
@@ -223,6 +224,17 @@
     "eventJoinMeet": "Join with Google Meet",
     "mobileCollapsedCount": "Today · {count} events",
     "mobileCollapsedEmpty": "Nothing today",
-    "mobileConnectPrompt": "Connect Google Calendar →"
+    "mobileConnectPrompt": "Connect Google Calendar →",
+    "modeDay": "Day",
+    "modeWeek": "Week",
+    "modeMonth": "Month",
+    "thisWeek": "This week",
+    "weekEmpty": "Nothing scheduled this week",
+    "monthEmpty": "Nothing scheduled this month",
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "evening": "Evening",
+    "prevMonthAria": "Previous month",
+    "nextMonthAria": "Next month"
   }
 }

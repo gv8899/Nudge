@@ -72,7 +72,8 @@
     "cards": "卡片",
     "settings": "設定",
     "mainNavAria": "主導覽",
-    "settingsAria": "開啟設定"
+    "settingsAria": "開啟設定",
+    "calendar": "日曆"
   },
   "login": {
     "tagline": "輕量型每日任務推進工具",
@@ -136,10 +137,6 @@
     "slashDividerKeywords": "hr|divider|separator|分隔|分隔線"
   },
   "daily": {
-    "a11y": {
-      "recurring": "重複任務",
-      "hasReminder": "已設提醒"
-    },
     "emptyToday": "今天還沒有任務",
     "overdueSectionAria": "前幾天的任務",
     "overdueLabel": "前幾天的 ({count})",
@@ -157,14 +154,7 @@
     "todayButton": "今天",
     "todayAria": "回到今天",
     "todaySectionTitle": "今天 ({count})",
-    "toggleRightPanel": "顯示 / 隱藏側邊面板",
-    "rowMenu": "任務動作",
-    "skipThisOccurrence": "跳過這次",
-    "setRecurring": "設成重複任務…",
-    "setReminder": "設定提醒…"
-  },
-  "schedule": {
-    "recurrenceTitle": "重複"
+    "toggleRightPanel": "顯示 / 隱藏側邊面板"
   },
   "cards": {
     "createAria": "新增卡片",
@@ -234,6 +224,17 @@
     "eventJoinMeet": "使用 Google Meet 加入會議",
     "mobileCollapsedCount": "今日行程 · {count} 件",
     "mobileCollapsedEmpty": "今日無行程",
-    "mobileConnectPrompt": "連結 Google Calendar →"
+    "mobileConnectPrompt": "連結 Google Calendar →",
+    "modeDay": "日",
+    "modeWeek": "週",
+    "modeMonth": "月",
+    "thisWeek": "本週",
+    "weekEmpty": "本週沒有行程",
+    "monthEmpty": "本月沒有行程",
+    "morning": "上午",
+    "afternoon": "下午",
+    "evening": "晚上",
+    "prevMonthAria": "上個月",
+    "nextMonthAria": "下個月"
   }
 }

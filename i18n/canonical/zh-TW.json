@@ -233,6 +233,8 @@
     "monthEmpty": "本月沒有行程",
     "morning": "上午",
     "afternoon": "下午",
-    "evening": "晚上"
+    "evening": "晚上",
+    "prevMonthAria": "上個月",
+    "nextMonthAria": "下個月"
   }
 }

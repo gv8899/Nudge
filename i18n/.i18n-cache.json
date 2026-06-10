@@ -54,6 +54,7 @@
     "nav.settings": "0d8619aae051ae343ea983e969d29b7bd7a618eb1b25a6c87c133c5e3ee25264",
     "nav.mainNavAria": "1944996eb06b5a6a4ba94b092b13d19d1ac3b97f14861340afe482a6803a5e7b",
     "nav.settingsAria": "4fda12d3e30b71506f8a766a7715a2f7962903d8f7ff4f339f48f2635e151861",
+    "nav.calendar": "6180b5e1ceec8c6203e900b8a9e0e6be2f32129a1210728366dfa918d674d7c4",
     "login.tagline": "4ae25fb217ef1417148d677d2f636c024d138f47ee8743fd9068d9061e55f699",
     "login.signInWithGoogle": "f2a23af75b5aa47b8a42aa7fc56731e1fe7d94260e39e466378f2bac7c96a48c",
     "login.loginFailed": "fb38b0c811e19557cd5510ec427615d7c027bcb780d6e63b830b25642c0e5aa9",
@@ -188,7 +189,18 @@
     "calendar.eventJoinMeet": "8626ff53acf1f33d6a2256c4ab1a5a20f911ccb48df9bf34ad3045b4d98a5316",
     "calendar.mobileCollapsedCount": "1443b975ae39bbfc4678c7038ebf8dd22816b5559e41444a9da8759c0253e173",
     "calendar.mobileCollapsedEmpty": "e5699b356a3de411d6dcb345d226d819b83859557f96fdde695722a149b0de09",
-    "calendar.mobileConnectPrompt": "fade1a5cdce0975721f5e5ed72c1be896f634dd13de5b860acda8678f1eecccf"
+    "calendar.mobileConnectPrompt": "fade1a5cdce0975721f5e5ed72c1be896f634dd13de5b860acda8678f1eecccf",
+    "calendar.modeDay": "85217f7aff77841438439fb3e7cf37bb3062fb026453c7692247d3a5641a0115",
+    "calendar.modeWeek": "f36b4109a9a6c8ef4362c35ce39da19a0c1255c5dee69218716e1a0447fd171f",
+    "calendar.modeMonth": "1625179badc027f0d0a26df9da3d4ae1be4483cc0a9365e54faab22fbe250055",
+    "calendar.thisWeek": "811142e263d773fe367ea8981eef08cda4d107a5d9e430f40ddca99e9a470265",
+    "calendar.weekEmpty": "6d8ab0c0d462ca24c9e2d653975f2b0479cbe0eb251c21e9090f68df82c9b962",
+    "calendar.monthEmpty": "a305797aaed3d22b31767e8b246748e658a1c198dd7daade5a70e726c56096a8",
+    "calendar.morning": "298336ec2c0e2e37cd12f98cbe7b182de375c82d71037fb98179b7c824d5a0e7",
+    "calendar.afternoon": "af81dcf37aa86091075e43941c4dfaa7d3ee9568a4294215adcaaaa3bede8480",
+    "calendar.evening": "a9b1124b34615118f85ed09bec2cc88b8edbe0560c86db5ac51d56d66bcd2f1b",
+    "calendar.prevMonthAria": "d84db2ffe828eedffd6b69391dcfa4ba5f0f9db10cfac9af062fd67c73a06763",
+    "calendar.nextMonthAria": "5dcf045a24cf143d55a761042281326625d7f3a68084de2e8538b4a015e35587"
   },
   "locked": {}
 }

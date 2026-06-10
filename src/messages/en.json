@@ -72,7 +72,8 @@
     "cards": "Cards",
     "settings": "Settings",
     "mainNavAria": "Main navigation",
-    "settingsAria": "Open settings"
+    "settingsAria": "Open settings",
+    "calendar": "Calendar"
   },
   "login": {
     "tagline": "A lightweight nudge for your daily tasks",
@@ -136,10 +137,6 @@
     "slashDividerKeywords": "hr|divider|separator|line"
   },
   "daily": {
-    "a11y": {
-      "recurring": "Recurring",
-      "hasReminder": "Has reminder"
-    },
     "emptyToday": "No tasks for today",
     "overdueSectionAria": "Tasks from previous days",
     "overdueLabel": "From earlier ({count})",
@@ -157,14 +154,7 @@
     "todayButton": "Today",
     "todayAria": "Jump to today",
     "todaySectionTitle": "Today ({count})",
-    "toggleRightPanel": "Toggle side panel",
-    "rowMenu": "Task actions",
-    "skipThisOccurrence": "Skip this one",
-    "setRecurring": "Repeat…",
-    "setReminder": "Set reminder…"
-  },
-  "schedule": {
-    "recurrenceTitle": "Repeat"
+    "toggleRightPanel": "Toggle side panel"
   },
   "cards": {
     "createAria": "New card",
@@ -234,6 +224,17 @@
     "eventJoinMeet": "Join with Google Meet",
     "mobileCollapsedCount": "Today · {count} events",
     "mobileCollapsedEmpty": "Nothing today",
-    "mobileConnectPrompt": "Connect Google Calendar →"
+    "mobileConnectPrompt": "Connect Google Calendar →",
+    "modeDay": "Day",
+    "modeWeek": "Week",
+    "modeMonth": "Month",
+    "thisWeek": "This week",
+    "weekEmpty": "Nothing scheduled this week",
+    "monthEmpty": "Nothing scheduled this month",
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "evening": "Evening",
+    "prevMonthAria": "Previous month",
+    "nextMonthAria": "Next month"
   }
 }

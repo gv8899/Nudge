@@ -3,7 +3,7 @@
 import { useState, type ComponentType } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/routing";
-import { CheckSquare, NotebookPen, Settings } from "lucide-react";
+import { CheckSquare, NotebookPen, Settings, CalendarDays } from "lucide-react";
 
 function CardsIcon({ className }: { className?: string }) {
   return <span className={`cards-icon ${className ?? ""}`} role="img" aria-hidden="true" />;
@@ -17,13 +17,19 @@ const navItems: {
   href: string;
   match: string;
   icon: ComponentType<{ className?: string }>;
-  labelKey: "tasks" | "notes" | "cards";
+  labelKey: "tasks" | "calendar" | "notes" | "cards";
 }[] = [
   {
     href: "/",
     match: "/day/",
     icon: CheckSquare,
     labelKey: "tasks",
+  },
+  {
+    href: "/calendar",
+    match: "/calendar",
+    icon: CalendarDays,
+    labelKey: "calendar",
   },
   {
     href: "/cards",

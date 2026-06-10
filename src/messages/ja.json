@@ -72,7 +72,8 @@
     "cards": "カード",
     "settings": "設定",
     "mainNavAria": "メインナビ",
-    "settingsAria": "設定を開く"
+    "settingsAria": "設定を開く",
+    "calendar": "カレンダー"
   },
   "login": {
     "tagline": "毎日のタスクをそっと後押し",
@@ -136,10 +137,6 @@
     "slashDividerKeywords": "hr|divider|separator|区切り"
   },
   "daily": {
-    "a11y": {
-      "recurring": "繰り返し",
-      "hasReminder": "リマインダーあり"
-    },
     "emptyToday": "今日のタスクはまだありません",
     "overdueSectionAria": "以前のタスク",
     "overdueLabel": "以前のタスク ({count})",
@@ -157,14 +154,7 @@
     "todayButton": "今日",
     "todayAria": "今日に戻る",
     "todaySectionTitle": "今日 ({count})",
-    "toggleRightPanel": "サイドパネルを切り替え",
-    "rowMenu": "タスク操作",
-    "skipThisOccurrence": "今回をスキップ",
-    "setRecurring": "繰り返し設定…",
-    "setReminder": "リマインダーを設定…"
-  },
-  "schedule": {
-    "recurrenceTitle": "繰り返し"
+    "toggleRightPanel": "サイドパネルを切り替え"
   },
   "cards": {
     "createAria": "新しいカード",
@@ -234,6 +224,17 @@
     "eventJoinMeet": "Google Meet で参加",
     "mobileCollapsedCount": "今日の予定 · {count} 件",
     "mobileCollapsedEmpty": "今日は予定なし",
-    "mobileConnectPrompt": "Google カレンダーを連携 →"
+    "mobileConnectPrompt": "Google カレンダーを連携 →",
+    "modeDay": "日",
+    "modeWeek": "週",
+    "modeMonth": "月",
+    "thisWeek": "今週",
+    "weekEmpty": "今週は予定がありません",
+    "monthEmpty": "今月は予定がありません",
+    "morning": "午前",
+    "afternoon": "午後",
+    "evening": "夜",
+    "prevMonthAria": "前の月",
+    "nextMonthAria": "次の月"
   }
 }

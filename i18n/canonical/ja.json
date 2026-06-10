@@ -72,7 +72,8 @@
     "cards": "カード",
     "settings": "設定",
     "mainNavAria": "メインナビ",
-    "settingsAria": "設定を開く"
+    "settingsAria": "設定を開く",
+    "calendar": "カレンダー"
   },
   "login": {
     "tagline": "毎日のタスクをそっと後押し",
@@ -223,6 +224,17 @@
     "eventJoinMeet": "Google Meet で参加",
     "mobileCollapsedCount": "今日の予定 · {count} 件",
     "mobileCollapsedEmpty": "今日は予定なし",
-    "mobileConnectPrompt": "Google カレンダーを連携 →"
+    "mobileConnectPrompt": "Google カレンダーを連携 →",
+    "modeDay": "日",
+    "modeWeek": "週",
+    "modeMonth": "月",
+    "thisWeek": "今週",
+    "weekEmpty": "今週は予定がありません",
+    "monthEmpty": "今月は予定がありません",
+    "morning": "午前",
+    "afternoon": "午後",
+    "evening": "夜",
+    "prevMonthAria": "前の月",
+    "nextMonthAria": "次の月"
   }
 }
