@@ -257,6 +257,43 @@
     "nextMonthAria": "Next month"
   },
   "schedule": {
-    "recurrenceTitle": "Repeat"
+    "recurrenceTitle": "Repeat",
+    "preset": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "biweekly": "Biweekly",
+      "monthlyDay": "Monthly (by date)",
+      "monthlyNthWeekday": "Monthly (by weekday)"
+    },
+    "recurrence": {
+      "off": "Off",
+      "weekdaysLabel": "Days of week",
+      "monthDayN": "On day {n} each month",
+      "nthLabel": "Week",
+      "nthN": "{n}",
+      "last": "Last",
+      "weekday": "Weekday",
+      "startDate": "Start date",
+      "hasEndDate": "Set end date",
+      "endDate": "End date"
+    },
+    "reminder": {
+      "label": "Reminder time",
+      "requiresPreset": "Set a repeat first to add a reminder",
+      "clear": "Clear"
+    },
+    "validation": {
+      "weeklyNeedsWeekday": "Pick at least one day",
+      "endBeforeStart": "End date can't be before start"
+    }
+  },
+  "weekday": {
+    "mon": "Mo",
+    "tue": "Tu",
+    "wed": "We",
+    "thu": "Th",
+    "fri": "Fr",
+    "sat": "Sa",
+    "sun": "Su"
   }
 }

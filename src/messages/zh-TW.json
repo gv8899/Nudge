@@ -257,6 +257,43 @@
     "nextMonthAria": "下個月"
   },
   "schedule": {
-    "recurrenceTitle": "重複"
+    "recurrenceTitle": "重複",
+    "preset": {
+      "daily": "每天",
+      "weekly": "每週",
+      "biweekly": "每兩週",
+      "monthlyDay": "每月某日",
+      "monthlyNthWeekday": "每月第幾個星期"
+    },
+    "recurrence": {
+      "off": "不重複",
+      "weekdaysLabel": "星期",
+      "monthDayN": "每月 {n} 號",
+      "nthLabel": "第幾個",
+      "nthN": "第 {n} 個",
+      "last": "最後一個",
+      "weekday": "星期幾",
+      "startDate": "開始日期",
+      "hasEndDate": "設定結束日期",
+      "endDate": "結束日期"
+    },
+    "reminder": {
+      "label": "提醒時間",
+      "requiresPreset": "先設定重複，才能加提醒",
+      "clear": "清除"
+    },
+    "validation": {
+      "weeklyNeedsWeekday": "請至少選一個星期",
+      "endBeforeStart": "結束日不能早於開始日"
+    }
+  },
+  "weekday": {
+    "mon": "一",
+    "tue": "二",
+    "wed": "三",
+    "thu": "四",
+    "fri": "五",
+    "sat": "六",
+    "sun": "日"
   }
 }

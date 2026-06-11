@@ -257,6 +257,43 @@
     "nextMonthAria": "次の月"
   },
   "schedule": {
-    "recurrenceTitle": "繰り返し"
+    "recurrenceTitle": "繰り返し",
+    "preset": {
+      "daily": "毎日",
+      "weekly": "毎週",
+      "biweekly": "隔週",
+      "monthlyDay": "毎月（日付）",
+      "monthlyNthWeekday": "毎月（曜日）"
+    },
+    "recurrence": {
+      "off": "なし",
+      "weekdaysLabel": "曜日",
+      "monthDayN": "毎月 {n} 日",
+      "nthLabel": "第何週",
+      "nthN": "第 {n}",
+      "last": "最終",
+      "weekday": "曜日",
+      "startDate": "開始日",
+      "hasEndDate": "終了日を設定",
+      "endDate": "終了日"
+    },
+    "reminder": {
+      "label": "リマインダー時刻",
+      "requiresPreset": "繰り返しを設定するとリマインダーを追加できます",
+      "clear": "クリア"
+    },
+    "validation": {
+      "weeklyNeedsWeekday": "曜日を1つ以上選んでください",
+      "endBeforeStart": "終了日は開始日より前にできません"
+    }
+  },
+  "weekday": {
+    "mon": "月",
+    "tue": "火",
+    "wed": "水",
+    "thu": "木",
+    "fri": "金",
+    "sat": "土",
+    "sun": "日"
   }
 }
