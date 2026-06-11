@@ -14,6 +14,10 @@ import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
+function toWeekStart(date: string) {
+  return startOfWeek(new Date(date + "T00:00:00"), { weekStartsOn: 1 });
+}
+
 interface CalendarNavProps {
   date: string;
   onDateChange: (date: string) => void;
@@ -25,7 +29,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
   const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
   const dateObj = new Date(date + "T00:00:00");
 
-  const weekStart = startOfWeek(dateObj, { weekStartsOn: 1 });
+  const weekStart = toWeekStart(date);
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   const weekStartStr = format(weekStart, "yyyy-MM-dd");
@@ -55,7 +59,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
               onClick={() => goTo(day)}
               aria-label={format(day, "PPPP", { locale: dateFnsLocale })}
               aria-current={isSelected ? "date" : undefined}
-              className="flex-1 flex flex-col items-center gap-1 py-1 rounded-md hover:bg-surface-hover transition-colors group"
+              className="flex-1 flex flex-col items-center gap-1 py-1 rounded-md hover:bg-surface-hover transition-colors"
             >
               <span className="text-xs font-medium text-text-dim">
                 {format(day, "EEE", { locale: dateFnsLocale }).replace(/^週/, "")}
@@ -86,8 +90,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
 export function WeekNavControls({ date, onDateChange }: CalendarNavProps) {
   const tCommon = useTranslations("common");
   const t = useTranslations("daily");
-  const dateObj = new Date(date + "T00:00:00");
-  const weekStart = startOfWeek(dateObj, { weekStartsOn: 1 });
+  const weekStart = toWeekStart(date);
   const go = (d: Date) => onDateChange(format(d, "yyyy-MM-dd"));
   return (
     <div className="flex items-center gap-1">
