@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { CalendarEvent } from "@/lib/google-calendar/types";
-import { CalendarNav } from "./calendar-nav";
+import { CalendarNav, WeekNavControls } from "./calendar-nav";
 import { CalendarEventItem } from "./calendar-event-item";
 
 interface Props {
@@ -65,6 +65,9 @@ export function CalendarDayView({ date, onDateChange, eventsByDate, isLoading }:
 
   return (
     <div className="pt-3 space-y-4">
+      {/* Week nav controls (prev/today/next) */}
+      <WeekNavControls date={date} onDateChange={onDateChange} />
+
       {/* Week strip nav */}
       <CalendarNav date={date} onDateChange={onDateChange} />
 

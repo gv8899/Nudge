@@ -21,7 +21,6 @@ interface CalendarNavProps {
 
 export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
   const t = useTranslations("daily");
-  const tCommon = useTranslations("common");
   const locale = useLocale();
   const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
   const dateObj = new Date(date + "T00:00:00");
@@ -43,71 +42,75 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
     onDateChange(format(d, "yyyy-MM-dd"));
   };
 
-  const goToPrevWeek = () => goTo(subDays(weekStart, 7));
-  const goToNextWeek = () => goTo(addDays(weekStart, 7));
-  const goToToday = () => goTo(new Date());
-
   return (
-    <nav aria-label={t("calendarNavAria")} className="bg-card rounded-md px-2 md:px-3 py-1.5 flex items-center gap-0.5 md:gap-1">
-      <button
-        onClick={goToPrevWeek}
-        aria-label={t("prevWeekAria")}
-        className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-surface-hover transition-colors shrink-0"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-
-      <div className="flex items-center justify-center gap-0 md:gap-0.5 flex-1">
+    <nav aria-label={t("calendarNavAria")} className="bg-card rounded-md px-2 md:px-3 py-2">
+      <div className="flex items-stretch justify-between gap-0.5 md:gap-1">
         {weekDays.map((day) => {
           const isSelected = isSameDay(day, dateObj);
           const dayStr = format(day, "yyyy-MM-dd");
           const hasTasks = datesWithTasks.has(dayStr);
-
           return (
             <button
               key={dayStr}
               onClick={() => goTo(day)}
               aria-label={format(day, "PPPP", { locale: dateFnsLocale })}
               aria-current={isSelected ? "date" : undefined}
-              className={`
-                relative flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1.5
-                flex-1 py-1.5 md:py-1.5 rounded-md text-sm transition-all
-                ${
-                  isSelected
-                    ? "bg-primary text-primary-foreground font-medium"
-                    : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
-                }
-              `}
+              className="flex-1 flex flex-col items-center gap-1 py-1 rounded-md hover:bg-surface-hover transition-colors group"
             >
-              {hasTasks && !isSelected && (
-                <span className="h-1 w-1 md:h-1.5 md:w-1.5 rounded-full bg-primary order-first md:order-none" aria-hidden="true" />
-              )}
-              <span className={`hidden md:inline ${isSelected ? "" : "text-muted-foreground"}`}>
+              <span className="text-xs font-medium text-text-dim">
                 {format(day, "EEE", { locale: dateFnsLocale }).replace(/^週/, "")}
               </span>
-              <span className={`text-xs md:text-sm ${isSelected ? "font-semibold" : "text-foreground font-medium"}`}>
+              <span
+                className={`flex items-center justify-center h-9 w-9 rounded-full text-lg tabular-nums transition-colors ${
+                  isSelected
+                    ? "bg-primary text-primary-foreground font-semibold"
+                    : "text-foreground font-medium"
+                }`}
+              >
                 {format(day, "d")}
               </span>
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  hasTasks && !isSelected ? "bg-primary" : "bg-transparent"
+                }`}
+                aria-hidden="true"
+              />
             </button>
           );
         })}
       </div>
+    </nav>
+  );
+}
 
+export function WeekNavControls({ date, onDateChange }: CalendarNavProps) {
+  const tCommon = useTranslations("common");
+  const t = useTranslations("daily");
+  const dateObj = new Date(date + "T00:00:00");
+  const weekStart = startOfWeek(dateObj, { weekStartsOn: 1 });
+  const go = (d: Date) => onDateChange(format(d, "yyyy-MM-dd"));
+  return (
+    <div className="flex items-center gap-1">
       <button
-        onClick={goToNextWeek}
-        aria-label={t("nextWeekAria")}
-        className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-surface-hover transition-colors shrink-0"
+        onClick={() => go(subDays(weekStart, 7))}
+        aria-label={t("prevWeekAria")}
+        className="text-text-dim hover:text-foreground p-1.5 rounded-md hover:bg-surface-hover transition-colors"
       >
-        <ChevronRight className="h-4 w-4" />
+        <ChevronLeft className="h-4 w-4" />
       </button>
-
-      <div className="w-px h-5 bg-border mx-0.5 md:mx-1 shrink-0" aria-hidden="true" />
       <button
-        onClick={goToToday}
-        className="text-xs md:text-sm text-foreground px-1.5 md:px-2.5 py-1.5 rounded-md hover:bg-surface-hover hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
+        onClick={() => go(new Date())}
+        className="text-sm text-foreground px-2.5 py-1.5 rounded-md hover:bg-surface-hover transition-colors whitespace-nowrap"
       >
         {tCommon("today")}
       </button>
-    </nav>
+      <button
+        onClick={() => go(addDays(weekStart, 7))}
+        aria-label={t("nextWeekAria")}
+        className="text-text-dim hover:text-foreground p-1.5 rounded-md hover:bg-surface-hover transition-colors"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+    </div>
   );
 }

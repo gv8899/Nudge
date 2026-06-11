@@ -6,7 +6,7 @@ import { mutate as globalMutate } from "swr";
 import { useDaily } from "@/hooks/use-daily";
 import { TaskCard } from "@/components/task/task-card";
 import { TaskCreate } from "@/components/task/task-create";
-import { CalendarNav } from "@/components/calendar/calendar-nav";
+import { CalendarNav, WeekNavControls } from "@/components/calendar/calendar-nav";
 import { DateHeading } from "@/components/calendar/date-heading";
 import { OverdueSection } from "@/components/daily/overdue-section";
 import { DailyRightPanel, type RightPanelKind } from "@/components/daily/daily-right-panel";
@@ -355,7 +355,10 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
       >
         <div className="mx-auto max-w-3xl px-4 md:px-6 pb-8">
           <div className="pt-6 mb-2 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-foreground">{tNav("tasks")}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-foreground">{tNav("tasks")}</h1>
+              <WeekNavControls date={currentDate} onDateChange={setCurrentDate} />
+            </div>
 
             {/* Right-panel controls — lg+ only */}
             <div className="hidden lg:flex items-center gap-1">
