@@ -431,7 +431,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
               onReschedule={handleReschedule}
               onArchive={handleArchive}
             />
-            {composerOpen && <TaskCreate onSubmit={handleCreateTask} />}
+            {composerOpen && <TaskCreate onSubmit={handleCreateTask} onClose={() => setComposerOpen(false)} />}
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -495,7 +495,10 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
           </div>
         </div>
       </div>
-      <TaskFab onClick={() => setComposerOpen(true)} />
+      <TaskFab
+        onClick={() => setComposerOpen((v) => !v)}
+        style={rightPanelOpen && isLg ? { right: rightPanelWidth + 24 } : undefined}
+      />
     </>
   );
 }
