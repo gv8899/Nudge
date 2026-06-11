@@ -26,6 +26,7 @@ interface TaskCardProps {
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onMoveToDate: (assignmentId: string, targetDate: string) => void;
   onUpdateTask: (taskId: string, updates: { title?: string; description?: string }) => void;
+  onOpenDetail?: (taskId: string) => void;
 }
 
 export function TaskCard({
@@ -35,6 +36,7 @@ export function TaskCard({
   onStatusChange,
   onMoveToDate,
   onUpdateTask,
+  onOpenDetail,
 }: TaskCardProps) {
   const t = useTranslations("task");
   const tDaily = useTranslations("daily");
@@ -200,6 +202,7 @@ export function TaskCard({
         onDescChange={handleDescChange}
         onStatusChange={(s) => onStatusChange(task.id, s)}
         onTitleChange={(title) => onUpdateTask(task.id, { title })}
+        onExpand={onOpenDetail ? () => { onOpenDetail(task.id); setIsModalOpen(false); } : undefined}
       />
 
       <ScheduleDialog

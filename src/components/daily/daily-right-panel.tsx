@@ -5,11 +5,12 @@ import { useTranslations } from "next-intl";
 
 import { ResizeHandle } from "@/components/ui/resize-handle";
 import { DailyCardsPanel } from "@/components/daily/daily-cards-panel";
+import { CardDetail } from "@/components/cards/card-detail";
 import { useCalendarEvents } from "@/hooks/use-calendar-events";
 import { CalendarEventItem } from "@/components/calendar/calendar-event-item";
 import { CalendarEmptyState } from "@/components/calendar/calendar-empty-state";
 
-export type RightPanelKind = "calendar" | "cards";
+export type RightPanelKind = "calendar" | "cards" | "detail";
 
 const MIN_WIDTH = 280;
 const MAX_WIDTH = 720;
@@ -19,6 +20,9 @@ interface DailyRightPanelProps {
   width: number;
   onWidthChange: (px: number) => void;
   date: string; // YYYY-MM-DD — forwarded to calendar content
+  detailId?: string | null;
+  onBackFromDetail?: () => void;
+  onOpenCard?: (id: string) => void;
 }
 
 export function DailyRightPanel({
@@ -26,6 +30,9 @@ export function DailyRightPanel({
   width,
   onWidthChange,
   date,
+  detailId,
+  onBackFromDetail,
+  onOpenCard,
 }: DailyRightPanelProps) {
   const tNav = useTranslations("nav");
   return (
@@ -45,10 +52,14 @@ export function DailyRightPanel({
 
       {/* Content area */}
       <div className="flex-1 overflow-hidden h-full">
-        {kind === "calendar" ? (
+        {kind === "detail" && detailId ? (
+          <div className="h-full overflow-y-auto">
+            <CardDetail id={detailId} embedded onBack={onBackFromDetail} />
+          </div>
+        ) : kind === "calendar" ? (
           <CalendarContent date={date} />
         ) : (
-          <DailyCardsPanel />
+          <DailyCardsPanel onOpenCard={onOpenCard} />
         )}
       </div>
     </aside>

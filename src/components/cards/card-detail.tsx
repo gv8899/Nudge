@@ -14,6 +14,8 @@ import { useTags } from "@/hooks/use-tags";
 
 interface CardDetailProps {
   id: string;
+  embedded?: boolean;
+  onBack?: () => void;
 }
 
 interface CardData {
@@ -34,7 +36,7 @@ function invalidateCardsCache() {
   );
 }
 
-export function CardDetail({ id }: CardDetailProps) {
+export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   const t = useTranslations("cardDetail");
   const tCommon = useTranslations("common");
   const { data, error, isLoading, mutate } = useSWR<CardData>(
@@ -130,9 +132,19 @@ export function CardDetail({ id }: CardDetailProps) {
     setIsEditingTitle(false);
   };
 
+  const containerClass = embedded
+    ? "px-4 md:px-6 py-6"
+    : "mx-auto max-w-3xl px-4 md:px-6 py-8";
+
+  const titleClass = embedded
+    ? "min-w-0 flex-1 text-2xl font-bold text-foreground tracking-tight"
+    : "min-w-0 flex-1 text-3xl font-bold text-foreground tracking-tight";
+
+  const descMinHeight = embedded ? "min-h-[40vh]" : "min-h-[60vh]";
+
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-3xl px-4 md:px-6 py-8">
+      <div className={containerClass}>
         <p className="text-sm text-text-dim">{tCommon("loading")}</p>
       </div>
     );
@@ -140,30 +152,54 @@ export function CardDetail({ id }: CardDetailProps) {
 
   if (error || !data) {
     return (
-      <div className="mx-auto max-w-3xl px-4 md:px-6 py-8">
-        <Link
-          href="/cards"
-          className="inline-flex items-center gap-1 text-sm text-text-dim hover:text-foreground transition-colors mb-4"
-        >
-          <ChevronLeft className="h-5 w-5 text-primary" /> {t("backToCards")}
-        </Link>
+      <div className={containerClass}>
+        {embedded ? (
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex items-center gap-1 text-sm text-text-dim hover:text-foreground transition-colors mb-4"
+            aria-label={t("backToCards")}
+            title={t("backToCards")}
+          >
+            <ChevronLeft className="h-5 w-5 text-primary" /> {t("backToCards")}
+          </button>
+        ) : (
+          <Link
+            href="/cards"
+            className="inline-flex items-center gap-1 text-sm text-text-dim hover:text-foreground transition-colors mb-4"
+          >
+            <ChevronLeft className="h-5 w-5 text-primary" /> {t("backToCards")}
+          </Link>
+        )}
         <p className="text-sm text-destructive">{t("notFound")}</p>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 md:px-6 py-8">
+    <div className={containerClass}>
       <header className="flex items-center gap-2 mb-6">
         {/* 返回按鈕：chevron 與標題同列 */}
-        <Link
-          href="/cards"
-          title={t("backToCards")}
-          aria-label={t("backToCards")}
-          className="shrink-0 text-primary hover:text-primary/70 transition-colors"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Link>
+        {embedded ? (
+          <button
+            type="button"
+            onClick={onBack}
+            title={t("backToCards")}
+            aria-label={t("backToCards")}
+            className="shrink-0 text-primary hover:text-primary/70 transition-colors"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+        ) : (
+          <Link
+            href="/cards"
+            title={t("backToCards")}
+            aria-label={t("backToCards")}
+            className="shrink-0 text-primary hover:text-primary/70 transition-colors"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Link>
+        )}
 
         {/* 標題（可點擊編輯） */}
         {isEditingTitle ? (
@@ -180,12 +216,12 @@ export function CardDetail({ id }: CardDetailProps) {
               }
             }}
             aria-label={t("editTitleAria")}
-            className="min-w-0 flex-1 text-3xl font-bold text-foreground tracking-tight bg-transparent rounded outline-none border-b-2 border-primary"
+            className={`${titleClass} bg-transparent rounded outline-none border-b-2 border-primary`}
           />
         ) : (
           <button
             onClick={() => setIsEditingTitle(true)}
-            className="min-w-0 flex-1 text-left text-3xl font-bold text-foreground tracking-tight cursor-text hover:bg-muted/50 -mx-2 px-2 py-1 rounded transition-colors truncate"
+            className={`${titleClass} text-left cursor-text hover:bg-muted/50 -mx-2 px-2 py-1 rounded transition-colors truncate`}
           >
             {data.title}
           </button>
@@ -193,7 +229,7 @@ export function CardDetail({ id }: CardDetailProps) {
       </header>
 
       {/* 描述（可編輯 TipTap） */}
-      <div className="min-h-[60vh]">
+      <div className={descMinHeight}>
         <TiptapEditor
           key={id}
           content={data.description || ""}

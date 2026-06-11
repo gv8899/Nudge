@@ -17,6 +17,7 @@ interface TaskDetailModalProps {
   onTagsChange?: (tagIds: string[]) => void;
   tags?: Array<{ id: string; name: string; color: string }>;
   onTitleChange?: (title: string) => void;
+  onExpand?: () => void;
 }
 
 export function TaskDetailModal({
@@ -28,6 +29,7 @@ export function TaskDetailModal({
   onTagsChange,
   tags = [],
   onTitleChange,
+  onExpand,
 }: TaskDetailModalProps) {
   const t = useTranslations("task");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -156,14 +158,26 @@ export function TaskDetailModal({
               </h2>
             )}
             <div className="flex items-center gap-1">
-            <a
-              href={`/cards/${task.id}`}
-              aria-label={t("detailExpandPage")}
-              title={t("detailExpandPage")}
-              className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
-            >
-              <Maximize2 className="h-4 w-4" />
-            </a>
+            {onExpand ? (
+              <button
+                type="button"
+                onClick={onExpand}
+                aria-label={t("detailExpandPage")}
+                title={t("detailExpandPage")}
+                className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </button>
+            ) : (
+              <a
+                href={`/cards/${task.id}`}
+                aria-label={t("detailExpandPage")}
+                title={t("detailExpandPage")}
+                className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </a>
+            )}
             <button
               onClick={onClose}
               aria-label={t("detailClose")}

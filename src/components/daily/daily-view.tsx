@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { mutate as globalMutate } from "swr";
 import { useDaily } from "@/hooks/use-daily";
@@ -95,15 +95,17 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   const [rightPanelOpen, setRightPanelOpen] = useState<boolean>(false);
   const [rightPanelKind, setRightPanelKind] = useState<RightPanelKind>("calendar");
   const [rightPanelWidth, setRightPanelWidth] = useState<number>(DEFAULT_WIDTH);
+  const [detailId, setDetailId] = useState<string | null>(null);
+  // Remember which kind was active before "detail" so we can return to it
+  const prevKindRef = useRef<RightPanelKind>("cards");
   // Track lg+ breakpoint so we only apply right-padding on large screens
   const [isLg, setIsLg] = useState<boolean>(false);
 
   // Hydrate from localStorage once on mount (avoids SSR mismatch)
   useEffect(() => {
     setRightPanelOpen(lsReadBool(LS_PANEL_OPEN, false));
-    setRightPanelKind(
-      lsReadString<RightPanelKind>(LS_PANEL_KIND, "calendar", ["calendar", "cards"])
-    );
+    const storedKind = lsReadString<RightPanelKind>(LS_PANEL_KIND, "calendar", ["calendar", "cards"]);
+    setRightPanelKind(storedKind);
     setRightPanelWidth(clampWidth(lsReadNumber(LS_PANEL_WIDTH, DEFAULT_WIDTH)));
   }, []);
 
@@ -126,7 +128,25 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
 
   const handleKindChange = (kind: RightPanelKind) => {
     setRightPanelKind(kind);
+    setDetailId(null);
     localStorage.setItem(LS_PANEL_KIND, kind);
+  };
+
+  const openDetailInPanel = (id: string) => {
+    // Remember current kind (if not already in detail) so we can return to it
+    if (rightPanelKind !== "detail") {
+      prevKindRef.current = rightPanelKind;
+    }
+    setDetailId(id);
+    setRightPanelKind("detail");
+    setRightPanelOpen(true);
+    localStorage.setItem(LS_PANEL_OPEN, "true");
+    // Do NOT persist "detail" to localStorage
+  };
+
+  const closeDetail = () => {
+    setRightPanelKind(prevKindRef.current);
+    setDetailId(null);
   };
 
   const handleWidthChange = (px: number) => {
@@ -348,6 +368,9 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
           width={rightPanelWidth}
           onWidthChange={handleWidthChange}
           date={currentDate}
+          detailId={detailId}
+          onBackFromDetail={closeDetail}
+          onOpenCard={openDetailInPanel}
         />
       )}
 
@@ -450,6 +473,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                     onStatusChange={handleStatusChange}
                     onMoveToDate={handleMoveToDate}
                     onUpdateTask={handleUpdateTask}
+                    onOpenDetail={openDetailInPanel}
                   />
                 ))}
               </SortableContext>
@@ -479,6 +503,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                       onStatusChange={handleStatusChange}
                       onMoveToDate={handleMoveToDate}
                       onUpdateTask={handleUpdateTask}
+                      onOpenDetail={openDetailInPanel}
                     />
                   ))}
               </div>

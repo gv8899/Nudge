@@ -9,7 +9,11 @@ import { CardGridItem } from "@/components/cards/card-grid-item";
 
 const RECENT_LIMIT = 12;
 
-export function DailyCardsPanel() {
+interface DailyCardsPanelProps {
+  onOpenCard?: (id: string) => void;
+}
+
+export function DailyCardsPanel({ onOpenCard }: DailyCardsPanelProps = {}) {
   const t = useTranslations("cards");
   const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
@@ -138,7 +142,7 @@ export function DailyCardsPanel() {
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-2.5">
             {cards.map((card) => (
-              <CardGridItem key={card.id} card={card} />
+              <CardGridItem key={card.id} card={card} onOpenInline={onOpenCard} />
             ))}
           </div>
         )}
