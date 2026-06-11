@@ -127,7 +127,7 @@ export function TaskDetailModal({
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className="relative z-10 w-[calc(100vw-2rem)] max-w-[500px] max-h-[80dvh] overflow-y-auto rounded-2xl bg-popover border border-border shadow-2xl outline-none"
+        className="relative z-10 w-[calc(100vw-2rem)] max-w-[680px] max-h-[88dvh] overflow-y-auto rounded-2xl bg-popover border border-border shadow-2xl outline-none"
       >
         {/* 頂部列 */}
         <div className="sticky top-0 z-10 px-6 py-4 bg-popover border-b border-border rounded-t-xl">
@@ -185,7 +185,7 @@ export function TaskDetailModal({
         </div>
 
         {/* 編輯區 */}
-        <div className="px-6 py-6 min-h-[300px]">
+        <div className="px-6 py-6 min-h-[440px]">
           <TiptapEditor
             key={task.id}
             content={task.description || ""}
