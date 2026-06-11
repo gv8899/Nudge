@@ -185,6 +185,7 @@
     "skipConfirmAction": "スキップ"
   },
   "cards": {
+    "recentTitle": "最近のカード",
     "createAria": "新しいカード",
     "cleanUntitledAria": "空白のカードを削除",
     "viewListAria": "リスト表示",

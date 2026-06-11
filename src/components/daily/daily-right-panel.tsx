@@ -50,8 +50,8 @@ export function DailyRightPanel({
         side="left"
       />
 
-      {/* Content area */}
-      <div className="flex-1 overflow-hidden h-full">
+      {/* Content area — pt 讓出頂部帶狀區，避開固定在右上的 toolbar（對齊 Mac 標題列在內容上方） */}
+      <div className="flex-1 overflow-hidden h-full pt-10">
         {kind === "detail" && detailId ? (
           <div className="h-full overflow-y-auto">
             <CardDetail id={detailId} embedded onBack={onBackFromDetail} />

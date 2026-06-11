@@ -185,6 +185,7 @@
     "skipConfirmAction": "跳過"
   },
   "cards": {
+    "recentTitle": "最近卡片",
     "createAria": "新增卡片",
     "cleanUntitledAria": "清除空白的卡片",
     "viewListAria": "列表檢視",

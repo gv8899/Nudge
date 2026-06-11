@@ -379,16 +379,31 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
         style={{ paddingRight: mainPaddingRight }}
       >
         <div className="mx-auto max-w-3xl px-4 md:px-6 pb-8">
-          <div className="pt-6 mb-2 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <WeekNavControls date={currentDate} onDateChange={setCurrentDate} />
-            </div>
+          <div className="pt-6 mb-2 flex items-center">
+            <WeekNavControls date={currentDate} onDateChange={setCurrentDate} />
+          </div>
 
-            {/* Right-panel controls — lg+ only */}
-            <div className="hidden lg:flex items-center gap-1">
-              {/* Kind picker — only visible when panel is open */}
+          {/* Right-panel controls — 對齊 Mac：固定在畫面右上、展開的右側區塊上方（lg+ only） */}
+          <div className="hidden lg:flex items-center gap-2 fixed top-4 right-6 z-40">
+              {/* Panel toggle — 開啟時 tan 填滿（對齊 Mac） */}
+              <button
+                type="button"
+                onClick={handleTogglePanel}
+                aria-label={t("toggleRightPanel")}
+                title={t("toggleRightPanel")}
+                aria-pressed={rightPanelOpen}
+                className={
+                  rightPanelOpen
+                    ? "flex items-center justify-center h-7 w-7 rounded-md bg-primary text-primary-foreground transition-colors"
+                    : "flex items-center justify-center h-7 w-7 rounded-md text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors"
+                }
+              >
+                <PanelRight className="h-4 w-4" />
+              </button>
+
+              {/* Kind picker segmented — 只在面板開啟時顯示；active 為淡 highlight（非 tan 重填） */}
               {rightPanelOpen && (
-                <div className="flex items-center gap-0.5 mr-1 p-0.5 rounded-md bg-muted">
+                <div className="flex items-center gap-0.5 p-0.5 rounded-md bg-muted">
                   <button
                     type="button"
                     onClick={() => handleKindChange("calendar")}
@@ -397,7 +412,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                     aria-pressed={rightPanelKind === "calendar"}
                     className={
                       rightPanelKind === "calendar"
-                        ? "flex items-center justify-center h-6 w-6 rounded bg-primary text-primary-foreground transition-colors"
+                        ? "flex items-center justify-center h-6 w-6 rounded bg-background text-foreground shadow-sm transition-colors"
                         : "flex items-center justify-center h-6 w-6 rounded text-text-dim hover:text-foreground transition-colors"
                     }
                   >
@@ -411,7 +426,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                     aria-pressed={rightPanelKind === "cards"}
                     className={
                       rightPanelKind === "cards"
-                        ? "flex items-center justify-center h-6 w-6 rounded bg-primary text-primary-foreground transition-colors"
+                        ? "flex items-center justify-center h-6 w-6 rounded bg-background text-foreground shadow-sm transition-colors"
                         : "flex items-center justify-center h-6 w-6 rounded text-text-dim hover:text-foreground transition-colors"
                     }
                   >
@@ -419,24 +434,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                   </button>
                 </div>
               )}
-
-              {/* Panel toggle */}
-              <button
-                type="button"
-                onClick={handleTogglePanel}
-                aria-label={t("toggleRightPanel")}
-                title={t("toggleRightPanel")}
-                aria-pressed={rightPanelOpen}
-                className={
-                  rightPanelOpen
-                    ? "flex items-center justify-center h-7 w-7 rounded-md text-foreground bg-border transition-colors"
-                    : "flex items-center justify-center h-7 w-7 rounded-md text-text-dim hover:text-foreground transition-colors"
-                }
-              >
-                <PanelRight className="h-4 w-4" />
-              </button>
             </div>
-          </div>
 
           <div className="pb-1">
             <DateHeading date={currentDate} />

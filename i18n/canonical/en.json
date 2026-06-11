@@ -185,6 +185,7 @@
     "skipConfirmAction": "Skip"
   },
   "cards": {
+    "recentTitle": "Recent Cards",
     "createAria": "New card",
     "cleanUntitledAria": "Clean untitled cards",
     "viewListAria": "List view",

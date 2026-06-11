@@ -239,7 +239,8 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
         />
       </div>
 
-      {/* 底部資訊 */}
+      {/* 底部資訊 — embedded（右側 pane）對齊 Mac：不顯示 tags/排程/時間戳，內容為主 */}
+      {!embedded && (
       <footer className="mt-8">
         <div className="border-t border-border pt-4">
           <div className="mb-3">
@@ -259,6 +260,7 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
           </div>
         </div>
       </footer>
+      )}
     </div>
   );
 }
