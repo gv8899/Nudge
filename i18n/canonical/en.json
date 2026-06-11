@@ -5,7 +5,8 @@
     "delete": "Delete",
     "loading": "Loading...",
     "loadFailed": "Failed to load",
-    "today": "Today"
+    "today": "Today",
+    "errorSaving": "Couldn't save, try again"
   },
   "settings": {
     "title": "Settings",
@@ -163,7 +164,10 @@
     "rowMenu": "Task actions",
     "setRecurring": "Repeat…",
     "setReminder": "Set reminder…",
-    "skipThisOccurrence": "Skip this one"
+    "skipThisOccurrence": "Skip this one",
+    "skipConfirmTitle": "Skip this one",
+    "skipConfirmBody": "Skip this occurrence of \"{title}\"? The next one shows up as usual.",
+    "skipConfirmAction": "Skip"
   },
   "cards": {
     "createAria": "New card",

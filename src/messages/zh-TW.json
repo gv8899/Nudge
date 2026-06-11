@@ -5,7 +5,8 @@
     "delete": "刪除",
     "loading": "載入中...",
     "loadFailed": "載入失敗",
-    "today": "今天"
+    "today": "今天",
+    "errorSaving": "儲存失敗，請再試一次"
   },
   "settings": {
     "title": "設定",
@@ -163,7 +164,10 @@
     "rowMenu": "任務動作",
     "setRecurring": "設成重複任務…",
     "setReminder": "設定提醒…",
-    "skipThisOccurrence": "跳過這次"
+    "skipThisOccurrence": "跳過這次",
+    "skipConfirmTitle": "跳過這次",
+    "skipConfirmBody": "確定要跳過「{title}」這一次嗎？下次重複時間照常出現。",
+    "skipConfirmAction": "跳過"
   },
   "cards": {
     "createAria": "新增卡片",
