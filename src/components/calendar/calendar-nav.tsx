@@ -47,7 +47,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
   };
 
   return (
-    <nav aria-label={t("calendarNavAria")} className="bg-card rounded-md px-2 md:px-3 py-2">
+    <nav aria-label={t("calendarNavAria")} className="px-1 md:px-2 py-2">
       <div className="flex items-stretch justify-between gap-0.5 md:gap-1">
         {weekDays.map((day) => {
           const isSelected = isSameDay(day, dateObj);
@@ -59,13 +59,13 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
               onClick={() => goTo(day)}
               aria-label={format(day, "PPPP", { locale: dateFnsLocale })}
               aria-current={isSelected ? "date" : undefined}
-              className="flex-1 flex flex-col items-center gap-1 py-1 rounded-md hover:bg-surface-hover transition-colors"
+              className="flex-1 flex flex-col items-center gap-1 py-1 transition-colors"
             >
               <span className="text-xs font-medium text-text-dim">
                 {format(day, "EEE", { locale: dateFnsLocale }).replace(/^週/, "")}
               </span>
               <span
-                className={`flex items-center justify-center h-9 w-9 rounded-full text-lg tabular-nums transition-colors ${
+                className={`flex items-center justify-center h-9 w-9 rounded-full text-lg tabular-nums transition-all ${
                   isSelected
                     ? "bg-primary text-primary-foreground font-semibold"
                     : "text-foreground font-medium"
@@ -93,24 +93,24 @@ export function WeekNavControls({ date, onDateChange }: CalendarNavProps) {
   const weekStart = toWeekStart(date);
   const go = (d: Date) => onDateChange(format(d, "yyyy-MM-dd"));
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-2">
       <button
         onClick={() => go(subDays(weekStart, 7))}
         aria-label={t("prevWeekAria")}
-        className="text-text-dim hover:text-foreground p-1.5 rounded-md hover:bg-surface-hover transition-colors"
+        className="glass-control flex items-center justify-center h-9 w-9 rounded-full text-text-dim hover:text-foreground transition-colors"
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
       <button
         onClick={() => go(new Date())}
-        className="text-sm text-foreground px-2.5 py-1.5 rounded-md hover:bg-surface-hover transition-colors whitespace-nowrap"
+        className="glass-control flex items-center justify-center h-9 px-4 rounded-full text-sm text-foreground transition-colors whitespace-nowrap"
       >
         {tCommon("today")}
       </button>
       <button
         onClick={() => go(addDays(weekStart, 7))}
         aria-label={t("nextWeekAria")}
-        className="text-text-dim hover:text-foreground p-1.5 rounded-md hover:bg-surface-hover transition-colors"
+        className="glass-control flex items-center justify-center h-9 w-9 rounded-full text-text-dim hover:text-foreground transition-colors"
       >
         <ChevronRight className="h-4 w-4" />
       </button>

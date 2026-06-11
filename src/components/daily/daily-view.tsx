@@ -356,7 +356,6 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
         <div className="mx-auto max-w-3xl px-4 md:px-6 pb-8">
           <div className="pt-6 mb-2 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-foreground">{tNav("tasks")}</h1>
               <WeekNavControls date={currentDate} onDateChange={setCurrentDate} />
             </div>
 

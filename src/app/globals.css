@@ -287,6 +287,56 @@
   mask-mode: luminance;
 }
 
+/* =========================================================
+   iOS 26 風格液態玻璃控件（V4「拋光管」）
+   亮環走「上下緣最亮、左右緣淡」的垂直漸層 + 細描邊（::before mask ring）+
+   深色填充 + 大模糊。純 CSS：Safari/Chrome 皆正常，無 SVG filter 相容問題。
+   - 預設（淺色模式）：環色由 --foreground 推導（深環）。
+   - .dark：採原始 V4 純白亮環（玻璃材質高光，非品牌配色；陰影黑同理）。
+   ========================================================= */
+.glass-control {
+  position: relative;
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  box-shadow:
+    inset 0 0 6px color-mix(in srgb, var(--foreground) 8%, transparent),
+    0 4px 12px rgb(0 0 0 / 0.18);
+}
+.glass-control::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.2px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--foreground) 45%, transparent),
+    color-mix(in srgb, var(--foreground) 10%, transparent) 35%,
+    color-mix(in srgb, var(--foreground) 10%, transparent) 65%,
+    color-mix(in srgb, var(--foreground) 30%, transparent)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.dark .glass-control {
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow:
+    inset 0 0 6px rgba(255, 255, 255, 0.1),
+    0 4px 12px rgb(0 0 0 / 0.3);
+}
+.dark .glass-control::before {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.85),
+    rgba(255, 255, 255, 0.12) 35%,
+    rgba(255, 255, 255, 0.12) 65%,
+    rgba(255, 255, 255, 0.55)
+  );
+}
+
 /* 墨點閃爍 — 輕微的 opacity 與 scale 脈動 */
 @keyframes landing-twinkle {
   0%,
