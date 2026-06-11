@@ -51,6 +51,9 @@
       "button": "ログアウト",
       "confirmTitle": "ログアウト",
       "confirmBody": "本当にログアウトしますか？"
+    },
+    "dangerZone": {
+      "section": "危険な操作"
     }
   },
   "tags": {
@@ -63,6 +66,7 @@
     "deleteTitle": "タグを削除",
     "deleteConfirm": "「{name}」を削除しますか？",
     "deleteTagAria": "{name} を削除",
+    "dragReorderAria": "ドラッグして並べ替え {name}",
     "newTagPlaceholder": "新しいタグ...",
     "removeAria": "{name} を外す",
     "searchOrCreate": "タグを検索・作成..."

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { GripVertical, Trash2 } from "lucide-react";
+import { GripVertical, Trash2, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTags } from "@/hooks/use-tags";
 
@@ -20,6 +20,8 @@ export function TagManager() {
   const editInputRef = useRef<HTMLInputElement>(null);
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  // pendingDeleteId: first click sets this; second click (confirm) calls deleteTag.
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (editingId && editInputRef.current) {
@@ -92,8 +94,6 @@ export function TagManager() {
       {tags.map((tag) => (
         <div
           key={tag.id}
-          draggable
-          onDragStart={() => setDraggingId(tag.id)}
           onDragOver={(e) => {
             if (draggingId && draggingId !== tag.id) e.preventDefault();
           }}
@@ -101,13 +101,19 @@ export function TagManager() {
             e.preventDefault();
             handleDrop(tag.id);
           }}
-          onDragEnd={() => setDraggingId(null)}
           className={`flex items-center gap-2 py-1.5 group ${
             draggingId === tag.id ? "opacity-40" : ""
           }`}
         >
+          {/* Drag handle is the ONLY drag initiator — rename input won't start a drag */}
           <button
             type="button"
+            draggable
+            onDragStart={(e) => {
+              e.stopPropagation();
+              setDraggingId(tag.id);
+            }}
+            onDragEnd={() => setDraggingId(null)}
             className="cursor-grab active:cursor-grabbing text-text-faint hover:text-text-dim"
             aria-label={t("dragReorderAria", { name: tag.name })}
           >
@@ -132,6 +138,8 @@ export function TagManager() {
               onClick={() => {
                 setEditingId(tag.id);
                 setEditingName(tag.name);
+                // Clear any pending delete when entering rename mode.
+                setPendingDeleteId(null);
               }}
               className="flex-1 min-w-0 text-left text-sm text-foreground truncate hover:text-primary transition-colors"
             >
@@ -139,19 +147,43 @@ export function TagManager() {
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={() => deleteTag(tag.id)}
-            aria-label={t("deleteTagAria", { name: tag.name })}
-            className="opacity-0 group-hover:opacity-100 text-text-faint hover:text-destructive transition-all shrink-0 p-1"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+          {pendingDeleteId === tag.id ? (
+            /* Confirm step: show Cancel + Delete buttons */
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={() => setPendingDeleteId(null)}
+                className="text-xs text-text-dim hover:text-foreground transition-colors px-1"
+              >
+                {tCommon("cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingDeleteId(null);
+                  deleteTag(tag.id);
+                }}
+                aria-label={t("deleteTagAria", { name: tag.name })}
+                className="text-xs text-destructive hover:text-destructive/80 font-medium transition-colors px-1"
+              >
+                {tCommon("delete")}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setPendingDeleteId(tag.id)}
+              aria-label={t("deleteTagAria", { name: tag.name })}
+              className="opacity-0 group-hover:opacity-100 text-text-faint hover:text-destructive transition-all shrink-0 p-1"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       ))}
 
       <div className="flex items-center gap-2 pt-1">
-        <span className="w-3.5 h-3.5 shrink-0" aria-hidden />
+        <Plus className="h-3.5 w-3.5 shrink-0 text-text-dim" aria-hidden />
         <input
           type="text"
           value={newName}

@@ -51,6 +51,9 @@
       "button": "Log out",
       "confirmTitle": "Log out",
       "confirmBody": "Log out now?"
+    },
+    "dangerZone": {
+      "section": "Danger Zone"
     }
   },
   "tags": {
@@ -63,6 +66,7 @@
     "deleteTitle": "Delete tag",
     "deleteConfirm": "Delete \"{name}\"?",
     "deleteTagAria": "Delete {name}",
+    "dragReorderAria": "Drag to reorder {name}",
     "newTagPlaceholder": "New tag...",
     "removeAria": "Remove {name}",
     "searchOrCreate": "Search or create tag..."

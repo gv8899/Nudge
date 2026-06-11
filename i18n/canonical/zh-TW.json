@@ -51,6 +51,9 @@
       "button": "登出",
       "confirmTitle": "登出",
       "confirmBody": "確定要登出嗎？"
+    },
+    "dangerZone": {
+      "section": "危險區"
     }
   },
   "tags": {
@@ -63,6 +66,7 @@
     "deleteTitle": "刪除標籤",
     "deleteConfirm": "確定要刪除「{name}」嗎？",
     "deleteTagAria": "刪除 {name}",
+    "dragReorderAria": "拖曳排序 {name}",
     "newTagPlaceholder": "新增標籤...",
     "removeAria": "移除 {name}",
     "searchOrCreate": "搜尋或建立標籤..."

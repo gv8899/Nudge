@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Tag as TagIcon, Plus } from "lucide-react";
+import { Tag as TagIcon, Plus, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useTags } from "@/hooks/use-tags";
@@ -70,14 +70,28 @@ export function TagPicker({ selectedTags, onTagsChange }: TagPickerProps) {
         <PopoverContent align="start" className="w-56 p-0">
           <div>
             <div className="p-2 border-b border-border">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t("searchOrCreate")}
-                className="w-full text-sm bg-transparent outline-none placeholder:text-text-faint text-foreground"
-                autoFocus
-              />
+              <div className="relative flex items-center">
+                <Search className="absolute left-0 h-3.5 w-3.5 text-text-dim pointer-events-none shrink-0" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={t("searchOrCreate")}
+                  className="w-full pl-5 pr-5 text-sm bg-transparent outline-none placeholder:text-text-faint text-foreground"
+                  autoFocus
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="absolute right-0 text-text-faint hover:text-text-dim transition-colors"
+                    tabIndex={-1}
+                    aria-hidden="true"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
             <div className="max-h-48 overflow-y-auto p-1">
               {filtered.map((tag) => (
