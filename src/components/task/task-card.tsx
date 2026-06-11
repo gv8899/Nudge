@@ -15,7 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { FileText, GripVertical, MoreHorizontal } from "lucide-react";
+import { GripVertical, MoreHorizontal } from "lucide-react";
 import type { DailyTaskAssignment } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
 
@@ -95,12 +95,13 @@ export function TaskCard({
     [task.id, onUpdateTask]
   );
 
-  const hasDescription = !!task.description?.trim();
-
   /** Shared menu items used by both the … DropdownMenu and the right-click ContextMenu */
   function MenuItems() {
     return (
       <>
+        <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
+          {t("openDetail")}
+        </DropdownMenuItem>
         {isRecurring ? (
           <DropdownMenuItem onClick={() => setSkipDialogOpen(true)}>
             {tDaily("skipThisOccurrence")}
@@ -210,19 +211,6 @@ export function TaskCard({
             onMove={(targetDate) => onMoveToDate(assignment.id, targetDate)}
           />
 
-          {/* 展開內文 */}
-          <button
-            onClick={() => setIsModalOpen(true)}
-            aria-label={t("expandContentAria", { title: task.title })}
-            className={`transition-colors cursor-pointer p-2 rounded ${
-              hasDescription
-                ? "text-primary hover:text-primary/80"
-                : "text-text-faint hover:text-muted-foreground"
-            }`}
-          >
-            <FileText className="h-4 w-4" />
-          </button>
-
           {/* … DropdownMenu */}
           <DropdownMenu>
             <DropdownMenuTrigger
@@ -241,6 +229,12 @@ export function TaskCard({
         <ContextMenuPrimitive.Portal>
           <ContextMenuPrimitive.Positioner className="isolate z-50 outline-none">
             <ContextMenuPrimitive.Popup className={popupClassName}>
+              <ContextMenuPrimitive.Item
+                className={itemClassName}
+                onClick={() => setIsModalOpen(true)}
+              >
+                {t("openDetail")}
+              </ContextMenuPrimitive.Item>
               <ContextMenuPrimitive.Item
                 className={itemClassName}
                 onClick={isRecurring ? () => setSkipDialogOpen(true) : () => setScheduleDialogOpen(true)}

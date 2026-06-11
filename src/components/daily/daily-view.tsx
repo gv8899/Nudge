@@ -6,6 +6,7 @@ import { mutate as globalMutate } from "swr";
 import { useDaily } from "@/hooks/use-daily";
 import { TaskCard } from "@/components/task/task-card";
 import { TaskCreate } from "@/components/task/task-create";
+import { TaskFab } from "@/components/task/task-fab";
 import { CalendarNav, WeekNavControls } from "@/components/calendar/calendar-nav";
 import { DateHeading } from "@/components/calendar/date-heading";
 import { OverdueSection } from "@/components/daily/overdue-section";
@@ -87,6 +88,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   const tCommon = useTranslations("common");
   const [currentDate, setCurrentDate] = useState(initialDate);
   const [completedExpanded, setCompletedExpanded] = useState(true);
+  const [composerOpen, setComposerOpen] = useState(false);
   const { data, isLoading, error, mutate } = useDaily(currentDate);
 
   // ── Right-panel state (lazy-init from localStorage, SSR-safe) ──────────
@@ -429,7 +431,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
               onReschedule={handleReschedule}
               onArchive={handleArchive}
             />
-            <TaskCreate onSubmit={handleCreateTask} />
+            {composerOpen && <TaskCreate onSubmit={handleCreateTask} />}
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -493,6 +495,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
           </div>
         </div>
       </div>
+      <TaskFab onClick={() => setComposerOpen(true)} />
     </>
   );
 }

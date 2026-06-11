@@ -111,7 +111,8 @@
     "viewDetails": "查看詳情",
     "complete": "完成任務",
     "uncomplete": "取消完成",
-    "moveToOtherDate": "移到其他日期"
+    "moveToOtherDate": "移到其他日期",
+    "openDetail": "開啟內容"
   },
   "editor": {
     "dragBlockAria": "拖動區塊",

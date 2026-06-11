@@ -26,6 +26,7 @@ export function TaskCreate({ onSubmit }: TaskCreateProps) {
         aria-label={t("createPlaceholder")}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        autoFocus
         className="w-full bg-transparent py-2 text-sm text-foreground placeholder-text-faint outline-none border-b border-border focus:border-primary transition-colors"
       />
     </form>
