@@ -210,7 +210,8 @@
     "canvasToggleFeedAria": "切換到 feed",
     "canvasToggleFeedTitle": "切換到 feed",
     "entryAria": "{year}年{month}月{day}日的日記",
-    "monthLabel": "{month} 月"
+    "monthLabel": "{month} 月",
+    "todayPlaceholder": "開始寫今天的日誌"
   },
   "calendar": {
     "section": "行事曆",

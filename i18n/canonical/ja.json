@@ -210,7 +210,8 @@
     "canvasToggleFeedAria": "フィードへ切り替え",
     "canvasToggleFeedTitle": "フィードへ切り替え",
     "entryAria": "{year}年{month}月{day}日のジャーナル",
-    "monthLabel": "{month} 月"
+    "monthLabel": "{month} 月",
+    "todayPlaceholder": "今日のジャーナルを書く"
   },
   "calendar": {
     "section": "カレンダー",

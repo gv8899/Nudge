@@ -7,6 +7,7 @@ import { createEditorExtensions } from "@/components/editor/editor-extensions";
 import { useSlashCommandItems } from "@/components/editor/slash-command-items";
 import { useBlockDrag } from "@/components/editor/use-block-drag";
 import { BlockDragHandle, BlockDropIndicator } from "@/components/editor/block-drag-handle";
+import { revalidateNotesFeed } from "./notes-feed-revalidate";
 
 interface NotesCanvasEditorProps {
   date: string;
@@ -42,7 +43,7 @@ export function NotesCanvasEditor({
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: html }),
-        });
+        }).then(() => revalidateNotesFeed());
       }, 800);
     },
     editorProps: {

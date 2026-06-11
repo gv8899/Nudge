@@ -210,7 +210,8 @@
     "canvasToggleFeedAria": "Switch to feed",
     "canvasToggleFeedTitle": "Switch to feed",
     "entryAria": "Journal for {month}/{day}/{year}",
-    "monthLabel": "{month}"
+    "monthLabel": "{month}",
+    "todayPlaceholder": "Start today's note"
   },
   "calendar": {
     "section": "Calendar",
