@@ -111,8 +111,7 @@
     "viewDetails": "詳細を見る",
     "complete": "タスクを完了",
     "uncomplete": "未完了に戻す",
-    "moveToOtherDate": "別の日付に移動",
-    "openDetail": "開啟內容"
+    "moveToOtherDate": "別の日付に移動"
   },
   "editor": {
     "dragBlockAria": "ブロックをドラッグ",

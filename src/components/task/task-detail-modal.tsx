@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { TiptapEditor } from "./tiptap-editor";
 import { TagPicker } from "@/components/tags/tag-picker";
@@ -16,6 +16,7 @@ interface TaskDetailModalProps {
   onStatusChange: (status: TaskStatus) => void;
   onTagsChange?: (tagIds: string[]) => void;
   tags?: Array<{ id: string; name: string; color: string }>;
+  onTitleChange?: (title: string) => void;
 }
 
 export function TaskDetailModal({
@@ -26,9 +27,15 @@ export function TaskDetailModal({
   onStatusChange,
   onTagsChange,
   tags = [],
+  onTitleChange,
 }: TaskDetailModalProps) {
   const t = useTranslations("task");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [titleDraft, setTitleDraft] = useState(task.title);
+
+  useEffect(() => {
+    setTitleDraft(task.title);
+  }, [task.title]);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -125,9 +132,29 @@ export function TaskDetailModal({
         {/* 頂部列 */}
         <div className="sticky top-0 z-10 px-6 py-4 bg-popover border-b border-border rounded-t-xl">
           <div className="flex items-center justify-between">
-            <h2 id="task-detail-title" className="text-lg font-semibold text-foreground">
-              {task.title}
-            </h2>
+            {onTitleChange ? (
+              <input
+                id="task-detail-title"
+                value={titleDraft}
+                onChange={(e) => setTitleDraft(e.target.value)}
+                onBlur={() => {
+                  const v = titleDraft.trim();
+                  if (v && v !== task.title) onTitleChange(v);
+                  else setTitleDraft(task.title);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    (e.target as HTMLInputElement).blur();
+                  }
+                }}
+                aria-label={t("editTitleAria")}
+                className="flex-1 min-w-0 text-lg font-semibold text-foreground bg-transparent border-none outline-none focus:ring-0 px-0"
+              />
+            ) : (
+              <h2 id="task-detail-title" className="text-lg font-semibold text-foreground">
+                {task.title}
+              </h2>
+            )}
             <div className="flex items-center gap-1">
             <a
               href={`/cards/${task.id}`}

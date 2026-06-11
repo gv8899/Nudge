@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -39,12 +39,9 @@ export function TaskCard({
   const t = useTranslations("task");
   const tDaily = useTranslations("daily");
   const { task } = assignment;
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [titleValue, setTitleValue] = useState(task.title);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [skipDialogOpen, setSkipDialogOpen] = useState(false);
-  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const isRecurring = assignment.isRecurring;
 
@@ -63,31 +60,6 @@ export function TaskCard({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  useEffect(() => {
-    setTitleValue(task.title);
-  }, [task.title]);
-
-  useEffect(() => {
-    if (isEditingTitle && titleInputRef.current) {
-      titleInputRef.current.focus();
-      const len = titleInputRef.current.value.length;
-      titleInputRef.current.setSelectionRange(len, len);
-    }
-  }, [isEditingTitle]);
-
-  const saveTitle = () => {
-    const trimmed = titleValue.trim();
-    if (!trimmed) {
-      // 標題刪光 → 封存任務
-      onStatusChange(task.id, "archived");
-      return;
-    }
-    if (trimmed !== task.title) {
-      onUpdateTask(task.id, { title: trimmed });
-    }
-    setIsEditingTitle(false);
-  };
-
   const handleDescChange = useCallback(
     (html: string) => {
       onUpdateTask(task.id, { description: html });
@@ -99,9 +71,6 @@ export function TaskCard({
   function MenuItems() {
     return (
       <>
-        <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
-          {t("openDetail")}
-        </DropdownMenuItem>
         {isRecurring ? (
           <DropdownMenuItem onClick={() => setSkipDialogOpen(true)}>
             {tDaily("skipThisOccurrence")}
@@ -172,38 +141,16 @@ export function TaskCard({
           </button>
 
           {/* 標題 */}
-          {isEditingTitle ? (
-            <input
-              ref={titleInputRef}
-              value={titleValue}
-              onChange={(e) => setTitleValue(e.target.value)}
-              onBlur={saveTitle}
-              onKeyDown={(e) => {
-                if (e.key === "Backspace" && titleValue === "") {
-                  onStatusChange(task.id, "archived");
-                  return;
-                }
-                if (e.key === "Enter") saveTitle();
-                if (e.key === "Escape") {
-                  setTitleValue(task.title);
-                  setIsEditingTitle(false);
-                }
-              }}
-              aria-label={t("editTitleAria")}
-              className="flex-1 min-w-0 text-sm bg-background text-foreground rounded px-2 py-1 outline-none border border-primary"
-            />
-          ) : (
-            <button
-              onClick={() => setIsEditingTitle(true)}
-              className={`flex-1 min-w-0 text-sm text-left cursor-text bg-transparent border-none p-0 truncate ${
-                assignment.isCompleted
-                  ? "line-through text-text-dim"
-                  : "text-foreground"
-              }`}
-            >
-              {task.title}
-            </button>
-          )}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className={`flex-1 min-w-0 text-sm text-left cursor-pointer bg-transparent border-none p-0 truncate ${
+              assignment.isCompleted
+                ? "line-through text-text-dim"
+                : "text-foreground"
+            }`}
+          >
+            {task.title}
+          </button>
 
           {/* 移動日期 */}
           <MoveTaskPopover
@@ -231,12 +178,6 @@ export function TaskCard({
             <ContextMenuPrimitive.Popup className={popupClassName}>
               <ContextMenuPrimitive.Item
                 className={itemClassName}
-                onClick={() => setIsModalOpen(true)}
-              >
-                {t("openDetail")}
-              </ContextMenuPrimitive.Item>
-              <ContextMenuPrimitive.Item
-                className={itemClassName}
                 onClick={isRecurring ? () => setSkipDialogOpen(true) : () => setScheduleDialogOpen(true)}
               >
                 {isRecurring ? tDaily("skipThisOccurrence") : tDaily("setRecurring")}
@@ -258,6 +199,7 @@ export function TaskCard({
         onClose={() => setIsModalOpen(false)}
         onDescChange={handleDescChange}
         onStatusChange={(s) => onStatusChange(task.id, s)}
+        onTitleChange={(title) => onUpdateTask(task.id, { title })}
       />
 
       <ScheduleDialog

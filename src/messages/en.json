@@ -111,8 +111,7 @@
     "viewDetails": "View details",
     "complete": "Complete task",
     "uncomplete": "Mark as incomplete",
-    "moveToOtherDate": "Move to another date",
-    "openDetail": "開啟內容"
+    "moveToOtherDate": "Move to another date"
   },
   "editor": {
     "dragBlockAria": "Drag block",
