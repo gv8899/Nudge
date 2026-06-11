@@ -38,6 +38,15 @@
     "settings.logout.confirmTitle": "057f31bc16c89da77115ac1e6f7523ea3d7d9c3a9eadace3c6ad9a674285c7d6",
     "settings.logout.confirmBody": "2855688aeb72ebbcc0370a97ddca92d0ed6f7b29d88b2d1d4e4f8e6f13a6a525",
     "settings.dangerZone.section": "963a4f320e47b95c46e68c6b3831eb0d9309a6bb6c87334cc42e562e9ccb02eb",
+    "settings.notifications.title": "4b6ded8a7f181397121cbfa64c684d5d183160a83cfd03b01dfa434337fc08e0",
+    "settings.notifications.morningEnabled": "9f1de9d0a930b0df6359acdd7bb1c5a083dcac36523646884ea440fb5519ae22",
+    "settings.notifications.morningTime": "bf6267da6077b6bedde993a6ec599e9d5474eef12284b6823ef8dd0facc08f40",
+    "settings.notifications.morningContent": "21e5bce6a62254cf11d68cf1cb2ebf88b0cb76cb386caadf8bfca6e53e8a657b",
+    "settings.notifications.eveningEnabled": "0011c8f824ad16fbd6514434e2832eb491d42e88fca1ba4f02a581feac8d97b3",
+    "settings.notifications.eveningTime": "bf6267da6077b6bedde993a6ec599e9d5474eef12284b6823ef8dd0facc08f40",
+    "settings.notifications.eveningContent": "21e5bce6a62254cf11d68cf1cb2ebf88b0cb76cb386caadf8bfca6e53e8a657b",
+    "settings.notifications.perTaskEnabled": "761c8383ff7641668dc5f0420fb5ee4421c5097e9819965f1f4f264323e0cf67",
+    "settings.notifications.platformNote": "a3ac1ff6d0bd2d97320507b7f4335417f7c9f44a5304d6f6a349e34edc02aaa5",
     "tags.add": "0006d696d8e1ec28a134667ab0b633e632f11501e4938a9c617ba7212e2e1bf3",
     "tags.addTag": "bc49153ed445b3b3db2dba5f60ed3989b42b703347dc01c8b4b04e8ab2a2abac",
     "tags.addTagShort": "cd22f29109cfe9b8d4ae06fd87cb8aef7d6ba73269ad5af20955d15d4c491657",
@@ -243,7 +252,10 @@
     "weekday.thu": "754a9d5828d502f19ae91df8f089811d9affe9e0a487b20528975700f7c90f75",
     "weekday.fri": "c9b87f516a38ea36a0ca35f5137d4676a0705b6af36302cac4b68927a1e42c60",
     "weekday.sat": "de07b5383874b2a32bd141d2655a9e8b01ea1b8fc2bed8195e27fc6848864163",
-    "weekday.sun": "85217f7aff77841438439fb3e7cf37bb3062fb026453c7692247d3a5641a0115"
+    "weekday.sun": "85217f7aff77841438439fb3e7cf37bb3062fb026453c7692247d3a5641a0115",
+    "notifications.content.summary": "8d124959f1ea9f948815e7afde6b746cb89c3ecb30418c2753fcc9ba91065f5b",
+    "notifications.content.incomplete": "3aedd4d4f0c9b93a855d520530e70f1d7721655e995cac1b2430471a71734b53",
+    "notifications.content.summaryStreak": "e8317c137f767b22b2b780864308abf38e9905e63052740fd0c3408db3d5c385"
   },
   "locked": {}
 }

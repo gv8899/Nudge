@@ -54,6 +54,17 @@
     },
     "dangerZone": {
       "section": "危險區"
+    },
+    "notifications": {
+      "title": "通知",
+      "morningEnabled": "早晨通知",
+      "morningTime": "時間",
+      "morningContent": "內容",
+      "eveningEnabled": "晚間通知",
+      "eveningTime": "時間",
+      "eveningContent": "內容",
+      "perTaskEnabled": "個別任務提醒",
+      "platformNote": "通知只在 App（iOS / macOS）推送"
     }
   },
   "tags": {
@@ -295,5 +306,12 @@
     "fri": "五",
     "sat": "六",
     "sun": "日"
+  },
+  "notifications": {
+    "content": {
+      "summary": "今日摘要",
+      "incomplete": "未完成項目",
+      "summaryStreak": "摘要 + 連續天數"
+    }
   }
 }

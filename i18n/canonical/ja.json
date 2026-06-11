@@ -54,6 +54,17 @@
     },
     "dangerZone": {
       "section": "危険な操作"
+    },
+    "notifications": {
+      "title": "通知",
+      "morningEnabled": "朝の通知",
+      "morningTime": "時刻",
+      "morningContent": "内容",
+      "eveningEnabled": "夜の通知",
+      "eveningTime": "時刻",
+      "eveningContent": "内容",
+      "perTaskEnabled": "タスクごとのリマインダー",
+      "platformNote": "通知はアプリ（iOS / macOS）で配信されます"
     }
   },
   "tags": {
@@ -295,5 +306,12 @@
     "fri": "金",
     "sat": "土",
     "sun": "日"
+  },
+  "notifications": {
+    "content": {
+      "summary": "今日のサマリー",
+      "incomplete": "未完了のタスク",
+      "summaryStreak": "サマリー + 連続記録"
+    }
   }
 }

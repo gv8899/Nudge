@@ -54,6 +54,17 @@
     },
     "dangerZone": {
       "section": "Danger Zone"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "morningEnabled": "Morning notification",
+      "morningTime": "Time",
+      "morningContent": "Content",
+      "eveningEnabled": "Evening notification",
+      "eveningTime": "Time",
+      "eveningContent": "Content",
+      "perTaskEnabled": "Per-task reminders",
+      "platformNote": "Notifications are delivered in the app (iOS / macOS)"
     }
   },
   "tags": {
@@ -295,5 +306,12 @@
     "fri": "Fr",
     "sat": "Sa",
     "sun": "Su"
+  },
+  "notifications": {
+    "content": {
+      "summary": "Today's summary",
+      "incomplete": "Incomplete tasks",
+      "summaryStreak": "Summary + streak"
+    }
   }
 }
