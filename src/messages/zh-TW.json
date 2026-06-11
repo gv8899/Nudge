@@ -154,7 +154,16 @@
     "todayButton": "今天",
     "todayAria": "回到今天",
     "todaySectionTitle": "今天 ({count})",
-    "toggleRightPanel": "顯示 / 隱藏側邊面板"
+    "toggleRightPanel": "顯示 / 隱藏側邊面板",
+    "completedHeader": "已完成 ({count})",
+    "a11y": {
+      "hasReminder": "已設提醒",
+      "recurring": "重複任務"
+    },
+    "rowMenu": "任務動作",
+    "setRecurring": "設成重複任務…",
+    "setReminder": "設定提醒…",
+    "skipThisOccurrence": "跳過這次"
   },
   "cards": {
     "createAria": "新增卡片",
@@ -236,5 +245,8 @@
     "evening": "晚上",
     "prevMonthAria": "上個月",
     "nextMonthAria": "下個月"
+  },
+  "schedule": {
+    "recurrenceTitle": "重複"
   }
 }

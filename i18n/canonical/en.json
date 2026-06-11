@@ -154,7 +154,16 @@
     "todayButton": "Today",
     "todayAria": "Jump to today",
     "todaySectionTitle": "Today ({count})",
-    "toggleRightPanel": "Toggle side panel"
+    "toggleRightPanel": "Toggle side panel",
+    "completedHeader": "Completed ({count})",
+    "a11y": {
+      "hasReminder": "Has reminder",
+      "recurring": "Recurring"
+    },
+    "rowMenu": "Task actions",
+    "setRecurring": "Repeat…",
+    "setReminder": "Set reminder…",
+    "skipThisOccurrence": "Skip this one"
   },
   "cards": {
     "createAria": "New card",
@@ -236,5 +245,8 @@
     "evening": "Evening",
     "prevMonthAria": "Previous month",
     "nextMonthAria": "Next month"
+  },
+  "schedule": {
+    "recurrenceTitle": "Repeat"
   }
 }

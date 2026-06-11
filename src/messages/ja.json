@@ -154,7 +154,16 @@
     "todayButton": "今日",
     "todayAria": "今日に戻る",
     "todaySectionTitle": "今日 ({count})",
-    "toggleRightPanel": "サイドパネルを切り替え"
+    "toggleRightPanel": "サイドパネルを切り替え",
+    "completedHeader": "完了 ({count})",
+    "a11y": {
+      "hasReminder": "リマインダーあり",
+      "recurring": "繰り返し"
+    },
+    "rowMenu": "タスク操作",
+    "setRecurring": "繰り返し設定…",
+    "setReminder": "リマインダーを設定…",
+    "skipThisOccurrence": "今回をスキップ"
   },
   "cards": {
     "createAria": "新しいカード",
@@ -236,5 +245,8 @@
     "evening": "夜",
     "prevMonthAria": "前の月",
     "nextMonthAria": "次の月"
+  },
+  "schedule": {
+    "recurrenceTitle": "繰り返し"
   }
 }

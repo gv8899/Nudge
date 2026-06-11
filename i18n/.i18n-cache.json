@@ -128,6 +128,13 @@
     "daily.todayAria": "c4aa445b580a05cf128104d964dacf369b42aea1a20ebfd53ee52b0877d9ca0e",
     "daily.todaySectionTitle": "0e03dc2e4515612f18519e92f4202abc87168dbb25d234ceb857930dda2b70be",
     "daily.toggleRightPanel": "6804a4448d22d958641dd72c94c27d6e4d10b39a423c5a972ebdc24a78fb8d99",
+    "daily.completedHeader": "9202459b6082d735fa73ca2b59dcd2731607e41fe059f1737504b532f39ca426",
+    "daily.a11y.hasReminder": "3fc152ec81bc2fa96345ace241a071dbe535447f607bbd386373bcafbca7f56b",
+    "daily.a11y.recurring": "0d62f19d641e39dca9246f5ca0356bc45da08905df2d8434d641f1834e77bdf7",
+    "daily.rowMenu": "5a6067214c15284f4b7cd75d1d281df7d05919c7361e64e0845e02c004256080",
+    "daily.setRecurring": "28101b1858f7e4634ba568e30e0a9cc0d8047332733b8a4756a697b0a67b9107",
+    "daily.setReminder": "8057f9a132fc9af25a9ca3460305b3a9b28ced1a5260b03761ba6f062f837ebd",
+    "daily.skipThisOccurrence": "33b9740a45ef16cd9f3199d0a372ae3964e9cb706451d67de3ffddee4f2a150e",
     "cards.createAria": "39a3f90e1ebc294a5d3f85daa4af85682106bd468517f9bd87bebe77c09b7a2a",
     "cards.cleanUntitledAria": "4e254348773fee1ec990d823cb2676c5d9700363c4b1205c87a1e01346a74fee",
     "cards.viewListAria": "491fb6a60c1a000783a7edbf4779f985e1399e7e1f3443f968173dbcef55b138",
@@ -200,7 +207,8 @@
     "calendar.afternoon": "af81dcf37aa86091075e43941c4dfaa7d3ee9568a4294215adcaaaa3bede8480",
     "calendar.evening": "a9b1124b34615118f85ed09bec2cc88b8edbe0560c86db5ac51d56d66bcd2f1b",
     "calendar.prevMonthAria": "d84db2ffe828eedffd6b69391dcfa4ba5f0f9db10cfac9af062fd67c73a06763",
-    "calendar.nextMonthAria": "5dcf045a24cf143d55a761042281326625d7f3a68084de2e8538b4a015e35587"
+    "calendar.nextMonthAria": "5dcf045a24cf143d55a761042281326625d7f3a68084de2e8538b4a015e35587",
+    "schedule.recurrenceTitle": "cb59ef06dab115c720529be97ed149b5f56c5a59f4123f39feae2e36e9d6352c"
   },
   "locked": {}
 }
