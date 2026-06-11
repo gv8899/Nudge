@@ -186,7 +186,8 @@
     "cleanConfirmButton": "Confirm delete",
     "cleanLoading": "Cleaning...",
     "toastCleaned": "Cleaned {count} untitled card(s)",
-    "toastNothingToClean": "No cards to clean"
+    "toastNothingToClean": "No cards to clean",
+    "untitled": "Untitled"
   },
   "cardDetail": {
     "backToCards": "Back to cards",

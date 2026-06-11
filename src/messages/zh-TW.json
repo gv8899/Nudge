@@ -186,7 +186,8 @@
     "cleanConfirmButton": "確定清除",
     "cleanLoading": "清除中...",
     "toastCleaned": "已清除 {count} 張空白卡片",
-    "toastNothingToClean": "沒有需要清除的卡片"
+    "toastNothingToClean": "沒有需要清除的卡片",
+    "untitled": "未命名"
   },
   "cardDetail": {
     "backToCards": "返回卡片",

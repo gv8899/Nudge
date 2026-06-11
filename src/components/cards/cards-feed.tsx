@@ -40,6 +40,19 @@ export function CardsFeed() {
   const [confirmCleanOpen, setConfirmCleanOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
+  // Task 3.4 — selected card tracking (sessionStorage, SSR-safe)
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return sessionStorage.getItem("cards.lastOpenedId");
+  });
+
+  const markOpened = useCallback((id: string) => {
+    setSelectedCardId(id);
+    try {
+      sessionStorage.setItem("cards.lastOpenedId", id);
+    } catch {}
+  }, []);
+
   const handleViewChange = (next: View) => {
     setView(next);
     try {
@@ -49,8 +62,8 @@ export function CardsFeed() {
 
   // debounce 搜尋
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedQuery(query), 300);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(timer);
   }, [query]);
 
   const { cards, isLoading, isLoadingMore, hasMore, loadMore, mutate } =
@@ -106,8 +119,8 @@ export function CardsFeed() {
   // toast 自動消失
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(null), 2500);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setToast(null), 2500);
+    return () => clearTimeout(timer);
   }, [toast]);
 
   const handleLoadMore = useCallback(() => {
@@ -116,9 +129,12 @@ export function CardsFeed() {
 
   const sentinelRef = useIntersectionObserver(handleLoadMore, hasMore);
 
+  // Filtering mode: any active query or tag selection → search results, no pagination footer
+  const isFiltering = debouncedQuery.length > 0 || selectedTagIds.length > 0;
+
   return (
-    <div className="mx-auto max-w-3xl px-4 md:px-6 py-6">
-      {/* 標題 + 工具列 */}
+    <div className="mx-auto max-w-3xl px-4 md:px-6 py-6 flex flex-col min-h-0">
+      {/* Row 1: 標題 + create / clean buttons */}
       <div className="flex items-center justify-between mb-4 gap-2">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold text-foreground">{tNav("cards")}</h1>
@@ -133,20 +149,35 @@ export function CardsFeed() {
             <Plus className="h-5 w-5" />
           </button>
         </div>
-        <div className="flex items-center gap-2">
-          {/* 清除空白的卡片 */}
-          <button
-            onClick={() => setConfirmCleanOpen(true)}
-            disabled={isCleaning}
-            aria-label={t("cleanUntitledAria")}
-            title={t("cleanUntitledAria")}
-            className="p-2 rounded-lg text-text-dim hover:text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
-          >
-            <Eraser className="h-4 w-4" />
-          </button>
+        {/* 清除空白的卡片 */}
+        <button
+          onClick={() => setConfirmCleanOpen(true)}
+          disabled={isCleaning}
+          aria-label={t("cleanUntitledAria")}
+          title={t("cleanUntitledAria")}
+          className="p-2 rounded-lg text-text-dim hover:text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
+        >
+          <Eraser className="h-4 w-4" />
+        </button>
+      </div>
 
-          {/* View 切換 */}
-          <div className="flex items-center gap-1 border border-border rounded-lg p-1" suppressHydrationWarning>
+      {/* Row 2 (persistent search block): search input + view toggle, then tag chips */}
+      <div className="mb-4">
+        {/* Search input + view toggle on same row */}
+        <div className="flex items-center gap-2 mb-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim pointer-events-none" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t("searchPlaceholder")}
+              className="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+              aria-label={t("searchAria")}
+            />
+          </div>
+          {/* View toggle — moved here from title row */}
+          <div className="flex items-center gap-1 border border-border rounded-lg p-1 shrink-0" suppressHydrationWarning>
             <button
               suppressHydrationWarning
               onClick={() => handleViewChange("list")}
@@ -175,84 +206,90 @@ export function CardsFeed() {
             </button>
           </div>
         </div>
-      </div>
 
-      {/* 搜尋框 */}
-      <div className="relative mb-3">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim pointer-events-none" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t("searchPlaceholder")}
-          className="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
-          aria-label={t("searchAria")}
-        />
-      </div>
-
-      {/* Tag filter chip cloud — AND semantics */}
-      {allTags.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          {allTags.map((tag) => {
-            const active = selectedTagIds.includes(tag.id);
-            return (
+        {/* Tag filter chip cloud — AND semantics */}
+        {allTags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            {allTags.map((tag) => {
+              const active = selectedTagIds.includes(tag.id);
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => toggleTagFilter(tag.id)}
+                  aria-pressed={active}
+                  className={
+                    active
+                      ? "text-xs px-2.5 py-1 rounded-full bg-primary text-primary-foreground border border-primary transition-colors"
+                      : "text-xs px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted transition-colors"
+                  }
+                >
+                  {tag.name}
+                </button>
+              );
+            })}
+            {selectedTagIds.length > 0 && (
               <button
-                key={tag.id}
                 type="button"
-                onClick={() => toggleTagFilter(tag.id)}
-                aria-pressed={active}
-                className={
-                  active
-                    ? "text-xs px-2.5 py-1 rounded-full bg-primary text-primary-foreground border border-primary transition-colors"
-                    : "text-xs px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted transition-colors"
-                }
+                onClick={() => setSelectedTagIds([])}
+                className="text-xs text-text-dim hover:text-foreground transition-colors px-2 py-1"
               >
-                {tag.name}
+                {tCommon("cancel")}
               </button>
-            );
-          })}
-          {selectedTagIds.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setSelectedTagIds([])}
-              className="text-xs text-text-dim hover:text-foreground transition-colors px-2 py-1"
-            >
-              {tCommon("cancel")}
-            </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 卡片內容 — flex-1 so empty states can fill remaining space */}
+      {isLoading && cards.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center py-16">
+          <p className="text-sm text-text-dim">{tCommon("loading")}</p>
+        </div>
+      ) : cards.length === 0 ? (
+        /* Task 3.2 — empty state centered in remaining vertical space */
+        <div className="flex-1 flex flex-col items-center justify-center py-16 gap-2">
+          {isFiltering ? (
+            <>
+              <Search className="h-6 w-6 text-text-dim" />
+              <p className="text-empty-state text-text-dim">{t("emptyWithQuery")}</p>
+            </>
+          ) : (
+            <p className="text-empty-state text-text-dim">{t("emptyNoCards")}</p>
           )}
         </div>
-      )}
-
-      {/* 卡片內容 */}
-      {isLoading && cards.length === 0 ? (
-        <p className="text-sm text-text-dim text-center py-8">{tCommon("loading")}</p>
-      ) : cards.length === 0 ? (
-        <p className="text-sm text-text-dim text-center py-8">
-          {debouncedQuery ? t("emptyWithQuery") : t("emptyNoCards")}
-        </p>
       ) : view === "list" ? (
         <div className="divide-y divide-border">
           {cards.map((c) => (
-            <CardListItem key={c.id} card={c} />
+            /* Task 3.4 — capture click to track last-opened card (list view) */
+            <div key={c.id} onClickCapture={() => markOpened(c.id)}>
+              <CardListItem card={c} />
+            </div>
           ))}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {cards.map((c) => (
-            <CardGridItem key={c.id} card={c} />
+            /* Task 3.4 — capture click to track last-opened card (grid view)。
+               h-full 讓 wrapper 撐滿 grid cell，保住 CardGridItem 的等高。 */
+            <div key={c.id} className="h-full" onClickCapture={() => markOpened(c.id)}>
+              <CardGridItem card={c} selected={c.id === selectedCardId} />
+            </div>
           ))}
         </div>
       )}
 
-      {/* 無限捲動觸發器 */}
-      <div ref={sentinelRef} className="py-4 text-center">
-        {isLoadingMore && (
-          <p className="text-sm text-text-dim">{t("loadMore")}</p>
-        )}
-        {!hasMore && cards.length > 0 && (
-          <p className="text-sm text-text-faint">{t("noMore")}</p>
-        )}
-      </div>
+      {/* 無限捲動觸發器 — hidden while filtering (search is page-one only) */}
+      {!isFiltering && (
+        <div ref={sentinelRef} className="py-4 text-center">
+          {isLoadingMore && (
+            <p className="text-sm text-text-dim">{t("loadMore")}</p>
+          )}
+          {!hasMore && cards.length > 0 && (
+            <p className="text-sm text-text-faint">{t("noMore")}</p>
+          )}
+        </div>
+      )}
 
       {/* 刪除確認 Dialog */}
       <Dialog open={confirmCleanOpen} onOpenChange={setConfirmCleanOpen}>

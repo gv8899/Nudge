@@ -186,7 +186,8 @@
     "cleanConfirmButton": "削除を確認",
     "cleanLoading": "削除中...",
     "toastCleaned": "{count} 件の空白カードを削除しました",
-    "toastNothingToClean": "削除するカードがありません"
+    "toastNothingToClean": "削除するカードがありません",
+    "untitled": "無題"
   },
   "cardDetail": {
     "backToCards": "カード一覧へ戻る",

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import useSWR, { mutate as globalMutate } from "swr";
 import { format, parseISO } from "date-fns";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
 import { TagPicker } from "@/components/tags/tag-picker";
@@ -145,7 +145,7 @@ export function CardDetail({ id }: CardDetailProps) {
           href="/cards"
           className="inline-flex items-center gap-1 text-sm text-text-dim hover:text-foreground transition-colors mb-4"
         >
-          <ArrowLeft className="h-4 w-4" /> {t("backToCards")}
+          <ChevronLeft className="h-5 w-5 text-primary" /> {t("backToCards")}
         </Link>
         <p className="text-sm text-destructive">{t("notFound")}</p>
       </div>
@@ -154,14 +154,17 @@ export function CardDetail({ id }: CardDetailProps) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 md:px-6 py-8">
-      <Link
-        href="/cards"
-        className="inline-flex items-center gap-1 text-sm text-text-dim hover:text-foreground transition-colors mb-6"
-      >
-        <ArrowLeft className="h-4 w-4" /> {t("backToCards")}
-      </Link>
+      <header className="flex items-center gap-2 mb-6">
+        {/* 返回按鈕：chevron 與標題同列 */}
+        <Link
+          href="/cards"
+          title={t("backToCards")}
+          aria-label={t("backToCards")}
+          className="shrink-0 text-primary hover:text-primary/70 transition-colors"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Link>
 
-      <header className="mb-2">
         {/* 標題（可點擊編輯） */}
         {isEditingTitle ? (
           <input
@@ -177,17 +180,16 @@ export function CardDetail({ id }: CardDetailProps) {
               }
             }}
             aria-label={t("editTitleAria")}
-            className="w-full text-3xl font-bold text-foreground tracking-tight bg-transparent rounded outline-none border-b-2 border-primary mb-3"
+            className="min-w-0 flex-1 text-3xl font-bold text-foreground tracking-tight bg-transparent rounded outline-none border-b-2 border-primary"
           />
         ) : (
           <button
             onClick={() => setIsEditingTitle(true)}
-            className="block w-full text-left text-3xl font-bold text-foreground tracking-tight cursor-text hover:bg-muted/50 -mx-2 px-2 py-1 rounded transition-colors mb-3"
+            className="min-w-0 flex-1 text-left text-3xl font-bold text-foreground tracking-tight cursor-text hover:bg-muted/50 -mx-2 px-2 py-1 rounded transition-colors truncate"
           >
             {data.title}
           </button>
         )}
-
       </header>
 
       {/* 描述（可編輯 TipTap） */}
