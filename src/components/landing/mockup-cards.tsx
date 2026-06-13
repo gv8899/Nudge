@@ -31,7 +31,7 @@ export function MockupCards() {
 
   return (
     <div
-      className="pointer-events-none select-none rounded-2xl border border-border bg-background overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6)]"
+      className="pointer-events-none select-none rounded-2xl border border-border bg-[var(--surface)] overflow-hidden shadow-[0_24px_60px_-20px_rgba(28,27,24,0.18)]"
       aria-hidden="true"
     >
       <div className="p-8">

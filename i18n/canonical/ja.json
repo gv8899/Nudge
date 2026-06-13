@@ -224,5 +224,87 @@
     "mobileCollapsedCount": "今日の予定 · {count} 件",
     "mobileCollapsedEmpty": "今日は予定なし",
     "mobileConnectPrompt": "Google カレンダーを連携 →"
+  },
+  "landing": {
+    "nav": {
+      "aria": "メインナビゲーション",
+      "features": "機能",
+      "philosophy": "理念"
+    },
+    "download": {
+      "mac": "Mac版をダウンロード",
+      "ios": "iPhone版 · App Store"
+    },
+    "hero": {
+      "title": "毎日、\n少しずつ前へ",
+      "subtitle": "タスクも日常も、急かされないペースで前に進める。",
+      "platformNote": "Macのために、iPhoneでも同期。"
+    },
+    "philosophy": {
+      "quote": "ツールはあなたを待つもの、\n追い立てるものではない。",
+      "attribution": "— Nudge の設計思想"
+    },
+    "tasks": {
+      "eyebrow": "アクション",
+      "title": "今日やることに\n集中する",
+      "subtitle": "毎日のタスクリスト。多すぎず、ごちゃつかず、今日進められることだけ。",
+      "points": {
+        "continue": {
+          "title": "自動で持ち越し",
+          "desc": "終わらなかったタスクは消えません。翌日、先頭に表示されて続けられます。"
+        },
+        "reschedule": {
+          "title": "再スケジュール",
+          "desc": "ワンタップで今日に入れる、またはカレンダーから別の日を選ぶ。不要なものはアーカイブ。"
+        },
+        "status": {
+          "title": "タスクの状態",
+          "desc": "メモ、未着手、進行中、他者待ち、完了。色分けで、どの段階かひと目でわかる。"
+        }
+      }
+    },
+    "notes": {
+      "eyebrow": "ジャーナル",
+      "title": "その瞬間を\n書き留める",
+      "subtitle": "タスクの横にひとこと書く。日々積み重なって、自分だけの日記になる。"
+    },
+    "cards": {
+      "eyebrow": "カード",
+      "title": "仕事と暮らしの\n足あとを残す",
+      "subtitle": "会議の決定、読書メモ、旅行の計画、運動の記録 —\n中身のあるタスクは残り、必要なときにそこにある。"
+    },
+    "platforms": {
+      "eyebrow": "マルチプラットフォーム",
+      "title": "デスクで計画し、\nスマホで確認",
+      "subtitle": "Mac、iPhone、iPad がリアルタイムで同期。どの端末でも同じリズムでつながる。"
+    },
+    "highlights": {
+      "title": "さらに",
+      "items": {
+        "recurrence": {
+          "title": "繰り返しタスク",
+          "desc": "毎日・毎週・毎月のルーティンを一度設定すれば自動で表示。"
+        },
+        "tags": {
+          "title": "タグ",
+          "desc": "関連するタスクをタグで整理し、すばやく集中。"
+        },
+        "calendar": {
+          "title": "カレンダー表示",
+          "desc": "日／週／月表示で全体のリズムを把握。"
+        },
+        "search": {
+          "title": "検索",
+          "desc": "タスクとカードを全文検索。探したいものがすぐ見つかる。"
+        }
+      }
+    },
+    "finalCta": {
+      "title": "今日から、\n軽やかに前へ"
+    },
+    "footer": {
+      "privacy": "プライバシーポリシー",
+      "terms": "利用規約"
+    }
   }
 }

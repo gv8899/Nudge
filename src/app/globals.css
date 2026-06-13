@@ -585,3 +585,76 @@
   background: transparent;
   box-shadow: none;
 }
+
+/* ============================================================
+   Landing page：強制淺色暖米，與 app 主題隔離。
+   root <html> 可能帶 .dark（cookie 預設），CSS 變數會繼承下來，
+   因此這裡把 light token 直接宣告在 [data-landing] 元素上，
+   覆蓋繼承來的 dark 值（直接設值勝過繼承值）。
+   ============================================================ */
+[data-landing] {
+  /* 複製 :root 淺色暖米 token，確保不受 html.dark 影響 */
+  --background: #efe9d4;
+  --foreground: #1c1b18;
+  --card: #e6dfc6;
+  --card-foreground: #1c1b18;
+  --popover: #e6dfc6;
+  --popover-foreground: #1c1b18;
+  --primary: #a87a45;
+  --primary-foreground: #efe9d4;
+  --secondary: #e6dfc6;
+  --secondary-foreground: #1c1b18;
+  --muted: #ddd6ba;
+  --muted-foreground: #6e6855;
+  --accent: #ddd6ba;
+  --accent-foreground: #1c1b18;
+  --destructive: #9a4f3f;
+  --border: #c8c0a0;
+  --input: #c8c0a0;
+  --ring: #a87a45;
+  --text-dim: #6e6855;
+  --text-faint: #8a8068;
+  --surface-hover: #ddd6ba;
+  --border-light: #b5ac8a;
+
+  /* Landing 專屬：較白的表面、交替底、暗區塊（哲學金句） */
+  --surface: #fffdf6;
+  --surface-alt: #f6f1e0;
+  --ink: #1c1b18;
+  --ink-foreground: #f3ecd8;
+
+  /* Apple 字體邏輯 */
+  --font-landing: -apple-system, BlinkMacSystemFont, "PingFang TC",
+    "Helvetica Neue", "Noto Sans TC", system-ui, sans-serif;
+  font-family: var(--font-landing);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+[data-landing] h1,
+[data-landing] h2,
+[data-landing] h3,
+[data-landing] blockquote {
+  font-family: var(--font-landing);
+}
+
+/* scroll-reveal：進場前隱藏，in-view 後淡入上移 */
+[data-landing] .reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+[data-landing] .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-landing] .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

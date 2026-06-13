@@ -224,5 +224,87 @@
     "mobileCollapsedCount": "今日行程 · {count} 件",
     "mobileCollapsedEmpty": "今日無行程",
     "mobileConnectPrompt": "連結 Google Calendar →"
+  },
+  "landing": {
+    "nav": {
+      "aria": "主導覽",
+      "features": "功能",
+      "philosophy": "理念"
+    },
+    "download": {
+      "mac": "下載 Mac 版",
+      "ios": "iPhone 版 · App Store"
+    },
+    "hero": {
+      "title": "每天，\n輕鬆推進一點",
+      "subtitle": "讓任務和日常，在不打擾的節奏裡前進。",
+      "platformNote": "為 Mac 打造，iPhone 隨身同步。"
+    },
+    "philosophy": {
+      "quote": "工具該等你，\n不是追你。",
+      "attribution": "— Nudge 的設計理念"
+    },
+    "tasks": {
+      "eyebrow": "行動",
+      "title": "專注在\n今天要做的事",
+      "subtitle": "每日任務清單。不多、不雜，就是今天能推進的事。",
+      "points": {
+        "continue": {
+          "title": "自動延續",
+          "desc": "沒做完的任務不會消失。隔天打開時，會出現在頁首讓你繼續處理。"
+        },
+        "reschedule": {
+          "title": "重新排程",
+          "desc": "一鍵排入今天，或從日曆挑一個更合適的日子。不需要的就封存。"
+        },
+        "status": {
+          "title": "任務狀態",
+          "desc": "暫記、待排入、處理中、等待他人、完成。用顏色分類，一眼看出每個任務在哪一步。"
+        }
+      }
+    },
+    "notes": {
+      "eyebrow": "日誌",
+      "title": "紀錄\n每一個當下",
+      "subtitle": "在任務旁邊隨手寫幾句。日復一日，就成了你自己的日記。"
+    },
+    "cards": {
+      "eyebrow": "卡片",
+      "title": "留下\n工作與生活的痕跡",
+      "subtitle": "會議決策、讀書心得、旅行計畫、運動紀錄 —\n有內容的任務都會被留下來，要找的時候，它就在那裡。"
+    },
+    "platforms": {
+      "eyebrow": "跨平台",
+      "title": "在桌機規劃，\n手機隨身查看",
+      "subtitle": "Mac、iPhone、iPad 即時同步。在哪台裝置都接得上同一個節奏。"
+    },
+    "highlights": {
+      "title": "還有更多",
+      "items": {
+        "recurrence": {
+          "title": "重複任務",
+          "desc": "每天、每週、每月的例行事，設定一次自動出現。"
+        },
+        "tags": {
+          "title": "標籤",
+          "desc": "用標籤把相關任務歸類，快速聚焦。"
+        },
+        "calendar": {
+          "title": "日曆檢視",
+          "desc": "用日／週／月檢視，掌握整體節奏。"
+        },
+        "search": {
+          "title": "搜尋",
+          "desc": "任務與卡片全文搜尋，想找的隨手就到。"
+        }
+      }
+    },
+    "finalCta": {
+      "title": "從今天\n開始輕鬆推進"
+    },
+    "footer": {
+      "privacy": "隱私權政策",
+      "terms": "服務條款"
+    }
   }
 }

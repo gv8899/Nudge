@@ -136,10 +136,6 @@
     "slashDividerKeywords": "hr|divider|separator|line"
   },
   "daily": {
-    "a11y": {
-      "recurring": "Recurring",
-      "hasReminder": "Has reminder"
-    },
     "emptyToday": "No tasks for today",
     "overdueSectionAria": "Tasks from previous days",
     "overdueLabel": "From earlier ({count})",
@@ -157,14 +153,7 @@
     "todayButton": "Today",
     "todayAria": "Jump to today",
     "todaySectionTitle": "Today ({count})",
-    "toggleRightPanel": "Toggle side panel",
-    "rowMenu": "Task actions",
-    "skipThisOccurrence": "Skip this one",
-    "setRecurring": "Repeat…",
-    "setReminder": "Set reminder…"
-  },
-  "schedule": {
-    "recurrenceTitle": "Repeat"
+    "toggleRightPanel": "Toggle side panel"
   },
   "cards": {
     "createAria": "New card",
@@ -235,5 +224,87 @@
     "mobileCollapsedCount": "Today · {count} events",
     "mobileCollapsedEmpty": "Nothing today",
     "mobileConnectPrompt": "Connect Google Calendar →"
+  },
+  "landing": {
+    "nav": {
+      "aria": "Main navigation",
+      "features": "Features",
+      "philosophy": "Philosophy"
+    },
+    "download": {
+      "mac": "Download for Mac",
+      "ios": "iPhone · App Store"
+    },
+    "hero": {
+      "title": "Make a little\nprogress every day",
+      "subtitle": "Move your tasks and daily life forward, at a pace that never nags.",
+      "platformNote": "Built for Mac, synced to iPhone."
+    },
+    "philosophy": {
+      "quote": "A tool should wait for you,\nnot chase you.",
+      "attribution": "— The Nudge philosophy"
+    },
+    "tasks": {
+      "eyebrow": "Action",
+      "title": "Focus on\nwhat matters today",
+      "subtitle": "A daily task list. Nothing extra — just what you can move forward today.",
+      "points": {
+        "continue": {
+          "title": "Carries over",
+          "desc": "Unfinished tasks don’t vanish. They wait at the top the next day for you to pick up."
+        },
+        "reschedule": {
+          "title": "Reschedule",
+          "desc": "Drop it into today with one tap, or pick a better day from the calendar. Archive what you don’t need."
+        },
+        "status": {
+          "title": "Task status",
+          "desc": "Inbox, backlog, in progress, waiting, done. Color-coded so you see where every task stands at a glance."
+        }
+      }
+    },
+    "notes": {
+      "eyebrow": "Journal",
+      "title": "Capture\nevery moment",
+      "subtitle": "Jot a few lines beside a task. Day after day, it becomes your own journal."
+    },
+    "cards": {
+      "eyebrow": "Cards",
+      "title": "Keep traces of\nwork and life",
+      "subtitle": "Meeting decisions, reading notes, trip plans, workout logs —\nany task with content is kept, right there when you need it."
+    },
+    "platforms": {
+      "eyebrow": "Cross-platform",
+      "title": "Plan on your desktop,\ncheck on your phone",
+      "subtitle": "Mac, iPhone and iPad sync in real time. Pick up the same rhythm on any device."
+    },
+    "highlights": {
+      "title": "And more",
+      "items": {
+        "recurrence": {
+          "title": "Recurring tasks",
+          "desc": "Daily, weekly or monthly routines — set once, they show up on their own."
+        },
+        "tags": {
+          "title": "Tags",
+          "desc": "Group related tasks with tags and focus fast."
+        },
+        "calendar": {
+          "title": "Calendar views",
+          "desc": "Day, week and month views to keep the bigger rhythm in sight."
+        },
+        "search": {
+          "title": "Search",
+          "desc": "Full-text search across tasks and cards — whatever you need, right at hand."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Start moving forward,\nstarting today"
+    },
+    "footer": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    }
   }
 }
