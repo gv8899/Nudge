@@ -162,6 +162,13 @@ public struct CardsHostView: View {
         .onChange(of: fullPageCard?.id) { _, _ in
             onFullPageChange?(fullPageCard != nil)
         }
+        // 切回 Cards 分頁（embedded 變 false）時重抓清單 —— 在別處（行動頁
+        // task popup 等）替任務加了內容後，task 轉成 card，回 Cards 就會出現。
+        .onChange(of: embedded) { _, nowEmbedded in
+            if !nowEmbedded {
+                Task { await firstPage() }
+            }
+        }
 
         // embedded = 嵌在 DailyHostView 右側面板用，不能掛 toolbar /
         // navigationTitle —— 它們會 bubble 到外層 NavigationStack 的視
