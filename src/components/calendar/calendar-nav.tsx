@@ -97,20 +97,20 @@ export function WeekNavControls({ date, onDateChange }: CalendarNavProps) {
       <button
         onClick={() => go(subDays(weekStart, 7))}
         aria-label={t("prevWeekAria")}
-        className="glass-control flex items-center justify-center h-9 w-9 rounded-full text-text-dim hover:text-foreground transition-colors"
+        className="flex items-center justify-center h-9 w-9 rounded-full text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors"
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
       <button
         onClick={() => go(new Date())}
-        className="glass-control flex items-center justify-center h-9 px-4 rounded-full text-sm text-foreground transition-colors whitespace-nowrap"
+        className="flex items-center justify-center h-9 px-4 rounded-full text-sm text-foreground hover:bg-surface-hover transition-colors whitespace-nowrap"
       >
         {tCommon("today")}
       </button>
       <button
         onClick={() => go(addDays(weekStart, 7))}
         aria-label={t("nextWeekAria")}
-        className="glass-control flex items-center justify-center h-9 w-9 rounded-full text-text-dim hover:text-foreground transition-colors"
+        className="flex items-center justify-center h-9 w-9 rounded-full text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors"
       >
         <ChevronRight className="h-4 w-4" />
       </button>
