@@ -452,6 +452,11 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
               onReschedule={handleReschedule}
               onArchive={handleArchive}
             />
+            {allAssignments.length > 0 && (
+              <div className="px-1 py-1.5 text-xs font-medium text-text-dim">
+                {t("todayHeader", { count: allAssignments.length })}
+              </div>
+            )}
             {composerOpen && <TaskCreate onSubmit={handleCreateTask} onClose={() => setComposerOpen(false)} />}
             <DndContext
               sensors={sensors}

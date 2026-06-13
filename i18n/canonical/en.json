@@ -171,6 +171,7 @@
     "todayAria": "Jump to today",
     "todaySectionTitle": "Today ({count})",
     "toggleRightPanel": "Toggle side panel",
+    "todayHeader": "Today ({count})",
     "completedHeader": "Completed ({count})",
     "a11y": {
       "hasReminder": "Has reminder",
