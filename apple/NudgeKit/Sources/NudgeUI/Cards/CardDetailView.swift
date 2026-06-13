@@ -101,14 +101,13 @@ public struct CardDetailView: View {
         #endif
         .onAppear {
             pendingTitle = title
+            // macOS 刻意不自動 focus 標題 —— 避免 sheet 開啟時系統把標題
+            // 全選（使用者要「不全選」）。需要編輯時點一下標題即可。
+            #if os(iOS)
             if initialCard.title.isEmpty {
-                // 新建空卡片 → iOS 開 rename alert；macOS 直接 focus 標題輸入框。
-                #if os(iOS)
                 DispatchQueue.main.async { showRenameAlert = true }
-                #else
-                DispatchQueue.main.async { titleFocused = true }
-                #endif
             }
+            #endif
         }
         .sheet(isPresented: $showTagPicker) {
             TagPickerSheet(
@@ -256,7 +255,7 @@ public struct CardDetailView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 14)
-        .padding(.bottom, 10)
+        .padding(.bottom, 22) // 標題與內文間距拉開
     }
 
     /// macOS 26 玻璃圓鈕；低於 26（deployment 15）fallback 用 material + shadow。

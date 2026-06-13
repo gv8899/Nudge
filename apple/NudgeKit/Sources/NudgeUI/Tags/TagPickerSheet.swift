@@ -43,6 +43,57 @@ public struct TagPickerSheet: View {
     }
 
     public var body: some View {
+        #if os(macOS)
+        // macOS — 單層自畫 chrome（header + footer），對齊卡片 modal；
+        // 不用 NavigationStack（其 title bar + 外層 sheet 會有「上下兩層」感）。
+        VStack(spacing: 0) {
+            HStack {
+                Text("tags.addTag", bundle: .module)
+                    .font(.headline)
+                    .foregroundStyle(Color.nudgeForeground)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 14)
+            .padding(.bottom, 10)
+
+            searchBar
+            Divider().background(Color.nudgeBorderLight)
+            if isLoading {
+                HStack { ProgressView().controlSize(.small); Spacer() }
+                    .padding(16)
+                Spacer(minLength: 0)
+            } else {
+                list
+            }
+
+            HStack(spacing: 12) {
+                Spacer()
+                Button(action: onCancel) {
+                    Text("common.cancel", bundle: .module)
+                        .foregroundStyle(Color.nudgeTextDim)
+                }
+                .buttonStyle(.plain)
+                Button {
+                    onCommit(selectedIds)
+                } label: {
+                    Text("common.save", bundle: .module)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.nudgePrimaryForeground)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(Color.nudgePrimary))
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut(.defaultAction)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+        .background(Color.nudgeBackground)
+        .frame(width: 460, height: 560)
+        .task { await reload() }
+        #else
         NavigationStack {
             VStack(spacing: 0) {
                 searchBar
@@ -56,9 +107,7 @@ public struct TagPickerSheet: View {
             }
             .background(Color.nudgeBackground)
             .navigationTitle(Text("tags.addTag", bundle: .module))
-            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(action: onCancel) {
@@ -78,9 +127,6 @@ public struct TagPickerSheet: View {
             }
         }
         .task { await reload() }
-        #if os(macOS)
-        // 固定尺寸 — 與卡片 modal 同款的穩定 modal，不隨清單長度跳動。
-        .frame(width: 460, height: 560)
         #endif
     }
 
