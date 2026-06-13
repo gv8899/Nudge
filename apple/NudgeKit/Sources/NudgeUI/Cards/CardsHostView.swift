@@ -233,37 +233,24 @@ public struct CardsHostView: View {
         .onExitCommand { fullPageCard = nil }
     }
 
-    /// 點卡片彈出的快速 Modal（sheet）。NavigationStack 把 toolbar 隔離在
-    /// sheet 自己的 title bar（不 bubble 到 window toolbar）。「展開」→
-    /// 關 sheet、開 fullPageCard 全頁；「完成」→ 關 sheet。
+    /// 點卡片彈出的快速 Modal（sheet）—— 對齊 web modal：CardDetailView 的
+    /// macHeader 已含「大標題 + rename/schedule/tags + 展開 + 關閉」玻璃鈕，
+    /// 直接放進 sheet（無 NavigationStack chrome）。「展開」→ 關 sheet、開
+    /// fullPageCard 全頁；「關閉」→ 關 sheet。
     private func cardQuickSheet(_ card: CardDTO) -> some View {
-        NavigationStack {
-            CardDetailView(
-                card: card,
-                onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
-                onUpdateDescription: { updateDescription(cardId: card.id, html: $0) },
-                onUpdateTags: { newIds in await updateTags(cardId: card.id, tagIds: newIds) }
-            )
-            .id(card.id)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button { quickCard = nil } label: {
-                        Text("common.done", bundle: .module)
-                    }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        let c = card
-                        quickCard = nil
-                        fullPageCard = c
-                    } label: {
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    }
-                    .help(Text("daily.popoverExpand", bundle: .module))
-                    .accessibilityLabel(Text("daily.popoverExpand", bundle: .module))
-                }
-            }
-        }
+        CardDetailView(
+            card: card,
+            onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
+            onUpdateDescription: { updateDescription(cardId: card.id, html: $0) },
+            onUpdateTags: { newIds in await updateTags(cardId: card.id, tagIds: newIds) },
+            onExpand: {
+                let c = card
+                quickCard = nil
+                fullPageCard = c
+            },
+            onClose: { quickCard = nil }
+        )
+        .id(card.id)
         .frame(minWidth: 920, minHeight: 600)
         .background(Color.nudgeBackground)
     }
