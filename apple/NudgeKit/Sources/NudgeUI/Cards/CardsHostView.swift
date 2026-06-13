@@ -147,7 +147,17 @@ public struct CardsHostView: View {
         .task { await loadAllTags() }
         .task(id: searchQuery) { await debounceSearch() }
         .task(id: searchKey) { await fetchSearch() }
-        .sheet(item: $quickCard) { card in cardQuickSheet(card) }
+        // 卡片 quick modal 改用 NudgeModalOverlay（非 .sheet）—— 點 modal 外
+        // 暗區可關閉、Esc 可關閉，且 overlay 不像 sheet 會自動全選標題。
+        .overlay {
+            if let card = quickCard {
+                NudgeModalOverlay(onDismiss: { quickCard = nil }) {
+                    cardQuickModal(card)
+                        .frame(width: 920, height: 600)
+                }
+            }
+        }
+        .animation(.easeInOut(duration: 0.18), value: quickCard?.id)
         // 回報全頁狀態給 root toolbar（+ ↔ 返回鈕）。
         .onChange(of: fullPageCard?.id) { _, _ in
             onFullPageChange?(fullPageCard != nil)
@@ -239,11 +249,10 @@ public struct CardsHostView: View {
         .onExitCommand { fullPageCard = nil }
     }
 
-    /// 點卡片彈出的快速 Modal（sheet）—— 對齊 web modal：CardDetailView 的
-    /// macHeader 已含「大標題 + rename/schedule/tags + 展開 + 關閉」玻璃鈕，
-    /// 直接放進 sheet（無 NavigationStack chrome）。「展開」→ 關 sheet、開
-    /// fullPageCard 全頁；「關閉」→ 關 sheet。
-    private func cardQuickSheet(_ card: CardDTO) -> some View {
+    /// 卡片 quick modal 內容（對齊 web modal）—— CardDetailView 的 macHeader
+    /// 已含「大標題 + 展開 + 關閉」；外層 NudgeModalOverlay 提供背景/圓角/
+    /// 陰影/點外關閉。「展開」→ 關 modal、開全頁；「關閉」→ 關 modal。
+    private func cardQuickModal(_ card: CardDTO) -> some View {
         CardDetailView(
             card: card,
             onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
@@ -257,8 +266,6 @@ public struct CardsHostView: View {
             onClose: { quickCard = nil }
         )
         .id(card.id)
-        .frame(minWidth: 920, minHeight: 600)
-        .background(Color.nudgeBackground)
     }
     #endif
 

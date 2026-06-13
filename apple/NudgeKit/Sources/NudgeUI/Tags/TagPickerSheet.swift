@@ -49,9 +49,20 @@ public struct TagPickerSheet: View {
         VStack(spacing: 0) {
             HStack {
                 Text("tags.addTag", bundle: .module)
-                    .font(.headline)
+                    .font(.title2.weight(.bold))
                     .foregroundStyle(Color.nudgeForeground)
                 Spacer()
+                // 右側 close icon = 取消（底部不再放「取消」按鈕）。
+                Button(action: onCancel) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.nudgeTextDim)
+                        .frame(width: 30, height: 30)
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .help(Text("common.cancel", bundle: .module))
+                .accessibilityLabel(Text("common.cancel", bundle: .module))
             }
             .padding(.horizontal, 16)
             .padding(.top, 14)
@@ -69,11 +80,6 @@ public struct TagPickerSheet: View {
 
             HStack(spacing: 12) {
                 Spacer()
-                Button(action: onCancel) {
-                    Text("common.cancel", bundle: .module)
-                        .foregroundStyle(Color.nudgeTextDim)
-                }
-                .buttonStyle(.plain)
                 Button {
                     onCommit(selectedIds)
                 } label: {

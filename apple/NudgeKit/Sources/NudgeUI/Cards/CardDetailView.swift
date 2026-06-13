@@ -255,7 +255,7 @@ public struct CardDetailView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 14)
-        .padding(.bottom, 22) // 標題與內文間距拉開
+        .padding(.bottom, 16) // 標題與內文間距
     }
 
     /// macOS 26 玻璃圓鈕；低於 26（deployment 15）fallback 用 material + shadow。
