@@ -388,7 +388,7 @@ struct MacSidebarRoot: View {
             } icon: {
                 Image(systemName: icon)
             }
-            .foregroundStyle(isSel ? Color.nudgePrimary : Color.nudgeForeground)
+            .foregroundStyle(Color.nudgeForeground) // 選中字維持原色，只靠淡底表示選中
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 2)
             .contentShape(Rectangle())
