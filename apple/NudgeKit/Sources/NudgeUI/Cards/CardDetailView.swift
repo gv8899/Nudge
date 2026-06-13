@@ -109,6 +109,21 @@ public struct CardDetailView: View {
             }
             #endif
         }
+        .onDisappear {
+            // 離開（回上一頁 / 關 modal / 切換卡片）前 flush 還在 debounce
+            // 的存檔 —— 否則「刪光內文後立刻返回」會在 0.5s save fire 前就
+            // 離開，重開又看到舊內容。
+            if descriptionSaveWorkItem != nil {
+                descriptionSaveWorkItem?.cancel()
+                descriptionSaveWorkItem = nil
+                onUpdateDescription(descriptionHTML)
+            }
+            if titleSaveWorkItem != nil {
+                titleSaveWorkItem?.cancel()
+                titleSaveWorkItem = nil
+                onUpdateTitle(title)
+            }
+        }
         .sheet(isPresented: $showTagPicker) {
             TagPickerSheet(
                 initiallySelectedIds: Set(tags.map(\.id)),
