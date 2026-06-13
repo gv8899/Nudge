@@ -449,6 +449,14 @@ public struct DailyHostView: View {
                 await reloadSilently()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.cardsChangedNotification)) { _ in
+            // 卡片內容變動（含 Daily 右欄 detail / Cards 分頁）後即時刷新
+            // 右欄「最近卡片」+ 行動清單 row（刪光內文的卡片要消失）。
+            Task {
+                await reloadDashboardCards()
+                await reloadSilently()
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.submitQuickAddNotification)) { note in
             if let title = note.object as? String {
                 createTask(title)
@@ -1420,6 +1428,7 @@ extension DailyHostView {
         Task {
             do {
                 try await taskRepo.updateTitle(taskId: taskId, title: title)
+                NotificationCenter.default.post(name: NudgeCommands.cardsChangedNotification, object: nil)
                 // 樂觀 patch 之後再跟 server 對帳 —— 對齊 toggleComplete /
                 // moveAssignment 等其它 mutation。改名是從 detail 的 debounce
                 // callback 跨 view 觸發，樂觀 patch 一旦沒套用到，少了這步
@@ -1445,6 +1454,7 @@ extension DailyHostView {
         Task {
             do {
                 try await taskRepo.updateDescription(taskId: taskId, description: description)
+                NotificationCenter.default.post(name: NudgeCommands.cardsChangedNotification, object: nil)
             } catch {
                 print("[DailyHostView] updateDescription failed: \(error)")
             }
@@ -1537,7 +1547,7 @@ private struct DashboardColumnCardDetail: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
-                Button(action: onBack) {
+                Button(action: flushAndBack) {
                     // chevron 字級對齊 title (columnDetailTitle = 17pt
                     // semibold)，原本 .callout.weight(.medium) ~13pt medium
                     // 太細、跟 17pt 粗體 title 排在一起視覺壓不住。
@@ -1582,6 +1592,18 @@ private struct DashboardColumnCardDetail: View {
             .onChange(of: descriptionHTML) { _, new in debouncedSaveDescription(new) }
         }
         .background(Color.nudgeBackground)
+    }
+
+    /// 返回前 flush 存檔 —— 同步存目前 binding（fallback），再向編輯器
+    /// getHTML 取「權威當前內容」覆蓋存（跨程序的 change 訊息可能還沒送達
+    /// binding，刪/打字後立刻返回會丟失）。存完即返回，不卡。
+    private func flushAndBack() {
+        titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
+        descSaveWorkItem?.cancel(); descSaveWorkItem = nil
+        onUpdateTitle(title)
+        onUpdateDescription(descriptionHTML)
+        commandBus.flush { html in onUpdateDescription(html) }
+        onBack()
     }
 
     private func debouncedSaveTitle(_ v: String) {

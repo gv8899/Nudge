@@ -116,7 +116,8 @@ public struct CardDetailView: View {
             descriptionSaveWorkItem?.cancel()
             descriptionSaveWorkItem = nil
             onUpdateTitle(title)
-            // 內文：向編輯器取「權威當前內容」存檔 —— binding 可能還沒收到
+            onUpdateDescription(descriptionHTML) // 同步 fallback
+            // 內文：向編輯器取「權威當前內容」覆蓋存 —— binding 可能還沒收到
             // 跨程序的最後一次 change（刪光內文後立刻返回），getHTML 直接問
             // WebContent 取最新，避免存到舊值。
             commandBus.flush { html in
