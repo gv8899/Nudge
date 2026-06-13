@@ -1592,6 +1592,15 @@ private struct DashboardColumnCardDetail: View {
             .onChange(of: descriptionHTML) { _, new in debouncedSaveDescription(new) }
         }
         .background(Color.nudgeBackground)
+        .onDisappear {
+            // 任何離開（切卡片 / 切面板 / 切 tab 而 view 被移除）都 flush 存檔，
+            // 不只返回鈕 —— 否則「沒按返回、切到別處」會丟失未存的內容。
+            titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
+            descSaveWorkItem?.cancel(); descSaveWorkItem = nil
+            onUpdateTitle(title)
+            onUpdateDescription(descriptionHTML)
+            commandBus.flush { html in onUpdateDescription(html) }
+        }
     }
 
     /// 返回前 flush 存檔 —— 同步存目前 binding（fallback），再向編輯器
