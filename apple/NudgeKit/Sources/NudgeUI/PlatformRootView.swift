@@ -220,8 +220,6 @@ struct MacSidebarRoot: View {
             }
             .navigationTitle(Text(verbatim: "Nudge"))
             .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 280)
-            // sidebar 選中態用主色（取代系統預設藍）。
-            .tint(Color.nudgePrimary)
         } detail: {
             // ZStack + opacity 讓 5 個 detail view 永遠 mounted，
             // @State / HSplitView drag 位置 / NavigationStack path 等
