@@ -110,18 +110,17 @@ public struct CardDetailView: View {
             #endif
         }
         .onDisappear {
-            // 離開（回上一頁 / 關 modal / 切換卡片）前 flush 還在 debounce
-            // 的存檔 —— 否則「刪光內文後立刻返回」會在 0.5s save fire 前就
-            // 離開，重開又看到舊內容。
-            if descriptionSaveWorkItem != nil {
-                descriptionSaveWorkItem?.cancel()
-                descriptionSaveWorkItem = nil
-                onUpdateDescription(descriptionHTML)
-            }
-            if titleSaveWorkItem != nil {
-                titleSaveWorkItem?.cancel()
-                titleSaveWorkItem = nil
-                onUpdateTitle(title)
+            // 離開（回上一頁 / 關 modal / 切換卡片）前 flush pending 存檔。
+            titleSaveWorkItem?.cancel()
+            titleSaveWorkItem = nil
+            descriptionSaveWorkItem?.cancel()
+            descriptionSaveWorkItem = nil
+            onUpdateTitle(title)
+            // 內文：向編輯器取「權威當前內容」存檔 —— binding 可能還沒收到
+            // 跨程序的最後一次 change（刪光內文後立刻返回），getHTML 直接問
+            // WebContent 取最新，避免存到舊值。
+            commandBus.flush { html in
+                onUpdateDescription(html)
             }
         }
         .sheet(isPresented: $showTagPicker) {

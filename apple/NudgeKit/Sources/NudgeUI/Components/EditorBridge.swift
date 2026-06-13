@@ -278,6 +278,17 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
         webView.evaluateJavaScript(js)
     }
 
+    /// 直接向編輯器（WebContent 程序）取當前 HTML —— 用於離開前 flush 存檔，
+    /// 不依賴可能還沒送達的跨程序 change 訊息。
+    func flushContent(_ completion: @escaping (String) -> Void) {
+        guard let webView else { return }
+        webView.evaluateJavaScript("NudgeEditor.getHTML()") { [weak self] result, _ in
+            let html = (result as? String) ?? (self?.htmlBinding.wrappedValue ?? "")
+            self?.htmlBinding.wrappedValue = html
+            completion(html)
+        }
+    }
+
     // MARK: - WKScriptMessageHandler
 
     func userContentController(_ userContentController: WKUserContentController,

@@ -106,10 +106,18 @@ public struct RichTextEditor: View {
 @MainActor
 public final class EditorCommandBus {
     fileprivate var handler: ((EditorCommand) -> Void)?
+    fileprivate var flushHandler: ((@escaping (String) -> Void) -> Void)?
     public init() {}
 
     public func send(_ command: EditorCommand) {
         handler?(command)
+    }
+
+    /// 取編輯器當前「權威內容」（直接 getHTML 問 WebContent 程序）後回呼。
+    /// 用於離開前 flush 存檔 —— 跨程序的 change 訊息可能還沒送達 binding，
+    /// 這個不依賴 binding、直接取最新（避免「刪內文後立刻離開存到舊值」）。
+    public func flush(_ completion: @escaping (String) -> Void) {
+        flushHandler?(completion)
     }
 }
 
@@ -166,6 +174,9 @@ private struct UIKitEditor: UIViewRepresentable {
         commandBus?.handler = { [weak coord = context.coordinator] cmd in
             coord?.exec(cmd)
         }
+        commandBus?.flushHandler = { [weak coord = context.coordinator] completion in
+            coord?.flushContent(completion)
+        }
         return webView
     }
 
@@ -209,6 +220,9 @@ private struct AppKitEditor: NSViewRepresentable {
         context.coordinator.loadBundle()
         commandBus?.handler = { [weak coord = context.coordinator] cmd in
             coord?.exec(cmd)
+        }
+        commandBus?.flushHandler = { [weak coord = context.coordinator] completion in
+            coord?.flushContent(completion)
         }
         return webView
     }
