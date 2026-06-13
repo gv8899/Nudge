@@ -312,9 +312,10 @@ struct MacSidebarRoot: View {
                                 NotificationCenter.default.post(
                                     name: NudgeCommands.expandTaskNotification, object: assignment
                                 )
-                            }
+                            },
+                            onClose: { taskPopoverAssignment = nil }
                         )
-                        .frame(width: 680, height: 640)
+                        .frame(width: 920, height: 600)
                     }
                 } else if quickAddVisible {
                     NudgeModalOverlay(onDismiss: { quickAddVisible = false }) {
