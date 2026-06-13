@@ -1,4 +1,4 @@
-import { CardsSplit } from "@/components/cards/cards-split";
+import { CardDetail } from "@/components/cards/card-detail";
 
 export default async function CardDetailPage({
   params,
@@ -6,5 +6,5 @@ export default async function CardDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <CardsSplit initialCardId={id} />;
+  return <CardDetail id={id} />;
 }

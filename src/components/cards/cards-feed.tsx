@@ -4,36 +4,100 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { Search, Plus } from "lucide-react";
+import useSWR, { mutate as globalMutate } from "swr";
 import { useCardsFeed } from "@/hooks/use-cards-feed";
 import { useTags } from "@/hooks/use-tags";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
-import { CardListItem } from "./card-list-item";
 import { CardGridItem } from "./card-grid-item";
+import { TaskDetailModal } from "@/components/task/task-detail-modal";
+import { fetcher } from "@/lib/fetcher";
+import type { Task } from "@/lib/types";
+import type { TaskStatus } from "@/lib/constants";
 
-interface CardsFeedProps {
-  /** When set, card clicks call this instead of navigating. */
-  onSelectCard?: (id: string) => void;
-  /** Highlights the given card (list mode) / grid item. */
-  selectedId?: string | null;
-  /**
-   * Force a specific layout. When undefined the feed renders as grid
-   * (Mac parity default: no view toggle exposed to user).
-   */
-  layout?: "grid" | "list";
+// ── Card Modal wrapper — fetches full card and renders TaskDetailModal ─────────
+interface CardModalProps {
+  cardId: string;
+  onClose: () => void;
+  onExpand: (id: string) => void;
 }
 
-export function CardsFeed({ onSelectCard, selectedId, layout }: CardsFeedProps) {
+interface CardWithTags extends Task {
+  tags?: Array<{ id: string; name: string; color: string }>;
+}
+
+function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
+  const { data, mutate } = useSWR<CardWithTags>(
+    `/api/tasks/${cardId}`,
+    fetcher
+  );
+
+  const patch = useCallback(
+    async (updates: Partial<{ title: string; description: string }>) => {
+      await fetch(`/api/tasks/${cardId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      // Refresh the modal data
+      mutate();
+      // Invalidate the cards grid so the preview updates
+      globalMutate(
+        (key) => typeof key === "string" && key.startsWith("/api/cards"),
+        undefined,
+        { revalidate: true }
+      );
+    },
+    [cardId, mutate]
+  );
+
+  const putTags = useCallback(
+    async (tagIds: string[]) => {
+      await fetch(`/api/tasks/${cardId}/tags`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tagIds }),
+      });
+      mutate();
+      globalMutate(
+        (key) => typeof key === "string" && key.startsWith("/api/cards"),
+        undefined,
+        { revalidate: true }
+      );
+    },
+    [cardId, mutate]
+  );
+
+  if (!data) return null;
+
+  return (
+    <TaskDetailModal
+      task={data}
+      open={true}
+      onClose={onClose}
+      onTitleChange={(title) => patch({ title })}
+      onDescChange={(html) => patch({ description: html })}
+      onStatusChange={(_status: TaskStatus) => {
+        /* status change not supported for cards in this modal */
+      }}
+      onTagsChange={(tagIds) => putTags(tagIds)}
+      tags={data.tags ?? []}
+      onExpand={() => onExpand(cardId)}
+    />
+  );
+}
+
+// ── Main feed component ────────────────────────────────────────────────────────
+export function CardsFeed() {
   const t = useTranslations("cards");
   const tCommon = useTranslations("common");
   const router = useRouter();
-
-  const effectiveLayout = layout ?? "grid";
 
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const { tags: allTags } = useTags();
   const [isCreating, setIsCreating] = useState(false);
+  const [modalCardId, setModalCardId] = useState<string | null>(null);
 
   // debounce 搜尋
   useEffect(() => {
@@ -66,11 +130,8 @@ export function CardsFeed({ onSelectCard, selectedId, layout }: CardsFeedProps) 
       });
       if (!res.ok) throw new Error("create failed");
       const task = await res.json();
-      if (onSelectCard) {
-        onSelectCard(task.id);
-      } else {
-        router.push(`/cards/${task.id}`);
-      }
+      // New card: go directly to full-page editor (better UX for an empty card)
+      router.push(`/cards/${task.id}`);
     } finally {
       setIsCreating(false);
     }
@@ -163,25 +224,13 @@ export function CardsFeed({ onSelectCard, selectedId, layout }: CardsFeedProps) 
             <p className="text-empty-state text-text-dim">{t("emptyNoCards")}</p>
           )}
         </div>
-      ) : effectiveLayout === "list" ? (
-        <div className="divide-y divide-border">
-          {cards.map((c) => (
-            <CardListItem
-              key={c.id}
-              card={c}
-              selected={c.id === selectedId}
-              onOpenInline={onSelectCard}
-            />
-          ))}
-        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {cards.map((c) => (
             <div key={c.id} className="h-full">
               <CardGridItem
                 card={c}
-                selected={c.id === selectedId}
-                onOpenInline={onSelectCard}
+                onOpenInline={(id) => setModalCardId(id)}
               />
             </div>
           ))}
@@ -198,6 +247,18 @@ export function CardsFeed({ onSelectCard, selectedId, layout }: CardsFeedProps) 
             <p className="text-sm text-text-faint">{t("noMore")}</p>
           )}
         </div>
+      )}
+
+      {/* Card quick-view modal */}
+      {modalCardId && (
+        <CardModal
+          cardId={modalCardId}
+          onClose={() => setModalCardId(null)}
+          onExpand={(id) => {
+            setModalCardId(null);
+            router.push(`/cards/${id}`);
+          }}
+        />
       )}
     </div>
   );
