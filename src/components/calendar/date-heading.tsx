@@ -9,8 +9,8 @@ interface DateHeadingProps {
 }
 
 // 用最長可能的日期字串作為「ghost」撐開最大寬度，避免日期長短切換時版面跳動。
-// 12/30, 2026 是視覺上最寬的格式（兩位數月 + 兩位數日 + 4 位數年）。
-const GHOST_DATE = "12/30, 2026";
+// en 最寬格式：Sep 30, 2026（三字母月 + 兩位數日 + 4 位數年）。
+const GHOST_DATE = "Sep 30, 2026";
 
 export function DateHeading({ date }: DateHeadingProps) {
   const locale = useLocale();
@@ -18,14 +18,13 @@ export function DateHeading({ date }: DateHeadingProps) {
   const dateObj = new Date(date + "T00:00:00");
   const valid = !Number.isNaN(dateObj.getTime());
   const dayOfWeek = valid ? format(dateObj, "EEEE", { locale: dateFnsLocale }) : "—";
-  const dateFormatted = valid
-    ? `${dateObj.getMonth() + 1}/${dateObj.getDate()}, ${dateObj.getFullYear()}`
-    : date;
+  const dateFormat = locale === "en" ? "MMM d, yyyy" : "M月d日";
+  const dateFormatted = valid ? format(dateObj, dateFormat, { locale: dateFnsLocale }) : date;
 
   return (
     <div className="space-y-1 pt-2">
-      <p className="text-sm font-medium text-primary">{dayOfWeek}</p>
-      <h1 className="text-3xl font-bold text-foreground tracking-tight tabular-nums">
+      <p className="text-date-eyebrow text-text-dim">{dayOfWeek}</p>
+      <h1 className="text-date-title text-foreground">
         <span className="inline-grid">
           <span
             className="col-start-1 row-start-1 invisible pointer-events-none"

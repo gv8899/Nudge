@@ -5,7 +5,8 @@
     "delete": "刪除",
     "loading": "載入中...",
     "loadFailed": "載入失敗",
-    "today": "今天"
+    "today": "今天",
+    "errorSaving": "儲存失敗，請再試一次"
   },
   "settings": {
     "title": "設定",
@@ -50,6 +51,20 @@
       "button": "登出",
       "confirmTitle": "登出",
       "confirmBody": "確定要登出嗎？"
+    },
+    "dangerZone": {
+      "section": "危險區"
+    },
+    "notifications": {
+      "title": "通知",
+      "morningEnabled": "早晨通知",
+      "morningTime": "時間",
+      "morningContent": "內容",
+      "eveningEnabled": "晚間通知",
+      "eveningTime": "時間",
+      "eveningContent": "內容",
+      "perTaskEnabled": "個別任務提醒",
+      "platformNote": "通知只在 App（iOS / macOS）推送"
     }
   },
   "tags": {
@@ -62,6 +77,7 @@
     "deleteTitle": "刪除標籤",
     "deleteConfirm": "確定要刪除「{name}」嗎？",
     "deleteTagAria": "刪除 {name}",
+    "dragReorderAria": "拖曳排序 {name}",
     "newTagPlaceholder": "新增標籤...",
     "removeAria": "移除 {name}",
     "searchOrCreate": "搜尋或建立標籤..."
@@ -72,7 +88,8 @@
     "cards": "卡片",
     "settings": "設定",
     "mainNavAria": "主導覽",
-    "settingsAria": "開啟設定"
+    "settingsAria": "開啟設定",
+    "calendar": "日曆"
   },
   "login": {
     "tagline": "輕量型每日任務推進工具",
@@ -153,7 +170,19 @@
     "todayButton": "今天",
     "todayAria": "回到今天",
     "todaySectionTitle": "今天 ({count})",
-    "toggleRightPanel": "顯示 / 隱藏側邊面板"
+    "toggleRightPanel": "顯示 / 隱藏側邊面板",
+    "completedHeader": "已完成 ({count})",
+    "a11y": {
+      "hasReminder": "已設提醒",
+      "recurring": "重複任務"
+    },
+    "rowMenu": "任務動作",
+    "setRecurring": "設成重複任務…",
+    "setReminder": "設定提醒…",
+    "skipThisOccurrence": "跳過這次",
+    "skipConfirmTitle": "跳過這次",
+    "skipConfirmBody": "確定要跳過「{title}」這一次嗎？下次重複時間照常出現。",
+    "skipConfirmAction": "跳過"
   },
   "cards": {
     "createAria": "新增卡片",
@@ -172,7 +201,8 @@
     "cleanConfirmButton": "確定清除",
     "cleanLoading": "清除中...",
     "toastCleaned": "已清除 {count} 張空白卡片",
-    "toastNothingToClean": "沒有需要清除的卡片"
+    "toastNothingToClean": "沒有需要清除的卡片",
+    "untitled": "未命名"
   },
   "cardDetail": {
     "backToCards": "返回卡片",
@@ -195,7 +225,8 @@
     "canvasToggleFeedAria": "切換到 feed",
     "canvasToggleFeedTitle": "切換到 feed",
     "entryAria": "{year}年{month}月{day}日的日記",
-    "monthLabel": "{month} 月"
+    "monthLabel": "{month} 月",
+    "todayPlaceholder": "開始寫今天的日誌"
   },
   "calendar": {
     "section": "行事曆",
@@ -223,6 +254,64 @@
     "eventJoinMeet": "使用 Google Meet 加入會議",
     "mobileCollapsedCount": "今日行程 · {count} 件",
     "mobileCollapsedEmpty": "今日無行程",
-    "mobileConnectPrompt": "連結 Google Calendar →"
+    "mobileConnectPrompt": "連結 Google Calendar →",
+    "modeDay": "日",
+    "modeWeek": "週",
+    "modeMonth": "月",
+    "thisWeek": "本週",
+    "weekEmpty": "本週沒有行程",
+    "monthEmpty": "本月沒有行程",
+    "morning": "上午",
+    "afternoon": "下午",
+    "evening": "晚上",
+    "prevMonthAria": "上個月",
+    "nextMonthAria": "下個月"
+  },
+  "schedule": {
+    "recurrenceTitle": "重複",
+    "preset": {
+      "daily": "每天",
+      "weekly": "每週",
+      "biweekly": "每兩週",
+      "monthlyDay": "每月某日",
+      "monthlyNthWeekday": "每月第幾個星期"
+    },
+    "recurrence": {
+      "off": "不重複",
+      "weekdaysLabel": "星期",
+      "monthDayN": "每月 {n} 號",
+      "nthLabel": "第幾個",
+      "nthN": "第 {n} 個",
+      "last": "最後一個",
+      "weekday": "星期幾",
+      "startDate": "開始日期",
+      "hasEndDate": "設定結束日期",
+      "endDate": "結束日期"
+    },
+    "reminder": {
+      "label": "提醒時間",
+      "requiresPreset": "先設定重複，才能加提醒",
+      "clear": "清除"
+    },
+    "validation": {
+      "weeklyNeedsWeekday": "請至少選一個星期",
+      "endBeforeStart": "結束日不能早於開始日"
+    }
+  },
+  "weekday": {
+    "mon": "一",
+    "tue": "二",
+    "wed": "三",
+    "thu": "四",
+    "fri": "五",
+    "sat": "六",
+    "sun": "日"
+  },
+  "notifications": {
+    "content": {
+      "summary": "今日摘要",
+      "incomplete": "未完成項目",
+      "summaryStreak": "摘要 + 連續天數"
+    }
   }
 }

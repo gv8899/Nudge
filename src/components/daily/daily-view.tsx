@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { mutate as globalMutate } from "swr";
 import { useDaily } from "@/hooks/use-daily";
@@ -9,8 +9,9 @@ import { TaskCreate } from "@/components/task/task-create";
 import { CalendarNav } from "@/components/calendar/calendar-nav";
 import { DateHeading } from "@/components/calendar/date-heading";
 import { OverdueSection } from "@/components/daily/overdue-section";
-import { CalendarPanel } from "@/components/calendar/calendar-panel";
+import { DailyRightPanel, type RightPanelKind } from "@/components/daily/daily-right-panel";
 import type { TaskStatus } from "@/lib/constants";
+import { ChevronDown, ChevronRight, Sparkles, PanelRight, CalendarDays } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -24,6 +25,47 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
+
+// ── localStorage keys ──────────────────────────────────────────────────────
+const LS_PANEL_OPEN = "daily.web.rightPanelOpen";
+const LS_PANEL_KIND = "daily.web.rightPanelKind";
+const LS_PANEL_WIDTH = "daily.web.rightPanelWidth";
+
+const DEFAULT_WIDTH = 400;
+const MIN_WIDTH = 280;
+const MAX_WIDTH = 720;
+
+function clampWidth(w: number) {
+  return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, w));
+}
+
+// SSR-safe localStorage read helpers
+function lsReadBool(key: string, fallback: boolean): boolean {
+  if (typeof window === "undefined") return fallback;
+  const v = window.localStorage.getItem(key);
+  if (v === null) return fallback;
+  return v === "true";
+}
+
+function lsReadString<T extends string>(key: string, fallback: T, allowed: T[]): T {
+  if (typeof window === "undefined") return fallback;
+  const v = window.localStorage.getItem(key) as T | null;
+  if (v !== null && allowed.includes(v)) return v;
+  return fallback;
+}
+
+function lsReadNumber(key: string, fallback: number): number {
+  if (typeof window === "undefined") return fallback;
+  const v = window.localStorage.getItem(key);
+  if (v === null) return fallback;
+  const n = Number(v);
+  return isNaN(n) ? fallback : n;
+}
+
+// ── CardsIcon (mirrors app-sidebar, local copy) ───────────────────────────
+function CardsIcon({ className }: { className?: string }) {
+  return <span className={`cards-icon ${className ?? ""}`} role="img" aria-hidden="true" />;
+}
 
 interface DailyViewProps {
   date: string;
@@ -44,8 +86,54 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
   const [currentDate, setCurrentDate] = useState(initialDate);
+  const [completedExpanded, setCompletedExpanded] = useState(true);
   const { data, isLoading, error, mutate } = useDaily(currentDate);
 
+  // ── Right-panel state (lazy-init from localStorage, SSR-safe) ──────────
+  const [rightPanelOpen, setRightPanelOpen] = useState<boolean>(false);
+  const [rightPanelKind, setRightPanelKind] = useState<RightPanelKind>("calendar");
+  const [rightPanelWidth, setRightPanelWidth] = useState<number>(DEFAULT_WIDTH);
+  // Track lg+ breakpoint so we only apply right-padding on large screens
+  const [isLg, setIsLg] = useState<boolean>(false);
+
+  // Hydrate from localStorage once on mount (avoids SSR mismatch)
+  useEffect(() => {
+    setRightPanelOpen(lsReadBool(LS_PANEL_OPEN, false));
+    setRightPanelKind(
+      lsReadString<RightPanelKind>(LS_PANEL_KIND, "calendar", ["calendar", "cards"])
+    );
+    setRightPanelWidth(clampWidth(lsReadNumber(LS_PANEL_WIDTH, DEFAULT_WIDTH)));
+  }, []);
+
+  // Track lg+ so we can gate the paddingRight calculation
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    setIsLg(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsLg(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Persist changes（寫 localStorage 不放在 setState updater 內 —
+  // updater 必須是純函式，StrictMode 下會被呼叫兩次）
+  const handleTogglePanel = () => {
+    const next = !rightPanelOpen;
+    setRightPanelOpen(next);
+    localStorage.setItem(LS_PANEL_OPEN, String(next));
+  };
+
+  const handleKindChange = (kind: RightPanelKind) => {
+    setRightPanelKind(kind);
+    localStorage.setItem(LS_PANEL_KIND, kind);
+  };
+
+  const handleWidthChange = (px: number) => {
+    const clamped = clampWidth(px);
+    setRightPanelWidth(clamped);
+    localStorage.setItem(LS_PANEL_WIDTH, String(clamped));
+  };
+
+  // ── DnD sensors ──────────────────────────────────────────────────────────
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
@@ -206,18 +294,21 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const oldIndex = assignments.findIndex((a) => a.id === active.id);
-    const newIndex = assignments.findIndex((a) => a.id === over.id);
+    // Only incomplete tasks are in the SortableContext; look up indices within that slice.
+    const incompleteOnly = (data?.assignments || []).filter((a) => !a.isCompleted);
+    const oldIndex = incompleteOnly.findIndex((a) => a.id === active.id);
+    const newIndex = incompleteOnly.findIndex((a) => a.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
 
-    const reordered = arrayMove(assignments, oldIndex, newIndex);
-    mutate({ ...data!, assignments: reordered }, false);
+    const reorderedIncomplete = arrayMove(incompleteOnly, oldIndex, newIndex);
+    const completedOnly = (data?.assignments || []).filter((a) => a.isCompleted);
+    mutate({ ...data!, assignments: [...reorderedIncomplete, ...completedOnly] }, false);
 
     await fetch(`/api/daily/${currentDate}/tasks/reorder`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        order: reordered.map((a, i) => ({ id: a.id, sortOrder: i })),
+        order: reorderedIncomplete.map((a, i) => ({ id: a.id, sortOrder: i })),
       }),
     });
     mutate();
@@ -239,21 +330,87 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
     );
   }
 
-  const assignments = [...(data?.assignments || [])].sort((a, b) => {
-    if (a.isCompleted !== b.isCompleted) return a.isCompleted ? 1 : -1;
-    return 0;
-  });
+  const allAssignments = data?.assignments || [];
+  const incompleteAssignments = allAssignments.filter((a) => !a.isCompleted);
+  const completedAssignments = allAssignments.filter((a) => a.isCompleted);
+
+  // Right-panel padding: only apply when panel is open AND we're on lg+
+  const mainPaddingRight = rightPanelOpen && isLg ? rightPanelWidth : 0;
 
   return (
     <>
-      <CalendarPanel date={currentDate} />
-      {/* lg:pl 映射到 calendar panel 寬度、lg:pr 映射到 panel+icon rail，
-          讓內容在 lg+ viewport 是真正的置中（而不是置中在「面板右邊那塊」） */}
-      <div className="min-h-screen bg-background lg:pl-[300px] lg:pr-[356px]">
+      {/* Right panel — mounts when open; fixed right, lg+ only */}
+      {rightPanelOpen && (
+        <DailyRightPanel
+          kind={rightPanelKind}
+          width={rightPanelWidth}
+          onWidthChange={handleWidthChange}
+          date={currentDate}
+        />
+      )}
+
+      <div
+        className="min-h-screen bg-background lg:transition-[padding-right]"
+        style={{ paddingRight: mainPaddingRight }}
+      >
         <div className="mx-auto max-w-3xl px-4 md:px-6 pb-8">
-          <div className="pt-6 mb-2">
+          <div className="pt-6 mb-2 flex items-center justify-between">
             <h1 className="text-2xl font-bold text-foreground">{tNav("tasks")}</h1>
+
+            {/* Right-panel controls — lg+ only */}
+            <div className="hidden lg:flex items-center gap-1">
+              {/* Kind picker — only visible when panel is open */}
+              {rightPanelOpen && (
+                <div className="flex items-center gap-0.5 mr-1 p-0.5 rounded-md bg-muted">
+                  <button
+                    type="button"
+                    onClick={() => handleKindChange("calendar")}
+                    aria-label={tNav("calendar")}
+                    title={tNav("calendar")}
+                    aria-pressed={rightPanelKind === "calendar"}
+                    className={
+                      rightPanelKind === "calendar"
+                        ? "flex items-center justify-center h-6 w-6 rounded bg-primary text-primary-foreground transition-colors"
+                        : "flex items-center justify-center h-6 w-6 rounded text-text-dim hover:text-foreground transition-colors"
+                    }
+                  >
+                    <CalendarDays className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleKindChange("cards")}
+                    aria-label={tNav("cards")}
+                    title={tNav("cards")}
+                    aria-pressed={rightPanelKind === "cards"}
+                    className={
+                      rightPanelKind === "cards"
+                        ? "flex items-center justify-center h-6 w-6 rounded bg-primary text-primary-foreground transition-colors"
+                        : "flex items-center justify-center h-6 w-6 rounded text-text-dim hover:text-foreground transition-colors"
+                    }
+                  >
+                    <CardsIcon className="h-3.5 w-3.5 text-[length:inherit]" />
+                  </button>
+                </div>
+              )}
+
+              {/* Panel toggle */}
+              <button
+                type="button"
+                onClick={handleTogglePanel}
+                aria-label={t("toggleRightPanel")}
+                title={t("toggleRightPanel")}
+                aria-pressed={rightPanelOpen}
+                className={
+                  rightPanelOpen
+                    ? "flex items-center justify-center h-7 w-7 rounded-md text-foreground bg-border transition-colors"
+                    : "flex items-center justify-center h-7 w-7 rounded-md text-text-dim hover:text-foreground transition-colors"
+                }
+              >
+                <PanelRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
+
           <div className="pb-1">
             <DateHeading date={currentDate} />
           </div>
@@ -277,10 +434,10 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={assignments.map((a) => a.id)}
+                items={incompleteAssignments.map((a) => a.id)}
                 strategy={verticalListSortingStrategy}
               >
-                {assignments.map((a) => (
+                {incompleteAssignments.map((a) => (
                   <TaskCard
                     key={a.id}
                     assignment={a}
@@ -294,12 +451,43 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
               </SortableContext>
             </DndContext>
 
-            {assignments.length === 0 && (
-              <p className="text-sm text-text-dim py-4 text-center">
-                {t("emptyToday")}
-              </p>
+            {completedAssignments.length > 0 && (
+              <div className="mt-2">
+                <button
+                  onClick={() => setCompletedExpanded((v) => !v)}
+                  aria-expanded={completedExpanded}
+                  className="flex items-center gap-1 px-1 py-1.5 text-xs font-medium text-text-dim hover:text-muted-foreground transition-colors w-full text-left"
+                >
+                  {completedExpanded ? (
+                    <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                  )}
+                  {t("completedHeader", { count: completedAssignments.length })}
+                </button>
+                {completedExpanded &&
+                  completedAssignments.map((a) => (
+                    <TaskCard
+                      key={a.id}
+                      assignment={a}
+                      currentDate={currentDate}
+                      onToggleComplete={handleToggleComplete}
+                      onStatusChange={handleStatusChange}
+                      onMoveToDate={handleMoveToDate}
+                      onUpdateTask={handleUpdateTask}
+                    />
+                  ))}
+              </div>
             )}
 
+            {allAssignments.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-10 gap-2">
+                <Sparkles className="h-6 w-6 text-text-dim" />
+                <p className="text-sm text-text-dim text-center">
+                  {t("emptyToday")}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

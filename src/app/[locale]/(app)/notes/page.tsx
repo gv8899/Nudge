@@ -1,7 +1,5 @@
-import { getToday } from "@/lib/today";
-import { NotesCanvas } from "@/components/notes/notes-canvas";
+import { NotesSplit } from "@/components/notes/notes-split";
 
-export default async function NotesPage() {
-  const today = await getToday();
-  return <NotesCanvas date={today} isToday />;
+export default function NotesPage() {
+  return <NotesSplit mobileView="canvas" />;
 }

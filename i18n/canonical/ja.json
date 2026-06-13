@@ -5,7 +5,8 @@
     "delete": "削除",
     "loading": "読み込み中...",
     "loadFailed": "読み込みに失敗しました",
-    "today": "今日"
+    "today": "今日",
+    "errorSaving": "保存に失敗しました。もう一度お試しください"
   },
   "settings": {
     "title": "設定",
@@ -50,6 +51,20 @@
       "button": "ログアウト",
       "confirmTitle": "ログアウト",
       "confirmBody": "本当にログアウトしますか？"
+    },
+    "dangerZone": {
+      "section": "危険な操作"
+    },
+    "notifications": {
+      "title": "通知",
+      "morningEnabled": "朝の通知",
+      "morningTime": "時刻",
+      "morningContent": "内容",
+      "eveningEnabled": "夜の通知",
+      "eveningTime": "時刻",
+      "eveningContent": "内容",
+      "perTaskEnabled": "タスクごとのリマインダー",
+      "platformNote": "通知はアプリ（iOS / macOS）で配信されます"
     }
   },
   "tags": {
@@ -62,6 +77,7 @@
     "deleteTitle": "タグを削除",
     "deleteConfirm": "「{name}」を削除しますか？",
     "deleteTagAria": "{name} を削除",
+    "dragReorderAria": "ドラッグして並べ替え {name}",
     "newTagPlaceholder": "新しいタグ...",
     "removeAria": "{name} を外す",
     "searchOrCreate": "タグを検索・作成..."
@@ -72,7 +88,8 @@
     "cards": "カード",
     "settings": "設定",
     "mainNavAria": "メインナビ",
-    "settingsAria": "設定を開く"
+    "settingsAria": "設定を開く",
+    "calendar": "カレンダー"
   },
   "login": {
     "tagline": "毎日のタスクをそっと後押し",
@@ -153,7 +170,19 @@
     "todayButton": "今日",
     "todayAria": "今日に戻る",
     "todaySectionTitle": "今日 ({count})",
-    "toggleRightPanel": "サイドパネルを切り替え"
+    "toggleRightPanel": "サイドパネルを切り替え",
+    "completedHeader": "完了 ({count})",
+    "a11y": {
+      "hasReminder": "リマインダーあり",
+      "recurring": "繰り返し"
+    },
+    "rowMenu": "タスク操作",
+    "setRecurring": "繰り返し設定…",
+    "setReminder": "リマインダーを設定…",
+    "skipThisOccurrence": "今回をスキップ",
+    "skipConfirmTitle": "今回をスキップ",
+    "skipConfirmBody": "「{title}」の今回分をスキップしますか？次回は通常どおり表示されます。",
+    "skipConfirmAction": "スキップ"
   },
   "cards": {
     "createAria": "新しいカード",
@@ -172,7 +201,8 @@
     "cleanConfirmButton": "削除を確認",
     "cleanLoading": "削除中...",
     "toastCleaned": "{count} 件の空白カードを削除しました",
-    "toastNothingToClean": "削除するカードがありません"
+    "toastNothingToClean": "削除するカードがありません",
+    "untitled": "無題"
   },
   "cardDetail": {
     "backToCards": "カード一覧へ戻る",
@@ -195,7 +225,8 @@
     "canvasToggleFeedAria": "フィードへ切り替え",
     "canvasToggleFeedTitle": "フィードへ切り替え",
     "entryAria": "{year}年{month}月{day}日のジャーナル",
-    "monthLabel": "{month} 月"
+    "monthLabel": "{month} 月",
+    "todayPlaceholder": "今日のジャーナルを書く"
   },
   "calendar": {
     "section": "カレンダー",
@@ -223,6 +254,64 @@
     "eventJoinMeet": "Google Meet で参加",
     "mobileCollapsedCount": "今日の予定 · {count} 件",
     "mobileCollapsedEmpty": "今日は予定なし",
-    "mobileConnectPrompt": "Google カレンダーを連携 →"
+    "mobileConnectPrompt": "Google カレンダーを連携 →",
+    "modeDay": "日",
+    "modeWeek": "週",
+    "modeMonth": "月",
+    "thisWeek": "今週",
+    "weekEmpty": "今週は予定がありません",
+    "monthEmpty": "今月は予定がありません",
+    "morning": "午前",
+    "afternoon": "午後",
+    "evening": "夜",
+    "prevMonthAria": "前の月",
+    "nextMonthAria": "次の月"
+  },
+  "schedule": {
+    "recurrenceTitle": "繰り返し",
+    "preset": {
+      "daily": "毎日",
+      "weekly": "毎週",
+      "biweekly": "隔週",
+      "monthlyDay": "毎月（日付）",
+      "monthlyNthWeekday": "毎月（曜日）"
+    },
+    "recurrence": {
+      "off": "なし",
+      "weekdaysLabel": "曜日",
+      "monthDayN": "毎月 {n} 日",
+      "nthLabel": "第何週",
+      "nthN": "第 {n}",
+      "last": "最終",
+      "weekday": "曜日",
+      "startDate": "開始日",
+      "hasEndDate": "終了日を設定",
+      "endDate": "終了日"
+    },
+    "reminder": {
+      "label": "リマインダー時刻",
+      "requiresPreset": "繰り返しを設定するとリマインダーを追加できます",
+      "clear": "クリア"
+    },
+    "validation": {
+      "weeklyNeedsWeekday": "曜日を1つ以上選んでください",
+      "endBeforeStart": "終了日は開始日より前にできません"
+    }
+  },
+  "weekday": {
+    "mon": "月",
+    "tue": "火",
+    "wed": "水",
+    "thu": "木",
+    "fri": "金",
+    "sat": "土",
+    "sun": "日"
+  },
+  "notifications": {
+    "content": {
+      "summary": "今日のサマリー",
+      "incomplete": "未完了のタスク",
+      "summaryStreak": "サマリー + 連続記録"
+    }
   }
 }
