@@ -130,6 +130,10 @@ struct MacSidebarRoot: View {
     /// 切 columnVisibility，同一區間內手動展開/收合 sidebar 不被覆蓋。
     @State private var sidebarIsNarrow = false
 
+    /// Cards 是否在全頁編輯 — 全頁時 root toolbar 的「+」換成返回鈕。
+    /// 由 CardsHostView 的 onFullPageChange 回報。
+    @State private var cardsFullPageActive = false
+
     // Toolbar state lifted from individual hosts. Previously each host
     // declared its own `.toolbar { }` on the active branch, which let
     // toolbar items bubble up into NavigationSplitView's shared
@@ -239,7 +243,10 @@ struct MacSidebarRoot: View {
                     CalendarHostView(embedded: selection != .calendar)
                 }
                 detailHost(.cards, isActive: selection == .cards) {
-                    CardsHostView(embedded: selection != .cards)
+                    CardsHostView(
+                        embedded: selection != .cards,
+                        onFullPageChange: { cardsFullPageActive = $0 }
+                    )
                 }
                 detailHost(.notes, isActive: selection == .notes) {
                     NotesHostView(embedded: selection != .notes)
@@ -522,13 +529,25 @@ struct MacSidebarRoot: View {
 
     @ToolbarContentBuilder
     private var cardsToolbar: some ToolbarContent {
-        ToolbarItem(placement: .primaryAction) {
-            Button {
-                NotificationCenter.default.post(name: NudgeCommands.createCardNotification, object: nil)
-            } label: {
-                Image(systemName: "plus")
+        if cardsFullPageActive {
+            // 全頁編輯時：「+」換成返回鈕（leading），點了回卡片網格。
+            ToolbarItem(placement: .navigation) {
+                Button {
+                    NotificationCenter.default.post(name: NudgeCommands.cardsBackNotification, object: nil)
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+                .help(Text("common.back", bundle: .module))
             }
-            .help(Text("cards.createAria", bundle: .module))
+        } else {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    NotificationCenter.default.post(name: NudgeCommands.createCardNotification, object: nil)
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .help(Text("cards.createAria", bundle: .module))
+            }
         }
     }
 

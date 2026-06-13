@@ -13,6 +13,9 @@ public struct CardsHostView: View {
     /// NavigationStack 的 window toolbar、跟 DailyHostView 自己的 toolbar
     /// item 擠在一起。
     private let embedded: Bool
+    /// macOS：fullPageCard 變動時回報給 MacSidebarRoot，讓 root toolbar 的
+    /// 「+」在全頁時換成返回鈕。
+    private let onFullPageChange: ((Bool) -> Void)?
 
     @State private var cards: [CardDTO] = []
     @State private var nextCursor: String?
@@ -36,8 +39,9 @@ public struct CardsHostView: View {
     @State private var fullPageCard: CardDTO?
     #endif
 
-    public init(embedded: Bool = false) {
+    public init(embedded: Bool = false, onFullPageChange: ((Bool) -> Void)? = nil) {
         self.embedded = embedded
+        self.onFullPageChange = onFullPageChange
     }
 
     public var body: some View {
@@ -144,6 +148,10 @@ public struct CardsHostView: View {
         .task(id: searchQuery) { await debounceSearch() }
         .task(id: searchKey) { await fetchSearch() }
         .sheet(item: $quickCard) { card in cardQuickSheet(card) }
+        // 回報全頁狀態給 root toolbar（+ ↔ 返回鈕）。
+        .onChange(of: fullPageCard?.id) { _, _ in
+            onFullPageChange?(fullPageCard != nil)
+        }
 
         // embedded = 嵌在 DailyHostView 右側面板用，不能掛 toolbar /
         // navigationTitle —— 它們會 bubble 到外層 NavigationStack 的視
@@ -152,13 +160,27 @@ public struct CardsHostView: View {
             core
         } else {
             // "+" 按鈕上提到 MacSidebarRoot 的 root toolbar；host 透過
-            // createCardNotification 接到觸發。
+            // createCardNotification 接到觸發。全頁時 toolbar 改顯示返回鈕，
+            // 點了 post cardsBackNotification → 清掉 fullPageCard。
             core
-                .navigationTitle(Text("nav.cards", bundle: .module))
+                .navigationTitle(macNavTitle)
                 .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.createCardNotification)) { _ in
                     createCard()
                 }
+                .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.cardsBackNotification)) { _ in
+                    fullPageCard = nil
+                }
         }
+    }
+
+    /// 全頁時 window 標題顯示卡片標題（空標題→未命名）；否則顯示「卡片」。
+    private var macNavTitle: Text {
+        if let c = fullPageCard {
+            return c.title.isEmpty
+                ? Text("cards.untitled", bundle: .module)
+                : Text(verbatim: c.title)
+        }
+        return Text("nav.cards", bundle: .module)
     }
 
     /// 內部自帶置中 — Spacer + content(maxWidth: listColumnWidth) + Spacer。
@@ -242,7 +264,7 @@ public struct CardsHostView: View {
                 }
             }
         }
-        .frame(minWidth: 760, minHeight: 560)
+        .frame(minWidth: 920, minHeight: 600)
         .background(Color.nudgeBackground)
     }
     #endif
@@ -557,6 +579,19 @@ public struct CardsHostView: View {
                 tags: c.tags
             )
         }
+
+        #if os(macOS)
+        // 全頁 window 標題的來源是 fullPageCard；rename 後同步它才會即時更新。
+        if let f = fullPageCard, f.id == cardId {
+            fullPageCard = CardDTO(
+                id: f.id,
+                title: title,
+                description: f.description,
+                updatedAt: f.updatedAt,
+                tags: f.tags
+            )
+        }
+        #endif
 
         Task {
             do {
