@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { mutate as globalMutate } from "swr";
 import { useDaily } from "@/hooks/use-daily";
 import { TaskCard } from "@/components/task/task-card";
 import { TaskCreate } from "@/components/task/task-create";
-import { CalendarNav } from "@/components/calendar/calendar-nav";
+import { TaskFab } from "@/components/task/task-fab";
+import { CalendarNav, WeekNavControls } from "@/components/calendar/calendar-nav";
 import { DateHeading } from "@/components/calendar/date-heading";
 import { OverdueSection } from "@/components/daily/overdue-section";
 import { DailyRightPanel, type RightPanelKind } from "@/components/daily/daily-right-panel";
@@ -87,21 +88,24 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   const tCommon = useTranslations("common");
   const [currentDate, setCurrentDate] = useState(initialDate);
   const [completedExpanded, setCompletedExpanded] = useState(true);
+  const [composerOpen, setComposerOpen] = useState(false);
   const { data, isLoading, error, mutate } = useDaily(currentDate);
 
   // ── Right-panel state (lazy-init from localStorage, SSR-safe) ──────────
   const [rightPanelOpen, setRightPanelOpen] = useState<boolean>(false);
   const [rightPanelKind, setRightPanelKind] = useState<RightPanelKind>("calendar");
   const [rightPanelWidth, setRightPanelWidth] = useState<number>(DEFAULT_WIDTH);
+  const [detailId, setDetailId] = useState<string | null>(null);
+  // Remember which kind was active before "detail" so we can return to it
+  const prevKindRef = useRef<RightPanelKind>("cards");
   // Track lg+ breakpoint so we only apply right-padding on large screens
   const [isLg, setIsLg] = useState<boolean>(false);
 
   // Hydrate from localStorage once on mount (avoids SSR mismatch)
   useEffect(() => {
     setRightPanelOpen(lsReadBool(LS_PANEL_OPEN, false));
-    setRightPanelKind(
-      lsReadString<RightPanelKind>(LS_PANEL_KIND, "calendar", ["calendar", "cards"])
-    );
+    const storedKind = lsReadString<RightPanelKind>(LS_PANEL_KIND, "calendar", ["calendar", "cards"]);
+    setRightPanelKind(storedKind);
     setRightPanelWidth(clampWidth(lsReadNumber(LS_PANEL_WIDTH, DEFAULT_WIDTH)));
   }, []);
 
@@ -124,7 +128,25 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
 
   const handleKindChange = (kind: RightPanelKind) => {
     setRightPanelKind(kind);
+    setDetailId(null);
     localStorage.setItem(LS_PANEL_KIND, kind);
+  };
+
+  const openDetailInPanel = (id: string) => {
+    // Remember current kind (if not already in detail) so we can return to it
+    if (rightPanelKind !== "detail") {
+      prevKindRef.current = rightPanelKind;
+    }
+    setDetailId(id);
+    setRightPanelKind("detail");
+    setRightPanelOpen(true);
+    localStorage.setItem(LS_PANEL_OPEN, "true");
+    // Do NOT persist "detail" to localStorage
+  };
+
+  const closeDetail = () => {
+    setRightPanelKind(prevKindRef.current);
+    setDetailId(null);
   };
 
   const handleWidthChange = (px: number) => {
@@ -346,6 +368,9 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
           width={rightPanelWidth}
           onWidthChange={handleWidthChange}
           date={currentDate}
+          detailId={detailId}
+          onBackFromDetail={closeDetail}
+          onOpenCard={openDetailInPanel}
         />
       )}
 
@@ -354,14 +379,31 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
         style={{ paddingRight: mainPaddingRight }}
       >
         <div className="mx-auto max-w-3xl px-4 md:px-6 pb-8">
-          <div className="pt-6 mb-2 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-foreground">{tNav("tasks")}</h1>
+          <div className="pt-6 mb-2 flex items-center">
+            <WeekNavControls date={currentDate} onDateChange={setCurrentDate} />
+          </div>
 
-            {/* Right-panel controls — lg+ only */}
-            <div className="hidden lg:flex items-center gap-1">
-              {/* Kind picker — only visible when panel is open */}
+          {/* Right-panel controls — 對齊 Mac：固定在畫面右上、展開的右側區塊上方（lg+ only） */}
+          <div className="hidden lg:flex items-center gap-2 fixed top-4 right-6 z-40">
+              {/* Panel toggle — 開啟時 tan 填滿（對齊 Mac） */}
+              <button
+                type="button"
+                onClick={handleTogglePanel}
+                aria-label={t("toggleRightPanel")}
+                title={t("toggleRightPanel")}
+                aria-pressed={rightPanelOpen}
+                className={
+                  rightPanelOpen
+                    ? "flex items-center justify-center h-7 w-7 rounded-md bg-primary text-primary-foreground transition-colors"
+                    : "flex items-center justify-center h-7 w-7 rounded-md text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors"
+                }
+              >
+                <PanelRight className="h-4 w-4" />
+              </button>
+
+              {/* Kind picker segmented — 只在面板開啟時顯示；active 為淡 highlight（非 tan 重填） */}
               {rightPanelOpen && (
-                <div className="flex items-center gap-0.5 mr-1 p-0.5 rounded-md bg-muted">
+                <div className="flex items-center gap-0.5 p-0.5 rounded-md bg-muted">
                   <button
                     type="button"
                     onClick={() => handleKindChange("calendar")}
@@ -370,7 +412,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                     aria-pressed={rightPanelKind === "calendar"}
                     className={
                       rightPanelKind === "calendar"
-                        ? "flex items-center justify-center h-6 w-6 rounded bg-primary text-primary-foreground transition-colors"
+                        ? "flex items-center justify-center h-6 w-6 rounded bg-background text-foreground shadow-sm transition-colors"
                         : "flex items-center justify-center h-6 w-6 rounded text-text-dim hover:text-foreground transition-colors"
                     }
                   >
@@ -384,7 +426,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                     aria-pressed={rightPanelKind === "cards"}
                     className={
                       rightPanelKind === "cards"
-                        ? "flex items-center justify-center h-6 w-6 rounded bg-primary text-primary-foreground transition-colors"
+                        ? "flex items-center justify-center h-6 w-6 rounded bg-background text-foreground shadow-sm transition-colors"
                         : "flex items-center justify-center h-6 w-6 rounded text-text-dim hover:text-foreground transition-colors"
                     }
                   >
@@ -392,24 +434,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                   </button>
                 </div>
               )}
-
-              {/* Panel toggle */}
-              <button
-                type="button"
-                onClick={handleTogglePanel}
-                aria-label={t("toggleRightPanel")}
-                title={t("toggleRightPanel")}
-                aria-pressed={rightPanelOpen}
-                className={
-                  rightPanelOpen
-                    ? "flex items-center justify-center h-7 w-7 rounded-md text-foreground bg-border transition-colors"
-                    : "flex items-center justify-center h-7 w-7 rounded-md text-text-dim hover:text-foreground transition-colors"
-                }
-              >
-                <PanelRight className="h-4 w-4" />
-              </button>
             </div>
-          </div>
 
           <div className="pb-1">
             <DateHeading date={currentDate} />
@@ -427,7 +452,12 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
               onReschedule={handleReschedule}
               onArchive={handleArchive}
             />
-            <TaskCreate onSubmit={handleCreateTask} />
+            {allAssignments.length > 0 && (
+              <div className="px-1 py-1.5 text-xs font-medium text-text-dim">
+                {t("todayHeader", { count: allAssignments.length })}
+              </div>
+            )}
+            {composerOpen && <TaskCreate onSubmit={handleCreateTask} onClose={() => setComposerOpen(false)} />}
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -446,6 +476,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                     onStatusChange={handleStatusChange}
                     onMoveToDate={handleMoveToDate}
                     onUpdateTask={handleUpdateTask}
+                    onOpenDetail={openDetailInPanel}
                   />
                 ))}
               </SortableContext>
@@ -475,6 +506,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                       onStatusChange={handleStatusChange}
                       onMoveToDate={handleMoveToDate}
                       onUpdateTask={handleUpdateTask}
+                      onOpenDetail={openDetailInPanel}
                     />
                   ))}
               </div>
@@ -491,6 +523,10 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
           </div>
         </div>
       </div>
+      <TaskFab
+        onClick={() => setComposerOpen((v) => !v)}
+        style={rightPanelOpen && isLg ? { right: rightPanelWidth + 24 } : undefined}
+      />
     </>
   );
 }

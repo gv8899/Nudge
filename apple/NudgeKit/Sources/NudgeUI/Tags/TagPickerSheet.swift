@@ -43,6 +43,63 @@ public struct TagPickerSheet: View {
     }
 
     public var body: some View {
+        #if os(macOS)
+        // macOS — 單層自畫 chrome（header + footer），對齊卡片 modal；
+        // 不用 NavigationStack（其 title bar + 外層 sheet 會有「上下兩層」感）。
+        VStack(spacing: 0) {
+            HStack {
+                Text("tags.addTag", bundle: .module)
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(Color.nudgeForeground)
+                Spacer()
+                // 右側 close icon = 取消（底部不再放「取消」按鈕）。
+                Button(action: onCancel) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.nudgeTextDim)
+                        .frame(width: 30, height: 30)
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .help(Text("common.cancel", bundle: .module))
+                .accessibilityLabel(Text("common.cancel", bundle: .module))
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 14)
+            .padding(.bottom, 10)
+
+            searchBar
+            Divider().background(Color.nudgeBorderLight)
+            if isLoading {
+                HStack { ProgressView().controlSize(.small); Spacer() }
+                    .padding(16)
+                Spacer(minLength: 0)
+            } else {
+                list
+            }
+
+            HStack(spacing: 12) {
+                Spacer()
+                Button {
+                    onCommit(selectedIds)
+                } label: {
+                    Text("common.save", bundle: .module)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.nudgePrimaryForeground)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(Color.nudgePrimary))
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut(.defaultAction)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+        .background(Color.nudgeBackground)
+        .frame(width: 460, height: 560)
+        .task { await reload() }
+        #else
         NavigationStack {
             VStack(spacing: 0) {
                 searchBar
@@ -56,9 +113,7 @@ public struct TagPickerSheet: View {
             }
             .background(Color.nudgeBackground)
             .navigationTitle(Text("tags.addTag", bundle: .module))
-            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(action: onCancel) {
@@ -78,6 +133,7 @@ public struct TagPickerSheet: View {
             }
         }
         .task { await reload() }
+        #endif
     }
 
     private var searchBar: some View {

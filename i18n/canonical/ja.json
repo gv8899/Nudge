@@ -171,6 +171,7 @@
     "todayAria": "今日に戻る",
     "todaySectionTitle": "今日 ({count})",
     "toggleRightPanel": "サイドパネルを切り替え",
+    "todayHeader": "今日 ({count})",
     "completedHeader": "完了 ({count})",
     "a11y": {
       "hasReminder": "リマインダーあり",
@@ -185,6 +186,7 @@
     "skipConfirmAction": "スキップ"
   },
   "cards": {
+    "recentTitle": "最近のカード",
     "createAria": "新しいカード",
     "cleanUntitledAria": "空白のカードを削除",
     "viewListAria": "リスト表示",

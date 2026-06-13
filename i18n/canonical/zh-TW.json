@@ -171,6 +171,7 @@
     "todayAria": "回到今天",
     "todaySectionTitle": "今天 ({count})",
     "toggleRightPanel": "顯示 / 隱藏側邊面板",
+    "todayHeader": "今天 ({count})",
     "completedHeader": "已完成 ({count})",
     "a11y": {
       "hasReminder": "已設提醒",
@@ -185,6 +186,7 @@
     "skipConfirmAction": "跳過"
   },
   "cards": {
+    "recentTitle": "最近卡片",
     "createAria": "新增卡片",
     "cleanUntitledAria": "清除空白的卡片",
     "viewListAria": "列表檢視",

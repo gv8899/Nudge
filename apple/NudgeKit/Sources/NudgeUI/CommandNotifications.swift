@@ -25,6 +25,13 @@ public enum NudgeCommands {
     public static let nextWeekNotification = Notification.Name("nudge.nextWeek")
     /// Cards 新增卡片 — root toolbar "+" 按鈕觸發。
     public static let createCardNotification = Notification.Name("nudge.createCard")
+    /// Cards 全頁編輯返回列表 — 全頁時 root toolbar 把 "+" 換成返回鈕，
+    /// 點了 post 這個，CardsHostView 收到後清掉 fullPageCard 回網格。
+    public static let cardsBackNotification = Notification.Name("nudge.cardsBack")
+    /// Cards 全頁編輯：window toolbar（返回那排）的「標籤 / 重複」按鈕 —
+    /// post 後由 CardDetailView 收到開對應 sheet（tag picker / schedule）。
+    public static let cardsManageTagsNotification = Notification.Name("nudge.cardsManageTags")
+    public static let cardsScheduleNotification = Notification.Name("nudge.cardsSchedule")
     /// Notes feed / canvas 切換 — root toolbar 按鈕觸發。
     public static let notesToggleFeedNotification = Notification.Name("nudge.notesToggleFeed")
     /// Note 儲存完成 — `object` 為 date (YYYY-MM-DD)。Mac 永久 split 下

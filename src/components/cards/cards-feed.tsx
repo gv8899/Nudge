@@ -3,62 +3,83 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
-import { Search, List, LayoutGrid, Plus, Eraser } from "lucide-react";
+import { Search, Plus } from "lucide-react";
+import useSWR, { mutate as globalMutate } from "swr";
 import { useCardsFeed } from "@/hooks/use-cards-feed";
 import { useTags } from "@/hooks/use-tags";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
-import { CardListItem } from "./card-list-item";
 import { CardGridItem } from "./card-grid-item";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { TaskDetailModal } from "@/components/task/task-detail-modal";
+import { fetcher } from "@/lib/fetcher";
+import type { Task } from "@/lib/types";
+import type { TaskStatus } from "@/lib/constants";
 
-type View = "list" | "grid";
-const VIEW_STORAGE_KEY = "nudge:cards-view";
+// ── Card Modal wrapper — fetches full card and renders TaskDetailModal ─────────
+interface CardModalProps {
+  cardId: string;
+  onClose: () => void;
+  onExpand: (id: string) => void;
+}
 
+interface CardWithTags extends Task {
+  tags?: Array<{ id: string; name: string; color: string }>;
+}
+
+function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
+  const { data, mutate } = useSWR<CardWithTags>(
+    `/api/tasks/${cardId}`,
+    fetcher
+  );
+
+  const patch = useCallback(
+    async (updates: Partial<{ title: string; description: string }>) => {
+      await fetch(`/api/tasks/${cardId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      // Refresh the modal data
+      mutate();
+      // Invalidate the cards grid so the preview updates
+      globalMutate(
+        (key) => typeof key === "string" && key.startsWith("/api/cards"),
+        undefined,
+        { revalidate: true }
+      );
+    },
+    [cardId, mutate]
+  );
+
+  if (!data) return null;
+
+  return (
+    <TaskDetailModal
+      task={data}
+      open={true}
+      onClose={onClose}
+      onTitleChange={(title) => patch({ title })}
+      onDescChange={(html) => patch({ description: html })}
+      onStatusChange={(_status: TaskStatus) => {
+        /* status change not supported for cards in this modal */
+      }}
+      wide
+      onExpand={() => onExpand(cardId)}
+    />
+  );
+}
+
+// ── Main feed component ────────────────────────────────────────────────────────
 export function CardsFeed() {
   const t = useTranslations("cards");
-  const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
   const router = useRouter();
-  const [view, setView] = useState<View>("grid");
 
-  // localStorage 讀取偏好（client only）
-  useEffect(() => {
-    const stored = localStorage.getItem(VIEW_STORAGE_KEY) as View | null;
-    if (stored === "list" || stored === "grid") setView(stored);
-  }, []);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const { tags: allTags } = useTags();
   const [isCreating, setIsCreating] = useState(false);
-  const [isCleaning, setIsCleaning] = useState(false);
-  const [confirmCleanOpen, setConfirmCleanOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-
-  // Task 3.4 — selected card tracking (sessionStorage, SSR-safe)
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    return sessionStorage.getItem("cards.lastOpenedId");
-  });
-
-  const markOpened = useCallback((id: string) => {
-    setSelectedCardId(id);
-    try {
-      sessionStorage.setItem("cards.lastOpenedId", id);
-    } catch {}
-  }, []);
-
-  const handleViewChange = (next: View) => {
-    setView(next);
-    try {
-      localStorage.setItem(VIEW_STORAGE_KEY, next);
-    } catch {}
-  };
+  const [modalCardId, setModalCardId] = useState<string | null>(null);
 
   // debounce 搜尋
   useEffect(() => {
@@ -66,7 +87,7 @@ export function CardsFeed() {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const { cards, isLoading, isLoadingMore, hasMore, loadMore, mutate } =
+  const { cards, isLoading, isLoadingMore, hasMore, loadMore } =
     useCardsFeed(debouncedQuery, selectedTagIds);
 
   const toggleTagFilter = (tagId: string) => {
@@ -91,37 +112,12 @@ export function CardsFeed() {
       });
       if (!res.ok) throw new Error("create failed");
       const task = await res.json();
+      // New card: go directly to full-page editor (better UX for an empty card)
       router.push(`/cards/${task.id}`);
     } finally {
       setIsCreating(false);
     }
   };
-
-  // 確認後實際執行刪除
-  const confirmCleanUntitled = async () => {
-    if (isCleaning) return;
-    setIsCleaning(true);
-    try {
-      const res = await fetch("/api/cards/untitled", { method: "DELETE" });
-      const { deleted } = await res.json();
-      if (deleted > 0) mutate();
-      setConfirmCleanOpen(false);
-      setToast(
-        deleted > 0
-          ? t("toastCleaned", { count: deleted })
-          : t("toastNothingToClean")
-      );
-    } finally {
-      setIsCleaning(false);
-    }
-  };
-
-  // toast 自動消失
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 2500);
-    return () => clearTimeout(timer);
-  }, [toast]);
 
   const handleLoadMore = useCallback(() => {
     if (!isLoadingMore && hasMore) loadMore();
@@ -134,36 +130,8 @@ export function CardsFeed() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 md:px-6 py-6 flex flex-col min-h-0">
-      {/* Row 1: 標題 + create / clean buttons */}
-      <div className="flex items-center justify-between mb-4 gap-2">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-foreground">{tNav("cards")}</h1>
-          {/* 新增卡片 — 緊鄰標題 */}
-          <button
-            onClick={handleCreate}
-            disabled={isCreating}
-            aria-label={t("createAria")}
-            title={t("createAria")}
-            className="flex items-center justify-center h-8 w-8 rounded-lg text-primary hover:bg-primary/10 disabled:opacity-50 transition-colors"
-          >
-            <Plus className="h-5 w-5" />
-          </button>
-        </div>
-        {/* 清除空白的卡片 */}
-        <button
-          onClick={() => setConfirmCleanOpen(true)}
-          disabled={isCleaning}
-          aria-label={t("cleanUntitledAria")}
-          title={t("cleanUntitledAria")}
-          className="p-2 rounded-lg text-text-dim hover:text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
-        >
-          <Eraser className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* Row 2 (persistent search block): search input + view toggle, then tag chips */}
+      {/* Search + create button row */}
       <div className="mb-4">
-        {/* Search input + view toggle on same row */}
         <div className="flex items-center gap-2 mb-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim pointer-events-none" />
@@ -176,35 +144,16 @@ export function CardsFeed() {
               aria-label={t("searchAria")}
             />
           </div>
-          {/* View toggle — moved here from title row */}
-          <div className="flex items-center gap-1 border border-border rounded-lg p-1 shrink-0" suppressHydrationWarning>
-            <button
-              suppressHydrationWarning
-              onClick={() => handleViewChange("list")}
-              aria-label={t("viewListAria")}
-              aria-pressed={view === "list"}
-              className={`p-1.5 rounded transition-colors ${
-                view === "list"
-                  ? "bg-muted text-foreground"
-                  : "text-text-dim hover:text-foreground"
-              }`}
-            >
-              <List className="h-4 w-4" />
-            </button>
-            <button
-              suppressHydrationWarning
-              onClick={() => handleViewChange("grid")}
-              aria-label={t("viewGridAria")}
-              aria-pressed={view === "grid"}
-              className={`p-1.5 rounded transition-colors ${
-                view === "grid"
-                  ? "bg-muted text-foreground"
-                  : "text-text-dim hover:text-foreground"
-              }`}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </button>
-          </div>
+          {/* 新增卡片 */}
+          <button
+            onClick={handleCreate}
+            disabled={isCreating}
+            aria-label={t("createAria")}
+            title={t("createAria")}
+            className="flex items-center justify-center h-9 w-9 rounded-lg text-primary hover:bg-primary/10 disabled:opacity-50 transition-colors shrink-0"
+          >
+            <Plus className="h-5 w-5" />
+          </button>
         </div>
 
         {/* Tag filter chip cloud — AND semantics */}
@@ -247,7 +196,6 @@ export function CardsFeed() {
           <p className="text-sm text-text-dim">{tCommon("loading")}</p>
         </div>
       ) : cards.length === 0 ? (
-        /* Task 3.2 — empty state centered in remaining vertical space */
         <div className="flex-1 flex flex-col items-center justify-center py-16 gap-2">
           {isFiltering ? (
             <>
@@ -258,22 +206,14 @@ export function CardsFeed() {
             <p className="text-empty-state text-text-dim">{t("emptyNoCards")}</p>
           )}
         </div>
-      ) : view === "list" ? (
-        <div className="divide-y divide-border">
-          {cards.map((c) => (
-            /* Task 3.4 — capture click to track last-opened card (list view) */
-            <div key={c.id} onClickCapture={() => markOpened(c.id)}>
-              <CardListItem card={c} />
-            </div>
-          ))}
-        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {cards.map((c) => (
-            /* Task 3.4 — capture click to track last-opened card (grid view)。
-               h-full 讓 wrapper 撐滿 grid cell，保住 CardGridItem 的等高。 */
-            <div key={c.id} className="h-full" onClickCapture={() => markOpened(c.id)}>
-              <CardGridItem card={c} selected={c.id === selectedCardId} />
+            <div key={c.id} className="h-full">
+              <CardGridItem
+                card={c}
+                onOpenInline={(id) => setModalCardId(id)}
+              />
             </div>
           ))}
         </div>
@@ -291,43 +231,16 @@ export function CardsFeed() {
         </div>
       )}
 
-      {/* 刪除確認 Dialog */}
-      <Dialog open={confirmCleanOpen} onOpenChange={setConfirmCleanOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogTitle className="text-base font-semibold">
-            {t("cleanDialogTitle")}
-          </DialogTitle>
-          <DialogDescription className="text-sm text-text-dim">
-            {t("cleanDialogBody")}
-          </DialogDescription>
-          <div className="flex justify-end gap-2 mt-4">
-            <button
-              onClick={() => setConfirmCleanOpen(false)}
-              disabled={isCleaning}
-              className="px-3 py-1.5 text-sm rounded-lg border border-border text-text-dim hover:text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
-            >
-              {tCommon("cancel")}
-            </button>
-            <button
-              onClick={confirmCleanUntitled}
-              disabled={isCleaning}
-              className="px-3 py-1.5 text-sm rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 disabled:opacity-50 transition-colors"
-            >
-              {isCleaning ? t("cleanLoading") : t("cleanConfirmButton")}
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Toast */}
-      {toast && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-popover text-popover-foreground text-sm shadow-lg ring-1 ring-foreground/10 animate-in fade-in slide-in-from-bottom-2 duration-200"
-        >
-          {toast}
-        </div>
+      {/* Card quick-view modal */}
+      {modalCardId && (
+        <CardModal
+          cardId={modalCardId}
+          onClose={() => setModalCardId(null)}
+          onExpand={(id) => {
+            setModalCardId(null);
+            router.push(`/cards/${id}`);
+          }}
+        />
       )}
     </div>
   );

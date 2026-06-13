@@ -171,6 +171,7 @@
     "todayAria": "Jump to today",
     "todaySectionTitle": "Today ({count})",
     "toggleRightPanel": "Toggle side panel",
+    "todayHeader": "Today ({count})",
     "completedHeader": "Completed ({count})",
     "a11y": {
       "hasReminder": "Has reminder",
@@ -185,6 +186,7 @@
     "skipConfirmAction": "Skip"
   },
   "cards": {
+    "recentTitle": "Recent Cards",
     "createAria": "New card",
     "cleanUntitledAria": "Clean untitled cards",
     "viewListAria": "List view",

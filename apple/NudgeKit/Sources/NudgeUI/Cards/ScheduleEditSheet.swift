@@ -69,6 +69,10 @@ public struct ScheduleEditSheet: View {
                 .frame(width: 0, height: 0)
                 .accessibilityHidden(true)
         )
+        #if os(macOS)
+        // 固定成最大高度 — 切換重複/提醒選項時內容變動不會讓 sheet 跳動。
+        .frame(width: 440, height: 560)
+        #endif
     }
 
     private var footer: some View {

@@ -10,6 +10,10 @@ public struct CardDetailView: View {
     public let onUpdateTitle: (String) -> Void
     public let onUpdateDescription: (String) -> Void
     public let onUpdateTags: (Set<String>) async -> Void
+    /// macOS quick modal 用：header 右側多「展開 / 關閉」兩顆玻璃鈕。
+    /// 全頁編輯時 nil（不顯示）。iOS 不使用。
+    public var onExpand: (() -> Void)? = nil
+    public var onClose: (() -> Void)? = nil
 
     @Environment(TagRepository.self) private var tagRepo
     @Environment(CardRepository.self) private var cardRepo
@@ -31,12 +35,16 @@ public struct CardDetailView: View {
         card: CardDTO,
         onUpdateTitle: @escaping (String) -> Void,
         onUpdateDescription: @escaping (String) -> Void,
-        onUpdateTags: @escaping (Set<String>) async -> Void
+        onUpdateTags: @escaping (Set<String>) async -> Void,
+        onExpand: (() -> Void)? = nil,
+        onClose: (() -> Void)? = nil
     ) {
         self.initialCard = card
         self.onUpdateTitle = onUpdateTitle
         self.onUpdateDescription = onUpdateDescription
         self.onUpdateTags = onUpdateTags
+        self.onExpand = onExpand
+        self.onClose = onClose
         _title = State(initialValue: card.title)
         _descriptionHTML = State(initialValue: card.description)
         _tags = State(initialValue: card.tags)
@@ -45,6 +53,12 @@ public struct CardDetailView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
+            #if os(macOS)
+            // macOS：標題 + rename/schedule/tags（+ modal 的展開/關閉）玻璃
+            // 按鈕改在內容頂端 macHeader（對齊 web modal）；不再用 navbar
+            // title + ... menu。
+            macHeader
+            #endif
             // mac: EditorToolbar 拿掉 — 改用 TipTap slash command menu
             // (`/` 觸發)，跟 web 一致。iOS 仍走 EditorAccessoryView
             // (鍵盤上方 input accessory)，那是另一個元件、不在這裡。
@@ -76,35 +90,24 @@ public struct CardDetailView: View {
             }
         }
         #else
-        // macOS — title 顯示在視窗 title bar (window's navigationTitle)。
-        // 「重新命名 / 排程 / 標籤」全部入口在 toolbar 的 ... menu，與
-        // iOS 對齊。原本 mac 完全沒這些入口，使用者打開卡片只能編輯文字。
-        .navigationTitle(title.isEmpty ? untitledLabel : title)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                moreMenu
-            }
+        // macOS — 標題原地編輯在 macHeader。tags / 重複入口在全頁時放
+        // window toolbar（返回那排）；按鈕 post notification、這裡接到開 sheet。
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.cardsManageTagsNotification)) { _ in
+            showTagPicker = true
         }
-        .alert(Text("cardDetail.renameTitle", bundle: .module), isPresented: $showRenameAlert) {
-            TextField("", text: $pendingTitle)
-            Button(action: commitRename) {
-                Text("common.save", bundle: .module)
-            }
-            Button(role: .cancel) {
-                pendingTitle = title
-            } label: {
-                Text("common.cancel", bundle: .module)
-            }
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.cardsScheduleNotification)) { _ in
+            showScheduleSheet = true
         }
         #endif
         .onAppear {
             pendingTitle = title
+            // macOS 刻意不自動 focus 標題 —— 避免 sheet 開啟時系統把標題
+            // 全選（使用者要「不全選」）。需要編輯時點一下標題即可。
+            #if os(iOS)
             if initialCard.title.isEmpty {
-                // Empty card → open rename alert so user can fill in the
-                // title. Dispatched async so it doesn't fight the
-                // navigation transition.
                 DispatchQueue.main.async { showRenameAlert = true }
             }
+            #endif
         }
         .sheet(isPresented: $showTagPicker) {
             TagPickerSheet(
@@ -175,6 +178,7 @@ public struct CardDetailView: View {
         nudgeLocalized("cardDetail.untitled", locale: locale)
     }
 
+    #if os(iOS)
     @ViewBuilder
     private var moreMenu: some View {
         Menu {
@@ -216,6 +220,73 @@ public struct CardDetailView: View {
         .accessibilityLabel(Text("cardDetail.moreActions", bundle: .module))
         .help(Text("cardDetail.moreActions", bundle: .module))
     }
+    #endif
+
+    #if os(macOS)
+    @FocusState private var titleFocused: Bool
+
+    /// 內容頂端 header（對齊 web modal）：大標題「原地可編輯」+ modal 的
+    /// 展開/關閉玻璃鈕。tags / 重複入口在全頁時改放 window toolbar（返回那排）。
+    @ViewBuilder
+    private var macHeader: some View {
+        HStack(spacing: 8) {
+            TextField(
+                "",
+                text: $title,
+                prompt: Text("cardDetail.untitled", bundle: .module)
+            )
+            .textFieldStyle(.plain)
+            .font(.system(size: 26, weight: .bold))
+            .foregroundStyle(Color.nudgeForeground)
+            .tint(Color.nudgePrimary) // caret / 選取吃主色
+            .focused($titleFocused)
+            .lineLimit(1)
+            .onChange(of: title) { _, v in debouncedSaveTitle(v) }
+            .onSubmit { titleFocused = false }
+
+            Spacer(minLength: 12)
+
+            if let onExpand {
+                glassAction("arrow.up.left.and.arrow.down.right", "daily.popoverExpand", action: onExpand)
+            }
+            if let onClose {
+                glassAction("xmark", "common.done", action: onClose)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 14)
+        .padding(.bottom, 16) // 標題與內文間距
+    }
+
+    /// macOS 26 玻璃圓鈕；低於 26（deployment 15）fallback 用 material + shadow。
+    @ViewBuilder
+    private func glassAction(
+        _ systemName: String,
+        _ labelKey: LocalizedStringKey,
+        action: @escaping () -> Void
+    ) -> some View {
+        let core = Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(Color.nudgeForeground)
+                .frame(width: 34, height: 34)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .help(Text(labelKey, bundle: .module))
+        .accessibilityLabel(Text(labelKey, bundle: .module))
+
+        if #available(macOS 26.0, *) {
+            core.glassEffect(.regular, in: .circle)
+        } else {
+            core.background(
+                Circle()
+                    .fill(.regularMaterial)
+                    .shadow(color: Color.nudgeForeground.opacity(0.12), radius: 5, x: 0, y: 2)
+            )
+        }
+    }
+    #endif
 
     private func commitRename() {
         let trimmed = pendingTitle.trimmingCharacters(in: .whitespacesAndNewlines)

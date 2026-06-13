@@ -9,9 +9,12 @@ import { CardGridItem } from "@/components/cards/card-grid-item";
 
 const RECENT_LIMIT = 12;
 
-export function DailyCardsPanel() {
+interface DailyCardsPanelProps {
+  onOpenCard?: (id: string) => void;
+}
+
+export function DailyCardsPanel({ onOpenCard }: DailyCardsPanelProps = {}) {
   const t = useTranslations("cards");
-  const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
 
   const [searchExpanded, setSearchExpanded] = useState(false);
@@ -53,7 +56,7 @@ export function DailyCardsPanel() {
       <div className="flex items-center justify-between px-3 py-2 shrink-0">
         <div className="flex items-center gap-1.5">
           <span className="text-column-title text-foreground">
-            {tNav("cards")}
+            {t("recentTitle")}
           </span>
           <span className="text-column-title-acc text-text-dim">
             {cards.length}
@@ -125,8 +128,8 @@ export function DailyCardsPanel() {
         </div>
       )}
 
-      {/* Scrollable grid area */}
-      <div className="flex-1 overflow-y-auto px-3 pb-3">
+      {/* Scrollable grid area — @container so columns respond to PANEL width, not viewport */}
+      <div className="flex-1 overflow-y-auto px-3 pb-3 @container">
         {isLoading && cards.length === 0 ? (
           <p className="text-empty-state text-text-dim text-center py-8">
             {tCommon("loading")}
@@ -136,9 +139,9 @@ export function DailyCardsPanel() {
             {isFiltering ? t("emptyWithQuery") : t("emptyNoCards")}
           </p>
         ) : (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 @[340px]:grid-cols-2 gap-2.5">
             {cards.map((card) => (
-              <CardGridItem key={card.id} card={card} />
+              <CardGridItem key={card.id} card={card} onOpenInline={onOpenCard} />
             ))}
           </div>
         )}

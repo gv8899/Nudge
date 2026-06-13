@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -15,7 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { FileText, GripVertical, MoreHorizontal } from "lucide-react";
+import { GripVertical, MoreHorizontal } from "lucide-react";
 import type { DailyTaskAssignment } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
 
@@ -26,6 +26,7 @@ interface TaskCardProps {
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onMoveToDate: (assignmentId: string, targetDate: string) => void;
   onUpdateTask: (taskId: string, updates: { title?: string; description?: string }) => void;
+  onOpenDetail?: (taskId: string) => void;
 }
 
 export function TaskCard({
@@ -35,16 +36,14 @@ export function TaskCard({
   onStatusChange,
   onMoveToDate,
   onUpdateTask,
+  onOpenDetail,
 }: TaskCardProps) {
   const t = useTranslations("task");
   const tDaily = useTranslations("daily");
   const { task } = assignment;
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [titleValue, setTitleValue] = useState(task.title);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [skipDialogOpen, setSkipDialogOpen] = useState(false);
-  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const isRecurring = assignment.isRecurring;
 
@@ -63,39 +62,12 @@ export function TaskCard({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  useEffect(() => {
-    setTitleValue(task.title);
-  }, [task.title]);
-
-  useEffect(() => {
-    if (isEditingTitle && titleInputRef.current) {
-      titleInputRef.current.focus();
-      const len = titleInputRef.current.value.length;
-      titleInputRef.current.setSelectionRange(len, len);
-    }
-  }, [isEditingTitle]);
-
-  const saveTitle = () => {
-    const trimmed = titleValue.trim();
-    if (!trimmed) {
-      // 標題刪光 → 封存任務
-      onStatusChange(task.id, "archived");
-      return;
-    }
-    if (trimmed !== task.title) {
-      onUpdateTask(task.id, { title: trimmed });
-    }
-    setIsEditingTitle(false);
-  };
-
   const handleDescChange = useCallback(
     (html: string) => {
       onUpdateTask(task.id, { description: html });
     },
     [task.id, onUpdateTask]
   );
-
-  const hasDescription = !!task.description?.trim();
 
   /** Shared menu items used by both the … DropdownMenu and the right-click ContextMenu */
   function MenuItems() {
@@ -171,57 +143,22 @@ export function TaskCard({
           </button>
 
           {/* 標題 */}
-          {isEditingTitle ? (
-            <input
-              ref={titleInputRef}
-              value={titleValue}
-              onChange={(e) => setTitleValue(e.target.value)}
-              onBlur={saveTitle}
-              onKeyDown={(e) => {
-                if (e.key === "Backspace" && titleValue === "") {
-                  onStatusChange(task.id, "archived");
-                  return;
-                }
-                if (e.key === "Enter") saveTitle();
-                if (e.key === "Escape") {
-                  setTitleValue(task.title);
-                  setIsEditingTitle(false);
-                }
-              }}
-              aria-label={t("editTitleAria")}
-              className="flex-1 min-w-0 text-sm bg-background text-foreground rounded px-2 py-1 outline-none border border-primary"
-            />
-          ) : (
-            <button
-              onClick={() => setIsEditingTitle(true)}
-              className={`flex-1 min-w-0 text-sm text-left cursor-text bg-transparent border-none p-0 truncate ${
-                assignment.isCompleted
-                  ? "line-through text-text-dim"
-                  : "text-foreground"
-              }`}
-            >
-              {task.title}
-            </button>
-          )}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className={`flex-1 min-w-0 text-sm text-left cursor-pointer bg-transparent border-none p-0 truncate ${
+              assignment.isCompleted
+                ? "line-through text-text-dim"
+                : "text-foreground"
+            }`}
+          >
+            {task.title}
+          </button>
 
           {/* 移動日期 */}
           <MoveTaskPopover
             currentDate={currentDate}
             onMove={(targetDate) => onMoveToDate(assignment.id, targetDate)}
           />
-
-          {/* 展開內文 */}
-          <button
-            onClick={() => setIsModalOpen(true)}
-            aria-label={t("expandContentAria", { title: task.title })}
-            className={`transition-colors cursor-pointer p-2 rounded ${
-              hasDescription
-                ? "text-primary hover:text-primary/80"
-                : "text-text-faint hover:text-muted-foreground"
-            }`}
-          >
-            <FileText className="h-4 w-4" />
-          </button>
 
           {/* … DropdownMenu */}
           <DropdownMenu>
@@ -264,6 +201,8 @@ export function TaskCard({
         onClose={() => setIsModalOpen(false)}
         onDescChange={handleDescChange}
         onStatusChange={(s) => onStatusChange(task.id, s)}
+        onTitleChange={(title) => onUpdateTask(task.id, { title })}
+        onExpand={onOpenDetail ? () => { onOpenDetail(task.id); setIsModalOpen(false); } : undefined}
       />
 
       <ScheduleDialog

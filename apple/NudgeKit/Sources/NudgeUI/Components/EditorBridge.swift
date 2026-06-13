@@ -312,6 +312,12 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
             webView?.evaluateJavaScript("NudgeEditor.load(\(escaped))") { [weak self] _, err in
                 if let err { print("[EditorCoordinator] load() eval error: \(err)") }
                 self?.pushPlaceholder()
+                // 內容載入後捲到最上面 —— 打開卡片 modal / 全頁時內文不要停在
+                // 中間（modal 重開、切換卡片都會重設）。
+                self?.webView?.evaluateJavaScript(
+                    "try{(document.scrollingElement||document.documentElement).scrollTop=0;window.scrollTo(0,0);}catch(e){}",
+                    completionHandler: nil
+                )
             }
             pendingLoadHTML = nil
         case .change(let html):
