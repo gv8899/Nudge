@@ -236,71 +236,76 @@
       "ios": "iPhone 版 · App Store"
     },
     "hero": {
-      "title": "每天，\n輕鬆推進一點",
-      "subtitle": "讓任務和日常，在不打擾的節奏裡前進。",
-      "platformNote": "為 Mac 打造，iPhone 隨身同步。"
+      "title": "上班族的一天，\n一個畫面就夠",
+      "subtitle": "為辦公室工作打造的 Mac app。任務安排、行事曆、知識卡片，全在同一個畫面 — 不用再開一堆工具切來切去。",
+      "platformNote": "為 Mac 打造，iPhone、iPad 隨身同步。"
     },
     "philosophy": {
       "quote": "工具該等你，\n不是追你。",
       "attribution": "— Nudge 的設計理念"
     },
     "tasks": {
-      "eyebrow": "行動",
-      "title": "專注在\n今天要做的事",
-      "subtitle": "每日任務清單。不多、不雜，就是今天能推進的事。",
+      "eyebrow": "每日任務",
+      "title": "只專注\n今天該做的事",
+      "subtitle": "打開就是今天的清單。沒做完的自動接續，不用每天重排。",
       "points": {
         "continue": {
           "title": "自動延續",
-          "desc": "沒做完的任務不會消失。隔天打開時，會出現在頁首讓你繼續處理。"
+          "desc": "沒做完的任務不會消失，隔天自動出現在頂部，也能一鍵改到別天或封存。"
         },
-        "reschedule": {
-          "title": "重新排程",
-          "desc": "一鍵排入今天，或從日曆挑一個更合適的日子。不需要的就封存。"
+        "recurrence": {
+          "title": "重複任務",
+          "desc": "每天、每週、每月的例行事，設定一次就自動排入。"
         },
-        "status": {
-          "title": "任務狀態",
-          "desc": "暫記、待排入、處理中、等待他人、完成。用顏色分類，一眼看出每個任務在哪一步。"
+        "push": {
+          "title": "自訂推播通知",
+          "desc": "重要任務設定提醒時間，到點主動通知你，不靠腦袋記。"
         }
       }
     },
-    "notes": {
-      "eyebrow": "日誌",
-      "title": "紀錄\n每一個當下",
-      "subtitle": "在任務旁邊隨手寫幾句。日復一日，就成了你自己的日記。"
-    },
     "cards": {
       "eyebrow": "卡片",
-      "title": "留下\n工作與生活的痕跡",
-      "subtitle": "會議決策、讀書心得、旅行計畫、運動紀錄 —\n有內容的任務都會被留下來，要找的時候，它就在那裡。"
+      "title": "把你的知識，\n有序地整理",
+      "subtitle": "會議結論、決策、讀書筆記都留成卡片，支援 Markdown。用標籤分類、列表或網格瀏覽，知識再多也找得到。"
+    },
+    "calendar": {
+      "eyebrow": "行事曆",
+      "title": "日、週、月，\n看清整個工作節奏",
+      "subtitle": "一鍵切換三種檢視，掌握每天的鬆緊。整合行事曆，會議到了一鍵加入視訊、免跳轉。"
+    },
+    "notes": {
+      "eyebrow": "日誌",
+      "title": "隨手記，\n也留住每一天",
+      "subtitle": "臨時的想法、當天發生的事，順手寫下。日後回顧，過往一目了然。"
     },
     "platforms": {
       "eyebrow": "跨平台",
-      "title": "在桌機規劃，\n手機隨身查看",
-      "subtitle": "Mac、iPhone、iPad 即時同步。在哪台裝置都接得上同一個節奏。"
+      "title": "桌機規劃，\n手機與小工具隨身",
+      "subtitle": "Mac、iPhone、iPad 即時同步。桌面與鎖屏 widget 一眼看今日清單，快速新增不用打開 app。"
     },
     "highlights": {
       "title": "還有更多",
       "items": {
-        "recurrence": {
-          "title": "重複任務",
-          "desc": "每天、每週、每月的例行事，設定一次自動出現。"
-        },
-        "tags": {
-          "title": "標籤",
-          "desc": "用標籤把相關任務歸類，快速聚焦。"
-        },
-        "calendar": {
-          "title": "日曆檢視",
-          "desc": "用日／週／月檢視，掌握整體節奏。"
-        },
         "search": {
-          "title": "搜尋",
+          "title": "全文搜尋",
           "desc": "任務與卡片全文搜尋，想找的隨手就到。"
+        },
+        "offline": {
+          "title": "離線可用",
+          "desc": "沒網路也能看、能改，連上線自動同步。"
+        },
+        "markdown": {
+          "title": "Markdown",
+          "desc": "卡片與筆記支援 Markdown，排版清楚好讀。"
+        },
+        "week": {
+          "title": "週檢視",
+          "desc": "一週進度用圓點呈現，鬆緊一眼看出。"
         }
       }
     },
     "finalCta": {
-      "title": "從今天\n開始輕鬆推進"
+      "title": "讓工作\n輕鬆推進"
     },
     "footer": {
       "privacy": "隱私權政策",

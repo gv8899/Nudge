@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { DownloadButtons } from "./download-buttons";
 import { Reveal } from "./reveal";
-import { MockupTasks } from "./mockup-tasks";
+import { MockupWorkspace } from "./mockup-workspace";
 
 export async function LandingHero() {
   const t = await getTranslations("landing");
@@ -32,8 +32,8 @@ export async function LandingHero() {
             <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
             <span className="w-3 h-3 rounded-full bg-[#28c840]" />
           </div>
-          <div className="p-6 md:p-8">
-            <MockupTasks />
+          <div className="p-6 md:p-8 bg-[var(--surface-alt)]">
+            <MockupWorkspace />
           </div>
         </div>
       </Reveal>

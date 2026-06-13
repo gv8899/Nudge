@@ -2,8 +2,9 @@ import { LandingNav } from "./landing-nav";
 import { LandingHero } from "./landing-hero";
 import { LandingPhilosophy } from "./landing-philosophy";
 import { LandingFeatureTasks } from "./landing-feature-tasks";
-import { LandingFeatureNotes } from "./landing-feature-notes";
 import { LandingFeatureCards } from "./landing-feature-cards";
+import { LandingFeatureCalendar } from "./landing-feature-calendar";
+import { LandingFeatureNotes } from "./landing-feature-notes";
 import { LandingPlatforms } from "./landing-platforms";
 import { LandingHighlights } from "./landing-highlights";
 import { LandingFooterCta } from "./landing-footer-cta";
@@ -15,8 +16,9 @@ export function LandingPage() {
       <LandingHero />
       <LandingPhilosophy />
       <LandingFeatureTasks />
-      <LandingFeatureNotes />
       <LandingFeatureCards />
+      <LandingFeatureCalendar />
+      <LandingFeatureNotes />
       <LandingPlatforms />
       <LandingHighlights />
       <LandingFooterCta />

@@ -7,25 +7,25 @@ export function MockupCards() {
       title: "Q2 團隊 OKR 討論",
       preview: "今天會議意外談出了下季的方向。重點不是開多少會，是有沒有留下可以行動的結論。",
       date: "4/9",
-      status: { label: "處理中", color: "#c89968" },
+      tag: "工作",
     },
     {
       title: "跑步筆記：第一個月的感想",
       preview: "剛起步時膝蓋會痠，配速也抓不準。三週後身體逐漸適應，從 5K 變成可以跑 8K 不喘。",
       date: "4/7",
-      status: { label: "處理中", color: "#c89968" },
+      tag: "運動",
     },
     {
       title: "產品設計：減法的力量",
       preview: "讀完 Subtract 第 2 章。人類天生傾向加東西，但主動減東西往往效果更好。",
       date: "4/6",
-      status: { label: "處理中", color: "#c89968" },
+      tag: "讀書",
     },
     {
       title: "週末京都小旅行計畫",
       preview: "四天三夜。想去的地方：嵐山竹林、伏見稻荷、鴨川散步。住宿想試試町家風格。",
       date: "4/3",
-      status: { label: "待排入", color: "#7a8b9c" },
+      tag: "生活",
     },
   ];
 
@@ -80,14 +80,8 @@ export function MockupCards() {
                   <span className="text-xs text-text-dim tabular-nums">
                     {item.date}
                   </span>
-                  <span
-                    className="text-[10px] px-1.5 py-0.5 rounded border"
-                    style={{
-                      color: item.status.color,
-                      borderColor: item.status.color,
-                    }}
-                  >
-                    {item.status.label}
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                    # {item.tag}
                   </span>
                 </div>
               </div>

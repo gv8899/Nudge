@@ -1,14 +1,14 @@
 import { getTranslations } from "next-intl/server";
 import { Reveal } from "./reveal";
 import { MockupTasks } from "./mockup-tasks";
-import { MiniContinue, MiniReschedule, MiniStatuses } from "./mini-mockups";
+import { MiniContinue, MiniRecurrence, MiniPush } from "./mini-mockups";
 
 export async function LandingFeatureTasks() {
   const t = await getTranslations("landing.tasks");
   const points = [
     { key: "continue", node: <MiniContinue /> },
-    { key: "reschedule", node: <MiniReschedule /> },
-    { key: "status", node: <MiniStatuses /> },
+    { key: "recurrence", node: <MiniRecurrence /> },
+    { key: "push", node: <MiniPush /> },
   ] as const;
   return (
     <section className="px-6 md:px-12 py-28 md:py-36 border-t border-border">

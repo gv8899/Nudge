@@ -1,16 +1,10 @@
-import {
-  CheckSquare,
-  CalendarDays,
-  Archive,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { CheckSquare, CalendarDays, Archive, Repeat, Bell } from "lucide-react";
 
 /** 自動延續 — 前幾天的區塊 mini mockup */
 export function MiniContinue() {
   return (
     <div
-      className="pointer-events-none select-none rounded-xl border border-border bg-background overflow-hidden p-4 mb-5"
+      className="pointer-events-none select-none rounded-xl border border-border bg-[var(--surface)] overflow-hidden p-4 mb-5"
       aria-hidden="true"
     >
       <div className="flex items-center gap-1.5 text-xs text-primary mb-2 font-medium">
@@ -23,57 +17,28 @@ export function MiniContinue() {
   );
 }
 
-/** 重新排程 — 迷你日曆 mockup */
-export function MiniReschedule() {
-  // 日曆樣式：4 月部分行，highlight 今天 (10) 跟選中 (15)
-  const days = [
-    [null, null, null, 1, 2, 3, 4],
-    [5, 6, 7, 8, 9, 10, 11],
-    [12, 13, 14, 15, 16, 17, 18],
+/** 重複任務 — 例行事規則 mini mockup */
+export function MiniRecurrence() {
+  const rules = [
+    { title: "寫週報", rule: "每週五" },
+    { title: "晨間站會", rule: "每週一至五" },
+    { title: "繳房租", rule: "每月 1 日" },
   ];
-
   return (
     <div
-      className="pointer-events-none select-none rounded-xl border border-border bg-background overflow-hidden p-4 mb-5"
+      className="pointer-events-none select-none rounded-xl border border-border bg-[var(--surface)] overflow-hidden p-4 mb-5"
       aria-hidden="true"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2.5 text-xs">
-        <ChevronLeft className="h-3 w-3 text-text-dim" />
-        <span className="font-medium text-foreground">2026 年 4 月</span>
-        <ChevronRight className="h-3 w-3 text-text-dim" />
-      </div>
-      {/* Weekday labels */}
-      <div className="grid grid-cols-7 gap-1 mb-1 text-[9px] text-text-dim text-center">
-        {["日", "一", "二", "三", "四", "五", "六"].map((d) => (
-          <div key={d}>{d}</div>
-        ))}
-      </div>
-      {/* Days */}
-      <div className="space-y-1">
-        {days.map((week, wi) => (
-          <div key={wi} className="grid grid-cols-7 gap-1">
-            {week.map((day, di) => {
-              if (day === null) {
-                return <div key={di} className="h-5" />;
-              }
-              const isToday = day === 10;
-              const isSelected = day === 15;
-              return (
-                <div
-                  key={di}
-                  className={`h-5 flex items-center justify-center text-[10px] rounded tabular-nums ${
-                    isSelected
-                      ? "bg-primary text-primary-foreground font-bold"
-                      : isToday
-                        ? "text-primary font-bold"
-                        : "text-foreground"
-                  }`}
-                >
-                  {day}
-                </div>
-              );
-            })}
+      <div className="space-y-2.5">
+        {rules.map((r) => (
+          <div key={r.title} className="flex items-center gap-2.5">
+            <Repeat className="h-3.5 w-3.5 text-primary shrink-0" />
+            <span className="flex-1 text-xs text-foreground truncate">
+              {r.title}
+            </span>
+            <span className="text-[10px] text-text-dim border border-border rounded px-1.5 py-0.5">
+              {r.rule}
+            </span>
           </div>
         ))}
       </div>
@@ -81,33 +46,26 @@ export function MiniReschedule() {
   );
 }
 
-/** 任務狀態 — 五色狀態清單 mockup */
-export function MiniStatuses() {
-  const statuses = [
-    { label: "暫記", color: "#9b9080" },
-    { label: "待排入", color: "#7a8b9c" },
-    { label: "處理中", color: "#c89968" },
-    { label: "等待他人", color: "#a78aaf" },
-    { label: "完成", color: "#8aa57d" },
-  ];
-
+/** 自訂推播通知 — 提醒卡片 mini mockup */
+export function MiniPush() {
   return (
     <div
-      className="pointer-events-none select-none rounded-xl border border-border bg-background overflow-hidden p-4 mb-5"
+      className="pointer-events-none select-none rounded-xl border border-border bg-[var(--surface)] overflow-hidden p-4 mb-5"
       aria-hidden="true"
     >
-      <div className="space-y-2.5">
-        {statuses.map((s) => (
-          <div key={s.label} className="flex items-center gap-2.5">
-            <span
-              className="h-2.5 w-2.5 rounded-full shrink-0"
-              style={{ backgroundColor: s.color }}
-            />
-            <span className="text-xs" style={{ color: s.color }}>
-              {s.label}
-            </span>
+      <div className="flex items-start gap-3">
+        <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/10 text-primary shrink-0">
+          <Bell className="h-4 w-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-foreground">Nudge</span>
+            <span className="text-[10px] text-text-dim tabular-nums">09:00</span>
           </div>
-        ))}
+          <p className="mt-0.5 text-xs text-text-dim truncate">
+            提醒：交季度簡報初稿
+          </p>
+        </div>
       </div>
     </div>
   );

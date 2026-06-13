@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Reveal } from "./reveal";
 
-const ITEMS = ["recurrence", "tags", "calendar", "search"] as const;
+const ITEMS = ["search", "offline", "markdown", "week"] as const;
 
 export async function LandingHighlights() {
   const t = await getTranslations("landing.highlights");

@@ -24,15 +24,8 @@ export function MockupCardDetail() {
             <span>·</span>
             <span>更新 2026/04/06</span>
             <span>·</span>
-            <span
-              className="px-1.5 py-0.5 rounded border text-[10px]"
-              style={{
-                color: "#c89968",
-                borderColor: "#c89968",
-                backgroundColor: "rgba(200,153,104,0.1)",
-              }}
-            >
-              處理中
+            <span className="px-2 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary">
+              # 讀書
             </span>
           </div>
         </header>

@@ -18,12 +18,31 @@ export async function LandingPlatforms() {
           </p>
         </Reveal>
         <Reveal delay={0.1} className="mt-16 flex items-end justify-center gap-6">
-          {/* 圖片槽：之後可換真實 Mac + iPhone 截圖 */}
-          <div className="w-full max-w-[560px] aspect-[16/10] rounded-2xl bg-[var(--surface)] border border-border shadow-[0_24px_60px_-24px_rgba(28,27,24,0.22)] flex items-center justify-center text-muted-foreground text-sm">
+          {/* 圖片槽：之後可換真實 Mac 截圖 */}
+          <div className="w-full max-w-[520px] aspect-[16/10] rounded-2xl bg-[var(--surface)] border border-border shadow-[0_24px_60px_-24px_rgba(28,27,24,0.22)] flex items-center justify-center text-muted-foreground text-sm">
             Mac
           </div>
           <div className="w-[120px] md:w-[150px] aspect-[9/19] rounded-[1.6rem] bg-[var(--surface)] border border-border shadow-[0_24px_60px_-24px_rgba(28,27,24,0.22)] flex items-center justify-center text-muted-foreground text-sm shrink-0">
             iPhone
+          </div>
+          {/* 今日清單 widget */}
+          <div
+            className="hidden sm:block w-[150px] rounded-2xl bg-[var(--surface)] border border-border shadow-[0_24px_60px_-24px_rgba(28,27,24,0.22)] p-4 text-left shrink-0"
+            aria-hidden="true"
+          >
+            <div className="text-[11px] font-semibold text-primary mb-2">
+              今天 · 3
+            </div>
+            <div className="space-y-2">
+              {["寫週報", "準備簡報", "回覆 Email"].map((label) => (
+                <div key={label} className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-[3px] border-2 border-text-dim shrink-0" />
+                  <span className="text-[11px] text-foreground truncate">
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </Reveal>
       </div>
