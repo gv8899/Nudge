@@ -530,7 +530,8 @@ struct MacSidebarRoot: View {
     @ToolbarContentBuilder
     private var cardsToolbar: some ToolbarContent {
         if cardsFullPageActive {
-            // 全頁編輯時：「+」換成返回鈕（leading），點了回卡片網格。
+            // 全頁編輯時：「+」換成返回鈕（leading）；同排（trailing）放
+            // 「標籤 / 重複」功能鈕，點了 post notification → CardDetailView 開 sheet。
             ToolbarItem(placement: .navigation) {
                 Button {
                     NotificationCenter.default.post(name: NudgeCommands.cardsBackNotification, object: nil)
@@ -538,6 +539,22 @@ struct MacSidebarRoot: View {
                     Image(systemName: "chevron.left")
                 }
                 .help(Text("common.back", bundle: .module))
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    NotificationCenter.default.post(name: NudgeCommands.cardsManageTagsNotification, object: nil)
+                } label: {
+                    Image(systemName: "tag")
+                }
+                .help(Text("cardDetail.manageTags", bundle: .module))
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    NotificationCenter.default.post(name: NudgeCommands.cardsScheduleNotification, object: nil)
+                } label: {
+                    Image(systemName: "repeat")
+                }
+                .help(Text("cardDetail.schedule", bundle: .module))
             }
         } else {
             ToolbarItem(placement: .primaryAction) {

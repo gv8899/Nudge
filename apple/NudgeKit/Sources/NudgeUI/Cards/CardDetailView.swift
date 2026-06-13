@@ -90,27 +90,24 @@ public struct CardDetailView: View {
             }
         }
         #else
-        // macOS — 標題 + rename/schedule/tags 入口改在內容頂端 macHeader
-        // （見 body VStack）。rename 仍走 alert，由 macHeader 的 rename 鈕觸發。
-        .alert(Text("cardDetail.renameTitle", bundle: .module), isPresented: $showRenameAlert) {
-            TextField("", text: $pendingTitle)
-            Button(action: commitRename) {
-                Text("common.save", bundle: .module)
-            }
-            Button(role: .cancel) {
-                pendingTitle = title
-            } label: {
-                Text("common.cancel", bundle: .module)
-            }
+        // macOS — 標題原地編輯在 macHeader。tags / 重複入口在全頁時放
+        // window toolbar（返回那排）；按鈕 post notification、這裡接到開 sheet。
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.cardsManageTagsNotification)) { _ in
+            showTagPicker = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.cardsScheduleNotification)) { _ in
+            showScheduleSheet = true
         }
         #endif
         .onAppear {
             pendingTitle = title
             if initialCard.title.isEmpty {
-                // Empty card → open rename alert so user can fill in the
-                // title. Dispatched async so it doesn't fight the
-                // navigation transition.
+                // 新建空卡片 → iOS 開 rename alert；macOS 直接 focus 標題輸入框。
+                #if os(iOS)
                 DispatchQueue.main.async { showRenameAlert = true }
+                #else
+                DispatchQueue.main.async { titleFocused = true }
+                #endif
             }
         }
         .sheet(isPresented: $showTagPicker) {
@@ -227,36 +224,28 @@ public struct CardDetailView: View {
     #endif
 
     #if os(macOS)
-    /// 內容頂端 header（對齊 web modal）：大標題 + rename/schedule/tags
-    /// 三顆玻璃按鈕；modal 時再多 expand/close 兩顆。
+    @FocusState private var titleFocused: Bool
+
+    /// 內容頂端 header（對齊 web modal）：大標題「原地可編輯」+ modal 的
+    /// 展開/關閉玻璃鈕。tags / 重複入口在全頁時改放 window toolbar（返回那排）。
     @ViewBuilder
     private var macHeader: some View {
         HStack(spacing: 8) {
-            Group {
-                if title.isEmpty {
-                    Text("cardDetail.untitled", bundle: .module)
-                        .foregroundStyle(Color.nudgeTextDim)
-                } else {
-                    Text(verbatim: title)
-                        .foregroundStyle(Color.nudgeForeground)
-                }
-            }
-            .font(.title2.weight(.bold))
+            TextField(
+                "",
+                text: $title,
+                prompt: Text("cardDetail.untitled", bundle: .module)
+            )
+            .textFieldStyle(.plain)
+            .font(.system(size: 26, weight: .bold))
+            .foregroundStyle(Color.nudgeForeground)
+            .focused($titleFocused)
             .lineLimit(1)
-            .truncationMode(.tail)
+            .onChange(of: title) { _, v in debouncedSaveTitle(v) }
+            .onSubmit { titleFocused = false }
 
             Spacer(minLength: 12)
 
-            glassAction("pencil", "cardDetail.renameTitle") {
-                pendingTitle = title
-                showRenameAlert = true
-            }
-            glassAction("calendar.badge.clock", "cardDetail.schedule") {
-                showScheduleSheet = true
-            }
-            glassAction("tag", "cardDetail.manageTags") {
-                showTagPicker = true
-            }
             if let onExpand {
                 glassAction("arrow.up.left.and.arrow.down.right", "daily.popoverExpand", action: onExpand)
             }
