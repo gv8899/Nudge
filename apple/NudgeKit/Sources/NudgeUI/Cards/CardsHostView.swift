@@ -220,14 +220,20 @@ public struct CardsHostView: View {
     /// CardDetailView 自帶 navigationTitle + ... menu（rename/schedule/tags），
     /// 會 bubble 到 window toolbar（與舊 split 同行為）。
     private func cardFullPage(_ card: CardDTO) -> some View {
-        CardDetailView(
-            card: card,
-            onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
-            onUpdateDescription: { updateDescription(cardId: card.id, html: $0) },
-            onUpdateTags: { newIds in await updateTags(cardId: card.id, tagIds: newIds) }
-        )
-        // .id(card.id) 讓切換卡片時 CardDetailView 重 mount、@State 重灌。
-        .id(card.id)
+        HStack(spacing: 0) {
+            Spacer(minLength: 0)
+            CardDetailView(
+                card: card,
+                onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
+                onUpdateDescription: { updateDescription(cardId: card.id, html: $0) },
+                onUpdateTags: { newIds in await updateTags(cardId: card.id, tagIds: newIds) }
+            )
+            // .id(card.id) 讓切換卡片時 CardDetailView 重 mount、@State 重灌。
+            .id(card.id)
+            // 兩側留白：內容置中、最寬 760（對齊 web max-w-3xl）。
+            .frame(maxWidth: 760)
+            Spacer(minLength: 0)
+        }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.nudgeBackground)
         .onExitCommand { fullPageCard = nil }

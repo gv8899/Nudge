@@ -78,6 +78,10 @@ public struct TagPickerSheet: View {
             }
         }
         .task { await reload() }
+        #if os(macOS)
+        // 固定尺寸 — 與卡片 modal 同款的穩定 modal，不隨清單長度跳動。
+        .frame(width: 460, height: 560)
+        #endif
     }
 
     private var searchBar: some View {

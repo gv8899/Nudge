@@ -239,6 +239,7 @@ public struct CardDetailView: View {
             .textFieldStyle(.plain)
             .font(.system(size: 26, weight: .bold))
             .foregroundStyle(Color.nudgeForeground)
+            .tint(Color.nudgePrimary) // caret / 選取吃主色
             .focused($titleFocused)
             .lineLimit(1)
             .onChange(of: title) { _, v in debouncedSaveTitle(v) }
