@@ -397,8 +397,11 @@ struct MacSidebarRoot: View {
         .listRowBackground(
             Group {
                 if isSel {
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    // 左右內縮 + 圓角 pill，對齊原生 sidebar 選中外觀（不貼邊）。
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
                         .fill(Color.nudgePrimary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 1)
                 } else {
                     Color.clear
                 }
