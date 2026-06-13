@@ -608,10 +608,18 @@ public struct CardsHostView: View {
         Task {
             do {
                 try await cardRepo.updateTitle(cardId: cardId, title: title)
+                postCardsChanged()
             } catch {
                 print("[CardsHostView] updateTitle failed: \(error)")
             }
         }
+    }
+
+    /// 通知 Cards 清單重抓 —— 內容變更可能讓 task 變成 / 不再是卡片
+    /// （例如刪光內文 → 該卡片應從清單消失）。NotificationCenter.post 本身
+    /// thread-safe，可從背景 Task 直接呼叫。
+    private func postCardsChanged() {
+        NotificationCenter.default.post(name: NudgeCommands.cardsChangedNotification, object: nil)
     }
 
     private func updateTags(cardId: String, tagIds: Set<String>) async {
@@ -630,6 +638,7 @@ public struct CardsHostView: View {
                     tags: nextTags
                 )
             }
+            postCardsChanged()
         } catch {
             print("[CardsHostView] updateTags failed: \(error)")
         }
@@ -650,6 +659,7 @@ public struct CardsHostView: View {
         Task {
             do {
                 try await cardRepo.updateDescription(cardId: cardId, html: html)
+                postCardsChanged()
             } catch {
                 print("[CardsHostView] updateDescription failed: \(error)")
             }
