@@ -162,12 +162,17 @@ public struct CardsHostView: View {
         .onChange(of: fullPageCard?.id) { _, _ in
             onFullPageChange?(fullPageCard != nil)
         }
-        // 切回 Cards 分頁（embedded 變 false）時重抓清單 —— 在別處（行動頁
-        // task popup 等）替任務加了內容後，task 轉成 card，回 Cards 就會出現。
+        // 切回 Cards 分頁（embedded 變 false）時重抓清單 —— fallback，
+        // 也涵蓋外部（web / 其他裝置）的變更。
         .onChange(of: embedded) { _, nowEmbedded in
             if !nowEmbedded {
                 Task { await firstPage() }
             }
+        }
+        // 即時：別處（行動頁 task popup 等）替任務加內容存檔後即時重抓，
+        // 人在 Cards 分頁也馬上看到新卡片。
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.cardsChangedNotification)) { _ in
+            Task { await firstPage() }
         }
 
         // embedded = 嵌在 DailyHostView 右側面板用，不能掛 toolbar /

@@ -39,6 +39,7 @@ struct TaskPopoverView: View {
                         Task {
                             do {
                                 try await cardRepo.updateTitle(cardId: card.id, title: title)
+                                await postCardsChanged()
                             } catch {
                                 if !APIError.isCancellation(error) {
                                     print("[TaskPopoverView] save title failed: \(error)")
@@ -50,6 +51,7 @@ struct TaskPopoverView: View {
                         Task {
                             do {
                                 try await cardRepo.updateDescription(cardId: card.id, html: html)
+                                await postCardsChanged()
                             } catch {
                                 if !APIError.isCancellation(error) {
                                     print("[TaskPopoverView] save description failed: \(error)")
@@ -60,6 +62,7 @@ struct TaskPopoverView: View {
                     onUpdateTags: { newIds in
                         do {
                             try await tagRepo.setTaskTags(taskId: card.id, tagIds: Array(newIds))
+                            await postCardsChanged()
                         } catch {
                             if !APIError.isCancellation(error) {
                                 print("[TaskPopoverView] save tags failed: \(error)")
@@ -88,6 +91,11 @@ struct TaskPopoverView: View {
                 print("[TaskPopoverView] loadCard failed: \(error)")
             }
         }
+    }
+
+    @MainActor
+    private func postCardsChanged() {
+        NotificationCenter.default.post(name: NudgeCommands.cardsChangedNotification, object: nil)
     }
 }
 #endif
