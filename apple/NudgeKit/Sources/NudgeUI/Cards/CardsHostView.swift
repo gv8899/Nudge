@@ -29,9 +29,11 @@ public struct CardsHostView: View {
     @State private var navigationPath = NavigationPath()
     #endif
     #if os(macOS)
-    /// Mac 端選中的卡片 — nil 時 list 置中、選中時 list 變窄欄、右側
-    /// 展開 CardDetailView (Mail-style split)。
-    @State private var selectedCard: CardDTO?
+    /// 點卡片 → quickCard 彈出 sheet（快速檢視/編輯，對齊 web 的 Modal）。
+    /// sheet 按「展開」→ fullPageCard 設值、卡片詳情佔滿內容區全寬
+    /// （對齊 web：Modal → 展開整頁；Escape 回列表）。
+    @State private var quickCard: CardDTO?
+    @State private var fullPageCard: CardDTO?
     #endif
 
     public init(embedded: Bool = false) {
@@ -111,13 +113,6 @@ public struct CardsHostView: View {
     /// 選了卡片時剩餘寬度被 detail 吃掉、list 自動收窄但仍試圖置中。
     private static let listColumnWidth: CGFloat = 720
 
-    /// Detail pane 寬度（pt）— resize handle 拖拉時更新；重開保留。
-    /// 360 ~ 900 clamp：min 360 維持 card editor 可讀寬度，max 900 避免
-    /// 把 list 擠到 <320pt 不堪用。Daily 用 400 default；Cards default
-    /// 拉到 520，因為 card detail 含 title + rich text editor 比 Daily
-    /// 的 calendar / cards summary panel 內容多。
-    @AppStorage("cards.mac.detailWidth") private var detailWidth: Double = 520
-
     /// 搜尋 / tag 篩選狀態（macOS Cards tab 常駐 search bar）。命名與
     /// DailyHostView 的 dashboard 卡片搜尋對稱。
     @State private var searchQuery = ""
@@ -129,48 +124,26 @@ public struct CardsHostView: View {
     @State private var hasSearched = false
     @FocusState private var searchFocused: Bool
 
-    /// Mac layout — Heptabase-style slide-in detail：永遠是同一棵 HStack
-    /// (parent 樹不變)，selectedCard 非 nil 時條件 insert detail pane +
-    /// .transition(.move(edge: .trailing))。
-    ///
-    /// 之前用 HSplitView (有 selection) vs HStack (無 selection) 二選一，
-    /// SwiftUI 看成兩棵不同 view tree 在切換。除了動畫不順，更嚴重的問
-    /// 題：HSplitView 在 macOS 底層是 NSSplitView，appear / disappear
-    /// 會 trigger window responder chain 變動，連帶讓 NavigationSplitView
-    /// 的 NSToolbar 重新評估 item layout — 結果是 Fix D 已經修好的「切
-    /// 分頁後 Daily toolbar 按鈕跑到 leading」bug 又透過「點卡片→切回
-    /// Daily」這條路徑復發 (Calendar / Notes 不引入 HSplitView，所以
-    /// 不觸發)。改成 stable HStack 後 NSSplitView 不再上下台、cache
-    /// 不再被打亂。Trade-off：失去 HSplitView 的拖拉欄寬。Daily 也是
-    /// 為了類似原因放棄 HSplitView (見 dashboardContent doc)。
+    /// Mac layout — 對齊 web：點卡片 → quickCard sheet（快速 Modal），
+    /// sheet 按「展開」→ fullPageCard 佔滿內容區全寬編輯（Escape 回列表）。
+    /// 不再用 HSplitView / slide-in split（避免 NSSplitView 上下台打亂
+    /// NavigationSplitView NSToolbar cache 的 Fix D toolbar bug）。
     @ViewBuilder
     private var macOSLayout: some View {
-        let core = HStack(spacing: 0) {
-            centeredList
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            if let card = selectedCard {
-                // handle + detail 包成同一個 HStack 整段 slide（跟
-                // DailyHostView.dashboardContent 一致 pattern），避免
-                // handle / detail 動畫錯開。
-                HStack(spacing: 0) {
-                    ResizeHandle(width: $detailWidth, range: 360...900)
-                    cardDetailPane(card)
-                        .frame(width: detailWidth)
-                        .frame(maxHeight: .infinity)
-                }
-                .transition(.asymmetric(
-                    insertion: .move(edge: .trailing).combined(with: .opacity),
-                    removal: .move(edge: .trailing).combined(with: .opacity)
-                ))
+        let core = Group {
+            if let card = fullPageCard {
+                cardFullPage(card)
+            } else {
+                centeredList
             }
         }
-        .animation(.spring(response: 0.32, dampingFraction: 0.86), value: selectedCard?.id)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.nudgeBackground)
         .task { await firstPage() }
         .task { await loadAllTags() }
         .task(id: searchQuery) { await debounceSearch() }
         .task(id: searchKey) { await fetchSearch() }
+        .sheet(item: $quickCard) { card in cardQuickSheet(card) }
 
         // embedded = 嵌在 DailyHostView 右側面板用，不能掛 toolbar /
         // navigationTitle —— 它們會 bubble 到外層 NavigationStack 的視
@@ -220,59 +193,56 @@ public struct CardsHostView: View {
         .padding(.bottom, 8)
     }
 
-    /// 右側 detail 面板。頂端有 X 按鈕（清空 selectedCard 回到置中
-    /// list），下方是 CardDetailView 標準完整功能（標題、編輯器、
-    /// rename / schedule / tags toolbar menu 都在）。
-    private func cardDetailPane(_ card: CardDTO) -> some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                Button { selectedCard = nil } label: {
-                    // chevron.left + nudgePrimary，對齊 Daily dashboard 的
-                    // DashboardColumnCardDetail back 按鈕。
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(Color.nudgePrimary)
-                        .frame(width: 28, height: 28)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .help(Text("common.back", bundle: .module))
-                .keyboardShortcut(.cancelAction)
+    /// 全頁編輯：卡片詳情佔滿內容區（左側 app sidebar 保留）。對齊 web
+    /// 整頁編輯 —— 無可見返回鈕，靠 Escape（.onExitCommand）回到網格列表。
+    /// CardDetailView 自帶 navigationTitle + ... menu（rename/schedule/tags），
+    /// 會 bubble 到 window toolbar（與舊 split 同行為）。
+    private func cardFullPage(_ card: CardDTO) -> some View {
+        CardDetailView(
+            card: card,
+            onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
+            onUpdateDescription: { updateDescription(cardId: card.id, html: $0) },
+            onUpdateTags: { newIds in await updateTags(cardId: card.id, tagIds: newIds) }
+        )
+        // .id(card.id) 讓切換卡片時 CardDetailView 重 mount、@State 重灌。
+        .id(card.id)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.nudgeBackground)
+        .onExitCommand { fullPageCard = nil }
+    }
 
-                // 卡片標題（唯讀導覽用；編輯仍走 CardDetailView 的 ...
-                // menu → rename）。空標題顯示「未命名」淡色，對齊
-                // CardGridItemView 的呈現。
-                if card.title.isEmpty {
-                    Text("cards.untitled", bundle: .module)
-                        .nudgeFont(.columnDetailTitle)
-                        .foregroundStyle(Color.nudgeTextDim)
-                        .lineLimit(1)
-                } else {
-                    Text(verbatim: card.title)
-                        .nudgeFont(.columnDetailTitle)
-                        .foregroundStyle(Color.nudgeForeground)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                }
-
-                Spacer()
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-
+    /// 點卡片彈出的快速 Modal（sheet）。NavigationStack 把 toolbar 隔離在
+    /// sheet 自己的 title bar（不 bubble 到 window toolbar）。「展開」→
+    /// 關 sheet、開 fullPageCard 全頁；「完成」→ 關 sheet。
+    private func cardQuickSheet(_ card: CardDTO) -> some View {
+        NavigationStack {
             CardDetailView(
                 card: card,
                 onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
                 onUpdateDescription: { updateDescription(cardId: card.id, html: $0) },
                 onUpdateTags: { newIds in await updateTags(cardId: card.id, tagIds: newIds) }
             )
-            // 強制 SwiftUI 把 CardDetailView 視為「不同 view」當切換卡片時。
-            // CardDetailView 用 `_title = State(initialValue: card.title)` 在 init
-            // 灌 @State；SwiftUI 預設只在 identity 第一次建立時 run init，
-            // 所以同位置切不同 card 不會重新讀新 card 的欄位。給 .id(card.id)
-            // 讓 identity 跟著 card 換，整個 view 重 mount、@State 重灌。
             .id(card.id)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { quickCard = nil } label: {
+                        Text("common.done", bundle: .module)
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        let c = card
+                        quickCard = nil
+                        fullPageCard = c
+                    } label: {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    }
+                    .help(Text("daily.popoverExpand", bundle: .module))
+                    .accessibilityLabel(Text("daily.popoverExpand", bundle: .module))
+                }
+            }
         }
+        .frame(minWidth: 760, minHeight: 560)
         .background(Color.nudgeBackground)
     }
     #endif
@@ -405,7 +375,7 @@ public struct CardsHostView: View {
             ForEach(displayedCards) { card in
                 CardGridItemView(
                     card: card,
-                    isSelected: selectedCard?.id == card.id,
+                    isSelected: quickCard?.id == card.id,
                     onTap: { openDetail(card) }
                 )
                 .onAppear {
@@ -468,7 +438,7 @@ public struct CardsHostView: View {
     /// 「右邊 detail 顯示的是哪個」。iOS 直接走預設背景。
     private func rowBackground(for card: CardDTO) -> Color {
         #if os(macOS)
-        if selectedCard?.id == card.id {
+        if quickCard?.id == card.id {
             return Color.nudgeSelectedFill
         }
         #endif
@@ -477,7 +447,7 @@ public struct CardsHostView: View {
 
     private func openDetail(_ card: CardDTO) {
         #if os(macOS)
-        selectedCard = card
+        quickCard = card
         #else
         navigationPath.append(card)
         #endif
@@ -564,7 +534,12 @@ public struct CardsHostView: View {
             do {
                 let card = try await cardRepo.create()
                 cards.insert(card, at: 0)
+                #if os(macOS)
+                // 新卡直接進全頁編輯（對齊 web：新增 → /cards/[id] 全頁）。
+                fullPageCard = card
+                #else
                 openDetail(card)
+                #endif
             } catch {
                 print("[CardsHostView] create failed: \(error)")
             }
@@ -582,21 +557,6 @@ public struct CardsHostView: View {
                 tags: c.tags
             )
         }
-
-        #if os(macOS)
-        // selectedCard 是 detail header 標題的來源；rename 後同步它，
-        // header 標題才會即時更新（更新 cards array 不會自動帶到
-        // selectedCard）。
-        if let sel = selectedCard, sel.id == cardId {
-            selectedCard = CardDTO(
-                id: sel.id,
-                title: title,
-                description: sel.description,
-                updatedAt: sel.updatedAt,
-                tags: sel.tags
-            )
-        }
-        #endif
 
         Task {
             do {
