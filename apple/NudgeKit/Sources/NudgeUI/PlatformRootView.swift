@@ -388,7 +388,7 @@ struct MacSidebarRoot: View {
             } icon: {
                 Image(systemName: icon)
             }
-            .foregroundStyle(isSel ? Color.nudgePrimaryForeground : Color.nudgeForeground)
+            .foregroundStyle(isSel ? Color.nudgePrimary : Color.nudgeForeground)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 2)
             .contentShape(Rectangle())
@@ -399,7 +399,7 @@ struct MacSidebarRoot: View {
                 if isSel {
                     // 左右內縮 + 圓角 pill，對齊原生 sidebar 選中外觀（不貼邊）。
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(Color.nudgePrimary)
+                        .fill(Color.nudgePrimary.opacity(0.18)) // 淡底，不搶主畫面
                         .padding(.horizontal, 8)
                         .padding(.vertical, 1)
                 } else {
