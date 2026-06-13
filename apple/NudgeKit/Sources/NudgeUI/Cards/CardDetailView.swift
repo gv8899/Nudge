@@ -124,6 +124,16 @@ public struct CardDetailView: View {
                 onUpdateDescription(html)
             }
         }
+        #if os(macOS)
+        // 切走分頁（host 隱藏不移除、onDisappear 不觸發）時也 flush 存檔。
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.flushEditorsNotification)) { _ in
+            titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
+            descriptionSaveWorkItem?.cancel(); descriptionSaveWorkItem = nil
+            onUpdateTitle(title)
+            onUpdateDescription(descriptionHTML)
+            commandBus.flush { html in onUpdateDescription(html) }
+        }
+        #endif
         .sheet(isPresented: $showTagPicker) {
             TagPickerSheet(
                 initiallySelectedIds: Set(tags.map(\.id)),

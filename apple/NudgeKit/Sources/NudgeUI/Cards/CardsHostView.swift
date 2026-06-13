@@ -165,7 +165,10 @@ public struct CardsHostView: View {
         // 切回 Cards 分頁（embedded 變 false）時重抓清單 —— fallback，
         // 也涵蓋外部（web / 其他裝置）的變更。
         .onChange(of: embedded) { _, nowEmbedded in
-            if !nowEmbedded {
+            if nowEmbedded {
+                // 切走 Cards 分頁時要求編輯器 flush 存檔（onDisappear 不觸發）。
+                NotificationCenter.default.post(name: NudgeCommands.flushEditorsNotification, object: nil)
+            } else {
                 Task { await firstPage() }
             }
         }

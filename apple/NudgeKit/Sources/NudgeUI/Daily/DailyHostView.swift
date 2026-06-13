@@ -457,6 +457,13 @@ public struct DailyHostView: View {
                 await reloadSilently()
             }
         }
+        .onChange(of: embedded) { _, isEmbedded in
+            // 切走 行動 分頁（host 被隱藏而非移除、onDisappear 不觸發）時，
+            // 要求開啟中的編輯器立即 flush 存檔，避免未存內容遺失。
+            if isEmbedded {
+                NotificationCenter.default.post(name: NudgeCommands.flushEditorsNotification, object: nil)
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.submitQuickAddNotification)) { note in
             if let title = note.object as? String {
                 createTask(title)
@@ -1592,26 +1599,28 @@ private struct DashboardColumnCardDetail: View {
             .onChange(of: descriptionHTML) { _, new in debouncedSaveDescription(new) }
         }
         .background(Color.nudgeBackground)
-        .onDisappear {
-            // 任何離開（切卡片 / 切面板 / 切 tab 而 view 被移除）都 flush 存檔，
-            // 不只返回鈕 —— 否則「沒按返回、切到別處」會丟失未存的內容。
-            titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
-            descSaveWorkItem?.cancel(); descSaveWorkItem = nil
-            onUpdateTitle(title)
-            onUpdateDescription(descriptionHTML)
-            commandBus.flush { html in onUpdateDescription(html) }
+        // 任何離開都 flush：view 被移除（切卡片/切面板/關詳情）→ onDisappear；
+        // 切走分頁（host 隱藏不移除）→ flushEditors 通知。
+        .onDisappear { flushSave() }
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.flushEditorsNotification)) { _ in
+            flushSave()
         }
     }
 
     /// 返回前 flush 存檔 —— 同步存目前 binding（fallback），再向編輯器
     /// getHTML 取「權威當前內容」覆蓋存（跨程序的 change 訊息可能還沒送達
     /// binding，刪/打字後立刻返回會丟失）。存完即返回，不卡。
-    private func flushAndBack() {
+    /// flush 存檔 —— 同步存目前 binding（fallback）+ getHTML 取權威內容覆蓋存。
+    private func flushSave() {
         titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
         descSaveWorkItem?.cancel(); descSaveWorkItem = nil
         onUpdateTitle(title)
         onUpdateDescription(descriptionHTML)
         commandBus.flush { html in onUpdateDescription(html) }
+    }
+
+    private func flushAndBack() {
+        flushSave()
         onBack()
     }
 
