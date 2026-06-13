@@ -18,6 +18,8 @@ interface TaskDetailModalProps {
   tags?: Array<{ id: string; name: string; color: string }>;
   onTitleChange?: (title: string) => void;
   onExpand?: () => void;
+  /** 寬版（卡片快速 Modal 用）；預設窄版（任務） */
+  wide?: boolean;
 }
 
 export function TaskDetailModal({
@@ -30,6 +32,7 @@ export function TaskDetailModal({
   tags = [],
   onTitleChange,
   onExpand,
+  wide = false,
 }: TaskDetailModalProps) {
   const t = useTranslations("task");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -129,7 +132,7 @@ export function TaskDetailModal({
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className="relative z-10 w-[calc(100vw-2rem)] max-w-[680px] max-h-[88dvh] overflow-y-auto rounded-2xl bg-popover border border-border shadow-2xl outline-none"
+        className={`relative z-10 w-[calc(100vw-2rem)] ${wide ? "max-w-[920px]" : "max-w-[680px]"} max-h-[88dvh] overflow-y-auto rounded-2xl bg-popover border border-border shadow-2xl outline-none`}
       >
         {/* 頂部列 */}
         <div className="sticky top-0 z-10 px-6 py-4 bg-popover border-b border-border rounded-t-xl">

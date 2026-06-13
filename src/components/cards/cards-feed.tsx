@@ -50,23 +50,6 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
     [cardId, mutate]
   );
 
-  const putTags = useCallback(
-    async (tagIds: string[]) => {
-      await fetch(`/api/tasks/${cardId}/tags`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tagIds }),
-      });
-      mutate();
-      globalMutate(
-        (key) => typeof key === "string" && key.startsWith("/api/cards"),
-        undefined,
-        { revalidate: true }
-      );
-    },
-    [cardId, mutate]
-  );
-
   if (!data) return null;
 
   return (
@@ -79,8 +62,7 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
       onStatusChange={(_status: TaskStatus) => {
         /* status change not supported for cards in this modal */
       }}
-      onTagsChange={(tagIds) => putTags(tagIds)}
-      tags={data.tags ?? []}
+      wide
       onExpand={() => onExpand(cardId)}
     />
   );

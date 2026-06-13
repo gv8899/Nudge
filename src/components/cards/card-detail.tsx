@@ -179,8 +179,8 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   return (
     <div className={containerClass}>
       <header className="flex items-center gap-2 mb-6">
-        {/* 返回按鈕：chevron 與標題同列 */}
-        {embedded ? (
+        {/* 返回按鈕：只在 embedded（右側 pane）顯示；全頁靠左側 nav 回卡片列表，不需返回鈕 */}
+        {embedded && (
           <button
             type="button"
             onClick={onBack}
@@ -190,15 +190,6 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-        ) : (
-          <Link
-            href="/cards"
-            title={t("backToCards")}
-            aria-label={t("backToCards")}
-            className="shrink-0 text-primary hover:text-primary/70 transition-colors"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Link>
         )}
 
         {/* 標題（可點擊編輯） */}
