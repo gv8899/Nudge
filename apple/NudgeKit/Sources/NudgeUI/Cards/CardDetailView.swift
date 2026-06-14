@@ -190,7 +190,13 @@ public struct CardDetailView: View {
             html: $descriptionHTML,
             placeholder: nudgeLocalized("cardDetail.editorPlaceholder", locale: locale),
             activeMarks: $activeMarks,
-            commandBus: commandBus
+            commandBus: commandBus,
+            onBlurSave: { html in
+                // 失焦即存（切到別張卡片 / 別分頁 / 視窗外都會先失焦）。
+                // 取消還在排隊的 debounce，直接存權威內容。
+                descriptionSaveWorkItem?.cancel(); descriptionSaveWorkItem = nil
+                onUpdateDescription(html)
+            }
         )
         .id(initialCard.id)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

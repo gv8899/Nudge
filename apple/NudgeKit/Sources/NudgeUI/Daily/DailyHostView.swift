@@ -60,6 +60,11 @@ public struct DailyHostView: View {
     // dashboardCardDetailCard != nil 時欄內顯示 detail，左上角 back
     // chevron 返回；nil 時顯示搜尋 / tag chip / list。
     @State private var dashboardCardDetailCard: CardDTO?
+    // 右欄卡片詳情「編輯中」期間，抑制 cardsChanged 觸發的清單 / daily 重抓。
+    // 重抓會 re-render churn 把開啟中的編輯器打掉重建、reseed 舊內容、甚至生
+    // 出過時 editor instance 反手把新內容蓋回舊值（實測 log 證實）。詳情關閉
+    // 時若期間有被抑制的刷新，補做一次。
+    @State private var dashboardReloadPendingDuringDetail = false
     @State private var dashboardCardSearchQuery = ""
     @State private var dashboardCardDebouncedQuery = ""
     @State private var dashboardCardSelectedTagIds: Set<String> = []
@@ -444,17 +449,21 @@ public struct DailyHostView: View {
             // 「最近卡片」要刷新，左側行動清單的 row 也得跟著更新。popover
             // 走 cardRepo 直接 PATCH，不像 iOS 的 updateTaskTitle 會做樂觀
             // patch — 少了 reloadSilently()，row 標題會一直停在舊值。
-            Task {
-                await reloadDashboardCards()
-                await reloadSilently()
-            }
+            refreshAfterCardChange()
         }
         .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.cardsChangedNotification)) { _ in
             // 卡片內容變動（含 Daily 右欄 detail / Cards 分頁）後即時刷新
             // 右欄「最近卡片」+ 行動清單 row（刪光內文的卡片要消失）。
-            Task {
-                await reloadDashboardCards()
-                await reloadSilently()
+            refreshAfterCardChange()
+        }
+        .onChange(of: dashboardCardDetailCard == nil) { _, isNil in
+            // 詳情關閉 → 補做編輯期間被抑制的清單 / daily 刷新。
+            if isNil, dashboardReloadPendingDuringDetail {
+                dashboardReloadPendingDuringDetail = false
+                Task {
+                    await reloadDashboardCards()
+                    await reloadSilently()
+                }
             }
         }
         .onChange(of: embedded) { _, isEmbedded in
@@ -1099,6 +1108,21 @@ public struct DailyHostView: View {
         }
     }
 
+    /// 卡片變動後的清單 / daily 刷新 —— 但若右欄卡片詳情正開著（使用者正在
+    /// 編輯），先抑制、只記旗標，等詳情關閉再補。理由：編輯途中每次 debounce
+    /// 存檔都會 post cardsChanged，若當下就重抓，re-render churn 會把開啟中的
+    /// 編輯器打掉重建並 reseed 舊內容，過時 instance 還會反手蓋回舊值。
+    private func refreshAfterCardChange() {
+        if dashboardCardDetailCard != nil {
+            dashboardReloadPendingDuringDetail = true
+            return
+        }
+        Task {
+            await reloadDashboardCards()
+            await reloadSilently()
+        }
+    }
+
     private func reloadDashboardCards() async {
         do {
             let result = try await cardRepo.list(query: "", cursor: nil)
@@ -1448,6 +1472,21 @@ extension DailyHostView {
     }
 
     func updateTaskDescription(taskId: String, description: String) {
+        #if os(macOS)
+        // 右欄詳情開著且正是這張卡 → 同步它的 description。否則任何 re-render
+        // 讓 DashboardColumnCardDetail 換 identity 時，SwiftUI 會用舊的
+        // card.description reseed @State，把使用者剛打的新內容洗掉，過時
+        // instance 還會在 flushEditors 廣播時反手存回舊值（實測 log 證實）。
+        if let open = dashboardCardDetailCard, open.id == taskId, open.description != description {
+            dashboardCardDetailCard = CardDTO(
+                id: open.id,
+                title: open.title,
+                description: description,
+                updatedAt: open.updatedAt,
+                tags: open.tags
+            )
+        }
+        #endif
         applyTaskPatchLocally(taskId: taskId) { task in
             TaskDTO(
                 id: task.id,
@@ -1592,7 +1631,13 @@ private struct DashboardColumnCardDetail: View {
                 html: $descriptionHTML,
                 placeholder: nudgeLocalized("cardDetail.editorPlaceholder", locale: locale),
                 activeMarks: $activeMarks,
-                commandBus: commandBus
+                commandBus: commandBus,
+                onBlurSave: { html in
+                    // 失焦即存（切到別張卡片 / 別分頁 / 視窗外都會先失焦）。
+                    // 取消還在排隊的 debounce，直接存權威內容。
+                    descSaveWorkItem?.cancel(); descSaveWorkItem = nil
+                    onUpdateDescription(html)
+                }
             )
             .id(card.id)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

@@ -79,6 +79,11 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
     private(set) var isReady = false
     private var pendingLoadHTML: String?
     var lastEmittedHTML: String = ""
+    /// 編輯器失焦時的「立即存檔」回呼。切到別的地方（點 sidebar / 別張卡片 /
+    /// 視窗外）一定先讓 contenteditable 失焦 —— blur 比 SwiftUI onDisappear /
+    /// tab 通知更早、更必然，是最可靠的「使用者離開了編輯」訊號。設了就在
+    /// blur 當下用 getHTML 取權威內容存，不靠 view 生命週期補刀。
+    var onBlurSave: ((String) -> Void)?
     private var currentScheme: ColorScheme?
     private var lastSentScheme: ColorScheme?
     #if os(iOS)
@@ -283,7 +288,11 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
     func flushContent(_ completion: @escaping (String) -> Void) {
         guard let webView else { return }
         webView.evaluateJavaScript("NudgeEditor.getHTML()") { [weak self] result, _ in
-            let html = (result as? String) ?? (self?.htmlBinding.wrappedValue ?? "")
+            // getHTML 只在「真的取到字串」時才算權威內容。webview 正在拆除 /
+            // NudgeEditor 還沒載入時會回 error + nil —— 此時沒有任何可信內容，
+            // 絕不能用可能過時的 binding 回退去存，否則會把剛打的新值蓋回舊值
+            // （拆 webview 時 getHTML 失敗 → 回退存舊值蓋掉新值）。
+            guard let html = result as? String else { return }
             self?.htmlBinding.wrappedValue = html
             completion(html)
         }
@@ -342,8 +351,14 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
         case .height(let h):
             print("[EditorCoordinator] height \(h)")
             onHeight(h)
-        case .focus:
-            break
+        case .focus(let focused):
+            // 失焦 = 使用者離開編輯（切分頁 / 點別張卡片 / 點視窗外）。
+            // 直接向 WebContent 取權威 HTML 立即存 —— 不等 debounce、不靠
+            // onDisappear。getHTML 取的是當下最新（含還在跨程序途中的最後
+            // 一次 change），所以「打完立刻切走」也存得到。
+            if !focused, let onBlurSave {
+                flushContent { html in onBlurSave(html) }
+            }
         case .openURL(let urlString):
             guard let url = URL(string: urlString) else { break }
             #if os(iOS)
