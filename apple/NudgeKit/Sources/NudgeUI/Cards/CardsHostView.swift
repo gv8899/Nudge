@@ -162,6 +162,21 @@ public struct CardsHostView: View {
         .onChange(of: fullPageCard?.id) { _, _ in
             onFullPageChange?(fullPageCard != nil)
         }
+        // 切回 Cards 分頁（embedded 變 false）時重抓清單 —— fallback，
+        // 也涵蓋外部（web / 其他裝置）的變更。
+        .onChange(of: embedded) { _, nowEmbedded in
+            if nowEmbedded {
+                // 切走 Cards 分頁時要求編輯器 flush 存檔（onDisappear 不觸發）。
+                NotificationCenter.default.post(name: NudgeCommands.flushEditorsNotification, object: nil)
+            } else {
+                Task { await firstPage() }
+            }
+        }
+        // 即時：別處（行動頁 task popup 等）替任務加內容存檔後即時重抓，
+        // 人在 Cards 分頁也馬上看到新卡片。
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.cardsChangedNotification)) { _ in
+            Task { await firstPage() }
+        }
 
         // embedded = 嵌在 DailyHostView 右側面板用，不能掛 toolbar /
         // navigationTitle —— 它們會 bubble 到外層 NavigationStack 的視
@@ -596,10 +611,22 @@ public struct CardsHostView: View {
         Task {
             do {
                 try await cardRepo.updateTitle(cardId: cardId, title: title)
+                postCardsChanged()
             } catch {
                 print("[CardsHostView] updateTitle failed: \(error)")
             }
         }
+    }
+
+    /// 通知 Cards 清單重抓 —— 內容變更可能讓 task 變成 / 不再是卡片
+    /// （例如刪光內文 → 該卡片應從清單消失）。NotificationCenter.post 本身
+    /// thread-safe，可從背景 Task 直接呼叫。
+    private func postCardsChanged() {
+        // NudgeCommands(含通知名)是 macOS-only；iOS 也沒有 cardsChanged 的
+        // 觀察者，所以 iOS 上這是 no-op。守衛起來讓 iOS 編得過。
+        #if os(macOS)
+        NotificationCenter.default.post(name: NudgeCommands.cardsChangedNotification, object: nil)
+        #endif
     }
 
     private func updateTags(cardId: String, tagIds: Set<String>) async {
@@ -618,6 +645,7 @@ public struct CardsHostView: View {
                     tags: nextTags
                 )
             }
+            postCardsChanged()
         } catch {
             print("[CardsHostView] updateTags failed: \(error)")
         }
@@ -638,6 +666,7 @@ public struct CardsHostView: View {
         Task {
             do {
                 try await cardRepo.updateDescription(cardId: cardId, html: html)
+                postCardsChanged()
             } catch {
                 print("[CardsHostView] updateDescription failed: \(error)")
             }

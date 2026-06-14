@@ -20,6 +20,9 @@ public struct RichTextEditor: View {
     let placeholder: String
     let activeMarks: Binding<ActiveMarks>?
     let commandBus: EditorCommandBus?
+    /// 編輯器失焦時立即存檔 —— 給的是 getHTML 取的權威內容。最可靠的
+    /// 「離開編輯」存檔點（早於 onDisappear / tab 通知）。
+    let onBlurSave: ((String) -> Void)?
 
     @Environment(\.colorScheme) private var colorScheme
     @State private var contentHeight: CGFloat = 0
@@ -28,12 +31,14 @@ public struct RichTextEditor: View {
         html: Binding<String>,
         placeholder: String = "",
         activeMarks: Binding<ActiveMarks>? = nil,
-        commandBus: EditorCommandBus? = nil
+        commandBus: EditorCommandBus? = nil,
+        onBlurSave: ((String) -> Void)? = nil
     ) {
         self._html = html
         self.placeholder = placeholder
         self.activeMarks = activeMarks
         self.commandBus = commandBus
+        self.onBlurSave = onBlurSave
     }
 
     public var body: some View {
@@ -71,7 +76,8 @@ public struct RichTextEditor: View {
             labels: Self.labelsDict(),
             onActiveMarks: { marks in activeMarks?.wrappedValue = marks },
             onHeight: { _ in },
-            commandBus: commandBus
+            commandBus: commandBus,
+            onBlurSave: onBlurSave
         )
         #else
         AppKitEditor(
@@ -81,7 +87,8 @@ public struct RichTextEditor: View {
             labels: Self.labelsDict(),
             onActiveMarks: { marks in activeMarks?.wrappedValue = marks },
             onHeight: { _ in },
-            commandBus: commandBus
+            commandBus: commandBus,
+            onBlurSave: onBlurSave
         )
         #endif
     }
@@ -106,10 +113,18 @@ public struct RichTextEditor: View {
 @MainActor
 public final class EditorCommandBus {
     fileprivate var handler: ((EditorCommand) -> Void)?
+    fileprivate var flushHandler: ((@escaping (String) -> Void) -> Void)?
     public init() {}
 
     public func send(_ command: EditorCommand) {
         handler?(command)
+    }
+
+    /// 取編輯器當前「權威內容」（直接 getHTML 問 WebContent 程序）後回呼。
+    /// 用於離開前 flush 存檔 —— 跨程序的 change 訊息可能還沒送達 binding，
+    /// 這個不依賴 binding、直接取最新（避免「刪內文後立刻離開存到舊值」）。
+    public func flush(_ completion: @escaping (String) -> Void) {
+        flushHandler?(completion)
     }
 }
 
@@ -122,6 +137,7 @@ private struct UIKitEditor: UIViewRepresentable {
     let onActiveMarks: (ActiveMarks) -> Void
     let onHeight: (CGFloat) -> Void
     let commandBus: EditorCommandBus?
+    let onBlurSave: ((String) -> Void)?
 
     func makeCoordinator() -> EditorCoordinator {
         EditorCoordinator(
@@ -163,8 +179,12 @@ private struct UIKitEditor: UIViewRepresentable {
         context.coordinator.attach(webView: webView)
         context.coordinator.pushTheme(scheme: colorScheme)
         context.coordinator.loadBundle()
+        context.coordinator.onBlurSave = onBlurSave
         commandBus?.handler = { [weak coord = context.coordinator] cmd in
             coord?.exec(cmd)
+        }
+        commandBus?.flushHandler = { [weak coord = context.coordinator] completion in
+            coord?.flushContent(completion)
         }
         return webView
     }
@@ -185,6 +205,7 @@ private struct AppKitEditor: NSViewRepresentable {
     let onActiveMarks: (ActiveMarks) -> Void
     let onHeight: (CGFloat) -> Void
     let commandBus: EditorCommandBus?
+    let onBlurSave: ((String) -> Void)?
 
     func makeCoordinator() -> EditorCoordinator {
         EditorCoordinator(
@@ -207,8 +228,12 @@ private struct AppKitEditor: NSViewRepresentable {
         context.coordinator.attach(webView: webView)
         context.coordinator.pushTheme(scheme: colorScheme)
         context.coordinator.loadBundle()
+        context.coordinator.onBlurSave = onBlurSave
         commandBus?.handler = { [weak coord = context.coordinator] cmd in
             coord?.exec(cmd)
+        }
+        commandBus?.flushHandler = { [weak coord = context.coordinator] completion in
+            coord?.flushContent(completion)
         }
         return webView
     }

@@ -98,6 +98,19 @@ public struct CalendarHostView: View {
                 Task { await reload() }
             }
         }
+        // 首次同步：連線狀態變 connected 時重抓（.task(id:rangeKey) 不會因
+        // isConnected 變動重跑，否則剛連完還是空白）。
+        .onChange(of: calendarRepo.isConnected) { _, connected in
+            if connected {
+                Task { await reload() }
+            }
+        }
+        // 切回 Calendar 分頁（embedded 變 false）時重抓，避免隱藏期間的舊資料。
+        .onChange(of: embedded) { _, nowEmbedded in
+            if !nowEmbedded {
+                Task { await reload() }
+            }
+        }
         // Event detail presentation — embedded with onEventTap callback
         // 時，detail 改由外層 DailyHostView 畫 centered overlay；
         // standalone Calendar tab 仍用內建 popover (mac) / sheet (iOS)。

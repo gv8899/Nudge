@@ -109,6 +109,31 @@ public struct CardDetailView: View {
             }
             #endif
         }
+        .onDisappear {
+            // 離開（回上一頁 / 關 modal / 切換卡片）前 flush pending 存檔。
+            titleSaveWorkItem?.cancel()
+            titleSaveWorkItem = nil
+            descriptionSaveWorkItem?.cancel()
+            descriptionSaveWorkItem = nil
+            onUpdateTitle(title)
+            onUpdateDescription(descriptionHTML) // 同步 fallback
+            // 內文：向編輯器取「權威當前內容」覆蓋存 —— binding 可能還沒收到
+            // 跨程序的最後一次 change（刪光內文後立刻返回），getHTML 直接問
+            // WebContent 取最新，避免存到舊值。
+            commandBus.flush { html in
+                onUpdateDescription(html)
+            }
+        }
+        #if os(macOS)
+        // 切走分頁（host 隱藏不移除、onDisappear 不觸發）時也 flush 存檔。
+        .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.flushEditorsNotification)) { _ in
+            titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
+            descriptionSaveWorkItem?.cancel(); descriptionSaveWorkItem = nil
+            onUpdateTitle(title)
+            onUpdateDescription(descriptionHTML)
+            commandBus.flush { html in onUpdateDescription(html) }
+        }
+        #endif
         .sheet(isPresented: $showTagPicker) {
             TagPickerSheet(
                 initiallySelectedIds: Set(tags.map(\.id)),
@@ -165,7 +190,13 @@ public struct CardDetailView: View {
             html: $descriptionHTML,
             placeholder: nudgeLocalized("cardDetail.editorPlaceholder", locale: locale),
             activeMarks: $activeMarks,
-            commandBus: commandBus
+            commandBus: commandBus,
+            onBlurSave: { html in
+                // 失焦即存（切到別張卡片 / 別分頁 / 視窗外都會先失焦）。
+                // 取消還在排隊的 debounce，直接存權威內容。
+                descriptionSaveWorkItem?.cancel(); descriptionSaveWorkItem = nil
+                onUpdateDescription(html)
+            }
         )
         .id(initialCard.id)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
