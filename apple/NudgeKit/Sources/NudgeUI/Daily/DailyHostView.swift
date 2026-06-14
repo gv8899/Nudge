@@ -1459,7 +1459,9 @@ extension DailyHostView {
         Task {
             do {
                 try await taskRepo.updateTitle(taskId: taskId, title: title)
+                #if os(macOS)
                 NotificationCenter.default.post(name: NudgeCommands.cardsChangedNotification, object: nil)
+                #endif
                 // 樂觀 patch 之後再跟 server 對帳 —— 對齊 toggleComplete /
                 // moveAssignment 等其它 mutation。改名是從 detail 的 debounce
                 // callback 跨 view 觸發，樂觀 patch 一旦沒套用到，少了這步
@@ -1500,7 +1502,9 @@ extension DailyHostView {
         Task {
             do {
                 try await taskRepo.updateDescription(taskId: taskId, description: description)
+                #if os(macOS)
                 NotificationCenter.default.post(name: NudgeCommands.cardsChangedNotification, object: nil)
+                #endif
             } catch {
                 print("[DailyHostView] updateDescription failed: \(error)")
             }

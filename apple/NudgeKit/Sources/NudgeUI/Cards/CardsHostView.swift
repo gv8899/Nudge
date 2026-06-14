@@ -622,7 +622,11 @@ public struct CardsHostView: View {
     /// （例如刪光內文 → 該卡片應從清單消失）。NotificationCenter.post 本身
     /// thread-safe，可從背景 Task 直接呼叫。
     private func postCardsChanged() {
+        // NudgeCommands(含通知名)是 macOS-only；iOS 也沒有 cardsChanged 的
+        // 觀察者，所以 iOS 上這是 no-op。守衛起來讓 iOS 編得過。
+        #if os(macOS)
         NotificationCenter.default.post(name: NudgeCommands.cardsChangedNotification, object: nil)
+        #endif
     }
 
     private func updateTags(cardId: String, tagIds: Set<String>) async {
