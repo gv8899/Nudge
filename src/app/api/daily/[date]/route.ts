@@ -11,6 +11,7 @@ import { eq, and, lt, ne, sql } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
 import { occurs, type RecurrenceRule } from "@/lib/recurrence";
 import { nanoid } from "nanoid";
+import { stripFractionalSecondsDeep } from "@/lib/strip-ms";
 
 export async function GET(
   request: NextRequest,
@@ -223,12 +224,13 @@ export async function GET(
   }
 
   return NextResponse.json(
-    {
+    // 去毫秒：相容舊版 macOS app 的嚴格 .iso8601 decoder（見 strip-ms.ts）。
+    stripFractionalSecondsDeep({
       date,
       assignments,
       overdueTasks,
       noteContent: note?.content || "",
-    },
+    }),
     {
       headers: {
         ETag: etag,
