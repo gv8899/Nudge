@@ -21,11 +21,19 @@ export function mountSlashMenu(props: SlashMenuProps, labels: Record<string, { l
   container.className = "nudge-slash-menu";
   document.body.appendChild(container);
 
+  // 鍵盤導航時抑制 hover 高亮（避免 is-active + hover 同時亮兩格）；
+  // 滑鼠一動就恢復 hover。
+  container.addEventListener("mousemove", () => {
+    container.classList.remove("nudge-kbd-nav");
+  });
+
   function render() {
     container.innerHTML = "";
+    let activeEl: HTMLElement | null = null;
     current.items.forEach((item, idx) => {
       const itemEl = document.createElement("div");
       itemEl.className = "nudge-slash-menu-item" + (idx === selectedIndex ? " is-active" : "");
+      if (idx === selectedIndex) activeEl = itemEl;
       const labelInfo = labels[item.id] ?? { label: item.label, description: item.description };
 
       const labelEl = document.createElement("div");
@@ -49,6 +57,21 @@ export function mountSlashMenu(props: SlashMenuProps, labels: Record<string, { l
       container.appendChild(itemEl);
     });
     positionMenu();
+    // 方向鍵移動選中項時，把它捲進選單可視範圍（選單 max-height:40vh +
+    // overflow-y:auto，超過 9 項往下選會走出可視區）。只捲選單容器自己、
+    // 不呼叫 scrollIntoView 以免連帶捲動編輯器頁面。
+    if (activeEl) {
+      const el = activeEl as HTMLElement;
+      const viewTop = container.scrollTop;
+      const viewBottom = viewTop + container.clientHeight;
+      const elTop = el.offsetTop;
+      const elBottom = elTop + el.offsetHeight;
+      if (elTop < viewTop) {
+        container.scrollTop = elTop;
+      } else if (elBottom > viewBottom) {
+        container.scrollTop = elBottom - container.clientHeight;
+      }
+    }
   }
 
   function positionMenu() {
@@ -77,11 +100,13 @@ export function mountSlashMenu(props: SlashMenuProps, labels: Record<string, { l
     },
     onKeyDown(event: KeyboardEvent): boolean {
       if (event.key === "ArrowDown") {
+        container.classList.add("nudge-kbd-nav");
         selectedIndex = (selectedIndex + 1) % current.items.length;
         render();
         return true;
       }
       if (event.key === "ArrowUp") {
+        container.classList.add("nudge-kbd-nav");
         selectedIndex = (selectedIndex - 1 + current.items.length) % current.items.length;
         render();
         return true;

@@ -553,14 +553,8 @@ struct MacSidebarRoot: View {
                 }
                 .help(Text("cardDetail.manageTags", bundle: .module))
             }
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    NotificationCenter.default.post(name: NudgeCommands.cardsScheduleNotification, object: nil)
-                } label: {
-                    Image(systemName: "repeat")
-                }
-                .help(Text("cardDetail.schedule", bundle: .module))
-            }
+            // 「重複 / 排程」(repeat) 鈕移除 —— 卡片詳情只保留 tag 入口；
+            // 重複 / 提醒改由行動頁任務列的 … 選單管理（卡片本身不需排程）。
         } else {
             ToolbarItem(placement: .primaryAction) {
                 Button {
