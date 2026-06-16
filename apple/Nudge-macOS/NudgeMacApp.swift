@@ -104,12 +104,18 @@ struct NudgeMacApp: App {
                     // 版本硬閘：自身 build 低於後端 minMacBuild → 蓋強制更新擋板。
                     await appUpdater.refreshForcedUpdate()
                 }
+                // 強制更新時直接把「app 內容」模糊掉（看得到、但是糊的），
+                // 擋板 modal 再疊在上面（不被模糊）。
+                .blur(radius: appUpdater.forcedUpdateRequired ? 8 : 0)
                 // 強制更新擋板蓋在最上層（含登入畫面），更新前無法使用。
                 .overlay {
                     if appUpdater.forcedUpdateRequired {
                         ForcedUpdateOverlay(onUpdate: { appUpdater.checkForUpdates() })
                     }
                 }
+                // 強制更新時把 app toolbar 整排藏起來（那排鈕不能再點），
+                // overlay 延伸到頂全擋；交通燈保留讓使用者仍可關 app。
+                .toolbar(appUpdater.forcedUpdateRequired ? .hidden : .automatic, for: .windowToolbar)
                 // Re-sync when the Mac app returns to the foreground —
                 // catches reminders set on another device while this app
                 // was open (it doesn't get relaunched like a phone app).
