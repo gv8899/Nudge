@@ -176,8 +176,26 @@ fi
 xcrun stapler staple "$WORK_DIR/$DMG_NAME" >"$WORK_DIR/staple-dmg.log" 2>&1
 
 # 8. 搬到 ~/Downloads（不會被 /tmp 自動清）
-echo "▶ [8/8] move to $DMG_OUT"
+echo "▶ [8/9] move to $DMG_OUT"
 mv "$WORK_DIR/$DMG_NAME" "$DMG_OUT"
+
+# 9. 產 Sparkle appcast — 更新 feed。把 DMG 放進 release 資料夾、
+#    generate_appcast 用 Keychain 內的 EdDSA 私鑰簽 → appcast.xml。
+#    發布時把 release 資料夾內的 DMG + appcast.xml 一起上傳 nudge.tw/downloads/。
+echo "▶ [9/9] generate appcast (Sparkle)"
+RELEASE_DIR="$HOME/Downloads/nudge-release"
+mkdir -p "$RELEASE_DIR"
+cp "$DMG_OUT" "$RELEASE_DIR/"
+# generate_appcast 是 Sparkle SPM 的 binary 工具，build 過 Nudge-macOS 後存在
+# DerivedData 的 SourcePackages 裡。動態找最新的一份。
+GENERATE_APPCAST="$(find "$HOME/Library/Developer/Xcode/DerivedData" -ipath '*sparkle/Sparkle/bin/generate_appcast' -type f 2>/dev/null | head -1)"
+if [ -z "$GENERATE_APPCAST" ]; then
+    echo "⚠️  找不到 generate_appcast — 先在 Xcode 或 CLI build 一次 Nudge-macOS"
+    echo "    解析 Sparkle 套件後再跑。本次略過 appcast 生成。"
+else
+    "$GENERATE_APPCAST" --download-url-prefix "https://nudge.tw/downloads/" "$RELEASE_DIR"
+    echo "  → appcast: $RELEASE_DIR/appcast.xml"
+fi
 
 # Final summary
 DMG_SIZE="$(du -h "$DMG_OUT" | awk '{print $1}')"
@@ -189,4 +207,7 @@ echo "   SHA256: $DMG_SHA256"
 echo ""
 echo "  • 任何 Mac 雙擊就開、無 Gatekeeper 警告"
 echo "  • SHA256 可以放網站 download 頁讓 user 自己驗"
+echo ""
+echo "  📦 發布自動更新：把 ~/Downloads/nudge-release/ 內的"
+echo "     DMG + appcast.xml 一起上傳到 nudge.tw/downloads/"
 echo "════════════════════════════════════════════════════════════"

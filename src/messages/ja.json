@@ -402,5 +402,12 @@
       "incomplete": "未完了のタスク",
       "summaryStreak": "サマリー + 連続記録"
     }
+  },
+  "update": {
+    "required": {
+      "title": "Nudge を更新",
+      "body": "お使いのバージョンは古すぎます。最新版に更新してください。",
+      "button": "今すぐ更新"
+    }
   }
 }

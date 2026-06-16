@@ -39,6 +39,8 @@ public enum NudgeCommands {
     /// 要求所有開啟中的卡片/任務編輯器立即 flush 存檔 —— 切走分頁（host 被
     /// 隱藏而非移除，onDisappear 不會觸發）等情境 post，避免未存內容遺失。
     public static let flushEditorsNotification = Notification.Name("nudge.flushEditors")
+    /// App 選單「Check for Updates…」—— app target 收到後觸發 Sparkle 檢查。
+    public static let checkForUpdatesNotification = Notification.Name("nudge.checkForUpdates")
     /// Notes feed / canvas 切換 — root toolbar 按鈕觸發。
     public static let notesToggleFeedNotification = Notification.Name("nudge.notesToggleFeed")
     /// Note 儲存完成 — `object` 為 date (YYYY-MM-DD)。Mac 永久 split 下
@@ -104,6 +106,15 @@ public struct NudgeCommandsMenu: Commands {
     public init() {}
 
     public var body: some Commands {
+        // App 選單 → 「Check for Updates…」（Sparkle 手動檢查）。放在
+        // about 之後，符合 macOS 慣例。app target 收到 notification 觸發
+        // AppUpdater.checkForUpdates()。
+        CommandGroup(after: .appInfo) {
+            Button("Check for Updates…") {
+                NotificationCenter.default.post(name: NudgeCommands.checkForUpdatesNotification, object: nil)
+            }
+        }
+
         // File → New Task。CommandGroup(replacing: .newItem) 會把
         // 系統 New (⌘N) 換成我們自己的，避免 menu 出現空的
         // "New Window"。

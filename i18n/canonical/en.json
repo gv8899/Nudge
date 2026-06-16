@@ -402,5 +402,12 @@
       "incomplete": "Incomplete tasks",
       "summaryStreak": "Summary + streak"
     }
+  },
+  "update": {
+    "required": {
+      "title": "Update Nudge",
+      "body": "Your version is too old. Update to the latest to keep using Nudge.",
+      "button": "Update now"
+    }
   }
 }

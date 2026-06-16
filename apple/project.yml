@@ -27,6 +27,10 @@ packages:
   GoogleSignIn:
     url: https://github.com/google/GoogleSignIn-iOS
     from: "9.0.0"
+  # Sparkle — Mac 版（非 App Store）自動更新框架。只連 Nudge-macOS。
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.6.0"
 
 targets:
   Nudge-iOS:
@@ -131,6 +135,8 @@ targets:
         product: GoogleSignIn
       - package: GoogleSignIn
         product: GoogleSignInSwift
+      - package: Sparkle
+        product: Sparkle
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: tw.nudge.mac
@@ -165,6 +171,11 @@ targets:
         GoogleMacClientID: "465373997523-a8lvq0359tapo93h77nka2820ip84ot2.apps.googleusercontent.com"
         # 只用 HTTPS + 系統內建加密，不自行實作密碼學 → 豁免 export compliance
         ITSAppUsesNonExemptEncryption: false
+        # Sparkle 自動更新 — appcast feed + EdDSA 公鑰 + 每日背景檢查。
+        SUFeedURL: "https://nudge.tw/downloads/appcast.xml"
+        SUPublicEDKey: "iubo9IzG5UXmKrO9PQt7Hl8AqPO5orMxIMJuOtWU7XM="
+        SUEnableAutomaticChecks: true
+        SUScheduledCheckInterval: 86400
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLName: google-oauth
