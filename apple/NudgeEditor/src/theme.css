@@ -71,6 +71,12 @@ html, body {
    box. */
 .ProseMirror ul[data-type="taskList"] li > div {
     margin: 0;
+    /* li 是 flex；content div 不給 flex 時，空 paragraph 寬度≈0，WKWebView
+       算不出 caret 位置 → 新建 checkbox 看不到游標（bullet list 的 li 是
+       block、paragraph 撐滿寬所以正常）。flex:1 + min-width:0 讓空段落有
+       寬度，caret 才畫得出來。 */
+    flex: 1 1 auto;
+    min-width: 0;
 }
 .ProseMirror ul[data-type="taskList"] li > div > p {
     margin: 0;
@@ -171,8 +177,13 @@ html, body {
     flex-direction: column;
     gap: 2px;
 }
-.nudge-slash-menu-item:hover,
 .nudge-slash-menu-item.is-active {
+    background: var(--nudge-border-light);
+}
+/* hover 高亮只在「非鍵盤導航」時生效 —— 否則鍵盤選的 is-active 那項
+   + 滑鼠停留的 hover 那項會同時亮兩格。鍵盤一動就加 .nudge-kbd-nav
+   抑制 hover，滑鼠一動再移除。 */
+.nudge-slash-menu:not(.nudge-kbd-nav) .nudge-slash-menu-item:hover {
     background: var(--nudge-border-light);
 }
 .nudge-slash-menu-item-label {

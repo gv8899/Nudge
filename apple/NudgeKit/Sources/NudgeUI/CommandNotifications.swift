@@ -25,6 +25,20 @@ public enum NudgeCommands {
     public static let nextWeekNotification = Notification.Name("nudge.nextWeek")
     /// Cards 新增卡片 — root toolbar "+" 按鈕觸發。
     public static let createCardNotification = Notification.Name("nudge.createCard")
+    /// Cards 全頁編輯返回列表 — 全頁時 root toolbar 把 "+" 換成返回鈕，
+    /// 點了 post 這個，CardsHostView 收到後清掉 fullPageCard 回網格。
+    public static let cardsBackNotification = Notification.Name("nudge.cardsBack")
+    /// Cards 全頁編輯：window toolbar（返回那排）的「標籤 / 重複」按鈕 —
+    /// post 後由 CardDetailView 收到開對應 sheet（tag picker / schedule）。
+    public static let cardsManageTagsNotification = Notification.Name("nudge.cardsManageTags")
+    public static let cardsScheduleNotification = Notification.Name("nudge.cardsSchedule")
+    /// 卡片內容變更（title / description / tags）—— 任何地方（行動頁 task
+    /// popup、卡片 modal、全頁編輯）存檔後 post，Cards 清單收到即時重抓，
+    /// 讓「有內容的 task 轉成卡片」即時反映。
+    public static let cardsChangedNotification = Notification.Name("nudge.cardsChanged")
+    /// 要求所有開啟中的卡片/任務編輯器立即 flush 存檔 —— 切走分頁（host 被
+    /// 隱藏而非移除，onDisappear 不會觸發）等情境 post，避免未存內容遺失。
+    public static let flushEditorsNotification = Notification.Name("nudge.flushEditors")
     /// Notes feed / canvas 切換 — root toolbar 按鈕觸發。
     public static let notesToggleFeedNotification = Notification.Name("nudge.notesToggleFeed")
     /// Note 儲存完成 — `object` 為 date (YYYY-MM-DD)。Mac 永久 split 下

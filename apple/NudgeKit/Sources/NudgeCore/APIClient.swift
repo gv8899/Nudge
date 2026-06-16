@@ -28,9 +28,9 @@ public final class APIClient: Sendable {
         self.tokenProvider = tokenProvider
         self._unauthorizedHandler = unauthorizedHandler
 
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        self.decoder = decoder
+        // 用「有/無小數秒都吃」的策略 —— 裸 .iso8601 在較舊 macOS/iOS 解不了
+        // server 的毫秒時間戳，會讓整個 DTO decode 失敗（見 NudgeISO8601）。
+        self.decoder = NudgeISO8601.makeDecoder()
 
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601

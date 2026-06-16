@@ -56,6 +56,11 @@
   --color-status-waiting: var(--status-waiting);
   --color-status-done: var(--status-done);
   --color-status-archived: var(--status-archived);
+  --color-selected-fill: var(--selected-fill);
+  --color-selected-stroke: var(--selected-stroke);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
 }
 
 :root {
@@ -111,6 +116,15 @@
   --status-waiting: #8a6d92;
   --status-done: #5a7050;
   --status-archived: #7a7466;
+
+  /* Interaction-state fills（對齊 Mac nudgeHoverFill / SelectedFill / SelectedStroke） */
+  --selected-fill: rgb(168 122 69 / 0.14);
+  --selected-stroke: rgb(168 122 69 / 0.6);
+
+  /* 語意狀態色（對齊 Mac nudgeSuccess / Warning / Info） */
+  --success: #5a7050;
+  --warning: #a87a45;
+  --info: #5a6b7c;
 }
 
 .dark {
@@ -164,6 +178,15 @@
   --status-waiting: #a78aaf;
   --status-done: #8aa57d;
   --status-archived: #807a6c;
+
+  /* Interaction-state fills（dark primary #c89968） */
+  --selected-fill: rgb(200 153 104 / 0.14);
+  --selected-stroke: rgb(200 153 104 / 0.6);
+
+  /* 語意狀態色 */
+  --success: #6f8a64;
+  --warning: #c89968;
+  --info: #7d93a8;
 }
 
 @layer base {
@@ -200,6 +223,33 @@
       background-blend-mode: normal;
     }
   }
+}
+
+/* =========================================================
+   Nudge semantic type scale
+   對齊 apple/NudgeKit Font+Nudge.swift 的 macOS 值（pt→px 1:1）。
+   後續 surface 改版逐步換用；不強制一次全站替換。
+   ========================================================= */
+@layer utilities {
+  .text-column-title        { font-size: 15px; font-weight: 600; }
+  .text-column-title-acc    { font-size: 12px; font-weight: 500; }
+  .text-section-header      { font-size: 14px; font-weight: 600; }
+  .text-row-title           { font-size: 13px; font-weight: 400; }
+  .text-row-title-em        { font-size: 13px; font-weight: 600; }
+  .text-primary-row-title   { font-size: 14px; font-weight: 400; }
+  .text-row-body            { font-size: 12px; font-weight: 400; }
+  .text-row-meta            { font-size: 12px; font-weight: 500; }
+  .text-row-meta-em         { font-size: 12px; font-weight: 600; }
+  .text-field               { font-size: 13px; font-weight: 400; }
+  .text-chip-label          { font-size: 11px; font-weight: 500; }
+  .text-inline-button       { font-size: 13px; font-weight: 600; }
+  .text-empty-state         { font-size: 13px; font-weight: 400; }
+  .text-column-detail-title { font-size: 17px; font-weight: 600; }
+  .text-weekday-label       { font-size: 11px; font-weight: 500; }
+  .text-weekday-number      { font-size: 16px; font-weight: 600; }
+  .text-date-eyebrow        { font-size: 12px; font-weight: 500; }
+  .text-date-title          { font-size: 28px; font-weight: 700; }
+  .text-card-title          { font-size: 16px; font-weight: 600; }
 }
 
 /* =========================================================

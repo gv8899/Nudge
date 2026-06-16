@@ -130,6 +130,10 @@ struct MacSidebarRoot: View {
     /// 切 columnVisibility，同一區間內手動展開/收合 sidebar 不被覆蓋。
     @State private var sidebarIsNarrow = false
 
+    /// Cards 是否在全頁編輯 — 全頁時 root toolbar 的「+」換成返回鈕。
+    /// 由 CardsHostView 的 onFullPageChange 回報。
+    @State private var cardsFullPageActive = false
+
     // Toolbar state lifted from individual hosts. Previously each host
     // declared its own `.toolbar { }` on the active branch, which let
     // toolbar items bubble up into NavigationSplitView's shared
@@ -167,53 +171,23 @@ struct MacSidebarRoot: View {
         // 之前是 3 欄但 detail 永遠顯示「選擇項目」placeholder，被
         // 拿掉。
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            List(selection: $selection) {
+            // 自畫 row（Button + listRowBackground）—— 不用 List(selection:)
+            // 的系統選中：macOS sidebar 系統選中色吃「系統 accent」，使用者把
+            // 系統 accent 設成藍色時連 app AccentColor 都會被蓋掉。改自畫才能
+            // 不管系統設定都用主色。detail 切換仍靠 `selection` state（ZStack）。
+            List {
                 Section {
-                    NavigationLink(value: SidebarItem.today) {
-                        Label {
-                            Text("nav.tasks", bundle: .module)
-                        } icon: {
-                            // 對齊 iOS Tab bar 的 checkmark.circle —
-                            // sidebar / tab bar 同 icon 讓 user 在兩
-                            // 平台間切換時 muscle memory 一致。
-                            Image(systemName: "checkmark.circle")
-                        }
-                    }
-                    NavigationLink(value: SidebarItem.calendar) {
-                        Label {
-                            Text("nav.calendar", bundle: .module)
-                        } icon: {
-                            Image(systemName: "calendar")
-                        }
-                    }
-                    NavigationLink(value: SidebarItem.cards) {
-                        Label {
-                            Text("nav.cards", bundle: .module)
-                        } icon: {
-                            Image(systemName: "square.stack")
-                        }
-                    }
-                    NavigationLink(value: SidebarItem.notes) {
-                        Label {
-                            Text("nav.notes", bundle: .module)
-                        } icon: {
-                            Image(systemName: "book")
-                        }
-                    }
+                    sidebarRow(.today, "nav.tasks", "checkmark.circle")
+                    sidebarRow(.calendar, "nav.calendar", "calendar")
+                    sidebarRow(.cards, "nav.cards", "square.stack")
+                    sidebarRow(.notes, "nav.notes", "book")
                 }
-                // Settings 同時保留在 ⌘, Settings scene 與 sidebar — 使
-                // 用者習慣 sidebar 的入口（而 ⌘, 是 mac 通用習慣，兩
-                // 邊都 hit 同一個 SettingsView）。
+                // Settings 同時保留在 ⌘, Settings scene 與 sidebar。
                 Section {
-                    NavigationLink(value: SidebarItem.settings) {
-                        Label {
-                            Text("nav.settings", bundle: .module)
-                        } icon: {
-                            Image(systemName: "gearshape")
-                        }
-                    }
+                    sidebarRow(.settings, "nav.settings", "gearshape")
                 }
             }
+            .listStyle(.sidebar)
             .navigationTitle(Text(verbatim: "Nudge"))
             .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 280)
         } detail: {
@@ -239,7 +213,10 @@ struct MacSidebarRoot: View {
                     CalendarHostView(embedded: selection != .calendar)
                 }
                 detailHost(.cards, isActive: selection == .cards) {
-                    CardsHostView(embedded: selection != .cards)
+                    CardsHostView(
+                        embedded: selection != .cards,
+                        onFullPageChange: { cardsFullPageActive = $0 }
+                    )
                 }
                 detailHost(.notes, isActive: selection == .notes) {
                     NotesHostView(embedded: selection != .notes)
@@ -335,9 +312,10 @@ struct MacSidebarRoot: View {
                                 NotificationCenter.default.post(
                                     name: NudgeCommands.expandTaskNotification, object: assignment
                                 )
-                            }
+                            },
+                            onClose: { taskPopoverAssignment = nil }
                         )
-                        .frame(width: 680, height: 640)
+                        .frame(width: 920, height: 600)
                     }
                 } else if quickAddVisible {
                     NudgeModalOverlay(onDismiss: { quickAddVisible = false }) {
@@ -395,9 +373,43 @@ struct MacSidebarRoot: View {
             || moveToDateAssignment != nil
     }
 
-    /// Per-tab toolbar items. Declared once at the NavigationSplitView
-    /// level — never remounted across tab switches, so NSToolbar's
-    /// identity cache can't break the push-to-trailing layout for Daily.
+    /// 自畫 sidebar row：Button 設 selection + listRowBackground 主色選中底。
+    @ViewBuilder
+    private func sidebarRow(
+        _ item: SidebarItem,
+        _ titleKey: LocalizedStringKey,
+        _ icon: String
+    ) -> some View {
+        let isSel = selection == item
+        Button {
+            selection = item
+        } label: {
+            Label {
+                Text(titleKey, bundle: .module)
+            } icon: {
+                Image(systemName: icon)
+            }
+            .foregroundStyle(Color.nudgeForeground) // 選中字維持原色，只靠淡底表示選中
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 2)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .listRowBackground(
+            Group {
+                if isSel {
+                    // 左右內縮 + 圓角 pill，對齊原生 sidebar 選中外觀（不貼邊）。
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(Color.nudgePrimary.opacity(0.18)) // 淡底，不搶主畫面
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 1)
+                } else {
+                    Color.clear
+                }
+            }
+        )
+    }
+
     @ToolbarContentBuilder
     private var rootToolbar: some ToolbarContent {
         // Modal (custom overlay) 開啟時清空 toolbar — NSToolbar 在 AppKit
@@ -522,13 +534,36 @@ struct MacSidebarRoot: View {
 
     @ToolbarContentBuilder
     private var cardsToolbar: some ToolbarContent {
-        ToolbarItem(placement: .primaryAction) {
-            Button {
-                NotificationCenter.default.post(name: NudgeCommands.createCardNotification, object: nil)
-            } label: {
-                Image(systemName: "plus")
+        if cardsFullPageActive {
+            // 全頁編輯時：「+」換成返回鈕（leading）；同排（trailing）放
+            // 「標籤 / 重複」功能鈕，點了 post notification → CardDetailView 開 sheet。
+            ToolbarItem(placement: .navigation) {
+                Button {
+                    NotificationCenter.default.post(name: NudgeCommands.cardsBackNotification, object: nil)
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+                .help(Text("common.back", bundle: .module))
             }
-            .help(Text("cards.createAria", bundle: .module))
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    NotificationCenter.default.post(name: NudgeCommands.cardsManageTagsNotification, object: nil)
+                } label: {
+                    Image(systemName: "tag")
+                }
+                .help(Text("cardDetail.manageTags", bundle: .module))
+            }
+            // 「重複 / 排程」(repeat) 鈕移除 —— 卡片詳情只保留 tag 入口；
+            // 重複 / 提醒改由行動頁任務列的 … 選單管理（卡片本身不需排程）。
+        } else {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    NotificationCenter.default.post(name: NudgeCommands.createCardNotification, object: nil)
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .help(Text("cards.createAria", bundle: .module))
+            }
         }
     }
 

@@ -11,8 +11,8 @@ public final class WidgetSnapshotStore: Sendable {
               let data = try? Data(contentsOf: url) else {
             return nil
         }
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
+        // 「有/無小數秒都吃」—— 見 NudgeISO8601（裸 .iso8601 在舊 OS 解不了毫秒）。
+        let decoder = NudgeISO8601.makeDecoder()
         return try? decoder.decode(WidgetSnapshot.self, from: data)
     }
 

@@ -1,5 +1,5 @@
-import { NotesFeedPage } from "@/components/notes/notes-feed-page";
+import { NotesSplit } from "@/components/notes/notes-split";
 
 export default function FeedPage() {
-  return <NotesFeedPage />;
+  return <NotesSplit mobileView="feed" />;
 }

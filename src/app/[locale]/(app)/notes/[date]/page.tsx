@@ -1,6 +1,6 @@
 import { redirect } from "@/i18n/routing";
 import { getToday } from "@/lib/today";
-import { NotesCanvas } from "@/components/notes/notes-canvas";
+import { NotesSplit } from "@/components/notes/notes-split";
 
 export default async function NotesDatePage({
   params,
@@ -18,5 +18,5 @@ export default async function NotesDatePage({
     redirect({ href: "/notes", locale });
   }
 
-  return <NotesCanvas date={date} isToday={false} />;
+  return <NotesSplit initialDate={date} mobileView="canvas" />;
 }

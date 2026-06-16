@@ -3,57 +3,91 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
-import { Search, List, LayoutGrid, Plus, Eraser } from "lucide-react";
+import { Search, Plus } from "lucide-react";
+import useSWR, { mutate as globalMutate } from "swr";
 import { useCardsFeed } from "@/hooks/use-cards-feed";
 import { useTags } from "@/hooks/use-tags";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
-import { CardListItem } from "./card-list-item";
 import { CardGridItem } from "./card-grid-item";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { TaskDetailModal } from "@/components/task/task-detail-modal";
+import { fetcher } from "@/lib/fetcher";
+import type { Task } from "@/lib/types";
+import type { TaskStatus } from "@/lib/constants";
 
-type View = "list" | "grid";
-const VIEW_STORAGE_KEY = "nudge:cards-view";
+// ── Card Modal wrapper — fetches full card and renders TaskDetailModal ─────────
+interface CardModalProps {
+  cardId: string;
+  onClose: () => void;
+  onExpand: (id: string) => void;
+}
 
+interface CardWithTags extends Task {
+  tags?: Array<{ id: string; name: string; color: string }>;
+}
+
+function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
+  const { data, mutate } = useSWR<CardWithTags>(
+    `/api/tasks/${cardId}`,
+    fetcher
+  );
+
+  const patch = useCallback(
+    async (updates: Partial<{ title: string; description: string }>) => {
+      await fetch(`/api/tasks/${cardId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      // Refresh the modal data
+      mutate();
+      // Invalidate the cards grid so the preview updates
+      globalMutate(
+        (key) => typeof key === "string" && key.startsWith("/api/cards"),
+        undefined,
+        { revalidate: true }
+      );
+    },
+    [cardId, mutate]
+  );
+
+  if (!data) return null;
+
+  return (
+    <TaskDetailModal
+      task={data}
+      open={true}
+      onClose={onClose}
+      onTitleChange={(title) => patch({ title })}
+      onDescChange={(html) => patch({ description: html })}
+      onStatusChange={(_status: TaskStatus) => {
+        /* status change not supported for cards in this modal */
+      }}
+      wide
+      onExpand={() => onExpand(cardId)}
+    />
+  );
+}
+
+// ── Main feed component ────────────────────────────────────────────────────────
 export function CardsFeed() {
   const t = useTranslations("cards");
-  const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
   const router = useRouter();
-  const [view, setView] = useState<View>("grid");
 
-  // localStorage 讀取偏好（client only）
-  useEffect(() => {
-    const stored = localStorage.getItem(VIEW_STORAGE_KEY) as View | null;
-    if (stored === "list" || stored === "grid") setView(stored);
-  }, []);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const { tags: allTags } = useTags();
   const [isCreating, setIsCreating] = useState(false);
-  const [isCleaning, setIsCleaning] = useState(false);
-  const [confirmCleanOpen, setConfirmCleanOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-
-  const handleViewChange = (next: View) => {
-    setView(next);
-    try {
-      localStorage.setItem(VIEW_STORAGE_KEY, next);
-    } catch {}
-  };
+  const [modalCardId, setModalCardId] = useState<string | null>(null);
 
   // debounce 搜尋
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedQuery(query), 300);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(timer);
   }, [query]);
 
-  const { cards, isLoading, isLoadingMore, hasMore, loadMore, mutate } =
+  const { cards, isLoading, isLoadingMore, hasMore, loadMore } =
     useCardsFeed(debouncedQuery, selectedTagIds);
 
   const toggleTagFilter = (tagId: string) => {
@@ -78,37 +112,12 @@ export function CardsFeed() {
       });
       if (!res.ok) throw new Error("create failed");
       const task = await res.json();
+      // New card: go directly to full-page editor (better UX for an empty card)
       router.push(`/cards/${task.id}`);
     } finally {
       setIsCreating(false);
     }
   };
-
-  // 確認後實際執行刪除
-  const confirmCleanUntitled = async () => {
-    if (isCleaning) return;
-    setIsCleaning(true);
-    try {
-      const res = await fetch("/api/cards/untitled", { method: "DELETE" });
-      const { deleted } = await res.json();
-      if (deleted > 0) mutate();
-      setConfirmCleanOpen(false);
-      setToast(
-        deleted > 0
-          ? t("toastCleaned", { count: deleted })
-          : t("toastNothingToClean")
-      );
-    } finally {
-      setIsCleaning(false);
-    }
-  };
-
-  // toast 自動消失
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), 2500);
-    return () => clearTimeout(t);
-  }, [toast]);
 
   const handleLoadMore = useCallback(() => {
     if (!isLoadingMore && hasMore) loadMore();
@@ -116,181 +125,122 @@ export function CardsFeed() {
 
   const sentinelRef = useIntersectionObserver(handleLoadMore, hasMore);
 
+  // Filtering mode: any active query or tag selection → search results, no pagination footer
+  const isFiltering = debouncedQuery.length > 0 || selectedTagIds.length > 0;
+
   return (
-    <div className="mx-auto max-w-3xl px-4 md:px-6 py-6">
-      {/* 標題 + 工具列 */}
-      <div className="flex items-center justify-between mb-4 gap-2">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-foreground">{tNav("cards")}</h1>
-          {/* 新增卡片 — 緊鄰標題 */}
+    <div className="mx-auto max-w-3xl px-4 md:px-6 py-6 flex flex-col min-h-0">
+      {/* Search + create button row */}
+      <div className="mb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim pointer-events-none" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t("searchPlaceholder")}
+              className="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+              aria-label={t("searchAria")}
+            />
+          </div>
+          {/* 新增卡片 */}
           <button
             onClick={handleCreate}
             disabled={isCreating}
             aria-label={t("createAria")}
             title={t("createAria")}
-            className="flex items-center justify-center h-8 w-8 rounded-lg text-primary hover:bg-primary/10 disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center h-9 w-9 rounded-lg text-primary hover:bg-primary/10 disabled:opacity-50 transition-colors shrink-0"
           >
             <Plus className="h-5 w-5" />
           </button>
         </div>
-        <div className="flex items-center gap-2">
-          {/* 清除空白的卡片 */}
-          <button
-            onClick={() => setConfirmCleanOpen(true)}
-            disabled={isCleaning}
-            aria-label={t("cleanUntitledAria")}
-            title={t("cleanUntitledAria")}
-            className="p-2 rounded-lg text-text-dim hover:text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
-          >
-            <Eraser className="h-4 w-4" />
-          </button>
 
-          {/* View 切換 */}
-          <div className="flex items-center gap-1 border border-border rounded-lg p-1" suppressHydrationWarning>
-            <button
-              suppressHydrationWarning
-              onClick={() => handleViewChange("list")}
-              aria-label={t("viewListAria")}
-              aria-pressed={view === "list"}
-              className={`p-1.5 rounded transition-colors ${
-                view === "list"
-                  ? "bg-muted text-foreground"
-                  : "text-text-dim hover:text-foreground"
-              }`}
-            >
-              <List className="h-4 w-4" />
-            </button>
-            <button
-              suppressHydrationWarning
-              onClick={() => handleViewChange("grid")}
-              aria-label={t("viewGridAria")}
-              aria-pressed={view === "grid"}
-              className={`p-1.5 rounded transition-colors ${
-                view === "grid"
-                  ? "bg-muted text-foreground"
-                  : "text-text-dim hover:text-foreground"
-              }`}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 搜尋框 */}
-      <div className="relative mb-3">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim pointer-events-none" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t("searchPlaceholder")}
-          className="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
-          aria-label={t("searchAria")}
-        />
-      </div>
-
-      {/* Tag filter chip cloud — AND semantics */}
-      {allTags.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          {allTags.map((tag) => {
-            const active = selectedTagIds.includes(tag.id);
-            return (
+        {/* Tag filter chip cloud — AND semantics */}
+        {allTags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            {allTags.map((tag) => {
+              const active = selectedTagIds.includes(tag.id);
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => toggleTagFilter(tag.id)}
+                  aria-pressed={active}
+                  className={
+                    active
+                      ? "text-xs px-2.5 py-1 rounded-full bg-primary text-primary-foreground border border-primary transition-colors"
+                      : "text-xs px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted transition-colors"
+                  }
+                >
+                  {tag.name}
+                </button>
+              );
+            })}
+            {selectedTagIds.length > 0 && (
               <button
-                key={tag.id}
                 type="button"
-                onClick={() => toggleTagFilter(tag.id)}
-                aria-pressed={active}
-                className={
-                  active
-                    ? "text-xs px-2.5 py-1 rounded-full bg-primary text-primary-foreground border border-primary transition-colors"
-                    : "text-xs px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted transition-colors"
-                }
+                onClick={() => setSelectedTagIds([])}
+                className="text-xs text-text-dim hover:text-foreground transition-colors px-2 py-1"
               >
-                {tag.name}
+                {tCommon("cancel")}
               </button>
-            );
-          })}
-          {selectedTagIds.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setSelectedTagIds([])}
-              className="text-xs text-text-dim hover:text-foreground transition-colors px-2 py-1"
-            >
-              {tCommon("cancel")}
-            </button>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
+      </div>
 
-      {/* 卡片內容 */}
+      {/* 卡片內容 — flex-1 so empty states can fill remaining space */}
       {isLoading && cards.length === 0 ? (
-        <p className="text-sm text-text-dim text-center py-8">{tCommon("loading")}</p>
+        <div className="flex-1 flex items-center justify-center py-16">
+          <p className="text-sm text-text-dim">{tCommon("loading")}</p>
+        </div>
       ) : cards.length === 0 ? (
-        <p className="text-sm text-text-dim text-center py-8">
-          {debouncedQuery ? t("emptyWithQuery") : t("emptyNoCards")}
-        </p>
-      ) : view === "list" ? (
-        <div className="divide-y divide-border">
-          {cards.map((c) => (
-            <CardListItem key={c.id} card={c} />
-          ))}
+        <div className="flex-1 flex flex-col items-center justify-center py-16 gap-2">
+          {isFiltering ? (
+            <>
+              <Search className="h-6 w-6 text-text-dim" />
+              <p className="text-empty-state text-text-dim">{t("emptyWithQuery")}</p>
+            </>
+          ) : (
+            <p className="text-empty-state text-text-dim">{t("emptyNoCards")}</p>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {cards.map((c) => (
-            <CardGridItem key={c.id} card={c} />
+            <div key={c.id} className="h-full">
+              <CardGridItem
+                card={c}
+                onOpenInline={(id) => setModalCardId(id)}
+              />
+            </div>
           ))}
         </div>
       )}
 
-      {/* 無限捲動觸發器 */}
-      <div ref={sentinelRef} className="py-4 text-center">
-        {isLoadingMore && (
-          <p className="text-sm text-text-dim">{t("loadMore")}</p>
-        )}
-        {!hasMore && cards.length > 0 && (
-          <p className="text-sm text-text-faint">{t("noMore")}</p>
-        )}
-      </div>
-
-      {/* 刪除確認 Dialog */}
-      <Dialog open={confirmCleanOpen} onOpenChange={setConfirmCleanOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogTitle className="text-base font-semibold">
-            {t("cleanDialogTitle")}
-          </DialogTitle>
-          <DialogDescription className="text-sm text-text-dim">
-            {t("cleanDialogBody")}
-          </DialogDescription>
-          <div className="flex justify-end gap-2 mt-4">
-            <button
-              onClick={() => setConfirmCleanOpen(false)}
-              disabled={isCleaning}
-              className="px-3 py-1.5 text-sm rounded-lg border border-border text-text-dim hover:text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
-            >
-              {tCommon("cancel")}
-            </button>
-            <button
-              onClick={confirmCleanUntitled}
-              disabled={isCleaning}
-              className="px-3 py-1.5 text-sm rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 disabled:opacity-50 transition-colors"
-            >
-              {isCleaning ? t("cleanLoading") : t("cleanConfirmButton")}
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Toast */}
-      {toast && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-popover text-popover-foreground text-sm shadow-lg ring-1 ring-foreground/10 animate-in fade-in slide-in-from-bottom-2 duration-200"
-        >
-          {toast}
+      {/* 無限捲動觸發器 — hidden while filtering (search is page-one only) */}
+      {!isFiltering && (
+        <div ref={sentinelRef} className="py-4 text-center">
+          {isLoadingMore && (
+            <p className="text-sm text-text-dim">{t("loadMore")}</p>
+          )}
+          {!hasMore && cards.length > 0 && (
+            <p className="text-sm text-text-faint">{t("noMore")}</p>
+          )}
         </div>
+      )}
+
+      {/* Card quick-view modal */}
+      {modalCardId && (
+        <CardModal
+          cardId={modalCardId}
+          onClose={() => setModalCardId(null)}
+          onExpand={(id) => {
+            setModalCardId(null);
+            router.push(`/cards/${id}`);
+          }}
+        />
       )}
     </div>
   );

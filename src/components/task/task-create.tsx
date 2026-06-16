@@ -5,9 +5,10 @@ import { useTranslations } from "next-intl";
 
 interface TaskCreateProps {
   onSubmit: (title: string) => void;
+  onClose?: () => void;
 }
 
-export function TaskCreate({ onSubmit }: TaskCreateProps) {
+export function TaskCreate({ onSubmit, onClose }: TaskCreateProps) {
   const t = useTranslations("task");
   const [title, setTitle] = useState("");
 
@@ -19,6 +20,12 @@ export function TaskCreate({ onSubmit }: TaskCreateProps) {
     setTitle("");
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      onClose?.();
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="pl-7">
       <input
@@ -26,6 +33,8 @@ export function TaskCreate({ onSubmit }: TaskCreateProps) {
         aria-label={t("createPlaceholder")}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        onKeyDown={handleKeyDown}
+        autoFocus
         className="w-full bg-transparent py-2 text-sm text-foreground placeholder-text-faint outline-none border-b border-border focus:border-primary transition-colors"
       />
     </form>
