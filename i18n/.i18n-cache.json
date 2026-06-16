@@ -300,7 +300,10 @@
     "weekday.sun": "85217f7aff77841438439fb3e7cf37bb3062fb026453c7692247d3a5641a0115",
     "notifications.content.summary": "8d124959f1ea9f948815e7afde6b746cb89c3ecb30418c2753fcc9ba91065f5b",
     "notifications.content.incomplete": "3aedd4d4f0c9b93a855d520530e70f1d7721655e995cac1b2430471a71734b53",
-    "notifications.content.summaryStreak": "e8317c137f767b22b2b780864308abf38e9905e63052740fd0c3408db3d5c385"
+    "notifications.content.summaryStreak": "e8317c137f767b22b2b780864308abf38e9905e63052740fd0c3408db3d5c385",
+    "update.required.title": "1457baf63e1a7db0c7802d307568c3d79f45606fc76a9c0e5c0223df5f88f562",
+    "update.required.body": "f28ce03d0dfe5d1ecaa00f52668df95e2f563e84c47646dc1b31ce8ab0216ed5",
+    "update.required.button": "12487befb4ba483cb88a4d7fbd6bd910d5cdb9ab1d6e587b5c63d1bd9264d46d"
   },
   "locked": {}
 }

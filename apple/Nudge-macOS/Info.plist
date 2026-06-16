@@ -45,5 +45,13 @@
 	<string>465373997523-a8lvq0359tapo93h77nka2820ip84ot2.apps.googleusercontent.com</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://nudge.tw/downloads/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>iubo9IzG5UXmKrO9PQt7Hl8AqPO5orMxIMJuOtWU7XM=</string>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 </dict>
 </plist>

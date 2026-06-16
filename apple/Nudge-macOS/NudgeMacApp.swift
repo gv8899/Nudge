@@ -18,6 +18,7 @@ struct NudgeMacApp: App {
     @State private var recurrenceRepo: RecurrenceRepository
     @State private var notificationPrefsRepo: NotificationPreferencesRepository
     @State private var notificationRouter: NotificationRouter
+    @State private var appUpdater: AppUpdater
     private let reminderRepo: ReminderRepository
     /// Throttle for the foreground reminder re-sync. A Mac app often
     /// stays open for days, so we re-sync on `didBecomeActive` to catch
@@ -74,6 +75,7 @@ struct NudgeMacApp: App {
         self._recurrenceRepo = State(initialValue: recurrenceRepo)
         self._notificationPrefsRepo = State(initialValue: notificationPrefsRepo)
         self._notificationRouter = State(initialValue: router)
+        self._appUpdater = State(initialValue: AppUpdater(client: client))
         self.reminderRepo = ReminderRepository(client: client)
         self.container = container
         self.googleSignIn = GoogleSignInServiceMacOS.fromInfoPlist()
@@ -99,6 +101,14 @@ struct NudgeMacApp: App {
                 .task {
                     await auth.restoreSession()
                     await syncReminders(force: true)
+                    // 版本硬閘：自身 build 低於後端 minMacBuild → 蓋強制更新擋板。
+                    await appUpdater.refreshForcedUpdate()
+                }
+                // 強制更新擋板蓋在最上層（含登入畫面），更新前無法使用。
+                .overlay {
+                    if appUpdater.forcedUpdateRequired {
+                        ForcedUpdateOverlay(onUpdate: { appUpdater.checkForUpdates() })
+                    }
                 }
                 // Re-sync when the Mac app returns to the foreground —
                 // catches reminders set on another device while this app
@@ -125,6 +135,9 @@ struct NudgeMacApp: App {
                 }
                 .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.zoomResetNotification)) { _ in
                     fontScale = 1.0
+                }
+                .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.checkForUpdatesNotification)) { _ in
+                    appUpdater.checkForUpdates()
                 }
             }
         }
