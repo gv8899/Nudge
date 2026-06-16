@@ -2,7 +2,7 @@
 export function MockupNotes() {
   return (
     <div
-      className="pointer-events-none select-none rounded-2xl border border-border bg-background overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6)]"
+      className="pointer-events-none select-none rounded-2xl border border-border bg-[var(--surface)] overflow-hidden shadow-[0_24px_60px_-20px_rgba(28,27,24,0.18)]"
       aria-hidden="true"
     >
       <div className="p-8">
@@ -73,7 +73,7 @@ function NoteEntry({
 
       {/* header */}
       <header className="flex items-center gap-3 mb-3">
-        <span className="text-[2.25rem] font-black text-primary tabular-nums leading-none tracking-tight">
+        <span className="text-[2.25rem] font-semibold text-primary tabular-nums leading-none tracking-tight">
           {dayNum}
         </span>
         <div className="self-stretch w-px bg-primary/25 my-1" />

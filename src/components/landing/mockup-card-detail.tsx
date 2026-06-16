@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 export function MockupCardDetail() {
   return (
     <div
-      className="pointer-events-none select-none rounded-2xl border border-border bg-background overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6)]"
+      className="pointer-events-none select-none rounded-2xl border border-border bg-[var(--surface)] overflow-hidden shadow-[0_24px_60px_-20px_rgba(28,27,24,0.18)]"
       aria-hidden="true"
     >
       <div className="p-8">
@@ -24,15 +24,8 @@ export function MockupCardDetail() {
             <span>·</span>
             <span>更新 2026/04/06</span>
             <span>·</span>
-            <span
-              className="px-1.5 py-0.5 rounded border text-[10px]"
-              style={{
-                color: "#c89968",
-                borderColor: "#c89968",
-                backgroundColor: "rgba(200,153,104,0.1)",
-              }}
-            >
-              處理中
+            <span className="px-2 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary">
+              # 讀書
             </span>
           </div>
         </header>

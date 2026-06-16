@@ -4,7 +4,7 @@ import { CheckSquare, FileText, CalendarDays, GripVertical } from "lucide-react"
 export function MockupTasks() {
   return (
     <div
-      className="pointer-events-none select-none rounded-2xl border border-border bg-background overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6)]"
+      className="pointer-events-none select-none rounded-2xl border border-border bg-[var(--surface)] overflow-hidden shadow-[0_24px_60px_-20px_rgba(28,27,24,0.18)]"
       aria-hidden="true"
     >
       <div className="p-8">
@@ -28,16 +28,16 @@ export function MockupTasks() {
           <CheckSquare className="h-4 w-4" />
           <span className="font-medium">前幾天的 (2)</span>
         </div>
-        <TaskRow title="繳水電費" dateLabel="4/5" dotColor="#c89968" />
-        <TaskRow title="回覆客戶 Email" dateLabel="4/7" dotColor="#c89968" />
+        <TaskRow title="繳水電費" dateLabel="4/5" />
+        <TaskRow title="回覆客戶 Email" dateLabel="4/7" />
 
         <div className="h-2" />
 
         {/* 今天任務 */}
-        <TaskRow title="早晨運動" checked dotColor="#8aa57d" />
-        <TaskRow title="寫週報" dotColor="#c89968" />
-        <TaskRow title="準備簡報" dotColor="#a78aaf" />
-        <TaskRow title="閱讀 1 章" dotColor="#7a8b9c" />
+        <TaskRow title="早晨運動" checked />
+        <TaskRow title="寫週報" />
+        <TaskRow title="準備簡報" />
+        <TaskRow title="閱讀 1 章" />
       </div>
     </div>
   );
@@ -47,12 +47,10 @@ function TaskRow({
   title,
   checked = false,
   dateLabel,
-  dotColor,
 }: {
   title: string;
   checked?: boolean;
   dateLabel?: string;
-  dotColor: string;
 }) {
   return (
     <div className="flex items-center gap-2 px-1 py-2 rounded-md">
@@ -88,10 +86,6 @@ function TaskRow({
       )}
       <FileText className="h-4 w-4 text-text-faint" />
       <CalendarDays className="h-4 w-4 text-text-faint" />
-      <span
-        className="h-3 w-3 rounded-full"
-        style={{ backgroundColor: dotColor }}
-      />
     </div>
   );
 }

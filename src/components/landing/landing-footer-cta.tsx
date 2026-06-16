@@ -1,32 +1,36 @@
-import { SignInForm } from "./sign-in-form";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Reveal } from "./reveal";
+import { DownloadButtons } from "./download-buttons";
 
-interface LandingFooterCtaProps {
-  signInAction: () => Promise<void>;
-}
-
-export function LandingFooterCta({ signInAction }: LandingFooterCtaProps) {
+export async function LandingFooterCta() {
+  const t = await getTranslations("landing");
   return (
-    <section
-      className="relative py-32 md:py-40 px-6 md:px-12 border-t border-border bg-gradient-to-b from-background to-black"
-    >
-      <div className="max-w-4xl mx-auto text-center">
-        <div className="text-xs font-bold tracking-[0.25em] text-primary mb-6">
-          Nudge
-        </div>
-        <h2 className="text-5xl md:text-6xl font-black leading-[1.05] tracking-[-0.03em] mb-10 text-foreground">
-          從今天
-          <br />
-          開始輕鬆推進
+    <section className="px-6 md:px-12 py-32 md:py-44 border-t border-border bg-[var(--surface-alt)]">
+      <Reveal className="max-w-3xl mx-auto text-center">
+        <p className="text-sm font-semibold text-primary mb-4">Nudge</p>
+        <h2 className="text-4xl md:text-6xl font-semibold leading-[1.1] tracking-[-0.02em] text-foreground mb-9 whitespace-pre-line">
+          {t("finalCta.title")}
         </h2>
-        <SignInForm action={signInAction} variant="solid" />
-      </div>
+        <DownloadButtons className="justify-center" />
+        <p className="mt-4 text-xs text-muted-foreground">
+          {t("hero.platformNote")}
+        </p>
+      </Reveal>
 
-      <footer className="max-w-4xl mx-auto mt-24 pt-8 border-t border-foreground/10 text-xs text-text-dim text-center flex items-center justify-center gap-4">
+      <footer className="max-w-3xl mx-auto mt-24 pt-8 border-t border-border text-xs text-muted-foreground text-center flex items-center justify-center gap-4">
         <span>© 2026 Nudge</span>
-        <span className="text-foreground/20" aria-hidden="true">·</span>
-        <a href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</a>
-        <span className="text-foreground/20" aria-hidden="true">·</span>
-        <a href="/terms" className="hover:text-foreground transition-colors">Terms of Service</a>
+        <span aria-hidden="true">·</span>
+        <Link
+          href="/privacy"
+          className="hover:text-foreground transition-colors"
+        >
+          {t("footer.privacy")}
+        </Link>
+        <span aria-hidden="true">·</span>
+        <Link href="/terms" className="hover:text-foreground transition-colors">
+          {t("footer.terms")}
+        </Link>
       </footer>
     </section>
   );

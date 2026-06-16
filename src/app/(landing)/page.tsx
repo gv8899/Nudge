@@ -1,4 +1,4 @@
-import { auth, signIn } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getToday } from "@/lib/today";
 import { LandingPage } from "@/components/landing/landing-page";
@@ -10,10 +10,5 @@ export default async function Home() {
     redirect(`/zh-TW/day/${today}`);
   }
 
-  async function handleSignIn() {
-    "use server";
-    await signIn("google", { redirectTo: "/" });
-  }
-
-  return <LandingPage signInAction={handleSignIn} />;
+  return <LandingPage />;
 }

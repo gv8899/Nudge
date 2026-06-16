@@ -269,6 +269,93 @@
     "prevMonthAria": "Previous month",
     "nextMonthAria": "Next month"
   },
+  "landing": {
+    "nav": {
+      "aria": "Main navigation",
+      "features": "Features",
+      "philosophy": "Philosophy"
+    },
+    "download": {
+      "mac": "Download for Mac",
+      "ios": "iPhone · App Store"
+    },
+    "hero": {
+      "title": "Your whole workday,\non a single screen",
+      "subtitle": "A Mac app built for office work. Tasks, calendar and knowledge cards — all on one screen, so you stop juggling a dozen tools.",
+      "platformNote": "Built for Mac, synced to iPhone and iPad."
+    },
+    "philosophy": {
+      "quote": "A tool should wait for you,\nnot chase you.",
+      "attribution": "— The Nudge philosophy"
+    },
+    "tasks": {
+      "eyebrow": "Daily tasks",
+      "title": "Focus only on\nwhat matters today",
+      "subtitle": "Open it and today’s list is right there. Unfinished work carries over — no re-planning every morning.",
+      "points": {
+        "continue": {
+          "title": "Carries over",
+          "desc": "Unfinished tasks don’t vanish — they’re back at the top the next day, or move to another day (or archive) in one tap."
+        },
+        "recurrence": {
+          "title": "Recurring tasks",
+          "desc": "Daily, weekly or monthly routines — set once and they schedule themselves."
+        },
+        "push": {
+          "title": "Custom reminders",
+          "desc": "Set a reminder time on what matters and get a push when it’s due — so you don’t have to keep it in your head."
+        }
+      }
+    },
+    "cards": {
+      "eyebrow": "Cards",
+      "title": "Keep your knowledge\nin order",
+      "subtitle": "Meeting decisions, takeaways and reading notes all become cards, with Markdown support. Sort by tags, browse as list or grid — findable no matter how much piles up."
+    },
+    "calendar": {
+      "eyebrow": "Calendar",
+      "title": "Day, week, month —\nsee the whole rhythm",
+      "subtitle": "Switch between three views in one tap to read how full each day is. Calendar integrated, so you join a meeting’s video call in one tap — no app-switching."
+    },
+    "notes": {
+      "eyebrow": "Journal",
+      "title": "Jot it down,\nand keep every day",
+      "subtitle": "Fleeting thoughts and what happened today, captured on the fly. Look back later and the past is right there."
+    },
+    "platforms": {
+      "eyebrow": "Cross-platform",
+      "title": "Plan on the desktop,\ncarry it on your phone",
+      "subtitle": "Mac, iPhone and iPad sync in real time. Home and lock-screen widgets show today’s list at a glance, and quick-add without opening the app."
+    },
+    "highlights": {
+      "title": "And more",
+      "items": {
+        "search": {
+          "title": "Full-text search",
+          "desc": "Search across tasks and cards — whatever you need, right at hand."
+        },
+        "offline": {
+          "title": "Works offline",
+          "desc": "View and edit without a connection; it syncs the moment you’re back online."
+        },
+        "markdown": {
+          "title": "Markdown",
+          "desc": "Cards and notes support Markdown for clean, readable formatting."
+        },
+        "week": {
+          "title": "Week view",
+          "desc": "A week of progress as dots — see how full it is at a glance."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Let work\nmove forward, lightly"
+    },
+    "footer": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    }
+  },
   "schedule": {
     "recurrenceTitle": "Repeat",
     "preset": {

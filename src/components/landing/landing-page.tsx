@@ -1,24 +1,27 @@
 import { LandingNav } from "./landing-nav";
 import { LandingHero } from "./landing-hero";
-import { LandingFeatures } from "./landing-features";
 import { LandingPhilosophy } from "./landing-philosophy";
+import { LandingFeatureTasks } from "./landing-feature-tasks";
+import { LandingFeatureCards } from "./landing-feature-cards";
+import { LandingFeatureCalendar } from "./landing-feature-calendar";
+import { LandingFeatureNotes } from "./landing-feature-notes";
+import { LandingPlatforms } from "./landing-platforms";
+import { LandingHighlights } from "./landing-highlights";
 import { LandingFooterCta } from "./landing-footer-cta";
 
-interface LandingPageProps {
-  signInAction: () => Promise<void>;
-}
-
-export function LandingPage({ signInAction }: LandingPageProps) {
+export function LandingPage() {
   return (
-    <div
-      data-landing
-      className="dark min-h-screen bg-background text-foreground"
-    >
+    <div data-landing className="min-h-screen bg-background text-foreground">
       <LandingNav />
-      <LandingHero signInAction={signInAction} />
-      <LandingFeatures />
+      <LandingHero />
       <LandingPhilosophy />
-      <LandingFooterCta signInAction={signInAction} />
+      <LandingFeatureTasks />
+      <LandingFeatureCards />
+      <LandingFeatureCalendar />
+      <LandingFeatureNotes />
+      <LandingPlatforms />
+      <LandingHighlights />
+      <LandingFooterCta />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Terms of Service — Nudge",
@@ -143,9 +144,9 @@ export default function TermsOfServicePage() {
         </h2>
         <p>
           Your privacy is important to us. Please review our{" "}
-          <a href="/privacy" className="text-primary underline">
+          <Link href="/privacy" className="text-primary underline">
             Privacy Policy
-          </a>{" "}
+          </Link>{" "}
           to understand what information we collect and how we use it.
         </p>
       </section>
