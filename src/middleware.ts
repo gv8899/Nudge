@@ -5,7 +5,8 @@ export default createMiddleware(routing);
 
 export const config = {
   // 匹配所有需要 locale prefix 的路徑，但排除：
-  // - / 根路徑、/privacy、/terms（landing group，不需要 locale prefix）
+  // - /privacy、/terms（英文法務頁，locale-independent，留在 (landing) group）
   // - /api, /_next, /_vercel, 含副檔名的檔案
-  matcher: ['/((?!api|_next|_vercel|privacy|terms|$|.*\\..*).*)'],
+  // 註：/ 與 /download 交給 next-intl 處理 → 自動補 locale（/ → /zh-TW）。
+  matcher: ['/((?!api|_next|_vercel|privacy|terms|.*\\..*).*)'],
 };

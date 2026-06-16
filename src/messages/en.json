@@ -279,6 +279,24 @@
       "mac": "Download for Mac",
       "ios": "iPhone · App Store"
     },
+    "trial": "Free 7-day trial",
+    "downloadPage": {
+      "title": "Get started with Nudge",
+      "subtitle": "Download and try free for 7 days — no credit card.",
+      "mac": {
+        "name": "Nudge for Mac",
+        "desc": "The main event. Tasks, calendar and knowledge cards — all on one screen.",
+        "requirement": "macOS 13 or later",
+        "cta": "Download for Mac (.dmg)"
+      },
+      "ios": {
+        "name": "Nudge for iPhone & iPad",
+        "desc": "Synced on the go. Home and lock-screen widgets show today's list at a glance.",
+        "requirement": "iOS 16 or later",
+        "cta": "Download on the App Store"
+      },
+      "back": "← Back to home"
+    },
     "hero": {
       "title": "Your whole workday,\non a single screen",
       "subtitle": "A Mac app built for office work. Tasks, calendar and knowledge cards — all on one screen, so you stop juggling a dozen tools.",
