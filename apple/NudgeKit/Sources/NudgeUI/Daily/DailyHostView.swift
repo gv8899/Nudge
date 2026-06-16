@@ -1113,12 +1113,18 @@ public struct DailyHostView: View {
     /// 存檔都會 post cardsChanged，若當下就重抓，re-render churn 會把開啟中的
     /// 編輯器打掉重建並 reseed 舊內容，過時 instance 還會反手蓋回舊值。
     private func refreshAfterCardChange() {
-        if dashboardCardDetailCard != nil {
-            dashboardReloadPendingDuringDetail = true
-            return
-        }
         Task {
-            await reloadDashboardCards()
+            // 卡片清單(dashboardRecentCards)重抓「只在右欄卡片詳情沒開時」做 ——
+            // 重抓會讓卡片欄 re-render、把開著的編輯器打掉重建（見編輯器存檔修法）。
+            // 詳情開著時記旗標，關閉時補抓。
+            if dashboardCardDetailCard == nil {
+                await reloadDashboardCards()
+            } else {
+                dashboardReloadPendingDuringDetail = true
+            }
+            // 行動清單(daily) 一律重抓 —— 它餵左欄 task row，跟右欄編輯器無關
+            // （editor 綁 dashboardCardDetailCard/dashboardRecentCards，不綁 dailyData），
+            // 重抓不會干擾編輯器；但「別處改任務標題」要靠它同步左欄 row（#4 修正）。
             await reloadSilently()
         }
     }
