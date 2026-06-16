@@ -279,6 +279,24 @@
       "mac": "Mac版をダウンロード",
       "ios": "iPhone版 · App Store"
     },
+    "trial": "7日間無料トライアル",
+    "downloadPage": {
+      "title": "Nudge をはじめる",
+      "subtitle": "ダウンロードして7日間無料でお試し。クレジットカード不要。",
+      "mac": {
+        "name": "Nudge for Mac",
+        "desc": "本命。タスク管理、カレンダー、ナレッジカードがすべて一画面に。",
+        "requirement": "macOS 13 以降",
+        "cta": "Mac版をダウンロード（.dmg）"
+      },
+      "ios": {
+        "name": "Nudge for iPhone・iPad",
+        "desc": "どこでも同期。ホームとロック画面のウィジェットで今日のリストをひと目で。",
+        "requirement": "iOS 16 以降",
+        "cta": "App Store でダウンロード"
+      },
+      "back": "← ホームに戻る"
+    },
     "hero": {
       "title": "働く一日が、\n一つの画面で完結",
       "subtitle": "オフィスワークのために作った Mac アプリ。タスク管理、カレンダー、ナレッジカードがすべて一画面に — いくつものツールを行き来する必要はもうありません。",

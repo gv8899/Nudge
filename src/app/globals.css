@@ -708,3 +708,18 @@
     transition: none;
   }
 }
+
+/* Hero「桌布 stage」：暖米底 + 柔和彩色光暈（Heptabase 風），
+   讓深色 app 視窗浮在上面。裝飾性漸層色集中在這裡，不散落 inline。 */
+[data-landing] .landing-stage {
+  background:
+    radial-gradient(115% 120% at 12% 4%, #f7d9ad 0%, transparent 52%),
+    radial-gradient(110% 120% at 88% 8%, #ecc6d4 0%, transparent 48%),
+    radial-gradient(140% 140% at 50% 104%, #c9d0ec 0%, transparent 58%),
+    linear-gradient(135deg, #f4ead2 0%, #ecdbbe 100%);
+}
+/* app 視窗：drop-shadow 吃透明圓角（box-shadow 會漏出矩形角） */
+[data-landing] .landing-window {
+  filter: drop-shadow(0 28px 56px rgba(40, 32, 18, 0.32))
+    drop-shadow(0 6px 16px rgba(40, 32, 18, 0.18));
+}

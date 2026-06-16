@@ -279,6 +279,24 @@
       "mac": "下載 Mac 版",
       "ios": "iPhone 版 · App Store"
     },
+    "trial": "免費試用 7 天",
+    "downloadPage": {
+      "title": "開始使用 Nudge",
+      "subtitle": "下載即可免費試用 7 天，免信用卡。",
+      "mac": {
+        "name": "Nudge for Mac",
+        "desc": "主力之選。任務安排、行事曆、知識卡片，一個畫面全包。",
+        "requirement": "macOS 13 或以上",
+        "cta": "下載 Mac 版（.dmg）"
+      },
+      "ios": {
+        "name": "Nudge for iPhone・iPad",
+        "desc": "隨身同步。桌面與鎖屏 widget 一眼看今日清單。",
+        "requirement": "iOS 16 或以上",
+        "cta": "App Store 下載"
+      },
+      "back": "← 回首頁"
+    },
     "hero": {
       "title": "上班族的一天，\n一個畫面就夠",
       "subtitle": "為辦公室工作打造的 Mac app。任務安排、行事曆、知識卡片，全在同一個畫面 — 不用再開一堆工具切來切去。",
