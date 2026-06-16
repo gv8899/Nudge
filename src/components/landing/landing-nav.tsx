@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { DownloadButtons } from "./download-buttons";
+import { LanguageSwitcher } from "./language-switcher";
 
 export function LandingNav() {
   const t = useTranslations("landing");
@@ -31,18 +31,21 @@ export function LandingNav() {
         >
           Nudge
         </a>
-        <div className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
-          <a href="#features" className="hover:text-foreground transition-colors">
+        <div className="flex items-center gap-7 text-sm text-muted-foreground">
+          <a
+            href="#features"
+            className="hidden md:inline hover:text-foreground transition-colors"
+          >
             {t("nav.features")}
           </a>
           <a
             href="#philosophy"
-            className="hover:text-foreground transition-colors"
+            className="hidden md:inline hover:text-foreground transition-colors"
           >
             {t("nav.philosophy")}
           </a>
+          <LanguageSwitcher />
         </div>
-        <DownloadButtons size="sm" />
       </div>
     </nav>
   );

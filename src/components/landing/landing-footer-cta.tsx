@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Reveal } from "./reveal";
-import { DownloadButtons } from "./download-buttons";
+import { TrialButton } from "./trial-button";
 
 export async function LandingFooterCta() {
   const t = await getTranslations("landing");
@@ -12,7 +12,7 @@ export async function LandingFooterCta() {
         <h2 className="text-4xl md:text-6xl font-semibold leading-[1.1] tracking-[-0.02em] text-foreground mb-9 whitespace-pre-line">
           {t("finalCta.title")}
         </h2>
-        <DownloadButtons className="justify-center" />
+        <TrialButton className="justify-center" />
         <p className="mt-4 text-xs text-muted-foreground">
           {t("hero.platformNote")}
         </p>
