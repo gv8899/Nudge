@@ -75,6 +75,17 @@ public final class APIClient: Sendable {
         let _: Empty = try await perform(request)
     }
 
+    /// 樂觀並行 PATCH：把 409 Conflict 當正常結果回傳（而非 throw），並一併
+    /// 解出 server 回的最新版 body。200 → `.ok(latest)`；409 → `.conflict(latest)`。
+    /// 給卡片 title/description 存檔的版本檢查用。
+    public func patchOrConflict<Body: Encodable, Response: Decodable>(
+        _ path: String,
+        body: Body
+    ) async throws -> SaveOutcome<Response> {
+        let request = try buildRequest(method: "PATCH", path: path, body: body)
+        return try await performAllowingConflict(request)
+    }
+
     public func putVoid<Body: Encodable>(
         _ path: String,
         body: Body
@@ -207,9 +218,57 @@ public final class APIClient: Sendable {
         }
     }
 
+    /// perform 的變體：200..<300 → `.ok`，409 → `.conflict`（兩者都解 body），
+    /// 其餘 status 與 perform 相同處理（401 走 unauthorized handler、其他 throw）。
+    private func performAllowingConflict<Response: Decodable>(
+        _ request: URLRequest
+    ) async throws -> SaveOutcome<Response> {
+        let urlString = request.url?.absoluteString ?? "<nil>"
+        let (data, urlResponse): (Data, URLResponse)
+        do {
+            (data, urlResponse) = try await session.data(for: request)
+        } catch {
+            print("[APIClient] \(request.httpMethod ?? "?") \(urlString) network error: \(error.localizedDescription)")
+            throw APIError.network(underlying: error)
+        }
+        guard let httpResponse = urlResponse as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        print("[APIClient] \(request.httpMethod ?? "?") \(urlString) -> \(httpResponse.statusCode) (\(data.count) bytes)")
+        switch httpResponse.statusCode {
+        case 200..<300:
+            return .ok(try decodeOrThrow(data))
+        case 409:
+            return .conflict(try decodeOrThrow(data))
+        case 401:
+            if let handler = currentUnauthorizedHandler() { await handler() }
+            throw APIError.unauthorized
+        default:
+            let message = (try? decoder.decode(ErrorPayload.self, from: data))?.error
+            throw APIError.server(statusCode: httpResponse.statusCode, message: message)
+        }
+    }
+
+    private func decodeOrThrow<Response: Decodable>(_ data: Data) throws -> Response {
+        do {
+            return try decoder.decode(Response.self, from: data)
+        } catch {
+            let body = String(data: data.prefix(300), encoding: .utf8) ?? "<binary>"
+            print("[APIClient] decode failed for \(Response.self): \(error)\n  body: \(body)")
+            throw APIError.decoding(underlying: error)
+        }
+    }
+
     private struct ErrorPayload: Decodable {
         let error: String?
     }
 
     struct Empty: Codable {}
+}
+
+/// 樂觀並行存檔結果：`.ok` = 存成功（帶 server 回的最新版）；`.conflict` =
+/// server 已被別台改新、這次被擋（帶 server 最新版供 client 採用）。
+public enum SaveOutcome<T: Sendable>: Sendable {
+    case ok(T)
+    case conflict(T)
 }

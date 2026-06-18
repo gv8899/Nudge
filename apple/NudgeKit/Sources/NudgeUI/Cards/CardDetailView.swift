@@ -30,6 +30,12 @@ public struct CardDetailView: View {
     // 別台新編輯」這條跨裝置資料覆蓋 bug）。
     @State private var hasEditedTitle = false
     @State private var hasEditedDescription = false
+    // 樂觀並行：跨裝置衝突（409）時，server 最新內容會透過 conflictResolved
+    // 廣播進來 → 套用最新 + 把 reloadToken++ 強制 RichTextEditor 重 mount 載入
+    // 新內文（編輯器 ready 後自己擁有內容，只能靠換 .id 重載）。
+    // suppressEditDetection 在套用遠端內容期間擋掉 onChange 的「使用者編輯」誤判。
+    @State private var reloadToken = 0
+    @State private var suppressEditDetection = false
     @State private var showTagPicker = false
     @State private var showRenameAlert = false
     @State private var showScheduleSheet = false
@@ -107,6 +113,8 @@ public struct CardDetailView: View {
         #endif
         .onAppear {
             pendingTitle = title
+            // seed 樂觀並行基準：目前畫面內容所基於的版本 = 這張卡的 updatedAt。
+            CardVersionStore.seed(cardId: initialCard.id, updatedAt: initialCard.updatedAt)
             // macOS 刻意不自動 focus 標題 —— 避免 sheet 開啟時系統把標題
             // 全選（使用者要「不全選」）。需要編輯時點一下標題即可。
             #if os(iOS)
@@ -114,6 +122,22 @@ public struct CardDetailView: View {
                 DispatchQueue.main.async { showRenameAlert = true }
             }
             #endif
+        }
+        // 跨裝置衝突解決：別台先存、這台被 server 擋（409）→ 靜默改用 server 最新。
+        .onReceive(NotificationCenter.default.publisher(for: CardVersionStore.conflictResolved)) { note in
+            guard note.object as? String == initialCard.id, let info = note.userInfo else { return }
+            // 取消還在排隊的本機存檔，別用舊內容回頭覆蓋剛採用的 server 最新。
+            titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
+            descriptionSaveWorkItem?.cancel(); descriptionSaveWorkItem = nil
+            suppressEditDetection = true
+            if let t = info[CardVersionStore.conflictTitleKey] as? String { title = t }
+            if let d = info[CardVersionStore.conflictDescriptionKey] as? String { descriptionHTML = d }
+            hasEditedTitle = false
+            hasEditedDescription = false
+            reloadToken += 1
+            // onChange 在這輪 state 變更後同步觸發、會看到 suppress=true 而跳過；
+            // 下一個 runloop 再解除，之後使用者真打字才重新被視為編輯。
+            DispatchQueue.main.async { suppressEditDetection = false }
         }
         .onDisappear {
             // 離開（回上一頁 / 關 modal / 切換卡片）前 flush pending 存檔。
@@ -209,9 +233,10 @@ public struct CardDetailView: View {
                 if hasEditedDescription { onUpdateDescription(html) }
             }
         )
-        .id(initialCard.id)
+        .id("\(initialCard.id)-\(reloadToken)")
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .onChange(of: descriptionHTML) { _, newValue in
+            if suppressEditDetection { return }
             hasEditedDescription = true
             debouncedSaveDescription(newValue)
         }
@@ -285,6 +310,7 @@ public struct CardDetailView: View {
             .focused($titleFocused)
             .lineLimit(1)
             .onChange(of: title) { _, v in
+                if suppressEditDetection { return }
                 hasEditedTitle = true
                 debouncedSaveTitle(v)
             }

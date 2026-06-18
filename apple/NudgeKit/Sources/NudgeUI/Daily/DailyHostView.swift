@@ -1588,6 +1588,10 @@ private struct DashboardColumnCardDetail: View {
     // 真改字時才變 → 沒改過的欄位一律不存，避免停在舊內容的裝置覆蓋別台新編輯。
     @State private var hasEditedTitle = false
     @State private var hasEditedDescription = false
+    // 樂觀並行：409 衝突時靜默改用 server 最新（reloadToken++ 重 mount 編輯器
+    // 載入新內文；suppressEditDetection 擋掉套用期間的 onChange 誤判）。
+    @State private var reloadToken = 0
+    @State private var suppressEditDetection = false
     private let commandBus = EditorCommandBus()
 
     init(
@@ -1629,6 +1633,7 @@ private struct DashboardColumnCardDetail: View {
                 .nudgeFont(.columnDetailTitle)
                 .foregroundStyle(Color.nudgeForeground)
                 .onChange(of: title) { _, new in
+                    if suppressEditDetection { return }
                     hasEditedTitle = true
                     debouncedSaveTitle(new)
                 }
@@ -1656,19 +1661,37 @@ private struct DashboardColumnCardDetail: View {
                     if hasEditedDescription { onUpdateDescription(html) }
                 }
             )
-            .id(card.id)
+            .id("\(card.id)-\(reloadToken)")
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .onChange(of: descriptionHTML) { _, new in
+                if suppressEditDetection { return }
                 hasEditedDescription = true
                 debouncedSaveDescription(new)
             }
         }
         .background(Color.nudgeBackground)
+        .onAppear {
+            // seed 樂觀並行基準：目前畫面內容所基於的版本。
+            CardVersionStore.seed(cardId: card.id, updatedAt: card.updatedAt)
+        }
         // 任何離開都 flush：view 被移除（切卡片/切面板/關詳情）→ onDisappear；
         // 切走分頁（host 隱藏不移除）→ flushEditors 通知。
         .onDisappear { flushSave() }
         .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.flushEditorsNotification)) { _ in
             flushSave()
+        }
+        // 跨裝置衝突解決：別台先存、這台被 server 擋（409）→ 靜默改用 server 最新。
+        .onReceive(NotificationCenter.default.publisher(for: CardVersionStore.conflictResolved)) { note in
+            guard note.object as? String == card.id, let info = note.userInfo else { return }
+            titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
+            descSaveWorkItem?.cancel(); descSaveWorkItem = nil
+            suppressEditDetection = true
+            if let t = info[CardVersionStore.conflictTitleKey] as? String { title = t }
+            if let d = info[CardVersionStore.conflictDescriptionKey] as? String { descriptionHTML = d }
+            hasEditedTitle = false
+            hasEditedDescription = false
+            reloadToken += 1
+            DispatchQueue.main.async { suppressEditDetection = false }
         }
     }
 
