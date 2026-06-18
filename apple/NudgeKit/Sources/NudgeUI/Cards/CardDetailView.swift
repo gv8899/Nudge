@@ -24,6 +24,12 @@ public struct CardDetailView: View {
     @State private var absoluteRemindAt: String?
     @State private var titleSaveWorkItem: DispatchWorkItem?
     @State private var descriptionSaveWorkItem: DispatchWorkItem?
+    // Dirty 追蹤：編輯器載入內容走 setContent(emitUpdate:false)，binding 只在
+    // 「使用者真的改字」時才變 → onChange 只在真編輯時觸發。用 sticky 旗標當
+    // dirty 訊號，沒改過的欄位一律不存（避免「停在舊內容的裝置一離開就覆蓋
+    // 別台新編輯」這條跨裝置資料覆蓋 bug）。
+    @State private var hasEditedTitle = false
+    @State private var hasEditedDescription = false
     @State private var showTagPicker = false
     @State private var showRenameAlert = false
     @State private var showScheduleSheet = false
@@ -111,17 +117,20 @@ public struct CardDetailView: View {
         }
         .onDisappear {
             // 離開（回上一頁 / 關 modal / 切換卡片）前 flush pending 存檔。
+            // 只 flush「真的改過」的欄位 —— 沒編輯過就別送，免得覆蓋別台新編輯。
             titleSaveWorkItem?.cancel()
             titleSaveWorkItem = nil
             descriptionSaveWorkItem?.cancel()
             descriptionSaveWorkItem = nil
-            onUpdateTitle(title)
-            onUpdateDescription(descriptionHTML) // 同步 fallback
-            // 內文：向編輯器取「權威當前內容」覆蓋存 —— binding 可能還沒收到
-            // 跨程序的最後一次 change（刪光內文後立刻返回），getHTML 直接問
-            // WebContent 取最新，避免存到舊值。
-            commandBus.flush { html in
-                onUpdateDescription(html)
+            if hasEditedTitle { onUpdateTitle(title) }
+            if hasEditedDescription {
+                onUpdateDescription(descriptionHTML) // 同步 fallback
+                // 內文：向編輯器取「權威當前內容」覆蓋存 —— binding 可能還沒收到
+                // 跨程序的最後一次 change（刪光內文後立刻返回），getHTML 直接問
+                // WebContent 取最新，避免存到舊值。
+                commandBus.flush { html in
+                    onUpdateDescription(html)
+                }
             }
         }
         #if os(macOS)
@@ -129,9 +138,11 @@ public struct CardDetailView: View {
         .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.flushEditorsNotification)) { _ in
             titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
             descriptionSaveWorkItem?.cancel(); descriptionSaveWorkItem = nil
-            onUpdateTitle(title)
-            onUpdateDescription(descriptionHTML)
-            commandBus.flush { html in onUpdateDescription(html) }
+            if hasEditedTitle { onUpdateTitle(title) }
+            if hasEditedDescription {
+                onUpdateDescription(descriptionHTML)
+                commandBus.flush { html in onUpdateDescription(html) }
+            }
         }
         #endif
         .sheet(isPresented: $showTagPicker) {
@@ -193,14 +204,15 @@ public struct CardDetailView: View {
             commandBus: commandBus,
             onBlurSave: { html in
                 // 失焦即存（切到別張卡片 / 別分頁 / 視窗外都會先失焦）。
-                // 取消還在排隊的 debounce，直接存權威內容。
+                // 取消還在排隊的 debounce，直接存權威內容。沒改過就別存。
                 descriptionSaveWorkItem?.cancel(); descriptionSaveWorkItem = nil
-                onUpdateDescription(html)
+                if hasEditedDescription { onUpdateDescription(html) }
             }
         )
         .id(initialCard.id)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .onChange(of: descriptionHTML) { _, newValue in
+            hasEditedDescription = true
             debouncedSaveDescription(newValue)
         }
     }
@@ -272,7 +284,10 @@ public struct CardDetailView: View {
             .tint(Color.nudgePrimary) // caret / 選取吃主色
             .focused($titleFocused)
             .lineLimit(1)
-            .onChange(of: title) { _, v in debouncedSaveTitle(v) }
+            .onChange(of: title) { _, v in
+                hasEditedTitle = true
+                debouncedSaveTitle(v)
+            }
             .onSubmit { titleFocused = false }
 
             Spacer(minLength: 12)
@@ -323,6 +338,7 @@ public struct CardDetailView: View {
         let trimmed = pendingTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, trimmed != title else { return }
         title = trimmed
+        hasEditedTitle = true
         debouncedSaveTitle(trimmed)
     }
 

@@ -1584,6 +1584,10 @@ private struct DashboardColumnCardDetail: View {
     @State private var titleSaveWorkItem: DispatchWorkItem?
     @State private var descSaveWorkItem: DispatchWorkItem?
     @State private var activeMarks = ActiveMarks()
+    // Dirty 追蹤：編輯器載入走 setContent(emitUpdate:false)，binding 只在使用者
+    // 真改字時才變 → 沒改過的欄位一律不存，避免停在舊內容的裝置覆蓋別台新編輯。
+    @State private var hasEditedTitle = false
+    @State private var hasEditedDescription = false
     private let commandBus = EditorCommandBus()
 
     init(
@@ -1624,7 +1628,10 @@ private struct DashboardColumnCardDetail: View {
                 .textFieldStyle(.plain)
                 .nudgeFont(.columnDetailTitle)
                 .foregroundStyle(Color.nudgeForeground)
-                .onChange(of: title) { _, new in debouncedSaveTitle(new) }
+                .onChange(of: title) { _, new in
+                    hasEditedTitle = true
+                    debouncedSaveTitle(new)
+                }
 
                 Spacer(minLength: 0)
             }
@@ -1644,14 +1651,17 @@ private struct DashboardColumnCardDetail: View {
                 commandBus: commandBus,
                 onBlurSave: { html in
                     // 失焦即存（切到別張卡片 / 別分頁 / 視窗外都會先失焦）。
-                    // 取消還在排隊的 debounce，直接存權威內容。
+                    // 取消還在排隊的 debounce，直接存權威內容。沒改過就別存。
                     descSaveWorkItem?.cancel(); descSaveWorkItem = nil
-                    onUpdateDescription(html)
+                    if hasEditedDescription { onUpdateDescription(html) }
                 }
             )
             .id(card.id)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .onChange(of: descriptionHTML) { _, new in debouncedSaveDescription(new) }
+            .onChange(of: descriptionHTML) { _, new in
+                hasEditedDescription = true
+                debouncedSaveDescription(new)
+            }
         }
         .background(Color.nudgeBackground)
         // 任何離開都 flush：view 被移除（切卡片/切面板/關詳情）→ onDisappear；
@@ -1669,9 +1679,12 @@ private struct DashboardColumnCardDetail: View {
     private func flushSave() {
         titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
         descSaveWorkItem?.cancel(); descSaveWorkItem = nil
-        onUpdateTitle(title)
-        onUpdateDescription(descriptionHTML)
-        commandBus.flush { html in onUpdateDescription(html) }
+        // 只 flush 真的改過的欄位 —— 沒編輯就別送，免得覆蓋別台新編輯。
+        if hasEditedTitle { onUpdateTitle(title) }
+        if hasEditedDescription {
+            onUpdateDescription(descriptionHTML)
+            commandBus.flush { html in onUpdateDescription(html) }
+        }
     }
 
     private func flushAndBack() {
