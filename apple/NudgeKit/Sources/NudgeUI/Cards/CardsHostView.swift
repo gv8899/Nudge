@@ -69,8 +69,12 @@ public struct CardsHostView: View {
             .navigationTitle(Text("nav.cards", bundle: .module))
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: CardDTO.self) { card in
-                CardDetailView(
-                    card: card,
+                // 透過 Loader 走 GET /api/tasks/[id] 拿 server 最新，而非直接
+                // push 列表快取的 DTO —— 否則別台（Mac）改完，這裡點進去還是
+                // 舊內容（列表沒重抓）。Loader 每次 push 都 fetch 一次 server
+                // truth，跨裝置編輯一打開就看得到。
+                CardDetailLoader(
+                    taskId: card.id,
                     onUpdateTitle: { updateTitle(cardId: card.id, title: $0) },
                     onUpdateDescription: { updateDescription(cardId: card.id, html: $0) },
                     onUpdateTags: { newIds in await updateTags(cardId: card.id, tagIds: newIds) }
