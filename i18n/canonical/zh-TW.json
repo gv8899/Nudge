@@ -65,6 +65,13 @@
       "eveningContent": "內容",
       "perTaskEnabled": "個別任務提醒",
       "platformNote": "通知只在 App（iOS / macOS）推送"
+    },
+    "deleteAccount": {
+      "label": "刪除帳號",
+      "labelLoading": "刪除中…",
+      "confirmTitle": "刪除帳號",
+      "confirmOk": "永久刪除",
+      "confirmBody": "這會永久刪除你的帳號與所有資料（任務、卡片、標籤等），且無法復原。確定要刪除嗎？"
     }
   },
   "tags": {
@@ -94,7 +101,8 @@
   "login": {
     "tagline": "輕量型每日任務推進工具",
     "signInWithGoogle": "使用 Google 帳號登入",
-    "loginFailed": "登入失敗，請再試一次"
+    "loginFailed": "登入失敗，請再試一次",
+    "appleFailed": "Apple 登入失敗，請再試一次"
   },
   "task": {
     "dragReorder": "拖曳排序：{title}",

@@ -65,6 +65,13 @@
       "eveningContent": "内容",
       "perTaskEnabled": "タスクごとのリマインダー",
       "platformNote": "通知はアプリ（iOS / macOS）で配信されます"
+    },
+    "deleteAccount": {
+      "label": "アカウントを削除",
+      "labelLoading": "削除中…",
+      "confirmTitle": "アカウントを削除",
+      "confirmOk": "完全に削除",
+      "confirmBody": "アカウントとすべてのデータ（タスク、カード、タグなど）を完全に削除します。元に戻せません。削除しますか？"
     }
   },
   "tags": {
@@ -94,7 +101,8 @@
   "login": {
     "tagline": "毎日のタスクをそっと後押し",
     "signInWithGoogle": "Google でサインイン",
-    "loginFailed": "サインインに失敗しました。もう一度お試しください。"
+    "loginFailed": "サインインに失敗しました。もう一度お試しください。",
+    "appleFailed": "Appleサインインに失敗しました。もう一度お試しください"
   },
   "task": {
     "dragReorder": "並べ替え：{title}",

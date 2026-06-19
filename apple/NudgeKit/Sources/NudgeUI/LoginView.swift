@@ -1,15 +1,24 @@
 import SwiftUI
+import AuthenticationServices
 import NudgeCore
 
 public struct LoginView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isLoading = false
     @State private var errorMessage: String?
 
     /// Closure form 讓 platform target 注入自己的 Google SDK + AuthRepository。
     public var onLoginTapped: () async -> Result<Void, Error>
+    /// Sign in with Apple：LoginView 取出 credential，把 identityToken（+ 首次
+    /// 的名字/email）交給平台殼層換 token。
+    public var onAppleLogin: (_ identityToken: String, _ fullName: String?, _ email: String?) async -> Result<Void, Error>
 
-    public init(onLoginTapped: @escaping () async -> Result<Void, Error>) {
+    public init(
+        onLoginTapped: @escaping () async -> Result<Void, Error>,
+        onAppleLogin: @escaping (_ identityToken: String, _ fullName: String?, _ email: String?) async -> Result<Void, Error>
+    ) {
         self.onLoginTapped = onLoginTapped
+        self.onAppleLogin = onAppleLogin
     }
 
     public var body: some View {
@@ -50,7 +59,13 @@ public struct LoginView: View {
             // (扣 32pt padding)。
             VStack(spacing: 12) {
                 googleButton
+                // Sign in with Apple 只在 iOS（App Store 4.8 要求）。macOS 走
+                // Developer ID 分發、不受 App Store 審查、且 applesignin 是
+                // restricted entitlement（要嵌 provisioning profile，否則 AMFI
+                // launch SIGKILL）→ macOS 先不放，維持 Google 登入。
+                #if os(iOS)
                 appleButton
+                #endif
 
                 if let errorMessage {
                     Text(verbatim: errorMessage)
@@ -84,26 +99,57 @@ public struct LoginView: View {
 
     // MARK: - Buttons
 
+    #if os(iOS)
     private var appleButton: some View {
-        Button(action: {}) {
-            HStack(spacing: 8) {
-                Image(systemName: "apple.logo")
-                    .font(.body.weight(.medium))
-                Text("login.signInWithApple", bundle: .module)
-                    .font(.body.weight(.medium))
-            }
-            .foregroundStyle(Color.nudgePrimaryForeground)
-            .frame(maxWidth: .infinity)
-            .frame(height: 50)
-            .contentShape(Capsule())
-            .background(
-                Capsule().fill(Color.nudgeForeground)
-            )
+        // 官方 SignInWithAppleButton（AuthenticationServices）— 樣式符合 Apple
+        // HIG（黑/白依 colorScheme）。onRequest 要 .fullName/.email（只有首次
+        // 授權會真的回），onCompletion 取 identityToken 交給平台殼層換 token。
+        SignInWithAppleButton(.signIn) { request in
+            request.requestedScopes = [.fullName, .email]
+        } onCompletion: { result in
+            handleAppleResult(result)
         }
-        .buttonStyle(.plain)
-        .opacity(0.4)
-        .disabled(true)
+        .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+        .frame(height: 50)
+        .clipShape(Capsule())
+        .allowsHitTesting(!isLoading)
     }
+
+    private func handleAppleResult(_ result: Result<ASAuthorization, any Error>) {
+        switch result {
+        case .failure(let error):
+            // 使用者自己取消不算錯、不顯示紅字。
+            if let asError = error as? ASAuthorizationError, asError.code == .canceled {
+                return
+            }
+            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        case .success(let authorization):
+            guard
+                let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+                let tokenData = credential.identityToken,
+                let identityToken = String(data: tokenData, encoding: .utf8)
+            else {
+                errorMessage = nudgeLocalized("login.appleFailed", locale: .current)
+                return
+            }
+            // 首次授權才有名字；用系統 formatter 組顯示名，空字串視為無。
+            let fullName: String? = credential.fullName.flatMap { components in
+                let formatted = PersonNameComponentsFormatter().string(from: components)
+                return formatted.isEmpty ? nil : formatted
+            }
+            let email = credential.email
+            Task {
+                isLoading = true
+                errorMessage = nil
+                let r = await onAppleLogin(identityToken, fullName, email)
+                isLoading = false
+                if case .failure(let error) = r {
+                    errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                }
+            }
+        }
+    }
+    #endif
 
     private var googleButton: some View {
         Button(action: handleTap) {

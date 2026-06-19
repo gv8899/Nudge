@@ -111,7 +111,8 @@ struct NudgeiOSApp: App {
             NudgePreferencesApplier {
                 AuthGateView(
                     auth: auth,
-                    onLoginRequested: performLogin
+                    onLoginRequested: performLogin,
+                    onAppleLoginRequested: performAppleLogin
                 ) {
                     PlatformRootView(auth: auth)
                         .environment(taskRepo)
@@ -216,6 +217,25 @@ struct NudgeiOSApp: App {
             _ = try await auth.login(idToken: idToken)
             // Make the freshly-stored token visible to the widget extension,
             // then seed today's snapshot so the widget renders immediately.
+            syncTokenToSharedStore()
+            await taskRepo.refreshWidgetSnapshot()
+            return .success(())
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    private func performAppleLogin(
+        identityToken: String,
+        fullName: String?,
+        email: String?
+    ) async -> Result<Void, Error> {
+        do {
+            _ = try await auth.loginWithApple(
+                identityToken: identityToken,
+                fullName: fullName,
+                email: email
+            )
             syncTokenToSharedStore()
             await taskRepo.refreshWidgetSnapshot()
             return .success(())
