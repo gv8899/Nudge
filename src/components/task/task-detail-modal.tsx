@@ -20,6 +20,8 @@ interface TaskDetailModalProps {
   onExpand?: () => void;
   /** 寬版（卡片快速 Modal 用）；預設窄版（任務） */
   wide?: boolean;
+  /** 樂觀並行 409 衝突時 ++，強制內文編輯器重 mount 載入 server 最新內容。 */
+  editorReloadToken?: number;
 }
 
 export function TaskDetailModal({
@@ -33,6 +35,7 @@ export function TaskDetailModal({
   onTitleChange,
   onExpand,
   wide = false,
+  editorReloadToken = 0,
 }: TaskDetailModalProps) {
   const t = useTranslations("task");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -204,7 +207,7 @@ export function TaskDetailModal({
         {/* 編輯區 */}
         <div className="px-6 py-6 min-h-[440px]">
           <TiptapEditor
-            key={task.id}
+            key={`${task.id}-${editorReloadToken}`}
             content={task.description || ""}
             onChange={handleDescChange}
             placeholder={t("detailContentPlaceholder")}
