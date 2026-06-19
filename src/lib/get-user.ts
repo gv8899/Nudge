@@ -43,6 +43,7 @@ export async function getUser() {
       name: session.user.name || null,
       avatarUrl: session.user.image || null,
       locale: null,
+      appleSub: null,
       createdAt: now,
       googleCalendarAccessToken: null,
       googleCalendarRefreshToken: null,

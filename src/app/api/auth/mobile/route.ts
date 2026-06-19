@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
       name: name || null,
       avatarUrl: picture || null,
       locale: null,
+      appleSub: null,
       createdAt: now,
       googleCalendarAccessToken: null,
       googleCalendarRefreshToken: null,

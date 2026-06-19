@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getUser } from "@/lib/get-user";
+import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function GET() {
   const user = await getUser();
@@ -30,4 +33,16 @@ export async function GET() {
     locale: user.locale,
     createdAt: user.createdAt,
   });
+}
+
+// 刪除帳號（App Store 5.1.1(v) 強制：能建帳號就要能刪）。所有 user-scoped
+// 表都 onDelete: cascade（tasks / recurrences / tags / assignments…），刪
+// users 一筆即 cascade 清乾淨。
+export async function DELETE() {
+  const user = await getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  await db.delete(users).where(eq(users.id, user.id));
+  return NextResponse.json({ success: true });
 }

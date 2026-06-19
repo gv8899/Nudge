@@ -6,6 +6,9 @@ export const users = pgTable("users", {
   name: text("name"),
   avatarUrl: text("avatar_url"),
   locale: text("locale"),
+  // Sign in with Apple：穩定的 Apple user id（sub）。Apple 只在首次授權回
+  // email/名字，之後只給 sub → 用這欄當穩定鍵，不能只靠 email。
+  appleSub: text("apple_sub").unique(),
   createdAt: text("created_at").notNull(),
   // Google Calendar integration
   googleCalendarAccessToken: text("google_calendar_access_token"),

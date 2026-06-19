@@ -30,6 +30,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             name: user.name || null,
             avatarUrl: user.image || null,
             locale: null,
+            appleSub: null,
             createdAt: now,
             googleCalendarAccessToken: null,
             googleCalendarRefreshToken: null,
