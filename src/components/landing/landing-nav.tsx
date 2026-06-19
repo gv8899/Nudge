@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { LanguageSwitcher } from "./language-switcher";
 
 export function LandingNav() {
@@ -44,6 +45,12 @@ export function LandingNav() {
           >
             {t("nav.philosophy")}
           </a>
+          <Link
+            href="/download"
+            className="hover:text-foreground transition-colors"
+          >
+            {t("nav.download")}
+          </Link>
           <LanguageSwitcher />
         </div>
       </div>

@@ -273,7 +273,8 @@
     "nav": {
       "aria": "主導覽",
       "features": "功能",
-      "philosophy": "理念"
+      "philosophy": "理念",
+      "download": "下載"
     },
     "download": {
       "mac": "下載 Mac 版",

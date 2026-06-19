@@ -273,7 +273,8 @@
     "nav": {
       "aria": "Main navigation",
       "features": "Features",
-      "philosophy": "Philosophy"
+      "philosophy": "Philosophy",
+      "download": "Download"
     },
     "download": {
       "mac": "Download for Mac",

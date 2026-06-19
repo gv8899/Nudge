@@ -273,7 +273,8 @@
     "nav": {
       "aria": "メインナビゲーション",
       "features": "機能",
-      "philosophy": "理念"
+      "philosophy": "理念",
+      "download": "ダウンロード"
     },
     "download": {
       "mac": "Mac版をダウンロード",
