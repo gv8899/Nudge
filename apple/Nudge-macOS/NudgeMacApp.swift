@@ -86,7 +86,8 @@ struct NudgeMacApp: App {
             NudgePreferencesApplier {
                 AuthGateView(
                     auth: auth,
-                    onLoginRequested: performLogin
+                    onLoginRequested: performLogin,
+                    onAppleLoginRequested: performAppleLogin
                 ) {
                     PlatformRootView(auth: auth)
                         .environment(taskRepo)
@@ -206,6 +207,23 @@ struct NudgeMacApp: App {
         do {
             let idToken = try await googleSignIn.signIn()
             _ = try await auth.login(idToken: idToken)
+            return .success(())
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    private func performAppleLogin(
+        identityToken: String,
+        fullName: String?,
+        email: String?
+    ) async -> Result<Void, Error> {
+        do {
+            _ = try await auth.loginWithApple(
+                identityToken: identityToken,
+                fullName: fullName,
+                email: email
+            )
             return .success(())
         } catch {
             return .failure(error)

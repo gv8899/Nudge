@@ -16,6 +16,9 @@ public struct SettingsView: View {
     @State private var showCleanCardsConfirm = false
     @State private var isCleaning = false
     @State private var cleanResult: String?
+    @State private var showDeleteAccountConfirm = false
+    @State private var isDeletingAccount = false
+    @State private var deleteAccountError: String?
 
     public init(auth: AuthRepository) {
         self.auth = auth
@@ -134,6 +137,32 @@ public struct SettingsView: View {
             }
         } message: {
             if let cleanResult { Text(verbatim: cleanResult) }
+        }
+        .alert(
+            Text("settings.deleteAccount.confirmTitle", bundle: .module),
+            isPresented: $showDeleteAccountConfirm
+        ) {
+            Button(role: .cancel, action: {}) {
+                Text("common.cancel", bundle: .module)
+            }
+            Button(role: .destructive, action: deleteAccount) {
+                Text("settings.deleteAccount.confirmOk", bundle: .module)
+            }
+        } message: {
+            Text("settings.deleteAccount.confirmBody", bundle: .module)
+        }
+        .alert(
+            Text("settings.deleteAccount.label", bundle: .module),
+            isPresented: .init(
+                get: { deleteAccountError != nil },
+                set: { if !$0 { deleteAccountError = nil } }
+            )
+        ) {
+            Button(role: .cancel, action: {}) {
+                Text("common.confirm", bundle: .module)
+            }
+        } message: {
+            if let deleteAccountError { Text(verbatim: deleteAccountError) }
         }
     }
 
@@ -338,6 +367,15 @@ public struct SettingsView: View {
             ) {
                 showCleanCardsConfirm = true
             }
+            SettingsDivider()
+            // 刪除帳號（App Store 5.1.1(v) 要求）。最不可逆 → 放最底。
+            SettingsActionRow(
+                labelKey: isDeletingAccount ? "settings.deleteAccount.labelLoading" : "settings.deleteAccount.label",
+                role: .destructive,
+                isLoading: isDeletingAccount
+            ) {
+                showDeleteAccountConfirm = true
+            }
         }
     }
 
@@ -356,6 +394,21 @@ public struct SettingsView: View {
             Spacer()
         }
         .padding(.top, 8)
+    }
+
+    private func deleteAccount() {
+        isDeletingAccount = true
+        deleteAccountError = nil
+        Task {
+            defer { isDeletingAccount = false }
+            do {
+                // 成功後 auth.status → .unauthenticated，AuthGateView 自動切回 LoginView。
+                try await auth.deleteAccount()
+            } catch {
+                deleteAccountError = (error as? LocalizedError)?.errorDescription
+                    ?? error.localizedDescription
+            }
+        }
     }
 
     private func connectCalendar() {

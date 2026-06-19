@@ -3031,6 +3031,28 @@
         }
       }
     },
+    "login.appleFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple sign-in failed, please try again"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appleサインインに失敗しました。もう一度お試しください"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple 登入失敗，請再試一次"
+          }
+        }
+      }
+    },
     "login.signInWithApple": {
       "localizations": {
         "en": {
@@ -4391,6 +4413,116 @@
           "stringUnit": {
             "state": "translated",
             "value": "危險操作"
+          }
+        }
+      }
+    },
+    "settings.deleteAccount.confirmBody": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This permanently deletes your account and all data (tasks, cards, tags, etc.) and can’t be undone. Delete?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントとすべてのデータ（タスク、カード、タグなど）を完全に削除します。元に戻せません。削除しますか？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這會永久刪除你的帳號與所有資料（任務、卡片、標籤等），且無法復原。確定要刪除嗎？"
+          }
+        }
+      }
+    },
+    "settings.deleteAccount.confirmOk": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Permanently"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完全に削除"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "永久刪除"
+          }
+        }
+      }
+    },
+    "settings.deleteAccount.confirmTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Account"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントを削除"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除帳號"
+          }
+        }
+      }
+    },
+    "settings.deleteAccount.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Account"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アカウントを削除"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除帳號"
+          }
+        }
+      }
+    },
+    "settings.deleteAccount.labelLoading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除中…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除中…"
           }
         }
       }

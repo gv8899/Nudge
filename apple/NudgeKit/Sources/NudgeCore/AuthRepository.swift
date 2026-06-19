@@ -44,7 +44,36 @@ public final class AuthRepository {
         return response.user
     }
 
+    /// Sign in with Apple：app 端拿到的 identityToken（+ 首次的名字/email）
+    /// 換我們自己的 app JWT。鏡像 login(idToken:)。
+    @discardableResult
+    public func loginWithApple(
+        identityToken: String,
+        fullName: String?,
+        email: String?
+    ) async throws -> UserDTO {
+        let response: MobileAuthResponse = try await client.post(
+            "/api/auth/apple",
+            body: AppleAuthRequest(
+                identityToken: identityToken,
+                fullName: fullName,
+                email: email
+            )
+        )
+        try keychain.set(response.token, for: tokenKey)
+        status = .authenticated(response.user)
+        return response.user
+    }
+
     public func logout() async {
+        try? keychain.remove(for: tokenKey)
+        status = .unauthenticated
+    }
+
+    /// 刪除帳號（App Store 5.1.1(v) 要求）。後端 cascade 刪所有資料，成功後
+    /// 清本地 token 並轉 unauthenticated。
+    public func deleteAccount() async throws {
+        try await client.delete("/api/me")
         try? keychain.remove(for: tokenKey)
         status = .unauthenticated
     }
