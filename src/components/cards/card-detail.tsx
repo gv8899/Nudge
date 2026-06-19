@@ -8,6 +8,7 @@ import { format, parseISO } from "date-fns";
 import { ChevronLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
+import { seedCardVersion, patchCardField } from "@/lib/card-version";
 import { TagPicker } from "@/components/tags/tag-picker";
 import { ScheduleSection } from "@/components/task/schedule-section";
 import { useTags } from "@/hooks/use-tags";
@@ -50,12 +51,19 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   const titleInputRef = useRef<HTMLInputElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAutoFocusedRef = useRef(false);
+  // 409 衝突時 ++ 換掉編輯器 key 強制重 mount，載入 server 最新內文。
+  const [reloadToken, setReloadToken] = useState(0);
   const [cardTags, setCardTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
   const { tags: allTags } = useTags();
 
   useEffect(() => {
     if (data?.title !== undefined) setTitleValue(data.title);
   }, [data?.title]);
+
+  // seed 樂觀並行基準：server 回的 updatedAt = 目前畫面內容所基於的版本。
+  useEffect(() => {
+    if (data?.updatedAt) seedCardVersion(id, data.updatedAt);
+  }, [id, data?.updatedAt]);
 
   // 首次載入時若標題為空（剛建立的新卡片），自動進入編輯模式
   useEffect(() => {
@@ -77,14 +85,20 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
     }
   }, [isEditingTitle]);
 
-  // PATCH /api/tasks/[id]
+  // PATCH /api/tasks/[id]（帶 baseUpdatedAt 樂觀並行；409 → 靜默改用 server 最新）
   const patchTask = useCallback(
     async (updates: { title?: string; description?: string }) => {
-      await fetch(`/api/tasks/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-      });
+      const result = await patchCardField(id, updates);
+      if (result.status === "conflict") {
+        // 別台先存、這次被擋 → 採用 server 最新（方案二 silent use-latest），
+        // 丟棄本機這次衝突的編輯，重 mount 編輯器載入最新內文。
+        const latest = result.latest as unknown as CardData;
+        setTitleValue(latest.title);
+        await mutate(latest, { revalidate: false });
+        setReloadToken((n) => n + 1);
+        invalidateCardsCache();
+        return;
+      }
       mutate();
       invalidateCardsCache();
     },
@@ -222,7 +236,7 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
       {/* 描述（可編輯 TipTap） */}
       <div className={descMinHeight}>
         <TiptapEditor
-          key={id}
+          key={`${id}-${reloadToken}`}
           content={data.description || ""}
           onChange={handleDescChange}
           placeholder={t("editorPlaceholder")}

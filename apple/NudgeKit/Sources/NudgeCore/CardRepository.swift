@@ -71,13 +71,17 @@ public final class CardRepository {
     /// detail view when called from entry points that only have a task id
     /// (e.g. Daily page rows, which carry a TaskDTO with no tags).
     public func get(cardId: String) async throws -> CardDTO {
-        try await client.get("/api/tasks/\(cardId)")
+        let card: CardDTO = try await client.get("/api/tasks/\(cardId)")
+        // seed 樂觀並行基準 —— 拿到 server 最新 updatedAt 當「目前畫面內容
+        // 所基於的版本」，之後這張卡的存檔會帶這個 base 做版本檢查。
+        CardVersionStore.seed(cardId: cardId, updatedAt: card.updatedAt)
+        return card
     }
 
-    /// PATCHes the title of an existing card.
+    /// PATCHes the title of an existing card（帶 baseUpdatedAt 樂觀並行；衝突
+    /// 由 saveCardFieldWithVersionCheck 廣播）。
     public func updateTitle(cardId: String, title: String) async throws {
-        struct Body: Codable { let title: String }
-        try await client.patchVoid("/api/tasks/\(cardId)", body: Body(title: title))
+        try await saveCardFieldWithVersionCheck(client: client, cardId: cardId, title: title)
         NotificationCenter.default.post(name: Self.cardDidChangeNotification, object: cardId)
     }
 
@@ -85,8 +89,7 @@ public final class CardRepository {
     /// `html` is the same HTML string Web's TipTap editor emits; empty content
     /// is normalized to `""` (matches Web's card-detail.tsx behavior).
     public func updateDescription(cardId: String, html: String) async throws {
-        struct Body: Codable { let description: String }
-        try await client.patchVoid("/api/tasks/\(cardId)", body: Body(description: html))
+        try await saveCardFieldWithVersionCheck(client: client, cardId: cardId, description: html)
         NotificationCenter.default.post(name: Self.cardDidChangeNotification, object: cardId)
     }
 

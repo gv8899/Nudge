@@ -165,20 +165,13 @@ extension TaskRepository {
     }
 
     public func updateTitle(taskId: String, title: String) async throws {
-        struct Body: Codable { let title: String }
-        try await client.patchVoid(
-            "/api/tasks/\(taskId)",
-            body: Body(title: title)
-        )
+        // 帶 baseUpdatedAt 樂觀並行（與 Cards 路徑共用同一份基準 + 衝突廣播）。
+        try await saveCardFieldWithVersionCheck(client: client, cardId: taskId, title: title)
         await widgetRefresher?.refresh()
     }
 
     public func updateDescription(taskId: String, description: String) async throws {
-        struct Body: Codable { let description: String }
-        try await client.patchVoid(
-            "/api/tasks/\(taskId)",
-            body: Body(description: description)
-        )
+        try await saveCardFieldWithVersionCheck(client: client, cardId: taskId, description: description)
     }
 
     public func toggleSkip(assignmentId: String, isSkipped: Bool) async throws {

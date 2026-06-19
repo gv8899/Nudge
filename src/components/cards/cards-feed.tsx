@@ -11,6 +11,7 @@ import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { CardGridItem } from "./card-grid-item";
 import { TaskDetailModal } from "@/components/task/task-detail-modal";
 import { fetcher } from "@/lib/fetcher";
+import { seedCardVersion, patchCardField } from "@/lib/card-version";
 import type { Task } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
 
@@ -30,16 +31,26 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
     `/api/tasks/${cardId}`,
     fetcher
   );
+  // 409 衝突時 ++ 強制內文編輯器重 mount 載入 server 最新內容。
+  const [editorReloadToken, setEditorReloadToken] = useState(0);
+
+  // seed 樂觀並行基準：server 回的 updatedAt = 目前畫面內容所基於的版本。
+  useEffect(() => {
+    if (data?.updatedAt) seedCardVersion(cardId, data.updatedAt);
+  }, [cardId, data?.updatedAt]);
 
   const patch = useCallback(
     async (updates: Partial<{ title: string; description: string }>) => {
-      await fetch(`/api/tasks/${cardId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-      });
-      // Refresh the modal data
-      mutate();
+      const result = await patchCardField(cardId, updates);
+      if (result.status === "conflict") {
+        // 別台先存、這次被擋 → 採用 server 最新（方案二），丟棄本機這次編輯，
+        // 重 mount 編輯器；標題由 TaskDetailModal 從 task.title 自動同步。
+        await mutate(result.latest as unknown as CardWithTags, { revalidate: false });
+        setEditorReloadToken((n) => n + 1);
+      } else {
+        // Refresh the modal data
+        mutate();
+      }
       // Invalidate the cards grid so the preview updates
       globalMutate(
         (key) => typeof key === "string" && key.startsWith("/api/cards"),
@@ -63,6 +74,7 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
         /* status change not supported for cards in this modal */
       }}
       wide
+      editorReloadToken={editorReloadToken}
       onExpand={() => onExpand(cardId)}
     />
   );
