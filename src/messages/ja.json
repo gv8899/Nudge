@@ -435,5 +435,26 @@
       "body": "お使いのバージョンは古すぎます。最新版に更新してください。",
       "button": "今すぐ更新"
     }
+  },
+  "billing": {
+    "section": "サブスクリプション",
+    "trialing": "トライアル — 残り{days}日",
+    "activeUntil": "Premium 利用中（{date}まで）",
+    "activeForever": "Premium 利用中",
+    "expired": "トライアル終了",
+    "redeem": {
+      "label": "プロモコード",
+      "placeholder": "コードを入力",
+      "button": "利用",
+      "redeeming": "処理中…",
+      "success": "適用しました — Premium {days}日分を追加",
+      "error": {
+        "invalid": "無効なコードです",
+        "inactive": "このコードは無効です",
+        "expired": "このコードは期限切れです",
+        "exhausted": "このコードは上限に達しました",
+        "already_redeemed": "このコードはすでに利用済みです"
+      }
+    }
   }
 }
