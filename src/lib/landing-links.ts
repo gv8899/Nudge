@@ -1,5 +1,7 @@
-// 下載連結尚未確定，先放 placeholder。拿到正式連結只改這裡。
+// 下載連結。Mac 走品牌 redirect /download/mac（next.config → GitHub
+// Releases latest）。第一次跑 apple/scripts/release-mac.sh 發布 release 後即生效。
+// iOS 仍是 placeholder，拿到 App Store URL 後直接替換 ios。
 export const DOWNLOAD_LINKS = {
-  mac: "#", // TODO: Mac DMG 託管 URL
+  mac: "/download/mac",
   ios: "#", // TODO: App Store URL
 } as const;
