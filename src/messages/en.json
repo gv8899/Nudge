@@ -435,5 +435,26 @@
       "body": "Your version is too old. Update to the latest to keep using Nudge.",
       "button": "Update now"
     }
+  },
+  "billing": {
+    "section": "Subscription",
+    "trialing": "Trial — {days} days left",
+    "activeUntil": "Premium active (until {date})",
+    "activeForever": "Premium active",
+    "expired": "Trial ended",
+    "redeem": {
+      "label": "Promo code",
+      "placeholder": "Enter code",
+      "button": "Redeem",
+      "redeeming": "Redeeming…",
+      "success": "Redeemed — {days} days of Premium added",
+      "error": {
+        "invalid": "Invalid code",
+        "inactive": "This code is disabled",
+        "expired": "This code has expired",
+        "exhausted": "This code is fully redeemed",
+        "already_redeemed": "You already redeemed this code"
+      }
+    }
   }
 }

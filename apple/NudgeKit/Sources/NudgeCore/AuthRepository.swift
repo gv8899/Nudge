@@ -14,6 +14,9 @@ public final class AuthRepository {
 
     public private(set) var status: Status = .unknown
 
+    /// 付費 entitlement（來自 /api/me）。restoreSession / refreshEntitlement 更新。
+    public private(set) var entitlement: EntitlementDTO?
+
     public var currentUser: UserDTO? {
         if case .authenticated(let user) = status { return user }
         return nil
@@ -90,6 +93,7 @@ public final class AuthRepository {
 
         do {
             let user: UserDTO = try await client.get("/api/me")
+            entitlement = user.entitlement
             status = .authenticated(user)
             return true
         } catch APIError.unauthorized {
@@ -114,5 +118,32 @@ public final class AuthRepository {
     public func handleUnauthorized() async {
         try? keychain.remove(for: tokenKey)
         status = .unauthenticated
+    }
+
+    /// 重新抓 entitlement（/api/me）—— SettingsView 出現時呼叫，確保顯示最新
+    /// 訂閱狀態（login 回應沒帶 entitlement，靠這個補）。網路錯誤靜默忽略。
+    public func refreshEntitlement() async {
+        do {
+            let user: UserDTO = try await client.get("/api/me")
+            entitlement = user.entitlement
+        } catch {
+            if !APIError.isCancellation(error) {
+                print("[AuthRepository] refreshEntitlement failed: \(error)")
+            }
+        }
+    }
+
+    /// 兌換 promo code → 更新 entitlement、回獲得天數。失敗 throw（server 回
+    /// 400/各 reason，native 顯示通用錯誤訊息）。
+    @discardableResult
+    public func redeemPromo(code: String) async throws -> Int {
+        struct Body: Codable { let code: String }
+        struct Response: Codable { let grantedDays: Int?; let entitlement: EntitlementDTO? }
+        let response: Response = try await client.post(
+            "/api/promo/redeem",
+            body: Body(code: code)
+        )
+        entitlement = response.entitlement
+        return response.grantedDays ?? 0
     }
 }

@@ -5,6 +5,7 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { verifyJWT } from "@/lib/jwt";
+import { ensureTrial } from "@/lib/entitlement";
 
 export async function getUser() {
   // 1. 優先檢查 Bearer token（App）
@@ -51,6 +52,7 @@ export async function getUser() {
       googleCalendarSelectedIds: null,
     };
     await db.insert(users).values(newUser);
+    await ensureTrial(newUser.id);
     user = newUser;
   }
 

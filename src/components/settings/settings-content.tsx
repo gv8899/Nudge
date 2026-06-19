@@ -11,6 +11,7 @@ import { fetcher } from "@/lib/fetcher";
 import { TagManager } from "@/components/tags/tag-manager";
 import { CalendarSection } from "./calendar-section";
 import { NotificationsSection } from "./notifications-section";
+import { SubscriptionSection } from "./subscription-section";
 import { format, parseISO } from "date-fns";
 
 interface MeResponse {
@@ -230,6 +231,9 @@ export function SettingsContent() {
           </button>
         </div>
       </section>
+
+      {/* 訂閱 / 兌換碼 */}
+      <SubscriptionSection />
 
       {/* 日曆連接 */}
       <CalendarSection />

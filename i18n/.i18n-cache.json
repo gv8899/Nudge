@@ -321,7 +321,22 @@
     "notifications.content.summaryStreak": "e8317c137f767b22b2b780864308abf38e9905e63052740fd0c3408db3d5c385",
     "update.required.title": "1457baf63e1a7db0c7802d307568c3d79f45606fc76a9c0e5c0223df5f88f562",
     "update.required.body": "f28ce03d0dfe5d1ecaa00f52668df95e2f563e84c47646dc1b31ce8ab0216ed5",
-    "update.required.button": "12487befb4ba483cb88a4d7fbd6bd910d5cdb9ab1d6e587b5c63d1bd9264d46d"
+    "update.required.button": "12487befb4ba483cb88a4d7fbd6bd910d5cdb9ab1d6e587b5c63d1bd9264d46d",
+    "billing.section": "862e9bba261c37af68e713b9ec91bb1be61b68aff9baf19cd9d2201221379059",
+    "billing.trialing": "5d637510e63b8e6fc01d907a934a1b861448b0324be02aa2e15f048a93cdfba4",
+    "billing.activeUntil": "aa799acd4f61343fa857e9320fc5bf22e8942e81d515730df012a22dba65b4c8",
+    "billing.activeForever": "f2b66f661c5eae4ac36dcda72d7f4f392c5e7d5d7186037c5f0449f9d53b40c9",
+    "billing.expired": "59802427733aa2bc29f8891e94a75ca27ac053af27105aa102675462057e2c7f",
+    "billing.redeem.label": "af00727f615e82dfe2466471ee791318811bf14e387242f7c0e3f81a16af9a21",
+    "billing.redeem.placeholder": "29c97f589c39c0e332d6d9456c2796101f266ff3e1015d725a34d8b8f68b082b",
+    "billing.redeem.button": "312791e41e6a4e2e28ec9778a484a3bc58c791aef1a92a5d82b23446b1dc1b4e",
+    "billing.redeem.redeeming": "d8408fc63487ac81d50652d6a07c14a3e3ccdfe9e840c0161857c5fb849ba8c6",
+    "billing.redeem.success": "6f4aba8506660760d0c29823e5f5bd3e530503c585a2ffe9aa95cc08264d08cd",
+    "billing.redeem.error.invalid": "fef034ca76d98f611b7ac0c86b5e7caed349cf8055a1b4fc2a34cff91d234eea",
+    "billing.redeem.error.inactive": "736506b05bb78ae199f0add23be374f9bb52f1c3e31881fa19dbfdee2b38e235",
+    "billing.redeem.error.expired": "5cc442a1ffecaa4bb115db0f662f6abb260c15c52fd8fdd20833d16a0d023b7d",
+    "billing.redeem.error.exhausted": "4264e9a816f7a966e03a78b97d8dbe0c5262bdaa406d9582f4c5b0cef3925524",
+    "billing.redeem.error.already_redeemed": "04eb6f8cc8c15b80119ff127ab69dcec71752705c32c2a73995ac1fa97ec60e7"
   },
   "locked": {}
 }

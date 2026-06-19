@@ -53,6 +53,7 @@ public struct SettingsView: View {
     private var settingsGroups: some View {
         VStack(alignment: .leading, spacing: 24) {
             accountGroup
+            subscriptionGroup
             calendarGroup
             appearanceGroup
             languageGroup
@@ -82,6 +83,7 @@ public struct SettingsView: View {
         }
         .background(Color.nudgeBackground)
         .task { await calendarRepo.refreshConnectionStatusIfNeeded() }
+        .task { await auth.refreshEntitlement() }
         .alert(
             Text("settings.logout.confirmTitle", bundle: .module),
             isPresented: $showLogoutConfirm
@@ -167,6 +169,49 @@ public struct SettingsView: View {
     }
 
     // MARK: - Groups
+
+    // 訂閱狀態 + 兌換碼（讀 /api/me 的 entitlement；soft 模式、不擋功能）。
+    private var subscriptionGroup: some View {
+        SettingsGroup(header: "billing.section", icon: "creditcard") {
+            SettingsRow {
+                Text(verbatim: subscriptionStatusText)
+                    .foregroundStyle(
+                        auth.entitlement?.isPremium == true
+                            ? Color.nudgePrimary : Color.nudgeTextDim
+                    )
+            } trailing: {
+                EmptyView()
+            }
+        }
+    }
+
+    private var subscriptionStatusText: String {
+        guard let e = auth.entitlement else { return "…" }
+        switch e.status {
+        case "trialing":
+            return String(
+                format: nudgeLocalized("billing.trialing", locale: locale),
+                e.daysLeft ?? 0
+            )
+        case "active":
+            if e.accessUntil == nil {
+                return nudgeLocalized("billing.activeForever", locale: locale)
+            }
+            return String(
+                format: nudgeLocalized("billing.activeUntil", locale: locale),
+                formattedAccessDate(e.accessUntil ?? "")
+            )
+        default:
+            return nudgeLocalized("billing.expired", locale: locale)
+        }
+    }
+
+    private func formattedAccessDate(_ iso: String) -> String {
+        guard let d = NudgeISO8601.date(from: iso) else { return iso }
+        let f = DateFormatter()
+        f.dateFormat = "yyyy/MM/dd"
+        return f.string(from: d)
+    }
 
     private var accountGroup: some View {
         SettingsGroup(header: "settings.account.section", icon: "person.crop.circle") {

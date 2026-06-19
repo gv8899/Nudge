@@ -38,6 +38,17 @@ public enum NudgeISO8601 {
         )
     }
 
+    /// 直接把 ISO8601 字串轉 Date（有/無小數秒都吃）。給非 decode 場景用
+    /// （例：entitlement 的 accessUntil 算剩餘天數）。
+    public static func date(from s: String) -> Date? {
+        let withFractional = ISO8601DateFormatter()
+        withFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = withFractional.date(from: s) { return date }
+        let plain = ISO8601DateFormatter()
+        plain.formatOptions = [.withInternetDateTime]
+        return plain.date(from: s)
+    }
+
     /// 預設 decoder —— dateDecodingStrategy 已套上「有/無小數秒都吃」。
     public static func makeDecoder() -> JSONDecoder {
         let decoder = JSONDecoder()

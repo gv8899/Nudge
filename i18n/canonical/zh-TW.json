@@ -435,5 +435,26 @@
       "body": "你的版本已過舊，請更新到最新版才能繼續使用。",
       "button": "立即更新"
     }
+  },
+  "billing": {
+    "section": "訂閱",
+    "trialing": "試用中，剩 {days} 天",
+    "activeUntil": "Premium 使用中（至 {date}）",
+    "activeForever": "Premium 使用中",
+    "expired": "試用已結束",
+    "redeem": {
+      "label": "兌換碼",
+      "placeholder": "輸入兌換碼",
+      "button": "兌換",
+      "redeeming": "兌換中…",
+      "success": "已兌換，獲得 {days} 天 Premium",
+      "error": {
+        "invalid": "兌換碼無效",
+        "inactive": "此兌換碼已停用",
+        "expired": "此兌換碼已過期",
+        "exhausted": "此兌換碼已被兌換完",
+        "already_redeemed": "你已兌換過此碼"
+      }
+    }
   }
 }

@@ -4,6 +4,7 @@ import { getUser } from "@/lib/get-user";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { getEntitlement } from "@/lib/entitlement";
 
 export async function GET() {
   const user = await getUser();
@@ -25,6 +26,8 @@ export async function GET() {
     }
   }
 
+  const entitlement = await getEntitlement(user.id);
+
   return NextResponse.json({
     id: user.id,
     email: user.email,
@@ -32,6 +35,7 @@ export async function GET() {
     avatarUrl: user.avatarUrl,
     locale: user.locale,
     createdAt: user.createdAt,
+    entitlement,
   });
 }
 

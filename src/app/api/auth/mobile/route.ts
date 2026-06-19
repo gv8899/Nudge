@@ -4,6 +4,7 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { signJWT } from "@/lib/jwt";
+import { ensureTrial } from "@/lib/entitlement";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
       googleCalendarSelectedIds: null,
     };
     await db.insert(users).values(newUser);
+    await ensureTrial(newUser.id);
     user = newUser;
   }
 

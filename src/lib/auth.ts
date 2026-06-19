@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { ensureTrial } from "@/lib/entitlement";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [Google],
@@ -24,8 +25,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!existing) {
           const now = new Date().toISOString();
+          const newUserId = nanoid();
           await db.insert(users).values({
-            id: nanoid(),
+            id: newUserId,
             email: user.email,
             name: user.name || null,
             avatarUrl: user.image || null,
@@ -37,6 +39,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             googleCalendarTokenExpires: null,
             googleCalendarSelectedIds: null,
           });
+          await ensureTrial(newUserId);
         }
 
         return true;
