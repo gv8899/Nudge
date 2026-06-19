@@ -281,7 +281,8 @@
     "nav": {
       "aria": "Main navigation",
       "features": "Features",
-      "philosophy": "Philosophy"
+      "philosophy": "Philosophy",
+      "download": "Download"
     },
     "download": {
       "mac": "Download for Mac",
@@ -309,6 +310,43 @@
       "title": "Your whole workday,\non a single screen",
       "subtitle": "A Mac app built for office work. Tasks, calendar and knowledge cards — all on one screen, so you stop juggling a dozen tools.",
       "platformNote": "Built for Mac, synced to iPhone and iPad."
+    },
+    "workspace": {
+      "eyebrow": "Mac · Today",
+      "title": "One window,\nthree things at once",
+      "subtitle": "Track today's tasks on the left, flip the right side between calendar and cards in one click — planning, schedule and knowledge all on one screen, no app-switching.",
+      "points": {
+        "tasks": {
+          "title": "Track tasks",
+          "desc": "Today's list lives on the left — check off, schedule and defer at a glance."
+        },
+        "calendar": {
+          "title": "See your calendar",
+          "desc": "Flip the right side to the calendar: today's meetings and schedule right there, one click to join the video call."
+        },
+        "cards": {
+          "title": "Write cards",
+          "desc": "Flip the right side to cards: jot meeting notes and decisions, revisit anytime."
+        }
+      },
+      "tabs": {
+        "tasks": "Tasks",
+        "calendar": "Calendar",
+        "cards": "Cards"
+      }
+    },
+    "workspaceDemo": {
+      "today": "Today",
+      "date": "Jun 16",
+      "calendar": "Calendar",
+      "cards": "Cards",
+      "t1": "Write weekly report",
+      "t2": "Reply to client email",
+      "t3": "Prep the deck",
+      "meeting": "Team weekly",
+      "join": "Join video",
+      "c1": "Q2 OKR notes",
+      "c2": "Reading notes"
     },
     "philosophy": {
       "quote": "A tool should wait for you,\nnot chase you.",

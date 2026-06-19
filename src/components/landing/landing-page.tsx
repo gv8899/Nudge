@@ -1,5 +1,6 @@
 import { LandingNav } from "./landing-nav";
 import { LandingHero } from "./landing-hero";
+import { LandingFeatureWorkspace } from "./landing-feature-workspace";
 import { LandingPhilosophy } from "./landing-philosophy";
 import { LandingFeatureTasks } from "./landing-feature-tasks";
 import { LandingFeatureCards } from "./landing-feature-cards";
@@ -14,6 +15,7 @@ export function LandingPage() {
     <div data-landing className="min-h-screen bg-background text-foreground">
       <LandingNav />
       <LandingHero />
+      <LandingFeatureWorkspace />
       <LandingPhilosophy />
       <LandingFeatureTasks />
       <LandingFeatureCards />

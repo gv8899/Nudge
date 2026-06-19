@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import NextLink from "next/link";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { Laptop, Smartphone } from "lucide-react";
+import { Laptop, Smartphone, ArrowDownToLine } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { DOWNLOAD_LINKS } from "@/lib/landing-links";
+import { LanguageSwitcher } from "@/components/landing/language-switcher";
+import { Reveal } from "@/components/landing/reveal";
 
 export const metadata: Metadata = {
   title: "下載 Nudge",
@@ -17,43 +20,85 @@ export default async function DownloadPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("landing.downloadPage");
-  return (
-    <main className="mx-auto max-w-4xl px-6 md:px-8 pt-28 pb-32 text-foreground">
-      <div className="text-center mb-14">
-        <Link
-          href="/"
-          className="inline-block text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
-        >
-          {t("back")}
-        </Link>
-        <h1 className="text-4xl md:text-5xl font-semibold tracking-[-0.02em] mb-4">
-          {t("title")}
-        </h1>
-        <p className="text-lg text-muted-foreground">{t("subtitle")}</p>
-      </div>
+  const tf = await getTranslations("landing.footer");
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Mac — 主力 */}
-        <PlatformCard
-          icon={<Laptop className="h-7 w-7" />}
-          name={t("mac.name")}
-          desc={t("mac.desc")}
-          requirement={t("mac.requirement")}
-          cta={t("mac.cta")}
-          href={DOWNLOAD_LINKS.mac}
-          featured
-        />
-        {/* iOS — 補充 */}
-        <PlatformCard
-          icon={<Smartphone className="h-7 w-7" />}
-          name={t("ios.name")}
-          desc={t("ios.desc")}
-          requirement={t("ios.requirement")}
-          cta={t("ios.cta")}
-          href={DOWNLOAD_LINKS.ios}
-        />
-      </div>
-    </main>
+  return (
+    <div
+      data-landing
+      className="min-h-screen flex flex-col bg-background text-foreground"
+    >
+      {/* 頂部列：回首頁 + 語言切換 */}
+      <header className="fixed top-0 inset-x-0 z-50 h-14 bg-background/80 backdrop-blur-xl border-b border-border">
+        <div className="mx-auto max-w-6xl h-full px-6 md:px-8 flex items-center justify-between">
+          <Link
+            href="/"
+            className="text-lg font-semibold tracking-tight text-foreground"
+          >
+            Nudge
+          </Link>
+          <LanguageSwitcher />
+        </div>
+      </header>
+
+      {/* Hero band：暖色光暈 stage，與首頁 hero 呼應 */}
+      <section className="landing-stage px-6 pt-36 md:pt-44 pb-28 md:pb-36 text-center">
+        <Reveal className="max-w-2xl mx-auto">
+          <p className="text-sm font-semibold text-primary mb-4">Nudge</p>
+          <h1 className="text-4xl md:text-6xl font-semibold leading-[1.08] tracking-[-0.02em] mb-5">
+            {t("title")}
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+            {t("subtitle")}
+          </p>
+        </Reveal>
+      </section>
+
+      {/* 平台卡片：直向堆疊（Mac 主力在上），上移與 stage 重疊浮起 */}
+      <section className="flex-1 px-6 -mt-16 md:-mt-24 pb-28">
+        <div className="flex flex-col gap-5 max-w-2xl mx-auto">
+          <Reveal>
+            <PlatformCard
+              icon={<Laptop className="h-8 w-8" />}
+              name={t("mac.name")}
+              desc={t("mac.desc")}
+              requirement={t("mac.requirement")}
+              cta={t("mac.cta")}
+              href={DOWNLOAD_LINKS.mac}
+              featured
+            />
+          </Reveal>
+          <Reveal delay={0.08}>
+            <PlatformCard
+              icon={<Smartphone className="h-8 w-8" />}
+              name={t("ios.name")}
+              desc={t("ios.desc")}
+              requirement={t("ios.requirement")}
+              cta={t("ios.cta")}
+              href={DOWNLOAD_LINKS.ios}
+            />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border px-6 py-10 text-xs text-muted-foreground flex items-center justify-center gap-4">
+        <span>© 2026 Nudge</span>
+        <span aria-hidden="true">·</span>
+        <NextLink
+          href="/privacy"
+          className="hover:text-foreground transition-colors"
+        >
+          {tf("privacy")}
+        </NextLink>
+        <span aria-hidden="true">·</span>
+        <NextLink
+          href="/terms"
+          className="hover:text-foreground transition-colors"
+        >
+          {tf("terms")}
+        </NextLink>
+      </footer>
+    </div>
   );
 }
 
@@ -76,12 +121,12 @@ function PlatformCard({
 }) {
   return (
     <div
-      className={`flex flex-col rounded-2xl border p-8 bg-[var(--surface)] ${
+      className={`flex h-full flex-col rounded-3xl border p-8 md:p-9 bg-[var(--surface)] shadow-[0_24px_60px_-24px_rgba(40,32,18,0.22)] transition-transform duration-300 hover:-translate-y-1 ${
         featured ? "border-primary/40 ring-1 ring-primary/20" : "border-border"
       }`}
     >
       <div
-        className={`inline-flex items-center justify-center h-14 w-14 rounded-2xl mb-5 ${
+        className={`inline-flex items-center justify-center h-16 w-16 rounded-2xl mb-6 ${
           featured
             ? "bg-primary text-primary-foreground"
             : "bg-primary/10 text-primary"
@@ -89,18 +134,19 @@ function PlatformCard({
       >
         {icon}
       </div>
-      <h2 className="text-xl font-semibold mb-2">{name}</h2>
-      <p className="text-sm text-muted-foreground leading-relaxed mb-6 flex-1">
+      <h2 className="text-2xl font-semibold tracking-[-0.01em] mb-2">{name}</h2>
+      <p className="text-[15px] text-muted-foreground leading-relaxed mb-7 flex-1">
         {desc}
       </p>
       <a
         href={href}
-        className={`inline-flex items-center justify-center rounded-full font-medium px-6 py-3 text-base transition-transform hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+        className={`inline-flex items-center justify-center gap-2 rounded-full font-medium px-6 py-3.5 text-base transition-transform hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
           featured
             ? "bg-primary text-primary-foreground"
             : "text-primary ring-1 ring-primary/30 hover:bg-primary/5"
         }`}
       >
+        <ArrowDownToLine className="h-4 w-4" />
         {cta}
       </a>
       <p className="mt-3 text-xs text-text-faint text-center">{requirement}</p>

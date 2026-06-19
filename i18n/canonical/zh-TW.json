@@ -281,7 +281,8 @@
     "nav": {
       "aria": "主導覽",
       "features": "功能",
-      "philosophy": "理念"
+      "philosophy": "理念",
+      "download": "下載"
     },
     "download": {
       "mac": "下載 Mac 版",
@@ -309,6 +310,43 @@
       "title": "上班族的一天，\n一個畫面就夠",
       "subtitle": "為辦公室工作打造的 Mac app。任務安排、行事曆、知識卡片，全在同一個畫面 — 不用再開一堆工具切來切去。",
       "platformNote": "為 Mac 打造，iPhone、iPad 隨身同步。"
+    },
+    "workspace": {
+      "eyebrow": "Mac · 行動",
+      "title": "一個視窗，\n三件事同時進行",
+      "subtitle": "左邊追蹤今天的任務，右邊一鍵切換行事曆與卡片 — 安排、查行程、記知識全在同一個畫面，不用在多個 app 間切來切去。",
+      "points": {
+        "tasks": {
+          "title": "追蹤任務",
+          "desc": "左側就是今天的清單，勾選、排程、延後一眼掌握。"
+        },
+        "calendar": {
+          "title": "看行事曆",
+          "desc": "右側切到行事曆，當天會議、行程直接看，點一下直接加入線上會議。"
+        },
+        "cards": {
+          "title": "寫卡片",
+          "desc": "右側切到卡片，會議筆記、決策隨手記下、隨時翻閱。"
+        }
+      },
+      "tabs": {
+        "tasks": "任務",
+        "calendar": "行事曆",
+        "cards": "卡片"
+      }
+    },
+    "workspaceDemo": {
+      "today": "今天",
+      "date": "6 月 16 日",
+      "calendar": "行事曆",
+      "cards": "卡片",
+      "t1": "寫週報",
+      "t2": "回覆客戶 Email",
+      "t3": "準備簡報",
+      "meeting": "團隊週會",
+      "join": "加入視訊",
+      "c1": "Q2 OKR 討論",
+      "c2": "讀書筆記"
     },
     "philosophy": {
       "quote": "工具該等你，\n不是追你。",
