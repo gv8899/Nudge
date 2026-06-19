@@ -5,6 +5,7 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { signJWT } from "@/lib/jwt";
+import { ensureTrial } from "@/lib/entitlement";
 
 // Apple 的公鑰集 —— 驗 identityToken 簽章用。createRemoteJWKSet 內建快取
 // （依 Cache-Control），不會每次 request 都打 Apple。
@@ -95,6 +96,7 @@ export async function POST(request: NextRequest) {
       googleCalendarSelectedIds: null,
     };
     await db.insert(users).values(newUser);
+    await ensureTrial(newUser.id);
     user = newUser;
   }
 

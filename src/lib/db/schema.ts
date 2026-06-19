@@ -156,3 +156,44 @@ export const notificationPreferences = pgTable("notification_preferences", {
     .default(true),
   updatedAt: text("updated_at").notNull(),
 });
+
+// ── 付費 entitlement（Slice A）─────────────────────────────────────────────
+// provider-neutral：所有授權來源（trial/comp/promo/未來 paddle/ios/newebpay）
+// 都只是把 access_until + source 寫進這張表。一 user 一列、all-or-nothing。
+export const subscriptions = pgTable("subscriptions", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  // 授權來源；可擴充（之後加金流商）。
+  source: text("source", {
+    enum: ["trial", "comp", "promo", "paddle", "ios", "newebpay"],
+  }).notNull(),
+  // 存取到期（ISO string）；NULL = 永久（admin 永久 comp）。
+  accessUntil: text("access_until"),
+  updatedAt: text("updated_at").notNull(),
+});
+
+// 兌換碼。唯一單次碼 = maxRedemptions:1；共用多人碼 = maxRedemptions:N/null。
+export const promoCodes = pgTable("promo_codes", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  grantDays: integer("grant_days").notNull(),
+  maxRedemptions: integer("max_redemptions"), // NULL = 無限
+  perUserLimit: integer("per_user_limit").notNull().default(1),
+  redeemedCount: integer("redeemed_count").notNull().default(0),
+  expiresAt: text("expires_at"), // NULL = 碼不過期
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: text("created_at").notNull(),
+});
+
+// 兌換紀錄 — 擋重複 + 計次（per-user limit / 總次數）。
+export const promoRedemptions = pgTable("promo_redemptions", {
+  id: text("id").primaryKey(),
+  codeId: text("code_id")
+    .notNull()
+    .references(() => promoCodes.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  redeemedAt: text("redeemed_at").notNull(),
+});
