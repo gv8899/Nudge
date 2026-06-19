@@ -62,7 +62,7 @@ if ! gh release view "$TAG" -R "$REPO" >/dev/null 2>&1; then
 fi
 
 # --- 4. 上傳所有版本 DMG（idempotent）+ 固定名 Nudge.dmg ---
-echo "▸ 上傳 DMG 到 $TAG…"
+echo "▸ 上傳 DMG 到 ${TAG}…"
 gh release upload "$TAG" "${DMGS[@]}" -R "$REPO" --clobber
 cp "$NEWEST" "$STAGE/Nudge.dmg"
 gh release upload "$TAG" "$STAGE/Nudge.dmg" -R "$REPO" --clobber
