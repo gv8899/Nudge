@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getEntitlement } from "@/lib/entitlement";
+import { paywallEnforcement } from "@/lib/paywall";
 
 export async function GET() {
   const user = await getUser();
@@ -36,6 +37,8 @@ export async function GET() {
     locale: user.locale,
     createdAt: user.createdAt,
     entitlement,
+    // 各平台硬付費牆是否啟用（soft 模式預設全 false）。
+    paywall: paywallEnforcement(),
   });
 }
 

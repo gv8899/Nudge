@@ -10,6 +10,9 @@ export const users = pgTable("users", {
   // email/名字，之後只給 sub → 用這欄當穩定鍵，不能只靠 email。
   appleSub: text("apple_sub").unique(),
   createdAt: text("created_at").notNull(),
+  // 試用一生一次：首次發 trial 時寫入（綁帳號）。NULL = 從沒試用過。
+  // 帳號刪除重建仍以 apple_sub/email 識別，避免重複領免費試用。
+  trialStartedAt: text("trial_started_at"),
   // Google Calendar integration
   googleCalendarAccessToken: text("google_calendar_access_token"),
   googleCalendarRefreshToken: text("google_calendar_refresh_token"),
@@ -157,19 +160,42 @@ export const notificationPreferences = pgTable("notification_preferences", {
   updatedAt: text("updated_at").notNull(),
 });
 
-// ── 付費 entitlement（Slice A）─────────────────────────────────────────────
-// provider-neutral：所有授權來源（trial/comp/promo/未來 paddle/ios/newebpay）
-// 都只是把 access_until + source 寫進這張表。一 user 一列、all-or-nothing。
+// ── 付費 entitlement（Phase 1，演進自 Slice A）──────────────────────────────
+// provider-neutral：所有授權來源（trial/comp/promo/manual/paddle/apple/newebpay）
+// 都經單一寫入點（grantAccess）upsert 進這張表。一 user 一列、all-or-nothing。
+//
+// 相容備忘：`access_until` 是 Slice A 舊欄位，**保留並與 `current_period_end`
+// 雙寫**（dev/prod 共用 DB、舊 code 可能仍在跑時的安全網）。新邏輯一律讀
+// `current_period_end`，舊欄位只做 fallback / 鏡像，未來確認無舊 code 後再 drop。
 export const subscriptions = pgTable("subscriptions", {
   userId: text("user_id")
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),
-  // 授權來源；可擴充（之後加金流商）。
+  // 授權狀態（真相）。trialing/active = 有權；其餘無權。
+  status: text("status", {
+    enum: ["trialing", "active", "past_due", "canceled", "expired"],
+  })
+    .notNull()
+    .default("trialing"),
+  // 方案（金流來源才有）。NULL = 試用 / 手動 / promo。
+  plan: text("plan", { enum: ["monthly", "annual"] }),
+  // 授權來源。trial/comp 為 Slice A 舊值（保留相容）；新寫入用
+  // apple/paddle/manual/promo/newebpay。
   source: text("source", {
-    enum: ["trial", "comp", "promo", "paddle", "ios", "newebpay"],
+    enum: ["trial", "comp", "promo", "manual", "paddle", "apple", "newebpay"],
   }).notNull(),
-  // 存取到期（ISO string）；NULL = 永久（admin 永久 comp）。
+  // 本期 / 授權到期（ISO string）；NULL = 永久（admin 永久授權）。
+  currentPeriodEnd: text("current_period_end"),
+  // 試用到期（ISO string）；僅 trialing 期間有意義。
+  trialEnd: text("trial_end"),
+  // 外部金流識別（RevenueCat / Paddle 等）。
+  externalCustomerId: text("external_customer_id"),
+  externalSubscriptionId: text("external_subscription_id"),
+  // 已排定期末取消（仍有權至 currentPeriodEnd）。
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+  // 【deprecated】Slice A 舊欄位，與 current_period_end 雙寫；勿在新邏輯讀取。
   accessUntil: text("access_until"),
+  createdAt: text("created_at"),
   updatedAt: text("updated_at").notNull(),
 });
 

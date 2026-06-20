@@ -441,7 +441,10 @@
     "trialing": "Trial — {days} days left",
     "activeUntil": "Premium active (until {date})",
     "activeForever": "Premium active",
+    "canceled": "Canceled — Premium until {date}",
+    "pastDue": "Payment failed — update your payment method",
     "expired": "Trial ended",
+    "subscriptionEnded": "Subscription ended",
     "redeem": {
       "label": "Promo code",
       "placeholder": "Enter code",
