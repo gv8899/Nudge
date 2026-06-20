@@ -6,11 +6,17 @@ import { format, parseISO } from "date-fns";
 import { fetcher } from "@/lib/fetcher";
 
 interface Entitlement {
-  isPremium: boolean;
-  status: "trialing" | "active" | "expired";
+  isActive: boolean;
+  status: "trialing" | "active" | "past_due" | "canceled" | "expired";
   source: string | null;
   accessUntil: string | null;
 }
+
+// 曾經付費過的來源（用來決定 expired 的措辭：訂閱已結束 vs 試用已結束）。
+const PAID_SOURCES = ["apple", "paddle", "newebpay"];
+
+// 仍有權、但需要提醒的狀態（付款失敗 / 已取消但未到期）→ 用警告配色。
+const ATTENTION_STATUSES = ["past_due", "canceled"];
 interface MeResponse {
   entitlement?: Entitlement;
 }
@@ -29,18 +35,29 @@ export function SubscriptionSection() {
   const { data: me } = useSWR<MeResponse>("/api/me", fetcher);
   const ent = me?.entitlement;
 
+  function fmtDate(iso: string | null): string {
+    return iso ? format(parseISO(iso), "yyyy/MM/dd") : "";
+  }
+
   function statusLine(): string {
     if (!ent) return "";
-    if (ent.status === "trialing") {
-      return t("trialing", { days: daysLeft(ent.accessUntil) });
+    switch (ent.status) {
+      case "trialing":
+        return t("trialing", { days: daysLeft(ent.accessUntil) });
+      case "active":
+        return ent.accessUntil === null
+          ? t("activeForever")
+          : t("activeUntil", { date: fmtDate(ent.accessUntil) });
+      case "canceled":
+        return t("canceled", { date: fmtDate(ent.accessUntil) });
+      case "past_due":
+        return t("pastDue");
+      default:
+        // expired：曾付費過 → 訂閱已結束；否則（試用/promo/admin）→ 試用已結束。
+        return ent.source && PAID_SOURCES.includes(ent.source)
+          ? t("subscriptionEnded")
+          : t("expired");
     }
-    if (ent.status === "active") {
-      if (ent.accessUntil === null) return t("activeForever");
-      return t("activeUntil", {
-        date: format(parseISO(ent.accessUntil), "yyyy/MM/dd"),
-      });
-    }
-    return t("expired");
   }
 
   return (
@@ -51,9 +68,11 @@ export function SubscriptionSection() {
       {ent ? (
         <div
           className={`rounded-lg border px-3 py-2.5 text-sm ${
-            ent.isPremium
-              ? "border-primary/40 bg-primary/5 text-foreground"
-              : "border-border text-text-dim"
+            ent.isActive && ATTENTION_STATUSES.includes(ent.status)
+              ? "border-chart-2/40 bg-chart-2/5 text-foreground"
+              : ent.isActive
+                ? "border-primary/40 bg-primary/5 text-foreground"
+                : "border-border text-text-dim"
           }`}
         >
           {statusLine()}

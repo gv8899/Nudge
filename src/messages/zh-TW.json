@@ -479,7 +479,10 @@
     "trialing": "試用中，剩 {days} 天",
     "activeUntil": "Premium 使用中（至 {date}）",
     "activeForever": "Premium 使用中",
+    "canceled": "已取消，Premium 使用至 {date}",
+    "pastDue": "付款失敗，請更新付款方式",
     "expired": "試用已結束",
+    "subscriptionEnded": "訂閱已結束",
     "redeem": {
       "label": "兌換碼",
       "placeholder": "輸入兌換碼",

@@ -46,6 +46,7 @@ export async function getUser() {
       locale: null,
       appleSub: null,
       createdAt: now,
+      trialStartedAt: null,
       googleCalendarAccessToken: null,
       googleCalendarRefreshToken: null,
       googleCalendarTokenExpires: null,

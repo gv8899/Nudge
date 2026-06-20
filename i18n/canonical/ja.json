@@ -479,7 +479,10 @@
     "trialing": "トライアル — 残り{days}日",
     "activeUntil": "Premium 利用中（{date}まで）",
     "activeForever": "Premium 利用中",
+    "canceled": "キャンセル済み — {date}まで Premium 利用可",
+    "pastDue": "支払い失敗 — お支払い方法を更新してください",
     "expired": "トライアル終了",
+    "subscriptionEnded": "サブスクリプション終了",
     "redeem": {
       "label": "プロモコード",
       "placeholder": "コードを入力",

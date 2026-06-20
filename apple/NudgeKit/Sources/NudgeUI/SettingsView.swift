@@ -175,18 +175,21 @@ public struct SettingsView: View {
         SettingsGroup(header: "billing.section", icon: "creditcard") {
             SettingsRow {
                 Text(verbatim: subscriptionStatusText)
-                    .foregroundStyle(
-                        auth.entitlement?.isPremium == true
-                            ? Color.nudgePrimary : Color.nudgeTextDim
-                    )
+                    .foregroundStyle(subscriptionStatusColor)
             } trailing: {
                 EmptyView()
             }
         }
     }
 
+    // 曾付費過的來源（決定 expired 措辭：訂閱已結束 vs 試用已結束）。
+    private static let paidSources = ["apple", "paddle", "newebpay"]
+    // 仍有權但需提醒的狀態（付款失敗 / 已取消未到期）→ 警告色。
+    private static let attentionStatuses = ["past_due", "canceled"]
+
     private var subscriptionStatusText: String {
         guard let e = auth.entitlement else { return "…" }
+        let end = e.currentPeriodEnd ?? e.accessUntil
         switch e.status {
         case "trialing":
             return String(
@@ -194,16 +197,32 @@ public struct SettingsView: View {
                 e.daysLeft ?? 0
             )
         case "active":
-            if e.accessUntil == nil {
+            if end == nil {
                 return nudgeLocalized("billing.activeForever", locale: locale)
             }
             return String(
                 format: nudgeLocalized("billing.activeUntil", locale: locale),
-                formattedAccessDate(e.accessUntil ?? "")
+                formattedAccessDate(end ?? "")
             )
+        case "canceled":
+            return String(
+                format: nudgeLocalized("billing.canceled", locale: locale),
+                formattedAccessDate(end ?? "")
+            )
+        case "past_due":
+            return nudgeLocalized("billing.pastDue", locale: locale)
         default:
-            return nudgeLocalized("billing.expired", locale: locale)
+            // expired：曾付費 → 訂閱已結束；否則 → 試用已結束。
+            let key = Self.paidSources.contains(e.source ?? "")
+                ? "billing.subscriptionEnded" : "billing.expired"
+            return nudgeLocalized(key, locale: locale)
         }
+    }
+
+    private var subscriptionStatusColor: Color {
+        guard let e = auth.entitlement, e.isActive else { return .nudgeTextDim }
+        return Self.attentionStatuses.contains(e.status)
+            ? .nudgeWarning : .nudgePrimary
     }
 
     private func formattedAccessDate(_ iso: String) -> String {
