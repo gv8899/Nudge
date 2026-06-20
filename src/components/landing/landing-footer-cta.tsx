@@ -31,6 +31,13 @@ export async function LandingFooterCta() {
         <Link href="/terms" className="hover:text-foreground transition-colors">
           {t("footer.terms")}
         </Link>
+        <span aria-hidden="true">·</span>
+        <Link
+          href="/refund"
+          className="hover:text-foreground transition-colors"
+        >
+          {t("footer.refund")}
+        </Link>
       </footer>
     </section>
   );
