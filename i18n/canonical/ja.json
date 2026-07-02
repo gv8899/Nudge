@@ -446,7 +446,9 @@
     "reminder": {
       "label": "リマインダー時刻",
       "requiresPreset": "繰り返しを設定するとリマインダーを追加できます",
-      "clear": "クリア"
+      "clear": "クリア",
+      "enabled": "プッシュ通知",
+      "dateTime": "通知日時"
     },
     "validation": {
       "weeklyNeedsWeekday": "曜日を1つ以上選んでください",

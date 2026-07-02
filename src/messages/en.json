@@ -446,7 +446,9 @@
     "reminder": {
       "label": "Reminder time",
       "requiresPreset": "Set a repeat first to add a reminder",
-      "clear": "Clear"
+      "clear": "Clear",
+      "enabled": "Push notification",
+      "dateTime": "Reminder time"
     },
     "validation": {
       "weeklyNeedsWeekday": "Pick at least one day",

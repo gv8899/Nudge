@@ -333,6 +333,8 @@
     "schedule.reminder.label": "40d432d23cd91c42621f200837b75534b878ed5435d407949063ae2d460d1d20",
     "schedule.reminder.requiresPreset": "344aa004d1f93d2af2ee15f9ffcf85b0d432d1915dbd619dcdcd265db67fb4e6",
     "schedule.reminder.clear": "bce2377283c2455ab8b1deb7711af90638f10ef82e345eb354e9296ff9397a56",
+    "schedule.reminder.enabled": "d1ecbf316a5da14ef005978be9478cc2674ba024aa1daf040033066e07897f61",
+    "schedule.reminder.dateTime": "40d432d23cd91c42621f200837b75534b878ed5435d407949063ae2d460d1d20",
     "schedule.validation.weeklyNeedsWeekday": "af3bef9e29fe761035fce9185027681f3119284a281b0917d51b5938d7e3a92d",
     "schedule.validation.endBeforeStart": "cd8071a1603c057073c8220274d4d0cc975210cf36bae06a4d23a776731df460",
     "weekday.mon": "51a75f4634dfa8598a0a1436da0b7764830edd1f3a97661222387da2fe2b38d1",

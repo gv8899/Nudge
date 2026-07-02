@@ -446,7 +446,9 @@
     "reminder": {
       "label": "提醒時間",
       "requiresPreset": "先設定重複，才能加提醒",
-      "clear": "清除"
+      "clear": "清除",
+      "enabled": "推播通知",
+      "dateTime": "提醒時間"
     },
     "validation": {
       "weeklyNeedsWeekday": "請至少選一個星期",

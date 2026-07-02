@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import {
   useTaskRecurrence,
   type RecurrencePreset,
@@ -13,6 +15,7 @@ import {
   parseWeekdaysCsv,
   weekdaysToCsv,
 } from "@/lib/schedule-validation";
+import { composeRemindAtISO, splitRemindAtISO } from "@/lib/reminder-time";
 
 const PRESETS: (RecurrencePreset | null)[] = [
   null,
@@ -70,6 +73,16 @@ export function ScheduleSection({ taskId }: Props) {
   // Prevents the state-change caused by the sync from triggering a redundant save.
   const skipNextSaveRef = useRef(false);
 
+  // 絕對提醒（無重複時用）— 存 tasks.remindAt
+  const { data: taskData, mutate: mutateTask } = useSWR<{ remindAt: string | null }>(
+    `/api/tasks/${taskId}`,
+    fetcher
+  );
+  const [hasReminder, setHasReminder] = useState(false);
+  const [absDate, setAbsDate] = useState(today());
+  const [absTime, setAbsTime] = useState("09:00");
+  const [didApplyTask, setDidApplyTask] = useState(false);
+
   // Sync from server once on first load.
   // Flip didApplyServer as soon as SWR finishes loading (data OR null for no recurrence).
   useEffect(() => {
@@ -83,11 +96,24 @@ export function ScheduleSection({ taskId }: Props) {
       setHasEndDate(data.endDate !== null);
       setEndDate(data.endDate ?? today());
       setRemindAt(data.remindAtTimeOfDay ?? "");
+      if (data.remindAtTimeOfDay) setHasReminder(true);
     }
     // data === null means no recurrence saved yet; keep useState defaults.
     skipNextSaveRef.current = true; // skip the save effect triggered by state updates above
     setDidApplyServer(true);
   }, [isLoading, data, didApplyServer]);
+
+  // 從 server 同步絕對提醒（一次）
+  useEffect(() => {
+    if (taskData === undefined || didApplyTask) return;
+    if (taskData?.remindAt) {
+      const { date, time } = splitRemindAtISO(taskData.remindAt);
+      setAbsDate(date);
+      setAbsTime(time);
+      setHasReminder(true);
+    }
+    setDidApplyTask(true);
+  }, [taskData, didApplyTask]);
 
   const errEnd = !validateEndAfterStart(startDate, hasEndDate ? endDate : null);
   const errWeekday = !validateWeeklyHasWeekday(
@@ -120,11 +146,26 @@ export function ScheduleSection({ taskId }: Props) {
     hasEndDate,
     endDate,
     remindAt,
+    hasReminder,
+    absDate,
+    absTime,
   ]);
+
+  async function saveAbsoluteReminder(value: string | null) {
+    await fetch(`/api/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ remindAt: value }),
+    });
+    mutateTask();
+  }
 
   async function doSave() {
     if (preset === null) {
-      await save(null);
+      await save(null); // 清 recurrence
+      await saveAbsoluteReminder(
+        hasReminder ? composeRemindAtISO(absDate, absTime) : null
+      );
       return;
     }
     const monthDay =
@@ -143,10 +184,11 @@ export function ScheduleSection({ taskId }: Props) {
         preset === "monthly_nth_weekday" ? monthNthWeekday : null,
       startDate,
       endDate: hasEndDate ? endDate : null,
-      remindAtTimeOfDay: remindAt || null,
+      remindAtTimeOfDay: hasReminder && remindAt ? remindAt : null,
     };
     try {
       await save(rule);
+      await saveAbsoluteReminder(null); // recurrence 提醒與絕對提醒互斥
     } catch {
       // Errors are surfaced by the dialog/page-level error UI; debounce
       // can't easily report up. Future: hoist error to parent.
@@ -287,32 +329,56 @@ export function ScheduleSection({ taskId }: Props) {
         )}
       </div>
 
-      <div className="space-y-1 border-t border-border pt-4">
-        <label className="block text-sm font-medium text-foreground">
-          {t("schedule.reminder.label")}
+      <div className="space-y-3 border-t border-border pt-4">
+        <label className="flex items-center justify-between gap-3 text-sm font-medium text-foreground">
+          {t("schedule.reminder.enabled")}
+          <input
+            type="checkbox"
+            role="switch"
+            checked={hasReminder}
+            onChange={(e) => {
+              setHasReminder(e.target.checked);
+              if (!e.target.checked) setRemindAt("");
+              if (e.target.checked && preset !== null && !remindAt) {
+                setRemindAt("09:00");
+              }
+            }}
+            aria-label={t("schedule.reminder.enabled")}
+          />
         </label>
-        {preset === null ? (
-          <p className="text-xs text-text-dim">
-            {t("schedule.reminder.requiresPreset")}
-          </p>
-        ) : (
-          <div className="flex gap-2">
+
+        {hasReminder && preset !== null && (
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className="text-foreground">{t("schedule.reminder.label")}</span>
             <input
               type="time"
-              value={remindAt}
+              value={remindAt || "09:00"}
               onChange={(e) => setRemindAt(e.target.value)}
               className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               aria-label={t("schedule.reminder.label")}
             />
-            {remindAt && (
-              <button
-                type="button"
-                onClick={() => setRemindAt("")}
-                className="text-xs text-text-dim hover:text-foreground"
-              >
-                {t("schedule.reminder.clear")}
-              </button>
-            )}
+          </div>
+        )}
+
+        {hasReminder && preset === null && (
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className="text-foreground">{t("schedule.reminder.dateTime")}</span>
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={absDate}
+                onChange={(e) => setAbsDate(e.target.value)}
+                className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                aria-label={t("schedule.reminder.dateTime")}
+              />
+              <input
+                type="time"
+                value={absTime}
+                onChange={(e) => setAbsTime(e.target.value)}
+                className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                aria-label={t("schedule.reminder.dateTime")}
+              />
+            </div>
           </div>
         )}
       </div>
