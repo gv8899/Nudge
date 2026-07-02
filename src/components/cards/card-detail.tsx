@@ -109,20 +109,17 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   useEffect(() => {
     patchTaskRef.current = patchTask;
   });
-  const descSaverRef = useRef<DebouncedSaver<string> | null>(null);
-  useEffect(() => {
-    if (!descSaverRef.current) {
-      descSaverRef.current = new DebouncedSaver<string>((html) => {
+  const [descSaver] = useState(
+    // eslint-disable-next-line react-hooks/refs -- ref 只在 callback 內讀取（callback 從不在 render 時執行），非 render 期讀 ref
+    () =>
+      new DebouncedSaver<string>((html) => {
         const isEmpty =
           !html ||
           html === "<p></p>" ||
           html.replace(/<[^>]*>/g, "").trim() === "";
         patchTaskRef.current({ description: isEmpty ? "" : html });
-      }, 800);
-    }
-  }, []);
-  // eslint-disable-next-line react-hooks/refs
-  const descSaver = descSaverRef.current!;
+      }, 800)
+  );
   useEffect(() => () => descSaver.flush(), [descSaver]);
 
   const handleTagsChange = async (tagIds: string[]) => {

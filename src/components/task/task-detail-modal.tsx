@@ -50,20 +50,17 @@ export function TaskDetailModal({
   useEffect(() => {
     onDescChangeRef.current = onDescChange;
   });
-  const descSaverRef = useRef<DebouncedSaver<string> | null>(null);
-  useEffect(() => {
-    if (!descSaverRef.current) {
-      descSaverRef.current = new DebouncedSaver<string>((html) => {
+  const [descSaver] = useState(
+    // eslint-disable-next-line react-hooks/refs -- ref 只在 callback 內讀取（callback 從不在 render 時執行），非 render 期讀 ref
+    () =>
+      new DebouncedSaver<string>((html) => {
         const isEmpty =
           !html ||
           html === "<p></p>" ||
           html.replace(/<[^>]*>/g, "").trim() === "";
         onDescChangeRef.current(isEmpty ? "" : html);
-      }, 800);
-    }
-  }, []);
-  // eslint-disable-next-line react-hooks/refs
-  const descSaver = descSaverRef.current!;
+      }, 800)
+  );
   // unmount 時 flush（對齊 Mac onDisappear）
   useEffect(() => () => descSaver.flush(), [descSaver]);
 
