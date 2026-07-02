@@ -9,7 +9,8 @@
     "errorSaving": "保存に失敗しました。もう一度お試しください",
     "retry": "再試行",
     "done": "完了",
-    "clear": "クリア"
+    "clear": "クリア",
+    "confirm": "確認"
   },
   "settings": {
     "title": "設定",
@@ -116,6 +117,7 @@
     "expandContentAria": "「{title}」の内容を展開",
     "detailExpandPage": "展開",
     "createPlaceholder": "タスクを追加",
+    "quickAddSubmit": "追加",
     "viewDetails": "詳細を見る",
     "complete": "タスクを完了",
     "uncomplete": "未完了に戻す",
@@ -164,12 +166,7 @@
     "emptyToday": "今日のタスクはまだありません",
     "overdueSectionAria": "以前のタスク",
     "overdueLabel": "以前のタスク ({count})",
-    "overdueScheduleToday": "今日に移動",
-    "overdueOriginalDateAria": "元の日付：{date}",
-    "overdueArchiveAria": "タスクをアーカイブ：{title}",
     "overdueIncompleteAria": "{title}：未完了",
-    "archiveTitle": "タスクをアーカイブ",
-    "archiveConfirmBody": "「{title}」をアーカイブしますか？アーカイブしたタスクは一覧に表示されません。",
     "archiveButton": "アーカイブ",
     "calendarNavAria": "週カレンダー",
     "prevWeekAria": "前の週",
@@ -189,10 +186,7 @@
     "moveToToday": "今日に移動",
     "setRecurring": "繰り返し設定…",
     "setReminder": "リマインダーを設定…",
-    "skipThisOccurrence": "今回をスキップ",
-    "skipConfirmTitle": "今回をスキップ",
-    "skipConfirmBody": "「{title}」の今回分をスキップしますか？次回は通常どおり表示されます。",
-    "skipConfirmAction": "スキップ"
+    "skipThisOccurrence": "今回をスキップ"
   },
   "cards": {
     "recentTitle": "最近のカード",
@@ -410,6 +404,7 @@
     }
   },
   "schedule": {
+    "dialogTitle": "スケジュール",
     "recurrenceTitle": "繰り返し",
     "preset": {
       "daily": "毎日",

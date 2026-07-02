@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { mutate as globalMutate } from "swr";
 import { useDaily } from "@/hooks/use-daily";
 import { TaskCard } from "@/components/task/task-card";
-import { TaskCreate } from "@/components/task/task-create";
+import { QuickAddDialog } from "@/components/task/quick-add-dialog";
 import { TaskFab } from "@/components/task/task-fab";
 import { CalendarNav, WeekNavControls } from "@/components/calendar/calendar-nav";
 import { DateHeading } from "@/components/calendar/date-heading";
@@ -91,7 +91,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   const tCommon = useTranslations("common");
   const [currentDate, setCurrentDate] = useState(initialDate);
   const [completedExpanded, setCompletedExpanded] = useState(true);
-  const [composerOpen, setComposerOpen] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const { data, isLoading, error, mutate } = useDaily(currentDate);
   const online = useOnline();
   // 最後一次成功載入的時間（offline banner 顯示用）
@@ -441,9 +441,9 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                     onClick={() => handleKindChange("cards")}
                     aria-label={tNav("cards")}
                     title={tNav("cards")}
-                    aria-pressed={rightPanelKind === "cards"}
+                    aria-pressed={rightPanelKind === "cards" || rightPanelKind === "detail"}
                     className={
-                      rightPanelKind === "cards"
+                      rightPanelKind === "cards" || rightPanelKind === "detail"
                         ? "flex items-center justify-center h-6 w-6 rounded bg-background text-foreground shadow-sm transition-colors"
                         : "flex items-center justify-center h-6 w-6 rounded text-text-dim hover:text-foreground transition-colors"
                     }
@@ -475,7 +475,6 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                 {t("todayHeader", { count: allAssignments.length })}
               </div>
             )}
-            {composerOpen && <TaskCreate onSubmit={handleCreateTask} onClose={() => setComposerOpen(false)} />}
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -544,8 +543,13 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
         </div>
       </div>
       <TaskFab
-        onClick={() => setComposerOpen((v) => !v)}
+        onClick={() => setQuickAddOpen(true)}
         style={rightPanelOpen && isLg ? { right: rightPanelWidth + 24 } : undefined}
+      />
+      <QuickAddDialog
+        open={quickAddOpen}
+        onOpenChange={setQuickAddOpen}
+        onSubmit={handleCreateTask}
       />
     </>
   );

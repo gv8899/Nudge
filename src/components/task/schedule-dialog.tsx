@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScheduleSection } from "./schedule-section";
@@ -26,12 +25,18 @@ export function ScheduleDialog({ taskId, open, onOpenChange }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle className="text-base font-semibold">
-            {t("schedule.recurrenceTitle")}
-          </DialogTitle>
-        </DialogHeader>
+        {/* Mac ScheduleSection 無標題 — 保留 sr-only 供螢幕閱讀器辨識 */}
+        <DialogTitle className="sr-only">{t("schedule.dialogTitle")}</DialogTitle>
         {taskId && <ScheduleSection taskId={taskId} />}
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="rounded-md bg-primary px-4 py-1.5 text-sm text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          >
+            {t("common.done")}
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   );

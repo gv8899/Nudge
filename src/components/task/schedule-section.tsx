@@ -228,32 +228,35 @@ export function ScheduleSection({ taskId }: Props) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-3">
-        <label className="block text-sm font-medium text-foreground">
-          {t("schedule.recurrenceTitle")}
-        </label>
-        <select
-          value={preset ?? ""}
-          onChange={(e) => {
-            const next = (e.target.value || null) as RecurrencePreset | null;
-            setPreset(next);
-            if (next !== null && hasReminder && !remindAt) setRemindAt("09:00");
-          }}
-          className="rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-          aria-label={t("schedule.recurrenceTitle")}
-        >
-          {PRESETS.map((p) => (
-            <option key={p ?? "off"} value={p ?? ""}>
-              {p === null
-                ? t("schedule.recurrence.off")
-                : t(`schedule.preset.${presetToI18nKey(p)}`)}
-            </option>
-          ))}
-        </select>
+    <div className="space-y-[18px]">
+      {/* 重複 — Mac ScheduleSection 兩張 tinted section card 之一 */}
+      <div className="rounded-xl bg-foreground/[0.04] px-4 py-1 divide-y divide-border/60">
+        <div className="flex items-center justify-between min-h-12">
+          <span className="text-sm font-semibold text-foreground">
+            {t("schedule.recurrenceTitle")}
+          </span>
+          <select
+            value={preset ?? ""}
+            onChange={(e) => {
+              const next = (e.target.value || null) as RecurrencePreset | null;
+              setPreset(next);
+              if (next !== null && hasReminder && !remindAt) setRemindAt("09:00");
+            }}
+            className="rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            aria-label={t("schedule.recurrenceTitle")}
+          >
+            {PRESETS.map((p) => (
+              <option key={p ?? "off"} value={p ?? ""}>
+                {p === null
+                  ? t("schedule.recurrence.off")
+                  : t(`schedule.preset.${presetToI18nKey(p)}`)}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {(preset === "weekly" || preset === "biweekly") && (
-          <div>
+          <div className="py-2">
             <label className="text-xs text-text-dim">
               {t("schedule.recurrence.weekdaysLabel")}
             </label>
@@ -291,49 +294,55 @@ export function ScheduleSection({ taskId }: Props) {
         )}
 
         {preset === "monthly_day" && (
-          <select
-            value={monthDay}
-            onChange={(e) => setMonthDay(parseInt(e.target.value, 10))}
-            className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-            aria-label={t("schedule.preset.monthlyDay")}
-          >
-            {Array.from({ length: 31 }, (_, i) => i + 1).map((n) => (
-              <option key={n} value={n}>
-                {t("schedule.recurrence.monthDayN", { n })}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center justify-between min-h-12">
+            <span className="text-sm text-foreground">{t("schedule.preset.monthlyDay")}</span>
+            <select
+              value={monthDay}
+              onChange={(e) => setMonthDay(parseInt(e.target.value, 10))}
+              className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              aria-label={t("schedule.preset.monthlyDay")}
+            >
+              {Array.from({ length: 31 }, (_, i) => i + 1).map((n) => (
+                <option key={n} value={n}>
+                  {t("schedule.recurrence.monthDayN", { n })}
+                </option>
+              ))}
+            </select>
+          </div>
         )}
 
         {preset === "monthly_nth_weekday" && (
-          <div className="flex gap-2">
-            <select
-              value={monthNth}
-              onChange={(e) => setMonthNth(parseInt(e.target.value, 10))}
-              className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-              aria-label={t("schedule.recurrence.nthLabel")}
-            >
-              {[1, 2, 3, 4].map((n) => (
-                <option key={n} value={n}>
-                  {t("schedule.recurrence.nthN", { n })}
-                </option>
-              ))}
-              <option value={5}>{t("schedule.recurrence.last")}</option>
-            </select>
-            <select
-              value={monthNthWeekday}
-              onChange={(e) =>
-                setMonthNthWeekday(parseInt(e.target.value, 10))
-              }
-              className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-              aria-label={t("schedule.recurrence.weekday")}
-            >
-              {WEEKDAYS.map((d, i) => (
-                <option key={d} value={d}>
-                  {t(`weekday.${WEEKDAY_KEYS[i]}`)}
-                </option>
-              ))}
-            </select>
+          <div className="flex items-center justify-between min-h-12">
+            <span className="text-sm text-foreground">{t("schedule.recurrence.nthLabel")}</span>
+            <div className="flex gap-2">
+              <select
+                value={monthNth}
+                onChange={(e) => setMonthNth(parseInt(e.target.value, 10))}
+                className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                aria-label={t("schedule.recurrence.nthLabel")}
+              >
+                {[1, 2, 3, 4].map((n) => (
+                  <option key={n} value={n}>
+                    {t("schedule.recurrence.nthN", { n })}
+                  </option>
+                ))}
+                <option value={5}>{t("schedule.recurrence.last")}</option>
+              </select>
+              <select
+                value={monthNthWeekday}
+                onChange={(e) =>
+                  setMonthNthWeekday(parseInt(e.target.value, 10))
+                }
+                className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                aria-label={t("schedule.recurrence.weekday")}
+              >
+                {WEEKDAYS.map((d, i) => (
+                  <option key={d} value={d}>
+                    {t(`weekday.${WEEKDAY_KEYS[i]}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
 
@@ -344,35 +353,42 @@ export function ScheduleSection({ taskId }: Props) {
               value={startDate}
               onChange={setStartDate}
             />
-            <label className="flex items-center gap-2 text-sm">
+            <div className="flex items-center justify-between min-h-12">
+              <span className="text-sm text-foreground">
+                {t("schedule.recurrence.hasEndDate")}
+              </span>
               <input
                 type="checkbox"
+                role="switch"
                 checked={hasEndDate}
                 onChange={(e) => setHasEndDate(e.target.checked)}
+                aria-label={t("schedule.recurrence.hasEndDate")}
               />
-              {t("schedule.recurrence.hasEndDate")}
-            </label>
+            </div>
             {hasEndDate && (
-              <>
+              <div className="min-h-12">
                 <DateRow
                   label={t("schedule.recurrence.endDate")}
                   value={endDate}
                   onChange={setEndDate}
                 />
                 {errEnd && (
-                  <p className="text-xs text-destructive" role="alert">
+                  <p className="pb-2 text-xs text-destructive" role="alert">
                     {t("schedule.validation.endBeforeStart")}
                   </p>
                 )}
-              </>
+              </div>
             )}
           </>
         )}
       </div>
 
-      <div className="space-y-3 border-t border-border pt-4">
-        <label className="flex items-center justify-between gap-3 text-sm font-medium text-foreground">
-          {t("schedule.reminder.enabled")}
+      {/* 提醒 — 第二張 section card */}
+      <div className="rounded-xl bg-foreground/[0.04] px-4 py-1 divide-y divide-border/60">
+        <div className="flex items-center justify-between min-h-12">
+          <span className="text-sm font-semibold text-foreground">
+            {t("schedule.reminder.enabled")}
+          </span>
           <input
             type="checkbox"
             role="switch"
@@ -386,11 +402,11 @@ export function ScheduleSection({ taskId }: Props) {
             }}
             aria-label={t("schedule.reminder.enabled")}
           />
-        </label>
+        </div>
 
         {hasReminder && preset !== null && (
-          <div className="flex items-center justify-between gap-3 text-sm">
-            <span className="text-foreground">{t("schedule.reminder.label")}</span>
+          <div className="flex items-center justify-between min-h-12">
+            <span className="text-sm text-foreground">{t("schedule.reminder.label")}</span>
             <input
               type="time"
               value={remindAt || "09:00"}
@@ -402,8 +418,8 @@ export function ScheduleSection({ taskId }: Props) {
         )}
 
         {hasReminder && preset === null && (
-          <div className="flex items-center justify-between gap-3 text-sm">
-            <span className="text-foreground">{t("schedule.reminder.dateTime")}</span>
+          <div className="flex items-center justify-between min-h-12">
+            <span className="text-sm text-foreground">{t("schedule.reminder.dateTime")}</span>
             <div className="flex gap-2">
               <input
                 type="date"
@@ -437,7 +453,7 @@ function DateRow({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="flex items-center justify-between gap-3 text-sm">
+    <label className="flex items-center justify-between gap-3 min-h-12 text-sm">
       <span className="text-foreground">{label}</span>
       <input
         type="date"

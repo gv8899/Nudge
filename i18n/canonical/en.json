@@ -9,7 +9,8 @@
     "errorSaving": "Couldn't save, try again",
     "retry": "Retry",
     "done": "Done",
-    "clear": "Clear"
+    "clear": "Clear",
+    "confirm": "Confirm"
   },
   "settings": {
     "title": "Settings",
@@ -116,6 +117,7 @@
     "expandContentAria": "Expand content of \"{title}\"",
     "detailExpandPage": "Expand",
     "createPlaceholder": "Add a task",
+    "quickAddSubmit": "Add",
     "viewDetails": "View details",
     "complete": "Complete task",
     "uncomplete": "Mark as incomplete",
@@ -164,12 +166,7 @@
     "emptyToday": "No tasks for today",
     "overdueSectionAria": "Tasks from previous days",
     "overdueLabel": "From earlier ({count})",
-    "overdueScheduleToday": "Move to today",
-    "overdueOriginalDateAria": "Original date: {date}",
-    "overdueArchiveAria": "Archive task: {title}",
     "overdueIncompleteAria": "{title}: not completed",
-    "archiveTitle": "Archive task",
-    "archiveConfirmBody": "Archive \"{title}\"? Archived tasks will not appear in your task list.",
     "archiveButton": "Archive",
     "calendarNavAria": "Weekly calendar",
     "prevWeekAria": "Previous week",
@@ -189,10 +186,7 @@
     "moveToToday": "Move to today",
     "setRecurring": "Repeat…",
     "setReminder": "Set reminder…",
-    "skipThisOccurrence": "Skip this one",
-    "skipConfirmTitle": "Skip this one",
-    "skipConfirmBody": "Skip this occurrence of \"{title}\"? The next one shows up as usual.",
-    "skipConfirmAction": "Skip"
+    "skipThisOccurrence": "Skip this one"
   },
   "cards": {
     "recentTitle": "Recent Cards",
@@ -410,6 +404,7 @@
     }
   },
   "schedule": {
+    "dialogTitle": "Schedule",
     "recurrenceTitle": "Repeat",
     "preset": {
       "daily": "Daily",

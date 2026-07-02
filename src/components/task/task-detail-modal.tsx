@@ -42,8 +42,13 @@ export function TaskDetailModal({
   const tCommon = useTranslations("common");
   const tCardDetail = useTranslations("cardDetail");
   const [titleDraft, setTitleDraft] = useState(task.title);
+  // 打字中（focused）時不要讓 task.title prop 變化蓋掉草稿 —
+  // debounced 存檔後 parent 會 refetch，task.title 會變，
+  // 但使用者可能還在輸入下一個字。
+  const isTitleFocusedRef = useRef(false);
 
   useEffect(() => {
+    if (isTitleFocusedRef.current) return;
     setTitleDraft(task.title);
   }, [task.title]);
 
@@ -66,10 +71,26 @@ export function TaskDetailModal({
   // unmount 時 flush（對齊 Mac onDisappear）
   useEffect(() => () => descSaver.flush(), [descSaver]);
 
+  // 標題打字即 debounce 存（對齊 Mac CardDetailView），blur/Enter 仍立即 flush。
+  const onTitleChangeRef = useRef(onTitleChange);
+  useEffect(() => {
+    onTitleChangeRef.current = onTitleChange;
+  });
+  const [titleSaver] = useState(
+    // eslint-disable-next-line react-hooks/refs -- 同上，callback 非 render 期執行
+    () =>
+      new DebouncedSaver<string>((v) => {
+        const trimmed = v.trim();
+        if (trimmed) onTitleChangeRef.current?.(trimmed);
+      }, 500)
+  );
+  useEffect(() => () => titleSaver.flush(), [titleSaver]);
+
   const handleClose = useCallback(() => {
     descSaver.flush();
+    titleSaver.flush();
     onClose();
-  }, [descSaver, onClose]);
+  }, [descSaver, titleSaver, onClose]);
 
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -162,14 +183,22 @@ export function TaskDetailModal({
               <input
                 id="task-detail-title"
                 value={titleDraft}
-                onChange={(e) => setTitleDraft(e.target.value)}
+                onChange={(e) => {
+                  setTitleDraft(e.target.value);
+                  titleSaver.schedule(e.target.value);
+                }}
+                onFocus={() => {
+                  isTitleFocusedRef.current = true;
+                }}
                 onBlur={() => {
+                  isTitleFocusedRef.current = false;
+                  titleSaver.flush();
                   const v = titleDraft.trim();
-                  if (v && v !== task.title) onTitleChange(v);
-                  else setTitleDraft(task.title);
+                  if (!v) setTitleDraft(task.title);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
+                    titleSaver.flush();
                     (e.target as HTMLInputElement).blur();
                   }
                 }}
@@ -235,7 +264,7 @@ export function TaskDetailModal({
             onChange={handleDescChange}
             placeholder={tCardDetail("editorPlaceholder")}
             editable={true}
-            autoFocus={true}
+            autoFocus={false}
           />
         </div>
       </div>
