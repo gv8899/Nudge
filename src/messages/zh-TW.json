@@ -6,7 +6,8 @@
     "loading": "載入中...",
     "loadFailed": "載入失敗",
     "today": "今天",
-    "errorSaving": "儲存失敗，請再試一次"
+    "errorSaving": "儲存失敗，請再試一次",
+    "retry": "重試"
   },
   "settings": {
     "title": "設定",
@@ -503,5 +504,11 @@
         "already_redeemed": "你已兌換過此碼"
       }
     }
+  },
+  "offline": {
+    "banner": "離線中。上次更新於 {lastUpdated}"
+  },
+  "error": {
+    "unknown": "發生錯誤"
   }
 }

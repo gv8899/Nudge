@@ -8,6 +8,7 @@
     "common.loadFailed": "e8bc766fa473ff52039f2b6cc91057a03658d1314ec2b767eb822eecb7a7f22b",
     "common.today": "d5f5a7a010731feb6cc67fcbde1bc7133c86019f6d88186e5075344f59de5ff5",
     "common.errorSaving": "978626066ea182978591a4371624912fe22829b246a289d69c8e26cc0d2d93ac",
+    "common.retry": "7e59d0f162931a5dd57bd27f0ad05cb09f6cc588b5831bd53312bbb7ac618f6e",
     "settings.title": "0d8619aae051ae343ea983e969d29b7bd7a618eb1b25a6c87c133c5e3ee25264",
     "settings.account.section": "921f75f57fee7a871c06cbc0b11e24b62d9bab5a3fc40f2aa606890121810654",
     "settings.account.unnamed": "67bee6acfc3cbfedf4db63b02cf28e31ac8fdc9935fbf31f59029d2fe6d53ddb",
@@ -369,7 +370,9 @@
     "billing.redeem.error.inactive": "736506b05bb78ae199f0add23be374f9bb52f1c3e31881fa19dbfdee2b38e235",
     "billing.redeem.error.expired": "5cc442a1ffecaa4bb115db0f662f6abb260c15c52fd8fdd20833d16a0d023b7d",
     "billing.redeem.error.exhausted": "4264e9a816f7a966e03a78b97d8dbe0c5262bdaa406d9582f4c5b0cef3925524",
-    "billing.redeem.error.already_redeemed": "04eb6f8cc8c15b80119ff127ab69dcec71752705c32c2a73995ac1fa97ec60e7"
+    "billing.redeem.error.already_redeemed": "04eb6f8cc8c15b80119ff127ab69dcec71752705c32c2a73995ac1fa97ec60e7",
+    "offline.banner": "31bc6bcd8ec98760957db9d0a3d3902e83645c8211ae06b7c840d1172f8391b1",
+    "error.unknown": "393f0d9836269e50d2b5d3588fcf2f00bdbfd03affe9f8f6e3400ee908d9c67a"
   },
   "locked": {}
 }

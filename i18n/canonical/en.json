@@ -6,7 +6,8 @@
     "loading": "Loading...",
     "loadFailed": "Failed to load",
     "today": "Today",
-    "errorSaving": "Couldn't save, try again"
+    "errorSaving": "Couldn't save, try again",
+    "retry": "Retry"
   },
   "settings": {
     "title": "Settings",
@@ -503,5 +504,11 @@
         "already_redeemed": "You already redeemed this code"
       }
     }
+  },
+  "offline": {
+    "banner": "Offline. Last updated at {lastUpdated}."
+  },
+  "error": {
+    "unknown": "Something went wrong"
   }
 }
