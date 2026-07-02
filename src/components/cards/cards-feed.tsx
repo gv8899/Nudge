@@ -224,6 +224,7 @@ export function CardsFeed() {
             <div key={c.id} className="h-full">
               <CardGridItem
                 card={c}
+                selected={modalCardId === c.id}
                 onOpenInline={(id) => setModalCardId(id)}
               />
             </div>
