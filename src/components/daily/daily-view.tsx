@@ -263,6 +263,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
       const optimistic = {
         ...data,
         overdueTasks: (data.overdueTasks || []).filter((a) => a.id !== assignmentId),
+        assignments: (data.assignments || []).filter((a) => a.id !== assignmentId),
       };
       mutate(optimistic, false);
     }

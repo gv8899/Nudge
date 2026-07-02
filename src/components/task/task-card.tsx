@@ -25,6 +25,7 @@ import {
 import { GripVertical, MoreHorizontal } from "lucide-react";
 import type { DailyTaskAssignment } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
+import { isoToday } from "@/lib/calendar-dates";
 
 interface TaskCardProps {
   assignment: DailyTaskAssignment;
@@ -57,7 +58,7 @@ export function TaskCard({
   const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
 
   const isRecurring = assignment.isRecurring;
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = isoToday();
   const isToday = currentDate === todayStr;
 
   const {
@@ -104,7 +105,7 @@ export function TaskCard({
           {tDaily("setReminder")}
         </DropdownMenuItem>
         <DropdownMenuItem
-          className="text-destructive focus:text-destructive"
+          variant="destructive"
           onClick={() => setArchiveConfirmOpen(true)}
         >
           {tDaily("archiveButton")}
@@ -279,7 +280,7 @@ export function TaskCard({
                 onArchive(assignment.id, task.id);
                 setArchiveConfirmOpen(false);
               }}
-              className="rounded-md bg-destructive px-3 py-1.5 text-sm text-primary-foreground"
+              className="rounded-lg border border-destructive/40 px-3 py-1.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
             >
               {tDaily("archiveButton")}
             </button>
