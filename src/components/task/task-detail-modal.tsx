@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { DebouncedSaver } from "@/lib/debounced-saver";
 import { TiptapEditor } from "./tiptap-editor";
@@ -47,18 +47,23 @@ export function TaskDetailModal({
 
   // onDescChange 用 ref 固定最新版，saver 只建一次
   const onDescChangeRef = useRef(onDescChange);
-  onDescChangeRef.current = onDescChange;
-  const descSaver = useMemo(
-    () =>
-      new DebouncedSaver<string>((html) => {
+  useEffect(() => {
+    onDescChangeRef.current = onDescChange;
+  });
+  const descSaverRef = useRef<DebouncedSaver<string> | null>(null);
+  useEffect(() => {
+    if (!descSaverRef.current) {
+      descSaverRef.current = new DebouncedSaver<string>((html) => {
         const isEmpty =
           !html ||
           html === "<p></p>" ||
           html.replace(/<[^>]*>/g, "").trim() === "";
         onDescChangeRef.current(isEmpty ? "" : html);
-      }, 800),
-    []
-  );
+      }, 800);
+    }
+  }, []);
+  // eslint-disable-next-line react-hooks/refs
+  const descSaver = descSaverRef.current!;
   // unmount 時 flush（對齊 Mac onDisappear）
   useEffect(() => () => descSaver.flush(), [descSaver]);
 
@@ -194,6 +199,7 @@ export function TaskDetailModal({
             ) : (
               <a
                 href={`/cards/${task.id}`}
+                onClick={() => descSaver.flush()}
                 aria-label={t("detailExpandPage")}
                 title={t("detailExpandPage")}
                 className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"

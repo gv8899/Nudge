@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import useSWR, { mutate as globalMutate } from "swr";
@@ -106,18 +106,23 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   );
 
   const patchTaskRef = useRef(patchTask);
-  patchTaskRef.current = patchTask;
-  const descSaver = useMemo(
-    () =>
-      new DebouncedSaver<string>((html) => {
+  useEffect(() => {
+    patchTaskRef.current = patchTask;
+  });
+  const descSaverRef = useRef<DebouncedSaver<string> | null>(null);
+  useEffect(() => {
+    if (!descSaverRef.current) {
+      descSaverRef.current = new DebouncedSaver<string>((html) => {
         const isEmpty =
           !html ||
           html === "<p></p>" ||
           html.replace(/<[^>]*>/g, "").trim() === "";
         patchTaskRef.current({ description: isEmpty ? "" : html });
-      }, 800),
-    []
-  );
+      }, 800);
+    }
+  }, []);
+  // eslint-disable-next-line react-hooks/refs
+  const descSaver = descSaverRef.current!;
   useEffect(() => () => descSaver.flush(), [descSaver]);
 
   const handleTagsChange = async (tagIds: string[]) => {
