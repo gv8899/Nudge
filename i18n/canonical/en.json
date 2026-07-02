@@ -6,7 +6,8 @@
     "loading": "Loading...",
     "loadFailed": "Failed to load",
     "today": "Today",
-    "errorSaving": "Couldn't save, try again"
+    "errorSaving": "Couldn't save, try again",
+    "retry": "Retry"
   },
   "settings": {
     "title": "Settings",
@@ -186,6 +187,7 @@
       "recurring": "Recurring"
     },
     "rowMenu": "Task actions",
+    "moveToToday": "Move to today",
     "setRecurring": "Repeat…",
     "setReminder": "Set reminder…",
     "skipThisOccurrence": "Skip this one",
@@ -425,10 +427,12 @@
     "recurrenceTitle": "Repeat",
     "preset": {
       "daily": "Daily",
+      "weekdays": "Weekdays",
       "weekly": "Weekly",
       "biweekly": "Biweekly",
       "monthlyDay": "Monthly (by date)",
-      "monthlyNthWeekday": "Monthly (by weekday)"
+      "monthlyNthWeekday": "Monthly (by weekday)",
+      "yearly": "Yearly"
     },
     "recurrence": {
       "off": "Off",
@@ -445,7 +449,9 @@
     "reminder": {
       "label": "Reminder time",
       "requiresPreset": "Set a repeat first to add a reminder",
-      "clear": "Clear"
+      "clear": "Clear",
+      "enabled": "Push notification",
+      "dateTime": "Reminder time"
     },
     "validation": {
       "weeklyNeedsWeekday": "Pick at least one day",
@@ -498,5 +504,12 @@
         "already_redeemed": "You already redeemed this code"
       }
     }
+  },
+  "offline": {
+    "banner": "Offline. Last updated at {lastUpdated}.",
+    "bannerNoTime": "Offline."
+  },
+  "error": {
+    "unknown": "Something went wrong"
   }
 }

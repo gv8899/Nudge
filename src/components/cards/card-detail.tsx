@@ -7,6 +7,7 @@ import useSWR, { mutate as globalMutate } from "swr";
 import { format, parseISO } from "date-fns";
 import { ChevronLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
+import { DebouncedSaver } from "@/lib/debounced-saver";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
 import { seedCardVersion, patchCardField } from "@/lib/card-version";
 import { TagPicker } from "@/components/tags/tag-picker";
@@ -49,7 +50,6 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
   const titleInputRef = useRef<HTMLInputElement>(null);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAutoFocusedRef = useRef(false);
   // 409 衝突時 ++ 換掉編輯器 key 強制重 mount，載入 server 最新內文。
   const [reloadToken, setReloadToken] = useState(0);
@@ -105,6 +105,23 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
     [id, mutate]
   );
 
+  const patchTaskRef = useRef(patchTask);
+  useEffect(() => {
+    patchTaskRef.current = patchTask;
+  });
+  const [descSaver] = useState(
+    // eslint-disable-next-line react-hooks/refs -- ref 只在 callback 內讀取（callback 從不在 render 時執行），非 render 期讀 ref
+    () =>
+      new DebouncedSaver<string>((html) => {
+        const isEmpty =
+          !html ||
+          html === "<p></p>" ||
+          html.replace(/<[^>]*>/g, "").trim() === "";
+        patchTaskRef.current({ description: isEmpty ? "" : html });
+      }, 800)
+  );
+  useEffect(() => () => descSaver.flush(), [descSaver]);
+
   const handleTagsChange = async (tagIds: string[]) => {
     // 樂觀更新：立即顯示 tag badge
     const newTags = tagIds
@@ -122,18 +139,8 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   };
 
   const handleDescChange = useCallback(
-    (html: string) => {
-      // debounce 800ms 再儲存
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = setTimeout(() => {
-        const isEmpty =
-          !html ||
-          html === "<p></p>" ||
-          html.replace(/<[^>]*>/g, "").trim() === "";
-        patchTask({ description: isEmpty ? "" : html });
-      }, 800);
-    },
-    [patchTask]
+    (html: string) => descSaver.schedule(html),
+    [descSaver]
   );
 
   const saveTitle = () => {

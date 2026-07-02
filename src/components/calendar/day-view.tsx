@@ -69,7 +69,13 @@ export function CalendarDayView({ date, onDateChange, eventsByDate, isLoading }:
       <WeekNavControls date={date} onDateChange={onDateChange} />
 
       {/* Week strip nav */}
-      <CalendarNav date={date} onDateChange={onDateChange} />
+      <CalendarNav
+        date={date}
+        onDateChange={onDateChange}
+        dotDates={[...eventsByDate.entries()]
+          .filter(([, evs]) => evs.length > 0)
+          .map(([d]) => d)}
+      />
 
       {/* Loading state */}
       {showLoading && (

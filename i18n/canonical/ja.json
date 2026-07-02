@@ -6,7 +6,8 @@
     "loading": "読み込み中...",
     "loadFailed": "読み込みに失敗しました",
     "today": "今日",
-    "errorSaving": "保存に失敗しました。もう一度お試しください"
+    "errorSaving": "保存に失敗しました。もう一度お試しください",
+    "retry": "再試行"
   },
   "settings": {
     "title": "設定",
@@ -186,6 +187,7 @@
       "recurring": "繰り返し"
     },
     "rowMenu": "タスク操作",
+    "moveToToday": "今日に移動",
     "setRecurring": "繰り返し設定…",
     "setReminder": "リマインダーを設定…",
     "skipThisOccurrence": "今回をスキップ",
@@ -425,10 +427,12 @@
     "recurrenceTitle": "繰り返し",
     "preset": {
       "daily": "毎日",
+      "weekdays": "平日",
       "weekly": "毎週",
       "biweekly": "隔週",
       "monthlyDay": "毎月（日付）",
-      "monthlyNthWeekday": "毎月（曜日）"
+      "monthlyNthWeekday": "毎月（曜日）",
+      "yearly": "毎年"
     },
     "recurrence": {
       "off": "なし",
@@ -445,7 +449,9 @@
     "reminder": {
       "label": "リマインダー時刻",
       "requiresPreset": "繰り返しを設定するとリマインダーを追加できます",
-      "clear": "クリア"
+      "clear": "クリア",
+      "enabled": "プッシュ通知",
+      "dateTime": "通知日時"
     },
     "validation": {
       "weeklyNeedsWeekday": "曜日を1つ以上選んでください",
@@ -498,5 +504,12 @@
         "already_redeemed": "このコードはすでに利用済みです"
       }
     }
+  },
+  "offline": {
+    "banner": "オフライン。最終更新: {lastUpdated}",
+    "bannerNoTime": "オフライン"
+  },
+  "error": {
+    "unknown": "エラーが発生しました"
   }
 }

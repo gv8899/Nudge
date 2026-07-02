@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import useSWR from "swr";
+import { fetcher } from "@/lib/fetcher";
 import {
   useTaskRecurrence,
   type RecurrencePreset,
@@ -13,14 +15,17 @@ import {
   parseWeekdaysCsv,
   weekdaysToCsv,
 } from "@/lib/schedule-validation";
+import { composeRemindAtISO, splitRemindAtISO } from "@/lib/reminder-time";
 
 const PRESETS: (RecurrencePreset | null)[] = [
   null,
   "daily",
+  "weekdays",
   "weekly",
   "biweekly",
   "monthly_day",
   "monthly_nth_weekday",
+  "yearly",
 ];
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const; // ISO Mon..Sun
 const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
@@ -31,10 +36,12 @@ const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
  */
 function presetToI18nKey(
   p: RecurrencePreset,
-): "daily" | "weekly" | "biweekly" | "monthlyDay" | "monthlyNthWeekday" {
+): "daily" | "weekdays" | "weekly" | "biweekly" | "monthlyDay" | "monthlyNthWeekday" | "yearly" {
   switch (p) {
     case "daily":
       return "daily";
+    case "weekdays":
+      return "weekdays";
     case "weekly":
       return "weekly";
     case "biweekly":
@@ -43,10 +50,8 @@ function presetToI18nKey(
       return "monthlyDay";
     case "monthly_nth_weekday":
       return "monthlyNthWeekday";
-    // "weekdays" and "yearly" are valid presets but not shown in PRESETS list;
-    // fall back to a safe value if somehow encountered.
-    default:
-      return "daily";
+    case "yearly":
+      return "yearly";
   }
 }
 
@@ -60,6 +65,7 @@ export function ScheduleSection({ taskId }: Props) {
 
   const [preset, setPreset] = useState<RecurrencePreset | null>(null);
   const [weekdays, setWeekdays] = useState<Set<number>>(new Set());
+  const [monthDay, setMonthDay] = useState<number>(() => new Date().getDate());
   const [monthNth, setMonthNth] = useState(1);
   const [monthNthWeekday, setMonthNthWeekday] = useState(1);
   const [startDate, setStartDate] = useState(today());
@@ -67,8 +73,34 @@ export function ScheduleSection({ taskId }: Props) {
   const [endDate, setEndDate] = useState(today());
   const [remindAt, setRemindAt] = useState<string>(""); // "" = 不提醒
   const [didApplyServer, setDidApplyServer] = useState(false);
-  // Prevents the state-change caused by the sync from triggering a redundant save.
-  const skipNextSaveRef = useRef(false);
+
+  // 絕對提醒（無重複時用）— 存 tasks.remindAt
+  const { data: taskData, mutate: mutateTask } = useSWR<{ remindAt: string | null }>(
+    `/api/tasks/${taskId}`,
+    fetcher
+  );
+  const [hasReminder, setHasReminder] = useState(false);
+  const [absDate, setAbsDate] = useState(today());
+  const [absTime, setAbsTime] = useState("09:00");
+  const [didApplyTask, setDidApplyTask] = useState(false);
+
+  // 目前所有會被持久化的排程狀態，序列化成快照 key（與上次已存值比對，避免 hydration 觸發冗餘存檔）
+  const scheduleSnapshot = () =>
+    JSON.stringify([
+      preset,
+      [...weekdays].sort(),
+      monthDay,
+      monthNth,
+      monthNthWeekday,
+      startDate,
+      hasEndDate,
+      endDate,
+      remindAt,
+      hasReminder,
+      absDate,
+      absTime,
+    ]);
+  const lastSavedRef = useRef<string | null>(null);
 
   // Sync from server once on first load.
   // Flip didApplyServer as soon as SWR finishes loading (data OR null for no recurrence).
@@ -77,17 +109,39 @@ export function ScheduleSection({ taskId }: Props) {
     if (data) {
       setPreset(data.preset);
       setWeekdays(parseWeekdaysCsv(data.weekdays));
+      setMonthDay(data.monthDay ?? new Date(data.startDate + "T00:00").getDate());
       setMonthNth(data.monthNth ?? 1);
       setMonthNthWeekday(data.monthNthWeekday ?? 1);
       setStartDate(data.startDate);
       setHasEndDate(data.endDate !== null);
       setEndDate(data.endDate ?? today());
       setRemindAt(data.remindAtTimeOfDay ?? "");
+      if (data.remindAtTimeOfDay) setHasReminder(true);
     }
     // data === null means no recurrence saved yet; keep useState defaults.
-    skipNextSaveRef.current = true; // skip the save effect triggered by state updates above
     setDidApplyServer(true);
   }, [isLoading, data, didApplyServer]);
+
+  // 從 server 同步絕對提醒（一次）
+  useEffect(() => {
+    if (taskData === undefined || didApplyTask) return;
+    if (taskData?.remindAt) {
+      const { date, time } = splitRemindAtISO(taskData.remindAt);
+      setAbsDate(date);
+      setAbsTime(time);
+      setHasReminder(true);
+    }
+    setDidApplyTask(true);
+  }, [taskData, didApplyTask]);
+
+  // hydration 完成（兩個 sync 都套用後）時，以目前狀態當作「已存」基準。
+  useEffect(() => {
+    if (!didApplyServer || !didApplyTask) return;
+    if (lastSavedRef.current === null) {
+      lastSavedRef.current = scheduleSnapshot();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [didApplyServer, didApplyTask]);
 
   const errEnd = !validateEndAfterStart(startDate, hasEndDate ? endDate : null);
   const errWeekday = !validateWeeklyHasWeekday(
@@ -97,16 +151,17 @@ export function ScheduleSection({ taskId }: Props) {
   const isValid = !errEnd && !errWeekday;
 
   // Debounced save (500ms) — single timer for any field change.
-  // Skip until server data has been applied (avoid overwriting unloaded card).
-  // Also skip the very first fire after sync to avoid a redundant PUT.
+  // Skip until both server syncs have been applied (avoid overwriting unloaded card),
+  // and skip when the current state matches the last-saved snapshot (hydration, or
+  // a save that already went out) to avoid a redundant PUT.
   useEffect(() => {
-    if (!didApplyServer) return;
-    if (skipNextSaveRef.current) {
-      skipNextSaveRef.current = false;
-      return;
-    }
+    if (!didApplyServer || !didApplyTask) return;
+    if (lastSavedRef.current === null) return;
     if (!isValid) return;
+    const snapshot = scheduleSnapshot();
+    if (snapshot === lastSavedRef.current) return;
     const timer = setTimeout(() => {
+      lastSavedRef.current = snapshot;
       void doSave();
     }, 500);
     return () => clearTimeout(timer);
@@ -114,39 +169,58 @@ export function ScheduleSection({ taskId }: Props) {
   }, [
     preset,
     weekdays,
+    monthDay,
     monthNth,
     monthNthWeekday,
     startDate,
     hasEndDate,
     endDate,
     remindAt,
+    hasReminder,
+    absDate,
+    absTime,
   ]);
+
+  async function saveAbsoluteReminder(value: string | null) {
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ remindAt: value }),
+    });
+    if (!res.ok) throw new Error(`PATCH remindAt failed: ${res.status}`);
+    mutateTask();
+  }
 
   async function doSave() {
     if (preset === null) {
-      await save(null);
+      try {
+        await save(null); // 清 recurrence
+        await saveAbsoluteReminder(
+          hasReminder ? composeRemindAtISO(absDate, absTime) : null
+        );
+      } catch {
+        // Errors are surfaced by the dialog/page-level error UI; debounce
+        // can't easily report up. Future: hoist error to parent.
+      }
       return;
     }
-    const monthDay =
-      preset === "monthly_day"
-        ? new Date(startDate + "T00:00").getDate()
-        : null;
     const rule: RecurrenceRule = {
       preset,
       weekdays:
         preset === "weekly" || preset === "biweekly"
           ? weekdaysToCsv(weekdays)
           : null,
-      monthDay,
+      monthDay: preset === "monthly_day" ? monthDay : null,
       monthNth: preset === "monthly_nth_weekday" ? monthNth : null,
       monthNthWeekday:
         preset === "monthly_nth_weekday" ? monthNthWeekday : null,
       startDate,
       endDate: hasEndDate ? endDate : null,
-      remindAtTimeOfDay: remindAt || null,
+      remindAtTimeOfDay: hasReminder && remindAt ? remindAt : null,
     };
     try {
       await save(rule);
+      await saveAbsoluteReminder(null); // recurrence 提醒與絕對提醒互斥
     } catch {
       // Errors are surfaced by the dialog/page-level error UI; debounce
       // can't easily report up. Future: hoist error to parent.
@@ -161,9 +235,11 @@ export function ScheduleSection({ taskId }: Props) {
         </label>
         <select
           value={preset ?? ""}
-          onChange={(e) =>
-            setPreset((e.target.value || null) as RecurrencePreset | null)
-          }
+          onChange={(e) => {
+            const next = (e.target.value || null) as RecurrencePreset | null;
+            setPreset(next);
+            if (next !== null && hasReminder && !remindAt) setRemindAt("09:00");
+          }}
           className="rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           aria-label={t("schedule.recurrenceTitle")}
         >
@@ -215,11 +291,18 @@ export function ScheduleSection({ taskId }: Props) {
         )}
 
         {preset === "monthly_day" && (
-          <p className="text-sm text-text-dim">
-            {t("schedule.recurrence.monthDayN", {
-              n: new Date(startDate + "T00:00").getDate(),
-            })}
-          </p>
+          <select
+            value={monthDay}
+            onChange={(e) => setMonthDay(parseInt(e.target.value, 10))}
+            className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            aria-label={t("schedule.preset.monthlyDay")}
+          >
+            {Array.from({ length: 31 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {t("schedule.recurrence.monthDayN", { n })}
+              </option>
+            ))}
+          </select>
         )}
 
         {preset === "monthly_nth_weekday" && (
@@ -287,32 +370,56 @@ export function ScheduleSection({ taskId }: Props) {
         )}
       </div>
 
-      <div className="space-y-1 border-t border-border pt-4">
-        <label className="block text-sm font-medium text-foreground">
-          {t("schedule.reminder.label")}
+      <div className="space-y-3 border-t border-border pt-4">
+        <label className="flex items-center justify-between gap-3 text-sm font-medium text-foreground">
+          {t("schedule.reminder.enabled")}
+          <input
+            type="checkbox"
+            role="switch"
+            checked={hasReminder}
+            onChange={(e) => {
+              setHasReminder(e.target.checked);
+              if (!e.target.checked) setRemindAt("");
+              if (e.target.checked && preset !== null && !remindAt) {
+                setRemindAt("09:00");
+              }
+            }}
+            aria-label={t("schedule.reminder.enabled")}
+          />
         </label>
-        {preset === null ? (
-          <p className="text-xs text-text-dim">
-            {t("schedule.reminder.requiresPreset")}
-          </p>
-        ) : (
-          <div className="flex gap-2">
+
+        {hasReminder && preset !== null && (
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className="text-foreground">{t("schedule.reminder.label")}</span>
             <input
               type="time"
-              value={remindAt}
+              value={remindAt || "09:00"}
               onChange={(e) => setRemindAt(e.target.value)}
               className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               aria-label={t("schedule.reminder.label")}
             />
-            {remindAt && (
-              <button
-                type="button"
-                onClick={() => setRemindAt("")}
-                className="text-xs text-text-dim hover:text-foreground"
-              >
-                {t("schedule.reminder.clear")}
-              </button>
-            )}
+          </div>
+        )}
+
+        {hasReminder && preset === null && (
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className="text-foreground">{t("schedule.reminder.dateTime")}</span>
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={absDate}
+                onChange={(e) => setAbsDate(e.target.value)}
+                className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                aria-label={t("schedule.reminder.dateTime")}
+              />
+              <input
+                type="time"
+                value={absTime}
+                onChange={(e) => setAbsTime(e.target.value)}
+                className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                aria-label={t("schedule.reminder.dateTime")}
+              />
+            </div>
           </div>
         )}
       </div>

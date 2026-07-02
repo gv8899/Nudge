@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
+import { DebouncedSaver } from "@/lib/debounced-saver";
 import { TiptapEditor } from "./tiptap-editor";
 import { TagPicker } from "@/components/tags/tag-picker";
 import { Maximize2, X } from "lucide-react";
@@ -38,12 +39,36 @@ export function TaskDetailModal({
   editorReloadToken = 0,
 }: TaskDetailModalProps) {
   const t = useTranslations("task");
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [titleDraft, setTitleDraft] = useState(task.title);
 
   useEffect(() => {
     setTitleDraft(task.title);
   }, [task.title]);
+
+  // onDescChange 用 ref 固定最新版，saver 只建一次
+  const onDescChangeRef = useRef(onDescChange);
+  useEffect(() => {
+    onDescChangeRef.current = onDescChange;
+  });
+  const [descSaver] = useState(
+    // eslint-disable-next-line react-hooks/refs -- ref 只在 callback 內讀取（callback 從不在 render 時執行），非 render 期讀 ref
+    () =>
+      new DebouncedSaver<string>((html) => {
+        const isEmpty =
+          !html ||
+          html === "<p></p>" ||
+          html.replace(/<[^>]*>/g, "").trim() === "";
+        onDescChangeRef.current(isEmpty ? "" : html);
+      }, 800)
+  );
+  // unmount 時 flush（對齊 Mac onDisappear）
+  useEffect(() => () => descSaver.flush(), [descSaver]);
+
+  const handleClose = useCallback(() => {
+    descSaver.flush();
+    onClose();
+  }, [descSaver, onClose]);
+
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -66,7 +91,7 @@ export function TaskDetailModal({
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        handleClose();
         return;
       }
       if (e.key === "Tab" && dialogRef.current) {
@@ -87,7 +112,7 @@ export function TaskDetailModal({
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [open, onClose]);
+  }, [open, handleClose]);
 
   // 鎖定背景捲動
   useEffect(() => {
@@ -102,17 +127,8 @@ export function TaskDetailModal({
   }, [open]);
 
   const handleDescChange = useCallback(
-    (html: string) => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = setTimeout(() => {
-        const isEmpty =
-          !html ||
-          html === "<p></p>" ||
-          html.replace(/<[^>]*>/g, "").trim() === "";
-        onDescChange(isEmpty ? "" : html);
-      }, 800);
-    },
-    [onDescChange]
+    (html: string) => descSaver.schedule(html),
+    [descSaver]
   );
 
   if (!open) return null;
@@ -127,7 +143,7 @@ export function TaskDetailModal({
       {/* 背景遮罩 */}
       <div
         className="absolute inset-0 bg-background/60 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={handleClose}
         aria-hidden="true"
       />
 
@@ -167,7 +183,10 @@ export function TaskDetailModal({
             {onExpand ? (
               <button
                 type="button"
-                onClick={onExpand}
+                onClick={() => {
+                  descSaver.flush();
+                  onExpand!();
+                }}
                 aria-label={t("detailExpandPage")}
                 title={t("detailExpandPage")}
                 className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
@@ -177,6 +196,7 @@ export function TaskDetailModal({
             ) : (
               <a
                 href={`/cards/${task.id}`}
+                onClick={() => descSaver.flush()}
                 aria-label={t("detailExpandPage")}
                 title={t("detailExpandPage")}
                 className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
@@ -185,7 +205,7 @@ export function TaskDetailModal({
               </a>
             )}
             <button
-              onClick={onClose}
+              onClick={handleClose}
               aria-label={t("detailClose")}
               className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
             >

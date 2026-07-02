@@ -11,6 +11,8 @@ import { CalendarNav, WeekNavControls } from "@/components/calendar/calendar-nav
 import { DateHeading } from "@/components/calendar/date-heading";
 import { OverdueSection } from "@/components/daily/overdue-section";
 import { DailyRightPanel, type RightPanelKind } from "@/components/daily/daily-right-panel";
+import { OfflineBanner, ErrorBanner } from "@/components/daily/daily-banners";
+import { useOnline } from "@/hooks/use-online";
 import type { TaskStatus } from "@/lib/constants";
 import { ChevronDown, ChevronRight, Sparkles, PanelRight, CalendarDays } from "lucide-react";
 import {
@@ -90,6 +92,15 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   const [completedExpanded, setCompletedExpanded] = useState(true);
   const [composerOpen, setComposerOpen] = useState(false);
   const { data, isLoading, error, mutate } = useDaily(currentDate);
+  const online = useOnline();
+  // 最後一次成功載入的時間（offline banner 顯示用）
+  const lastUpdatedRef = useRef<string>("");
+  useEffect(() => {
+    if (data) {
+      const d = new Date();
+      lastUpdatedRef.current = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    }
+  }, [data]);
 
   // ── Right-panel state (lazy-init from localStorage, SSR-safe) ──────────
   const [rightPanelOpen, setRightPanelOpen] = useState<boolean>(false);
@@ -263,6 +274,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
       const optimistic = {
         ...data,
         overdueTasks: (data.overdueTasks || []).filter((a) => a.id !== assignmentId),
+        assignments: (data.assignments || []).filter((a) => a.id !== assignmentId),
       };
       mutate(optimistic, false);
     }
@@ -344,6 +356,8 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
     return null;
   }
 
+  const showErrorBanner = !!error && (error as { status?: number }).status !== 401;
+
   if (isLoading && !data) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center text-text-dim">
@@ -379,6 +393,9 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
         style={{ paddingRight: mainPaddingRight }}
       >
         <div className="mx-auto max-w-3xl px-4 md:px-6 pb-8">
+          {!online && <OfflineBanner lastUpdated={lastUpdatedRef.current} />}
+          {online && showErrorBanner && <ErrorBanner onRetry={() => mutate()} />}
+
           <div className="pt-6 mb-2 flex items-center">
             <WeekNavControls date={currentDate} onDateChange={setCurrentDate} />
           </div>
@@ -477,6 +494,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                     onMoveToDate={handleMoveToDate}
                     onUpdateTask={handleUpdateTask}
                     onOpenDetail={openDetailInPanel}
+                    onArchive={handleArchive}
                   />
                 ))}
               </SortableContext>
@@ -507,6 +525,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                       onMoveToDate={handleMoveToDate}
                       onUpdateTask={handleUpdateTask}
                       onOpenDetail={openDetailInPanel}
+                      onArchive={handleArchive}
                     />
                   ))}
               </div>
