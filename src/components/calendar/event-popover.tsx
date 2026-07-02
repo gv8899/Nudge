@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { Calendar, MapPin, Video, ExternalLink } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { format } from "date-fns";
+import { enUS, ja, zhTW } from "date-fns/locale";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Popover,
   PopoverContent,
@@ -23,10 +25,17 @@ interface Props {
 
 export function EventPopover({ event, children }: Props) {
   const t = useTranslations("calendar");
+  const locale = useLocale();
+  const dfLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
+  const datePrefix = format(
+    new Date(event.start),
+    locale === "en" ? "MMM d (EEE)" : "M月d日 (EEE)",
+    { locale: dfLocale }
+  );
 
   const timeLabel = event.allDay
-    ? t("eventAllDay")
-    : `${formatHHMM(event.start)} – ${formatHHMM(event.end)}`;
+    ? `${datePrefix} · ${t("eventAllDay")}`
+    : `${datePrefix} · ${formatHHMM(event.start)} – ${formatHHMM(event.end)}`;
 
   const visibleAttendees = event.attendees.slice(0, 6);
   const overflowAttendees = event.attendees.length - visibleAttendees.length;
