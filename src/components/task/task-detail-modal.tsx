@@ -216,6 +216,7 @@ export function TaskDetailModal({
                 type="button"
                 onClick={() => {
                   descSaver.flush();
+                  titleSaver.flush();
                   onExpand!();
                 }}
                 aria-label={t("detailExpandPage")}
@@ -227,7 +228,10 @@ export function TaskDetailModal({
             ) : (
               <a
                 href={`/cards/${task.id}`}
-                onClick={() => descSaver.flush()}
+                onClick={() => {
+                  descSaver.flush();
+                  titleSaver.flush();
+                }}
                 aria-label={t("detailExpandPage")}
                 title={t("detailExpandPage")}
                 className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
