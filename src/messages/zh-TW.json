@@ -506,7 +506,8 @@
     }
   },
   "offline": {
-    "banner": "離線中。上次更新於 {lastUpdated}"
+    "banner": "離線中。上次更新於 {lastUpdated}",
+    "bannerNoTime": "離線中"
   },
   "error": {
     "unknown": "發生錯誤"

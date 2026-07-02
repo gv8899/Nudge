@@ -506,7 +506,8 @@
     }
   },
   "offline": {
-    "banner": "オフライン。最終更新: {lastUpdated}"
+    "banner": "オフライン。最終更新: {lastUpdated}",
+    "bannerNoTime": "オフライン"
   },
   "error": {
     "unknown": "エラーが発生しました"

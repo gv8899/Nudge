@@ -73,8 +73,6 @@ export function ScheduleSection({ taskId }: Props) {
   const [endDate, setEndDate] = useState(today());
   const [remindAt, setRemindAt] = useState<string>(""); // "" = 不提醒
   const [didApplyServer, setDidApplyServer] = useState(false);
-  // Prevents the state-change caused by the sync from triggering a redundant save.
-  const skipNextSaveRef = useRef(false);
 
   // 絕對提醒（無重複時用）— 存 tasks.remindAt
   const { data: taskData, mutate: mutateTask } = useSWR<{ remindAt: string | null }>(
@@ -85,6 +83,24 @@ export function ScheduleSection({ taskId }: Props) {
   const [absDate, setAbsDate] = useState(today());
   const [absTime, setAbsTime] = useState("09:00");
   const [didApplyTask, setDidApplyTask] = useState(false);
+
+  // 目前所有會被持久化的排程狀態，序列化成快照 key（與上次已存值比對，避免 hydration 觸發冗餘存檔）
+  const scheduleSnapshot = () =>
+    JSON.stringify([
+      preset,
+      [...weekdays].sort(),
+      monthDay,
+      monthNth,
+      monthNthWeekday,
+      startDate,
+      hasEndDate,
+      endDate,
+      remindAt,
+      hasReminder,
+      absDate,
+      absTime,
+    ]);
+  const lastSavedRef = useRef<string | null>(null);
 
   // Sync from server once on first load.
   // Flip didApplyServer as soon as SWR finishes loading (data OR null for no recurrence).
@@ -103,7 +119,6 @@ export function ScheduleSection({ taskId }: Props) {
       if (data.remindAtTimeOfDay) setHasReminder(true);
     }
     // data === null means no recurrence saved yet; keep useState defaults.
-    if (data) skipNextSaveRef.current = true; // skip the save effect triggered by state updates above
     setDidApplyServer(true);
   }, [isLoading, data, didApplyServer]);
 
@@ -115,10 +130,18 @@ export function ScheduleSection({ taskId }: Props) {
       setAbsDate(date);
       setAbsTime(time);
       setHasReminder(true);
-      skipNextSaveRef.current = true; // skip the save effect triggered by state updates above
     }
     setDidApplyTask(true);
   }, [taskData, didApplyTask]);
+
+  // hydration 完成（兩個 sync 都套用後）時，以目前狀態當作「已存」基準。
+  useEffect(() => {
+    if (!didApplyServer || !didApplyTask) return;
+    if (lastSavedRef.current === null) {
+      lastSavedRef.current = scheduleSnapshot();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [didApplyServer, didApplyTask]);
 
   const errEnd = !validateEndAfterStart(startDate, hasEndDate ? endDate : null);
   const errWeekday = !validateWeeklyHasWeekday(
@@ -128,16 +151,17 @@ export function ScheduleSection({ taskId }: Props) {
   const isValid = !errEnd && !errWeekday;
 
   // Debounced save (500ms) — single timer for any field change.
-  // Skip until server data has been applied (avoid overwriting unloaded card).
-  // Also skip the very first fire after sync to avoid a redundant PUT.
+  // Skip until both server syncs have been applied (avoid overwriting unloaded card),
+  // and skip when the current state matches the last-saved snapshot (hydration, or
+  // a save that already went out) to avoid a redundant PUT.
   useEffect(() => {
-    if (!didApplyServer) return;
-    if (skipNextSaveRef.current) {
-      skipNextSaveRef.current = false;
-      return;
-    }
+    if (!didApplyServer || !didApplyTask) return;
+    if (lastSavedRef.current === null) return;
     if (!isValid) return;
+    const snapshot = scheduleSnapshot();
+    if (snapshot === lastSavedRef.current) return;
     const timer = setTimeout(() => {
+      lastSavedRef.current = snapshot;
       void doSave();
     }, 500);
     return () => clearTimeout(timer);

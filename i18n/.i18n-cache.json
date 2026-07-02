@@ -372,6 +372,7 @@
     "billing.redeem.error.exhausted": "4264e9a816f7a966e03a78b97d8dbe0c5262bdaa406d9582f4c5b0cef3925524",
     "billing.redeem.error.already_redeemed": "04eb6f8cc8c15b80119ff127ab69dcec71752705c32c2a73995ac1fa97ec60e7",
     "offline.banner": "31bc6bcd8ec98760957db9d0a3d3902e83645c8211ae06b7c840d1172f8391b1",
+    "offline.bannerNoTime": "6ccd381724b30cda8055334179cc2317598fa10bf4e200d7a0f8522e07b616fe",
     "error.unknown": "393f0d9836269e50d2b5d3588fcf2f00bdbfd03affe9f8f6e3400ee908d9c67a"
   },
   "locked": {}

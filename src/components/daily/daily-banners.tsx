@@ -9,7 +9,7 @@ export function OfflineBanner({ lastUpdated }: { lastUpdated: string }) {
   return (
     <div className="flex items-center gap-2 px-4 py-2 bg-warning/10 text-sm text-foreground">
       <WifiOff className="h-4 w-4 text-warning shrink-0" aria-hidden="true" />
-      <span>{t("banner", { lastUpdated })}</span>
+      <span>{lastUpdated ? t("banner", { lastUpdated }) : t("bannerNoTime")}</span>
     </div>
   );
 }

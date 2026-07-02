@@ -18,7 +18,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
@@ -259,18 +258,17 @@ export function TaskCard({
       />
 
       <Dialog open={archiveConfirmOpen} onOpenChange={setArchiveConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{tDaily("archiveTitle")}</DialogTitle>
-            <DialogDescription>
-              {tDaily("archiveConfirmBody", { title: task.title })}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end gap-2">
+        <DialogContent className="sm:max-w-sm">
+          <DialogTitle className="text-base font-semibold">
+            {tDaily("archiveTitle")}
+          </DialogTitle>
+          <DialogDescription className="text-sm text-text-dim">
+            {tDaily("archiveConfirmBody", { title: task.title })}
+          </DialogDescription>
+          <div className="flex justify-end gap-2 mt-4">
             <button
-              type="button"
               onClick={() => setArchiveConfirmOpen(false)}
-              className="rounded-md border border-border px-3 py-1.5 text-sm text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors"
+              className="px-3 py-1.5 text-sm rounded-lg border border-border text-text-dim hover:text-foreground hover:bg-muted transition-colors"
             >
               {tCommon("cancel")}
             </button>

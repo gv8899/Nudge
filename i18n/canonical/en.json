@@ -506,7 +506,8 @@
     }
   },
   "offline": {
-    "banner": "Offline. Last updated at {lastUpdated}."
+    "banner": "Offline. Last updated at {lastUpdated}.",
+    "bannerNoTime": "Offline."
   },
   "error": {
     "unknown": "Something went wrong"
