@@ -21,9 +21,12 @@ function toWeekStart(date: string) {
 interface CalendarNavProps {
   date: string;
   onDateChange: (date: string) => void;
+  /** 圓點日期 override（YYYY-MM-DD）。提供時不打 /api/daily/week，
+   *  由呼叫端決定資料源（Calendar 頁 = events；Daily 頁不傳 = 任務）。 */
+  dotDates?: string[];
 }
 
-export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
+export function CalendarNav({ date, onDateChange, dotDates }: CalendarNavProps) {
   const t = useTranslations("daily");
   const locale = useLocale();
   const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
@@ -36,11 +39,13 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
   const weekEndStr = format(addDays(weekStart, 6), "yyyy-MM-dd");
 
   const { data: weekData } = useSWR<{ datesWithTasks: string[] }>(
-    `/api/daily/week?start=${weekStartStr}&end=${weekEndStr}`,
+    dotDates
+      ? null
+      : `/api/daily/week?start=${weekStartStr}&end=${weekEndStr}`,
     fetcher,
     { keepPreviousData: true }
   );
-  const datesWithTasks = new Set(weekData?.datesWithTasks || []);
+  const dotSet = new Set(dotDates ?? weekData?.datesWithTasks ?? []);
 
   const goTo = (d: Date) => {
     onDateChange(format(d, "yyyy-MM-dd"));
@@ -52,7 +57,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
         {weekDays.map((day) => {
           const isSelected = isSameDay(day, dateObj);
           const dayStr = format(day, "yyyy-MM-dd");
-          const hasTasks = datesWithTasks.has(dayStr);
+          const hasDot = dotSet.has(dayStr);
           return (
             <button
               key={dayStr}
@@ -75,7 +80,7 @@ export function CalendarNav({ date, onDateChange }: CalendarNavProps) {
               </span>
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  hasTasks && !isSelected ? "bg-primary" : "bg-transparent"
+                  hasDot && !isSelected ? "bg-primary" : "bg-transparent"
                 }`}
                 aria-hidden="true"
               />
