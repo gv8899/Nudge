@@ -68,7 +68,8 @@ export function SettingsActionRow({
       className={`flex min-h-11 w-full items-center justify-between gap-3 px-4 py-2 text-left text-sm transition-colors disabled:cursor-default disabled:opacity-50 ${
         role === "destructive"
           ? "text-destructive hover:bg-destructive/10"
-          : "text-primary hover:bg-primary/10"
+          : /* Mac SettingsActionRow 非破壞性 role 用 nudgeForeground、無品牌 tint */
+            "text-foreground hover:bg-surface-hover"
       }`}
     >
       <span>{children}</span>
