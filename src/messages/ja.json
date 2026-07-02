@@ -426,10 +426,12 @@
     "recurrenceTitle": "繰り返し",
     "preset": {
       "daily": "毎日",
+      "weekdays": "平日",
       "weekly": "毎週",
       "biweekly": "隔週",
       "monthlyDay": "毎月（日付）",
-      "monthlyNthWeekday": "毎月（曜日）"
+      "monthlyNthWeekday": "毎月（曜日）",
+      "yearly": "毎年"
     },
     "recurrence": {
       "off": "なし",

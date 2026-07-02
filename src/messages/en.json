@@ -426,10 +426,12 @@
     "recurrenceTitle": "Repeat",
     "preset": {
       "daily": "Daily",
+      "weekdays": "Weekdays",
       "weekly": "Weekly",
       "biweekly": "Biweekly",
       "monthlyDay": "Monthly (by date)",
-      "monthlyNthWeekday": "Monthly (by weekday)"
+      "monthlyNthWeekday": "Monthly (by weekday)",
+      "yearly": "Yearly"
     },
     "recurrence": {
       "off": "Off",

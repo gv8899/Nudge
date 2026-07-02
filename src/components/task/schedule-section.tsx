@@ -20,10 +20,12 @@ import { composeRemindAtISO, splitRemindAtISO } from "@/lib/reminder-time";
 const PRESETS: (RecurrencePreset | null)[] = [
   null,
   "daily",
+  "weekdays",
   "weekly",
   "biweekly",
   "monthly_day",
   "monthly_nth_weekday",
+  "yearly",
 ];
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7] as const; // ISO Mon..Sun
 const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
@@ -34,10 +36,12 @@ const WEEKDAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
  */
 function presetToI18nKey(
   p: RecurrencePreset,
-): "daily" | "weekly" | "biweekly" | "monthlyDay" | "monthlyNthWeekday" {
+): "daily" | "weekdays" | "weekly" | "biweekly" | "monthlyDay" | "monthlyNthWeekday" | "yearly" {
   switch (p) {
     case "daily":
       return "daily";
+    case "weekdays":
+      return "weekdays";
     case "weekly":
       return "weekly";
     case "biweekly":
@@ -46,10 +50,8 @@ function presetToI18nKey(
       return "monthlyDay";
     case "monthly_nth_weekday":
       return "monthlyNthWeekday";
-    // "weekdays" and "yearly" are valid presets but not shown in PRESETS list;
-    // fall back to a safe value if somehow encountered.
-    default:
-      return "daily";
+    case "yearly":
+      return "yearly";
   }
 }
 
@@ -63,6 +65,7 @@ export function ScheduleSection({ taskId }: Props) {
 
   const [preset, setPreset] = useState<RecurrencePreset | null>(null);
   const [weekdays, setWeekdays] = useState<Set<number>>(new Set());
+  const [monthDay, setMonthDay] = useState<number>(() => new Date().getDate());
   const [monthNth, setMonthNth] = useState(1);
   const [monthNthWeekday, setMonthNthWeekday] = useState(1);
   const [startDate, setStartDate] = useState(today());
@@ -90,6 +93,7 @@ export function ScheduleSection({ taskId }: Props) {
     if (data) {
       setPreset(data.preset);
       setWeekdays(parseWeekdaysCsv(data.weekdays));
+      setMonthDay(data.monthDay ?? new Date(data.startDate + "T00:00").getDate());
       setMonthNth(data.monthNth ?? 1);
       setMonthNthWeekday(data.monthNthWeekday ?? 1);
       setStartDate(data.startDate);
@@ -141,6 +145,7 @@ export function ScheduleSection({ taskId }: Props) {
   }, [
     preset,
     weekdays,
+    monthDay,
     monthNth,
     monthNthWeekday,
     startDate,
@@ -175,17 +180,13 @@ export function ScheduleSection({ taskId }: Props) {
       }
       return;
     }
-    const monthDay =
-      preset === "monthly_day"
-        ? new Date(startDate + "T00:00").getDate()
-        : null;
     const rule: RecurrenceRule = {
       preset,
       weekdays:
         preset === "weekly" || preset === "biweekly"
           ? weekdaysToCsv(weekdays)
           : null,
-      monthDay,
+      monthDay: preset === "monthly_day" ? monthDay : null,
       monthNth: preset === "monthly_nth_weekday" ? monthNth : null,
       monthNthWeekday:
         preset === "monthly_nth_weekday" ? monthNthWeekday : null,
@@ -266,11 +267,18 @@ export function ScheduleSection({ taskId }: Props) {
         )}
 
         {preset === "monthly_day" && (
-          <p className="text-sm text-text-dim">
-            {t("schedule.recurrence.monthDayN", {
-              n: new Date(startDate + "T00:00").getDate(),
-            })}
-          </p>
+          <select
+            value={monthDay}
+            onChange={(e) => setMonthDay(parseInt(e.target.value, 10))}
+            className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            aria-label={t("schedule.preset.monthlyDay")}
+          >
+            {Array.from({ length: 31 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {t("schedule.recurrence.monthDayN", { n })}
+              </option>
+            ))}
+          </select>
         )}
 
         {preset === "monthly_nth_weekday" && (

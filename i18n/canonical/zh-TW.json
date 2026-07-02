@@ -426,10 +426,12 @@
     "recurrenceTitle": "重複",
     "preset": {
       "daily": "每天",
+      "weekdays": "平日",
       "weekly": "每週",
       "biweekly": "每兩週",
       "monthlyDay": "每月某日",
-      "monthlyNthWeekday": "每月第幾個星期"
+      "monthlyNthWeekday": "每月第幾個星期",
+      "yearly": "每年"
     },
     "recurrence": {
       "off": "不重複",
