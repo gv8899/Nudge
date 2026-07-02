@@ -186,6 +186,7 @@
       "recurring": "繰り返し"
     },
     "rowMenu": "タスク操作",
+    "moveToToday": "今日に移動",
     "setRecurring": "繰り返し設定…",
     "setReminder": "リマインダーを設定…",
     "skipThisOccurrence": "今回をスキップ",

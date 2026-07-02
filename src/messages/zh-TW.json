@@ -186,6 +186,7 @@
       "recurring": "重複任務"
     },
     "rowMenu": "任務動作",
+    "moveToToday": "移到今天",
     "setRecurring": "設成重複任務…",
     "setReminder": "設定提醒…",
     "skipThisOccurrence": "跳過這次",

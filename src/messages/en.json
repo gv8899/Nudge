@@ -186,6 +186,7 @@
       "recurring": "Recurring"
     },
     "rowMenu": "Task actions",
+    "moveToToday": "Move to today",
     "setRecurring": "Repeat…",
     "setReminder": "Set reminder…",
     "skipThisOccurrence": "Skip this one",

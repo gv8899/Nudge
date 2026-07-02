@@ -477,6 +477,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                     onMoveToDate={handleMoveToDate}
                     onUpdateTask={handleUpdateTask}
                     onOpenDetail={openDetailInPanel}
+                    onArchive={handleArchive}
                   />
                 ))}
               </SortableContext>
@@ -507,6 +508,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                       onMoveToDate={handleMoveToDate}
                       onUpdateTask={handleUpdateTask}
                       onOpenDetail={openDetailInPanel}
+                      onArchive={handleArchive}
                     />
                   ))}
               </div>
