@@ -57,8 +57,27 @@ export function SettingsContent() {
   const [isCleaning, setIsCleaning] = useState(false);
   const [cleanResult, setCleanResult] = useState<string | null>(null);
 
+  // Delete account state
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
+
   const handleSignOut = () => {
     signOut({ callbackUrl: "/login" });
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    setDeleteError(false);
+    try {
+      const res = await fetch("/api/me", { method: "DELETE" });
+      if (!res.ok) throw new Error(`delete failed: ${res.status}`);
+      // 帳號已刪 — 登出並回登入頁
+      await signOut({ callbackUrl: "/login" });
+    } catch {
+      setIsDeleting(false);
+      setDeleteError(true);
+    }
   };
 
   async function handleLocaleChange(value: Locale | null) {
@@ -337,6 +356,51 @@ export function SettingsContent() {
                     {tCommon("cancel")}
                   </button>
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* 刪除帳號 */}
+          <div>
+            {!confirmDelete ? (
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-foreground">{t("deleteAccount.label")}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(true)}
+                  className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {t("deleteAccount.label")}
+                </button>
+              </div>
+            ) : (
+              <div className="rounded-md border border-destructive/30 p-3 space-y-2">
+                <div className="text-sm font-medium text-foreground">{t("deleteAccount.confirmTitle")}</div>
+                <div className="text-xs text-text-dim">{t("deleteAccount.confirmBody")}</div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDeleteAccount}
+                    disabled={isDeleting}
+                    className="rounded-md bg-destructive px-3 py-1 text-sm text-primary-foreground disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    {isDeleting ? t("deleteAccount.labelLoading") : t("deleteAccount.confirmOk")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(false)}
+                    disabled={isDeleting}
+                    className="rounded-md border border-border px-3 py-1 text-sm text-text-dim hover:text-foreground hover:bg-surface-hover disabled:opacity-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  >
+                    {tCommon("cancel")}
+                  </button>
+                </div>
+                {deleteError && (
+                  <p className="text-xs text-destructive" role="alert">{tCommon("errorSaving")}</p>
+                )}
               </div>
             )}
           </div>
