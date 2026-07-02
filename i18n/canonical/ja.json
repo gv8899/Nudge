@@ -249,7 +249,6 @@
     "eventLocation": "場所",
     "eventAttendees": "参加者",
     "eventDescription": "メモ",
-    "eventOpenInGoogle": "Google カレンダーで開く",
     "eventJoinMeet": "会議に参加",
     "mobileCollapsedCount": "今日の予定 · {count} 件",
     "mobileCollapsedEmpty": "今日は予定なし",

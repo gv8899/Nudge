@@ -249,7 +249,6 @@
     "eventLocation": "Location",
     "eventAttendees": "Attendees",
     "eventDescription": "Notes",
-    "eventOpenInGoogle": "Open in Google Calendar",
     "eventJoinMeet": "Join meeting",
     "mobileCollapsedCount": "Today · {count} events",
     "mobileCollapsedEmpty": "Nothing today",

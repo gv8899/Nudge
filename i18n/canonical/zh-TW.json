@@ -249,7 +249,6 @@
     "eventLocation": "地點",
     "eventAttendees": "與會者",
     "eventDescription": "備註",
-    "eventOpenInGoogle": "在 Google Calendar 開啟",
     "eventJoinMeet": "加入線上會議",
     "mobileCollapsedCount": "今日行程 · {count} 件",
     "mobileCollapsedEmpty": "今日無行程",

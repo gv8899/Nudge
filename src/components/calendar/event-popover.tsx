@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Calendar, MapPin, Video, ExternalLink } from "lucide-react";
+import { Calendar, MapPin, Video } from "lucide-react";
 import { format } from "date-fns";
 import { enUS, ja, zhTW } from "date-fns/locale";
 import { useTranslations, useLocale } from "next-intl";
@@ -44,12 +44,12 @@ export function EventPopover({ event, children }: Props) {
     <Popover>
       <PopoverTrigger render={children} />
       <PopoverContent
-        className="w-[380px] max-w-[90vw] p-0 overflow-hidden"
+        className="w-[480px] max-w-[90vw] p-0 overflow-hidden"
         side="bottom"
         align="start"
         sideOffset={6}
       >
-        <div className="flex flex-col gap-3 p-4">
+        <div className="flex max-h-[380px] flex-col gap-3 overflow-y-auto p-4">
           {/* Time */}
           <div className="text-xs font-mono tabular-nums text-text-dim">
             {timeLabel}
@@ -112,19 +112,6 @@ export function EventPopover({ event, children }: Props) {
                 )}
               </div>
             </div>
-          )}
-
-          {/* Footer: open in Google */}
-          {event.htmlLink && (
-            <a
-              href={event.htmlLink}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex w-fit items-center gap-1.5 text-xs text-primary hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded"
-            >
-              <ExternalLink size={12} />
-              {t("eventOpenInGoogle")}
-            </a>
           )}
         </div>
       </PopoverContent>

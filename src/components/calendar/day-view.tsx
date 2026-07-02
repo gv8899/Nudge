@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import type { CalendarEvent } from "@/lib/google-calendar/types";
 import { CalendarNav, WeekNavControls } from "./calendar-nav";
 import { CalendarEventItem } from "./calendar-event-item";
+import { EventPopover } from "./event-popover";
 
 interface Props {
   date: string;
@@ -30,7 +31,6 @@ function sortByStart(a: CalendarEvent, b: CalendarEvent): number {
 export function CalendarDayView({ date, onDateChange, eventsByDate, isLoading }: Props) {
   const t = useTranslations("calendar");
 
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [now, setNow] = useState<number>(() => Date.now());
 
   useEffect(() => {
@@ -59,10 +59,6 @@ export function CalendarDayView({ date, onDateChange, eventsByDate, isLoading }:
   const hasEvents = dayEvents.length > 0;
   const showLoading = isLoading && !hasEvents;
 
-  const toggleExpand = (key: string) => {
-    setExpandedId((cur) => (cur === key ? null : key));
-  };
-
   return (
     <div className="pt-3 space-y-4">
       {/* Week nav controls (prev/today/next) */}
@@ -79,10 +75,13 @@ export function CalendarDayView({ date, onDateChange, eventsByDate, isLoading }:
 
       {/* Loading state */}
       {showLoading && (
-        <div role="status" aria-busy="true" aria-label={t("panelLoading")} className="space-y-2 pt-2">
-          <div className="h-14 rounded-md bg-muted animate-pulse" />
-          <div className="h-14 rounded-md bg-muted animate-pulse" />
-          <div className="h-14 rounded-md bg-muted animate-pulse" />
+        <div
+          role="status"
+          aria-busy="true"
+          aria-label={t("panelLoading")}
+          className="flex justify-center py-16"
+        >
+          <div className="h-6 w-6 rounded-full border-2 border-border border-t-foreground/40 animate-spin" />
           <span className="sr-only">{t("panelLoading")}</span>
         </div>
       )}
@@ -114,13 +113,9 @@ export function CalendarDayView({ date, onDateChange, eventsByDate, isLoading }:
                     const eKey = uniqueKey(e);
                     const past = !e.allDay && new Date(e.end).getTime() < now;
                     return (
-                      <CalendarEventItem
-                        key={eKey}
-                        event={e}
-                        expanded={expandedId === eKey}
-                        onToggle={() => toggleExpand(eKey)}
-                        past={past}
-                      />
+                      <EventPopover key={eKey} event={e}>
+                        <CalendarEventItem event={e} past={past} />
+                      </EventPopover>
                     );
                   })}
                 </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { CalendarPlus } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 
 type Variant = "not_connected" | "empty" | "error" | "reauth";
 
@@ -10,25 +10,47 @@ interface Props {
   onRetry?: () => void;
 }
 
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
+/** Full-height centered hero, aligned with Mac's `CalendarConnectPrompt`. */
+function ConnectHero({
+  title,
+  description,
+  ctaLabel,
+}: {
+  title: string;
+  description: string;
+  ctaLabel: string;
+}) {
+  return (
+    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+      <CalendarDays size={56} className="text-text-dim" />
+      <div className="text-base font-semibold text-foreground">{title}</div>
+      <div className="max-w-[280px] text-center text-sm text-text-dim">
+        {description}
+      </div>
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+      <a
+        href="/api/calendar/connect"
+        className={`rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground ${focusRing}`}
+      >
+        {ctaLabel}
+      </a>
+    </div>
+  );
+}
+
 export function CalendarEmptyState({ variant, onRetry }: Props) {
   const t = useTranslations("calendar");
 
-  const focusRing =
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
-
   if (variant === "not_connected") {
     return (
-      <div className="flex flex-col items-start gap-2 p-3 text-sm">
-        <div className="text-text-dim">{t("connectDescription")}</div>
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a
-          href="/api/calendar/connect"
-          className={`inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-primary-foreground ${focusRing}`}
-        >
-          <CalendarPlus size={14} />
-          {t("connectTitle")}
-        </a>
-      </div>
+      <ConnectHero
+        title={t("connectTitle")}
+        description={t("connectDescription")}
+        ctaLabel={t("connectTitle")}
+      />
     );
   }
 
@@ -42,16 +64,11 @@ export function CalendarEmptyState({ variant, onRetry }: Props) {
 
   if (variant === "reauth") {
     return (
-      <div className="flex flex-col items-start gap-2 p-3 text-sm">
-        <div className="text-text-dim">{t("panelReauth")}</div>
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a
-          href="/api/calendar/connect"
-          className={`rounded-md bg-primary px-3 py-1.5 text-primary-foreground ${focusRing}`}
-        >
-          {t("connectButton")}
-        </a>
-      </div>
+      <ConnectHero
+        title={t("connectTitle")}
+        description={t("panelReauth")}
+        ctaLabel={t("connectButton")}
+      />
     );
   }
 

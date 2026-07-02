@@ -9,6 +9,7 @@ import { CardDetail } from "@/components/cards/card-detail";
 import { useCalendarEvents } from "@/hooks/use-calendar-events";
 import { CalendarEventItem } from "@/components/calendar/calendar-event-item";
 import { CalendarEmptyState } from "@/components/calendar/calendar-empty-state";
+import { EventPopover } from "@/components/calendar/event-popover";
 
 export type RightPanelKind = "calendar" | "cards" | "detail";
 
@@ -73,7 +74,6 @@ export function DailyRightPanel({
 function CalendarContent({ date }: { date: string }) {
   const t = useTranslations("calendar");
   const { data, error, isLoading, refresh } = useCalendarEvents(date);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [now, setNow] = useState<number>(() => Date.now());
 
   useEffect(() => {
@@ -104,11 +104,9 @@ function CalendarContent({ date }: { date: string }) {
             role="status"
             aria-busy="true"
             aria-label={t("panelLoading")}
-            className="space-y-2"
+            className="flex justify-center py-16"
           >
-            <div className="h-12 rounded-md bg-muted animate-pulse" />
-            <div className="h-12 rounded-md bg-muted animate-pulse" />
-            <div className="h-12 rounded-md bg-muted animate-pulse" />
+            <div className="h-6 w-6 rounded-full border-2 border-border border-t-foreground/40 animate-spin" />
             <span className="sr-only">{t("panelLoading")}</span>
           </div>
         )}
@@ -121,15 +119,9 @@ function CalendarContent({ date }: { date: string }) {
               const past = new Date(e.end).getTime() < now && !e.allDay;
               const key = `${e.calendarId}-${e.id}`;
               return (
-                <CalendarEventItem
-                  key={key}
-                  event={e}
-                  past={past}
-                  expanded={expandedId === key}
-                  onToggle={() =>
-                    setExpandedId((cur) => (cur === key ? null : key))
-                  }
-                />
+                <EventPopover key={key} event={e}>
+                  <CalendarEventItem event={e} past={past} />
+                </EventPopover>
               );
             })}
           </div>
