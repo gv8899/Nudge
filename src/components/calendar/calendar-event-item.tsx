@@ -42,14 +42,8 @@ export const CalendarEventItem = React.forwardRef<HTMLButtonElement, Props>(
       >
         {/* Time column */}
         <div className={`w-16 shrink-0 font-mono text-xs tabular-nums ${timeColor}`}>
-          {event.allDay ? (
-            t("eventAllDay")
-          ) : (
-            <>
-              <div>{formatHHMM(event.start)}</div>
-              <div className="text-text-dim">{formatHHMM(event.end)}</div>
-            </>
-          )}
+          {/* Mac eventCard 只顯示開始時間（CalendarDayView.swift）；結束時間留給 popover */}
+          {event.allDay ? t("eventAllDay") : formatHHMM(event.start)}
         </div>
 
         {/* Title + location column */}

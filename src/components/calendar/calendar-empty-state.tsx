@@ -25,7 +25,8 @@ function ConnectHero({
 }) {
   return (
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-      <CalendarDays size={56} className="text-text-dim" />
+      {/* Mac CalendarConnectPrompt icon 用 nudgePrimary */}
+      <CalendarDays size={56} className="text-primary" />
       <div className="text-base font-semibold text-foreground">{title}</div>
       <div className="max-w-[280px] text-center text-sm text-text-dim">
         {description}
