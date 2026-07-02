@@ -16,6 +16,8 @@
     "title": "設定",
     "account": {
       "section": "アカウント",
+      "email": "メール",
+      "name": "名前",
       "unnamed": "名称未設定",
       "joinedAt": "{date} 登録"
     },
@@ -26,9 +28,7 @@
       "system": "システム"
     },
     "appearance": {
-      "section": "外観",
-      "paperLabel": "紙質感",
-      "paperDesc": "背景に紙のざらつきを加えます"
+      "section": "外観"
     },
     "language": {
       "section": "言語",

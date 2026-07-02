@@ -16,6 +16,8 @@
     "title": "Settings",
     "account": {
       "section": "Account",
+      "email": "Email",
+      "name": "Name",
       "unnamed": "Unnamed",
       "joinedAt": "Joined {date}"
     },
@@ -26,9 +28,7 @@
       "system": "System"
     },
     "appearance": {
-      "section": "Appearance",
-      "paperLabel": "Paper texture",
-      "paperDesc": "Subtle paper grain on the background"
+      "section": "Appearance"
     },
     "language": {
       "section": "Language",

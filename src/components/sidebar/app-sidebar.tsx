@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ComponentType } from "react";
+import type { ComponentType } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/routing";
 import { CheckCircle2, BookOpen, Settings, CalendarDays } from "lucide-react";
@@ -8,7 +8,6 @@ import { CheckCircle2, BookOpen, Settings, CalendarDays } from "lucide-react";
 function CardsIcon({ className }: { className?: string }) {
   return <span className={`cards-icon ${className ?? ""}`} role="img" aria-hidden="true" />;
 }
-import { SettingsModal } from "@/components/settings/settings-modal";
 
 // 注意：Tasks 連到 / —— `src/app/page.tsx` 是 server component，會 redirect
 // 到當天的日期。這樣 sidebar 不需要在 client 端呼叫 new Date()，避免 SSR/
@@ -61,9 +60,12 @@ function NavLink({
       href={href}
       title={label}
       aria-current={active ? "page" : undefined}
-      className={`flex items-center gap-3 px-3 h-10 w-full rounded-lg transition-colors ${
+      // A31：選中態改 primary 18% tint 圓角 pill（對齊 Mac PlatformRootView.swift:376-411
+      // 的 listRowBackground inset pill），lg+ 展開態才加 mx-2 內縮 —
+      // 收合 icon rail（md）空間太窄，內縮會把 icon 擠出可視範圍。
+      className={`flex items-center gap-3 px-3 h-10 w-full rounded-md transition-colors lg:mx-2 lg:w-[calc(100%-1rem)] ${
         active
-          ? "bg-border text-foreground"
+          ? "bg-primary/[0.18] text-foreground"
           : "text-text-dim hover:text-foreground hover:bg-border/50"
       }`}
     >
@@ -76,36 +78,10 @@ function NavLink({
   );
 }
 
-function SettingsButton({
-  onClick,
-  title,
-  ariaLabel,
-  label,
-}: {
-  onClick: () => void;
-  title: string;
-  ariaLabel: string;
-  label: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      title={title}
-      aria-label={ariaLabel}
-      className="flex items-center gap-3 px-3 h-10 w-full rounded-lg text-text-dim hover:text-foreground hover:bg-border/50 transition-colors"
-    >
-      <span className="flex items-center justify-center w-5 h-5 shrink-0 lg:justify-start">
-        <Settings className="h-5 w-5" />
-      </span>
-      <span className="hidden lg:inline text-sm">{label}</span>
-    </button>
-  );
-}
-
 export function AppSidebar() {
   const t = useTranslations("nav");
   const pathname = usePathname();
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsActive = pathname.startsWith("/settings");
 
   return (
     <>
@@ -132,10 +108,12 @@ export function AppSidebar() {
           />
         ))}
         <div className="mt-auto w-full">
-          <SettingsButton
-            onClick={() => setSettingsOpen(true)}
-            title={t("settings")}
-            ariaLabel={t("settingsAria")}
+          {/* A25+R20：Settings 改 in-content route（不再開 modal），
+              同 navItems 的 active-state 邏輯（pathname 前綴比對）。 */}
+          <NavLink
+            href="/settings"
+            active={settingsActive}
+            icon={Settings}
             label={t("settings")}
           />
         </div>
@@ -161,17 +139,20 @@ export function AppSidebar() {
             <item.icon className="h-5 w-5" />
           </Link>
         ))}
-        <button
-          onClick={() => setSettingsOpen(true)}
+        <Link
+          href="/settings"
           title={t("settings")}
           aria-label={t("settingsAria")}
-          className="flex items-center justify-center w-11 h-11 rounded-lg text-text-dim hover:text-foreground hover:bg-border/50 transition-colors"
+          aria-current={settingsActive ? "page" : undefined}
+          className={`flex items-center justify-center w-11 h-11 rounded-lg transition-colors ${
+            settingsActive
+              ? "bg-border text-foreground"
+              : "text-text-dim hover:text-foreground hover:bg-border/50"
+          }`}
         >
           <Settings className="h-5 w-5" />
-        </button>
+        </Link>
       </nav>
-
-      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
     </>
   );
 }

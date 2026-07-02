@@ -7,6 +7,7 @@ import {
   type NotificationPreferences,
   type NotificationContent,
 } from "@/hooks/use-notification-preferences";
+import { SettingsRow } from "./settings-primitives";
 
 const CONTENTS: NotificationContent[] = ["summary", "incomplete", "summary_streak"];
 
@@ -18,77 +19,71 @@ export function NotificationsSection() {
   const { data, patch } = useNotificationPreferences();
   const [error, setError] = useState<string | null>(null);
 
+  if (!data) return null;
+
   return (
-    <section className="py-4">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim mb-3">
-        {t("settings.notifications.title")}
-      </h3>
-
-      {data ? (
+    <>
+      <ToggleRow
+        label={t("settings.notifications.morningEnabled")}
+        checked={data.morningEnabled}
+        onChange={(v) => save({ morningEnabled: v })}
+      />
+      {data.morningEnabled && (
         <>
-          <div className="space-y-3">
-            <ToggleRow
-              label={t("settings.notifications.morningEnabled")}
-              checked={data.morningEnabled}
-              onChange={(v) => save({ morningEnabled: v })}
-            />
-            {data.morningEnabled && (
-              <>
-                <TimeRow
-                  label={t("settings.notifications.morningTime")}
-                  value={data.morningTime}
-                  onChange={(v) => save({ morningTime: v })}
-                />
-                <SelectRow
-                  label={t("settings.notifications.morningContent")}
-                  value={data.morningContent}
-                  options={CONTENTS}
-                  labelFor={(v) => t(contentLabelKey(v))}
-                  onChange={(v) => save({ morningContent: v })}
-                />
-              </>
-            )}
-
-            <ToggleRow
-              label={t("settings.notifications.eveningEnabled")}
-              checked={data.eveningEnabled}
-              onChange={(v) => save({ eveningEnabled: v })}
-            />
-            {data.eveningEnabled && (
-              <>
-                <TimeRow
-                  label={t("settings.notifications.eveningTime")}
-                  value={data.eveningTime}
-                  onChange={(v) => save({ eveningTime: v })}
-                />
-                <SelectRow
-                  label={t("settings.notifications.eveningContent")}
-                  value={data.eveningContent}
-                  options={CONTENTS}
-                  labelFor={(v) => t(contentLabelKey(v))}
-                  onChange={(v) => save({ eveningContent: v })}
-                />
-              </>
-            )}
-
-            <ToggleRow
-              label={t("settings.notifications.perTaskEnabled")}
-              checked={data.perTaskRemindersEnabled}
-              onChange={(v) => save({ perTaskRemindersEnabled: v })}
-            />
-          </div>
-
-          <p className="mt-4 text-xs text-text-dim">
-            {t("settings.notifications.platformNote")}
-          </p>
-          {error && (
-            <p className="mt-2 text-xs text-destructive" role="alert">
-              {error}
-            </p>
-          )}
+          <TimeRow
+            label={t("settings.notifications.morningTime")}
+            value={data.morningTime}
+            onChange={(v) => save({ morningTime: v })}
+          />
+          <SelectRow
+            label={t("settings.notifications.morningContent")}
+            value={data.morningContent}
+            options={CONTENTS}
+            labelFor={(v) => t(contentLabelKey(v))}
+            onChange={(v) => save({ morningContent: v })}
+          />
         </>
-      ) : null}
-    </section>
+      )}
+
+      <ToggleRow
+        label={t("settings.notifications.eveningEnabled")}
+        checked={data.eveningEnabled}
+        onChange={(v) => save({ eveningEnabled: v })}
+      />
+      {data.eveningEnabled && (
+        <>
+          <TimeRow
+            label={t("settings.notifications.eveningTime")}
+            value={data.eveningTime}
+            onChange={(v) => save({ eveningTime: v })}
+          />
+          <SelectRow
+            label={t("settings.notifications.eveningContent")}
+            value={data.eveningContent}
+            options={CONTENTS}
+            labelFor={(v) => t(contentLabelKey(v))}
+            onChange={(v) => save({ eveningContent: v })}
+          />
+        </>
+      )}
+
+      <ToggleRow
+        label={t("settings.notifications.perTaskEnabled")}
+        checked={data.perTaskRemindersEnabled}
+        onChange={(v) => save({ perTaskRemindersEnabled: v })}
+      />
+
+      <SettingsRow>
+        <span className="text-xs text-text-dim">{t("settings.notifications.platformNote")}</span>
+      </SettingsRow>
+      {error && (
+        <SettingsRow>
+          <span className="text-xs text-destructive" role="alert">
+            {error}
+          </span>
+        </SettingsRow>
+      )}
+    </>
   );
 
   async function save(updates: Partial<NotificationPreferences>) {
@@ -114,25 +109,28 @@ function ToggleRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-1">
-      <span className="text-sm text-foreground">{label}</span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-label={label}
-        onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-          checked ? "bg-primary" : "bg-muted"
-        }`}
-      >
-        <span
-          className={`absolute top-0.5 h-5 w-5 rounded-full bg-background transition-transform ${
-            checked ? "translate-x-5" : "translate-x-0.5"
+    <SettingsRow
+      trailing={
+        <button
+          type="button"
+          role="switch"
+          aria-checked={checked}
+          aria-label={label}
+          onClick={() => onChange(!checked)}
+          className={`relative h-6 w-11 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+            checked ? "bg-primary" : "bg-muted"
           }`}
-        />
-      </button>
-    </div>
+        >
+          <span
+            className={`absolute top-0.5 h-5 w-5 rounded-full bg-background transition-transform ${
+              checked ? "translate-x-5" : "translate-x-0.5"
+            }`}
+          />
+        </button>
+      }
+    >
+      {label}
+    </SettingsRow>
   );
 }
 
@@ -146,16 +144,19 @@ function TimeRow({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="flex items-center justify-between gap-3 py-1">
-      <span className="text-sm text-foreground">{label}</span>
-      <input
-        type="time"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
-        aria-label={label}
-      />
-    </label>
+    <SettingsRow
+      trailing={
+        <input
+          type="time"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
+          aria-label={label}
+        />
+      }
+    >
+      {label}
+    </SettingsRow>
   );
 }
 
@@ -173,20 +174,23 @@ function SelectRow<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <label className="flex items-center justify-between gap-3 py-1">
-      <span className="text-sm text-foreground">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value as T)}
-        className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
-        aria-label={label}
-      >
-        {options.map((opt) => (
-          <option key={opt} value={opt}>
-            {labelFor(opt)}
-          </option>
-        ))}
-      </select>
-    </label>
+    <SettingsRow
+      trailing={
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value as T)}
+          className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
+          aria-label={label}
+        >
+          {options.map((opt) => (
+            <option key={opt} value={opt}>
+              {labelFor(opt)}
+            </option>
+          ))}
+        </select>
+      }
+    >
+      {label}
+    </SettingsRow>
   );
 }

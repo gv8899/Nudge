@@ -48,15 +48,10 @@ export default async function RootLayout({
   const initialResolvedTheme: "light" | "dark" =
     resolvedFromCookie === "light" ? "light" : "dark";
 
-  const paperFromCookie = cookieStore.get("nudge:paper-texture")?.value;
-  const initialPaperTexture: "on" | "off" =
-    paperFromCookie === "off" ? "off" : "on";
-
   const htmlClass = [
     geistSans.variable,
     "h-full antialiased",
     initialResolvedTheme === "dark" ? "dark" : "",
-    initialPaperTexture === "on" ? "paper-texture" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -64,10 +59,7 @@ export default async function RootLayout({
   return (
     <html lang="zh-TW" className={htmlClass}>
       <body className="min-h-full bg-background text-foreground font-sans">
-        <ThemeProvider
-          initialResolvedTheme={initialResolvedTheme}
-          initialPaperTexture={initialPaperTexture}
-        >
+        <ThemeProvider initialResolvedTheme={initialResolvedTheme}>
           {children}
         </ThemeProvider>
       </body>

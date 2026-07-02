@@ -199,30 +199,6 @@
   html {
     @apply font-sans;
   }
-
-  /* 紙感顆粒紋理 — 由 .paper-texture class 開關（在 <html> 上）。
-     僅在 md+ 裝置啟用：mobile 上 SVG noise + blend-mode 效能差且 high-DPI
-     取樣會把細顆粒變成大色塊，視覺反而劣化。 */
-  @media (min-width: 768px) {
-    html.paper-texture .bg-background {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.85'/%3E%3C/svg%3E");
-      background-size: 240px 240px;
-      background-blend-mode: soft-light;
-    }
-
-    /* 排除浮動、巢狀或輸入元素 — 它們是「紙上的東西」，
-       自身不該有紋理，否則會變成噪點疊噪點 */
-    html.paper-texture [data-slot="popover-content"] .bg-background,
-    html.paper-texture .group\/calendar,
-    html.paper-texture input.bg-background,
-    html.paper-texture textarea.bg-background,
-    html.paper-texture .tiptap-container .bg-background,
-    html.paper-texture [data-landing] .bg-background,
-    html.paper-texture [data-landing].bg-background {
-      background-image: none;
-      background-blend-mode: normal;
-    }
-  }
 }
 
 /* =========================================================

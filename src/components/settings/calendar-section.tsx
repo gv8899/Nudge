@@ -3,18 +3,21 @@
 import { useState } from "react";
 import useSWR, { mutate as globalMutate } from "swr";
 import { useTranslations } from "next-intl";
-import { X } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import type { CalendarsResponse } from "@/lib/google-calendar/types";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { SettingsRow, SettingsActionRow } from "./settings-primitives";
 
 export function CalendarSection() {
   const t = useTranslations("calendar");
-  const tCommon = useTranslations("common");
   const { data, isLoading } = useSWR<
     CalendarsResponse | { error: string }
   >("/api/calendar/calendars", fetcher, { shouldRetryOnError: false });
 
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
+  // A33: inline spinner on the connect button — was a bare <a> with no
+  // feedback while the browser navigates to the OAuth redirect.
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const isConnected =
     data !== undefined && "calendars" in data && Array.isArray(data.calendars);
@@ -35,71 +38,42 @@ export function CalendarSection() {
     );
   }
 
+  function handleConnect() {
+    setIsConnecting(true);
+    window.location.href = "/api/calendar/connect";
+  }
+
+  if (isLoading) {
+    return <SettingsRow>{t("panelLoading")}</SettingsRow>;
+  }
+
+  if (isConnected) {
+    return (
+      <>
+        <SettingsRow>
+          <span className="block truncate">{t("connectedAs", { email: linkedEmail })}</span>
+        </SettingsRow>
+        <SettingsActionRow role="destructive" onClick={() => setConfirmDisconnect(true)}>
+          {t("disconnectButton")}
+        </SettingsActionRow>
+        <ConfirmDialog
+          open={confirmDisconnect}
+          onOpenChange={setConfirmDisconnect}
+          title={t("disconnectConfirmTitle")}
+          description={t("disconnectConfirmBody")}
+          confirmLabel={t("disconnectButton")}
+          onConfirm={disconnect}
+        />
+      </>
+    );
+  }
+
   return (
-    <section className="py-4">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim mb-3">
-        {t("section")}
-      </h3>
-
-      {isLoading && <div className="text-xs text-text-dim">{t("panelLoading")}</div>}
-
-      {!isLoading && !isConnected && (
-        <div>
-          <div className="text-xs text-text-dim mb-2">{t("connectDescription")}</div>
-          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          <a
-            href="/api/calendar/connect"
-            className="inline-block rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
-            {t("connectButton")}
-          </a>
-        </div>
-      )}
-
-      {isConnected && (
-        <div className="space-y-3">
-          {!confirmDisconnect ? (
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-xs text-text-dim min-w-0 truncate">
-                {t("connectedAs", { email: linkedEmail })}
-              </div>
-              <button
-                type="button"
-                onClick={() => setConfirmDisconnect(true)}
-                className="shrink-0 text-sm text-destructive hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 rounded"
-              >
-                {t("disconnectButton")}
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="text-xs text-text-dim truncate">
-                {t("connectedAs", { email: linkedEmail })}
-              </div>
-              <div className="rounded-md border border-border p-3 space-y-2">
-                <div className="text-sm text-foreground">{t("disconnectConfirmBody")}</div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={disconnect}
-                    className="rounded-md bg-destructive px-3 py-1 text-sm text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                  >
-                    {t("disconnectButton")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDisconnect(false)}
-                    aria-label={tCommon("cancel")}
-                    className="flex items-center justify-center rounded-md border border-border w-8 h-8 text-text-dim hover:text-foreground hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-    </section>
+    <>
+      <SettingsRow>{t("connectDescription")}</SettingsRow>
+      <SettingsActionRow role="primary" loading={isConnecting} onClick={handleConnect}>
+        {t("connectButton")}
+      </SettingsActionRow>
+    </>
   );
 }

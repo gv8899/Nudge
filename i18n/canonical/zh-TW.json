@@ -16,6 +16,8 @@
     "title": "設定",
     "account": {
       "section": "帳號資料",
+      "email": "電子郵件",
+      "name": "名稱",
       "unnamed": "未命名",
       "joinedAt": "加入於 {date}"
     },
@@ -26,9 +28,7 @@
       "system": "跟隨系統"
     },
     "appearance": {
-      "section": "外觀",
-      "paperLabel": "紙質感",
-      "paperDesc": "讓背景帶有細微的紙張顆粒紋理"
+      "section": "外觀"
     },
     "language": {
       "section": "語言",
