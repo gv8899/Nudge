@@ -252,7 +252,6 @@ export function TaskDetailModal({
           {onTagsChange && (
             <div className="mt-2">
               <TagPicker
-                taskId={task.id}
                 selectedTags={tags}
                 onTagsChange={onTagsChange}
               />

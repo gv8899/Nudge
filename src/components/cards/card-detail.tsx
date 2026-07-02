@@ -227,7 +227,6 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
         {/* tags 入口 — 全頁對齊 Mac toolbar 鈕，開批次儲存的 TagPicker dialog；embedded（右側 pane）維持無 tags 入口 */}
         {!embedded && (
           <TagPicker
-            taskId={id}
             selectedTags={cardTags}
             onTagsChange={handleTagsChange}
             variant="icon"

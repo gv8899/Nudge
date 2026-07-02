@@ -8,7 +8,6 @@ import { useTags } from "@/hooks/use-tags";
 import { TagBadge } from "./tag-badge";
 
 interface TagPickerProps {
-  taskId: string;
   selectedTags: Array<{ id: string; name: string; color: string }>;
   onTagsChange: (tagIds: string[]) => void;
   /**
