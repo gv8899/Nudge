@@ -26,7 +26,11 @@ export function NoteEntry({
   const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
   const d = parseISO(date);
   const dayNum = format(d, "d");
-  const month = t("monthLabel", { month: d.getMonth() + 1 });
+  // en 用縮寫月名（"Apr"）對齊 Mac；ICU 模板無法簡潔把數字轉月名，故 en 走 date-fns、zh/ja 走既有 i18n 模板
+  const month =
+    locale === "en"
+      ? format(d, "MMM", { locale: dateFnsLocale })
+      : t("monthLabel", { month: d.getMonth() + 1 });
   const weekday = format(d, "EEE", { locale: dateFnsLocale });
   const ariaLabel = t("entryAria", {
     year: d.getFullYear(),

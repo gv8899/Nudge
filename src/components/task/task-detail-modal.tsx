@@ -39,6 +39,8 @@ export function TaskDetailModal({
   editorReloadToken = 0,
 }: TaskDetailModalProps) {
   const t = useTranslations("task");
+  const tCommon = useTranslations("common");
+  const tCardDetail = useTranslations("cardDetail");
   const [titleDraft, setTitleDraft] = useState(task.title);
 
   useEffect(() => {
@@ -206,7 +208,8 @@ export function TaskDetailModal({
             )}
             <button
               onClick={handleClose}
-              aria-label={t("detailClose")}
+              aria-label={tCommon("done")}
+              title={tCommon("done")}
               className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
             >
               <X className="h-5 w-5" />
@@ -230,7 +233,7 @@ export function TaskDetailModal({
             key={`${task.id}-${editorReloadToken}`}
             content={task.description || ""}
             onChange={handleDescChange}
-            placeholder={t("detailContentPlaceholder")}
+            placeholder={tCardDetail("editorPlaceholder")}
             editable={true}
             autoFocus={true}
           />

@@ -13,6 +13,7 @@ import { OverdueSection } from "@/components/daily/overdue-section";
 import { DailyRightPanel, type RightPanelKind } from "@/components/daily/daily-right-panel";
 import { OfflineBanner, ErrorBanner } from "@/components/daily/daily-banners";
 import { useOnline } from "@/hooks/use-online";
+import { isoToday } from "@/lib/calendar-dates";
 import type { TaskStatus } from "@/lib/constants";
 import { ChevronDown, ChevronRight, Sparkles, PanelRight, CalendarDays } from "lucide-react";
 import {
@@ -469,7 +470,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
               onReschedule={handleReschedule}
               onArchive={handleArchive}
             />
-            {allAssignments.length > 0 && (
+            {currentDate === isoToday() && allAssignments.length > 0 && (
               <div className="px-1 py-1.5 text-xs font-medium text-text-dim">
                 {t("todayHeader", { count: allAssignments.length })}
               </div>

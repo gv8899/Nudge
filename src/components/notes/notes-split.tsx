@@ -118,7 +118,11 @@ function TodayPlaceholderRow({ today, selected, onSelect }: TodayPlaceholderRowP
   const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
   const d = parseISO(today);
   const dayNum = format(d, "d");
-  const month = t("monthLabel", { month: d.getMonth() + 1 });
+  // en 用縮寫月名（"Apr"）對齊 Mac；同 note-entry.tsx 的處理
+  const month =
+    locale === "en"
+      ? format(d, "MMM", { locale: dateFnsLocale })
+      : t("monthLabel", { month: d.getMonth() + 1 });
   const weekday = format(d, "EEE", { locale: dateFnsLocale });
 
   const inner = (

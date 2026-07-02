@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, X } from "lucide-react";
 import useSWR, { mutate as globalMutate } from "swr";
 import { useCardsFeed } from "@/hooks/use-cards-feed";
 import { useTags } from "@/hooks/use-tags";
@@ -193,9 +193,10 @@ export function CardsFeed() {
               <button
                 type="button"
                 onClick={() => setSelectedTagIds([])}
-                className="text-xs text-text-dim hover:text-foreground transition-colors px-2 py-1"
+                className="inline-flex items-center gap-1 text-xs text-text-dim hover:text-foreground transition-colors px-2 py-1"
               >
-                {tCommon("cancel")}
+                <X className="h-3 w-3" />
+                {tCommon("clear")}
               </button>
             )}
           </div>

@@ -30,7 +30,7 @@ export function MoveTaskPopover({ currentDate, onMove }: MoveTaskPopoverProps) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         className="text-text-faint hover:text-muted-foreground cursor-pointer transition-colors outline-none p-2"
-        aria-label={t("moveToOtherDay")}
+        aria-label={t("moveToOtherDate")}
       >
         <CalendarDays className="h-4 w-4" />
       </PopoverTrigger>

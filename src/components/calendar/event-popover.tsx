@@ -29,7 +29,7 @@ export function EventPopover({ event, children }: Props) {
   const dfLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
   const datePrefix = format(
     new Date(event.start),
-    locale === "en" ? "MMM d (EEE)" : "M月d日 (EEE)",
+    locale === "en" ? "MMM d EEE" : "M月d日 EEE",
     { locale: dfLocale }
   );
 
@@ -102,7 +102,7 @@ export function EventPopover({ event, children }: Props) {
               <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-text-faint">
                 {t("eventAttendees")}
                 <span className="ml-1 normal-case tracking-normal font-normal">
-                  · {event.attendees.length}
+                  ({event.attendees.length})
                 </span>
               </div>
               <div className="text-xs text-text-dim leading-relaxed">
