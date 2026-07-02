@@ -99,7 +99,7 @@ export function ScheduleSection({ taskId }: Props) {
       if (data.remindAtTimeOfDay) setHasReminder(true);
     }
     // data === null means no recurrence saved yet; keep useState defaults.
-    skipNextSaveRef.current = true; // skip the save effect triggered by state updates above
+    if (data) skipNextSaveRef.current = true; // skip the save effect triggered by state updates above
     setDidApplyServer(true);
   }, [isLoading, data, didApplyServer]);
 
@@ -111,6 +111,7 @@ export function ScheduleSection({ taskId }: Props) {
       setAbsDate(date);
       setAbsTime(time);
       setHasReminder(true);
+      skipNextSaveRef.current = true; // skip the save effect triggered by state updates above
     }
     setDidApplyTask(true);
   }, [taskData, didApplyTask]);
@@ -152,20 +153,26 @@ export function ScheduleSection({ taskId }: Props) {
   ]);
 
   async function saveAbsoluteReminder(value: string | null) {
-    await fetch(`/api/tasks/${taskId}`, {
+    const res = await fetch(`/api/tasks/${taskId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ remindAt: value }),
     });
+    if (!res.ok) throw new Error(`PATCH remindAt failed: ${res.status}`);
     mutateTask();
   }
 
   async function doSave() {
     if (preset === null) {
-      await save(null); // 清 recurrence
-      await saveAbsoluteReminder(
-        hasReminder ? composeRemindAtISO(absDate, absTime) : null
-      );
+      try {
+        await save(null); // 清 recurrence
+        await saveAbsoluteReminder(
+          hasReminder ? composeRemindAtISO(absDate, absTime) : null
+        );
+      } catch {
+        // Errors are surfaced by the dialog/page-level error UI; debounce
+        // can't easily report up. Future: hoist error to parent.
+      }
       return;
     }
     const monthDay =
@@ -203,9 +210,11 @@ export function ScheduleSection({ taskId }: Props) {
         </label>
         <select
           value={preset ?? ""}
-          onChange={(e) =>
-            setPreset((e.target.value || null) as RecurrencePreset | null)
-          }
+          onChange={(e) => {
+            const next = (e.target.value || null) as RecurrencePreset | null;
+            setPreset(next);
+            if (next !== null && hasReminder && !remindAt) setRemindAt("09:00");
+          }}
           className="rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           aria-label={t("schedule.recurrenceTitle")}
         >
