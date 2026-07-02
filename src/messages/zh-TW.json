@@ -195,6 +195,7 @@
     "searchAria": "搜尋卡片",
     "emptyWithQuery": "沒有符合的卡片",
     "emptyNoCards": "還沒有寫過內容的任務",
+    "emptyDescription": "記下一個想法、靈感或筆記。卡片可被搜尋與重新整理。",
     "emptyMobile": "還沒有卡片",
     "loadMore": "載入更多...",
     "noMore": "沒有更多卡片了",
@@ -206,8 +207,7 @@
     "editTitleAria": "編輯標題",
     "editorPlaceholder": "打 / 插入標題、清單…",
     "titleHint": "標題",
-    "createdAt": "建立 {date}",
-    "updatedAt": "更新 {date}"
+    "untitled": "未命名"
   },
   "notes": {
     "backToCanvasAria": "回到今天 canvas",

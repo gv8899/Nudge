@@ -4,14 +4,12 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import useSWR, { mutate as globalMutate } from "swr";
-import { format, parseISO } from "date-fns";
 import { ChevronLeft } from "lucide-react";
 import { fetcher } from "@/lib/fetcher";
 import { DebouncedSaver } from "@/lib/debounced-saver";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
 import { seedCardVersion, patchCardField } from "@/lib/card-version";
 import { TagPicker } from "@/components/tags/tag-picker";
-import { ScheduleSection } from "@/components/task/schedule-section";
 import { useTags } from "@/hooks/use-tags";
 
 interface CardDetailProps {
@@ -46,18 +44,19 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
     fetcher
   );
 
-  // 標題編輯狀態
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [titleValue, setTitleValue] = useState("");
-  const titleInputRef = useRef<HTMLInputElement>(null);
-  const hasAutoFocusedRef = useRef(false);
+  // 標題 — 永遠可編輯的 input（對齊 Mac CardDetailView macHeader），不強制
+  // focus、不做 click-to-edit 兩態。打字中（focused）時不要讓 data.title
+  // 變化蓋掉草稿（同 task-detail-modal 的 focused-guard）。
+  const [titleDraft, setTitleDraft] = useState("");
+  const isTitleFocusedRef = useRef(false);
   // 409 衝突時 ++ 換掉編輯器 key 強制重 mount，載入 server 最新內文。
   const [reloadToken, setReloadToken] = useState(0);
   const [cardTags, setCardTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
   const { tags: allTags } = useTags();
 
   useEffect(() => {
-    if (data?.title !== undefined) setTitleValue(data.title);
+    if (isTitleFocusedRef.current) return;
+    if (data?.title !== undefined) setTitleDraft(data.title);
   }, [data?.title]);
 
   // seed 樂觀並行基準：server 回的 updatedAt = 目前畫面內容所基於的版本。
@@ -65,25 +64,9 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
     if (data?.updatedAt) seedCardVersion(id, data.updatedAt);
   }, [id, data?.updatedAt]);
 
-  // 首次載入時若標題為空（剛建立的新卡片），自動進入編輯模式
-  useEffect(() => {
-    if (!hasAutoFocusedRef.current && data && !data.title.trim()) {
-      hasAutoFocusedRef.current = true;
-      setIsEditingTitle(true);
-    }
-  }, [data]);
-
   useEffect(() => {
     if (data?.tags) setCardTags(data.tags);
   }, [data]);
-
-  useEffect(() => {
-    if (isEditingTitle && titleInputRef.current) {
-      titleInputRef.current.focus();
-      const len = titleInputRef.current.value.length;
-      titleInputRef.current.setSelectionRange(len, len);
-    }
-  }, [isEditingTitle]);
 
   // PATCH /api/tasks/[id]（帶 baseUpdatedAt 樂觀並行；409 → 靜默改用 server 最新）
   const patchTask = useCallback(
@@ -93,7 +76,7 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
         // 別台先存、這次被擋 → 採用 server 最新（方案二 silent use-latest），
         // 丟棄本機這次衝突的編輯，重 mount 編輯器載入最新內文。
         const latest = result.latest as unknown as CardData;
-        setTitleValue(latest.title);
+        setTitleDraft(latest.title);
         await mutate(latest, { revalidate: false });
         setReloadToken((n) => n + 1);
         invalidateCardsCache();
@@ -122,6 +105,18 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   );
   useEffect(() => () => descSaver.flush(), [descSaver]);
 
+  // 標題打字即 debounce 存（對齊 Mac CardDetailView + task-detail-modal 的
+  // Batch 2 pattern），blur/Enter 仍立即 flush。
+  const [titleSaver] = useState(
+    // eslint-disable-next-line react-hooks/refs -- ref 只在 callback 內讀取（callback 從不在 render 時執行），非 render 期讀 ref
+    () =>
+      new DebouncedSaver<string>((v) => {
+        const trimmed = v.trim();
+        if (trimmed) patchTaskRef.current({ title: trimmed });
+      }, 500)
+  );
+  useEffect(() => () => titleSaver.flush(), [titleSaver]);
+
   const handleTagsChange = async (tagIds: string[]) => {
     // 樂觀更新：立即顯示 tag badge
     const newTags = tagIds
@@ -142,16 +137,6 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
     (html: string) => descSaver.schedule(html),
     [descSaver]
   );
-
-  const saveTitle = () => {
-    const trimmed = titleValue.trim();
-    if (data && trimmed && trimmed !== data.title) {
-      patchTask({ title: trimmed });
-    } else if (data) {
-      setTitleValue(data.title);
-    }
-    setIsEditingTitle(false);
-  };
 
   const containerClass = embedded
     ? "px-4 md:px-6 py-6"
@@ -213,30 +198,40 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
           </button>
         )}
 
-        {/* 標題（可點擊編輯） */}
-        {isEditingTitle ? (
-          <input
-            ref={titleInputRef}
-            value={titleValue}
-            onChange={(e) => setTitleValue(e.target.value)}
-            onBlur={saveTitle}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") saveTitle();
-              if (e.key === "Escape") {
-                setTitleValue(data.title);
-                setIsEditingTitle(false);
-              }
-            }}
-            aria-label={t("editTitleAria")}
-            className={`${titleClass} bg-transparent rounded outline-none border-b-2 border-primary`}
+        {/* 標題 — 永遠可編輯的 input（對齊 Mac），不強制 focus、無空標題自動進編輯 */}
+        <input
+          value={titleDraft}
+          onChange={(e) => {
+            setTitleDraft(e.target.value);
+            titleSaver.schedule(e.target.value);
+          }}
+          onFocus={() => {
+            isTitleFocusedRef.current = true;
+          }}
+          onBlur={() => {
+            isTitleFocusedRef.current = false;
+            titleSaver.flush();
+            if (!titleDraft.trim()) setTitleDraft(data.title);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              titleSaver.flush();
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
+          placeholder={t("untitled")}
+          aria-label={t("editTitleAria")}
+          className={`${titleClass} bg-transparent rounded outline-none border-b-2 border-transparent focus:border-primary transition-colors placeholder:text-text-faint placeholder:font-normal`}
+        />
+
+        {/* tags 入口 — 全頁對齊 Mac toolbar 鈕，開批次儲存的 TagPicker dialog；embedded（右側 pane）維持無 tags 入口 */}
+        {!embedded && (
+          <TagPicker
+            taskId={id}
+            selectedTags={cardTags}
+            onTagsChange={handleTagsChange}
+            variant="icon"
           />
-        ) : (
-          <button
-            onClick={() => setIsEditingTitle(true)}
-            className={`${titleClass} text-left cursor-text hover:bg-muted/50 -mx-2 px-2 py-1 rounded transition-colors truncate`}
-          >
-            {data.title}
-          </button>
         )}
       </header>
 
@@ -250,29 +245,6 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
           editable={true}
         />
       </div>
-
-      {/* 底部資訊 — embedded（右側 pane）對齊 Mac：不顯示 tags/排程/時間戳，內容為主 */}
-      {!embedded && (
-      <footer className="mt-8">
-        <div className="border-t border-border pt-4">
-          <div className="mb-3">
-            <TagPicker
-              taskId={id}
-              selectedTags={cardTags}
-              onTagsChange={handleTagsChange}
-            />
-          </div>
-          <div className="border-t border-border pt-4 mt-4">
-            <ScheduleSection taskId={id} />
-          </div>
-          <div className="flex items-center gap-3 text-xs text-text-dim">
-            <span>{t("createdAt", { date: format(parseISO(data.createdAt), "yyyy/MM/dd") })}</span>
-            <span>·</span>
-            <span>{t("updatedAt", { date: format(parseISO(data.updatedAt), "yyyy/MM/dd") })}</span>
-          </div>
-        </div>
-      </footer>
-      )}
     </div>
   );
 }

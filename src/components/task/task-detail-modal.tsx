@@ -163,18 +163,18 @@ export function TaskDetailModal({
       aria-modal="true"
       aria-labelledby="task-detail-title"
     >
-      {/* 背景遮罩 */}
+      {/* 背景遮罩 — 對齊 Mac NudgeModalOverlay：黑 30%、無 blur */}
       <div
-        className="absolute inset-0 bg-background/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/30"
         onClick={handleClose}
         aria-hidden="true"
       />
 
-      {/* 內容 */}
+      {/* 內容 — 對齊 Mac 920×600 固定尺寸（現在所有呼叫端都是 wide，高度固定內部捲動） */}
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className={`relative z-10 w-[calc(100vw-2rem)] ${wide ? "max-w-[920px]" : "max-w-[680px]"} max-h-[88dvh] overflow-y-auto rounded-2xl bg-popover border border-border shadow-2xl outline-none`}
+        className={`relative z-10 w-[calc(100vw-2rem)] ${wide ? "max-w-[920px]" : "max-w-[680px]"} h-[600px] max-h-[88dvh] overflow-y-auto rounded-2xl bg-popover border border-border shadow-2xl outline-none`}
       >
         {/* 頂部列 */}
         <div className="sticky top-0 z-10 px-6 py-4 bg-popover border-b border-border rounded-t-xl">

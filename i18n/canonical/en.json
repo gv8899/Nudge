@@ -195,6 +195,7 @@
     "searchAria": "Search cards",
     "emptyWithQuery": "No matching cards",
     "emptyNoCards": "No cards with content yet",
+    "emptyDescription": "Capture a thought, idea, or note. Cards are searchable and re-discoverable.",
     "emptyMobile": "No cards yet",
     "loadMore": "Loading more...",
     "noMore": "No more cards",
@@ -206,8 +207,7 @@
     "editTitleAria": "Edit title",
     "editorPlaceholder": "Type / to insert headings, lists…",
     "titleHint": "Title",
-    "createdAt": "Created {date}",
-    "updatedAt": "Updated {date}"
+    "untitled": "Untitled"
   },
   "notes": {
     "backToCanvasAria": "Back to today's canvas",

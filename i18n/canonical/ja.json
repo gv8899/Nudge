@@ -195,6 +195,7 @@
     "searchAria": "カードを検索",
     "emptyWithQuery": "該当するカードがありません",
     "emptyNoCards": "まだ内容のあるカードがありません",
+    "emptyDescription": "アイデアやメモを書き留めましょう。カードは検索でいつでも見つけられます。",
     "emptyMobile": "まだカードがありません",
     "loadMore": "さらに読み込み中...",
     "noMore": "これ以上カードはありません",
@@ -206,8 +207,7 @@
     "editTitleAria": "タイトルを編集",
     "editorPlaceholder": "/ を入力して見出しやリストを挿入…",
     "titleHint": "タイトル",
-    "createdAt": "作成 {date}",
-    "updatedAt": "更新 {date}"
+    "untitled": "無題"
   },
   "notes": {
     "backToCanvasAria": "今日のキャンバスへ戻る",
