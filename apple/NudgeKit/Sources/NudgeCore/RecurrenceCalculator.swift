@@ -26,17 +26,16 @@ public enum RecurrenceCalculator {
             let weekdays = csv.split(separator: ",").compactMap { Int($0) }
             guard weekdays.contains(isoWeekday(date)) else { return false }
             // Distance in whole days from the rule's startDate; even week index occurs.
-            let cal = Calendar(identifier: .gregorian)
-            let comps = cal.dateComponents([.day], from: start, to: date)
+            let comps = utcCalendar.dateComponents([.day], from: start, to: date)
             let days = comps.day ?? 0
             return (days / 7) % 2 == 0
         case .monthly_day:
             guard let md = rule.monthDay else { return false }
-            return Calendar(identifier: .gregorian).component(.day, from: date) == md
+            return utcCalendar.component(.day, from: date) == md
         case .monthly_nth_weekday:
             guard let nth = rule.monthNth, let wkd = rule.monthNthWeekday else { return false }
             guard isoWeekday(date) == wkd else { return false }
-            let dom = Calendar(identifier: .gregorian).component(.day, from: date)
+            let dom = utcCalendar.component(.day, from: date)
             if nth == 5 {
                 let last = lastDayOfMonth(date)
                 return dom > last - 7
@@ -45,7 +44,7 @@ public enum RecurrenceCalculator {
             let upper = nth * 7
             return dom >= lower && dom <= upper
         case .yearly:
-            let cal = Calendar(identifier: .gregorian)
+            let cal = utcCalendar
             let m = cal.component(.month, from: date)
             let d = cal.component(.day, from: date)
             let sm = cal.component(.month, from: start)
@@ -67,7 +66,7 @@ public enum RecurrenceCalculator {
         to: String
     ) -> [String] {
         guard let f = parseISODate(from), let t = parseISODate(to), f <= t else { return [] }
-        let cal = Calendar(identifier: .gregorian)
+        let cal = utcCalendar
         var result: [String] = []
         var cur = f
         while cur <= t {
@@ -80,6 +79,17 @@ public enum RecurrenceCalculator {
     }
 
     // MARK: - Helpers
+
+    /// All date-component math must run in UTC to mirror `src/lib/recurrence.ts`,
+    /// which operates purely in UTC. A bare `Calendar(identifier: .gregorian)`
+    /// defaults to `TimeZone.current`, which would shift day-of-month/month
+    /// extraction by one in non-UTC timezones (the Americas) and desync the
+    /// iOS notification scheduler from the web materializer.
+    private static var utcCalendar: Calendar {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
+        return cal
+    }
 
     private static func parseISODate(_ s: String) -> Date? {
         let f = DateFormatter()
@@ -102,16 +112,12 @@ public enum RecurrenceCalculator {
     /// ISO 8601 weekday: 1=Mon..7=Sun. Calendar's .weekday is 1=Sun..7=Sat,
     /// so we remap.
     private static func isoWeekday(_ d: Date) -> Int {
-        var cal = Calendar(identifier: .gregorian)
-        cal.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
-        let w = cal.component(.weekday, from: d)
+        let w = utcCalendar.component(.weekday, from: d)
         return w == 1 ? 7 : w - 1
     }
 
     private static func lastDayOfMonth(_ d: Date) -> Int {
-        var cal = Calendar(identifier: .gregorian)
-        cal.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
-        let range = cal.range(of: .day, in: .month, for: d)
+        let range = utcCalendar.range(of: .day, in: .month, for: d)
         return (range?.upperBound ?? 32) - 1
     }
 }
