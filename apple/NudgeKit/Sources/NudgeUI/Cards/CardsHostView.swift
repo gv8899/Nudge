@@ -99,8 +99,9 @@ public struct CardsHostView: View {
     /// untinted) matches the system toolbar and tab-bar glass pills;
     /// same contract as the Daily FAB so the two primary actions feel
     /// like one pattern rather than two bespoke buttons.
+    @ViewBuilder
     private var createFAB: some View {
-        Button(action: createCard) {
+        let core = Button(action: createCard) {
             // 同 Daily FAB — frame + contentShape 必須在 label 內，整個
             // 60×60 圓形範圍才是 button 的 hit area。原本 frame 加在
             // 外面，hit area 只有中央 28pt，使用者點偏一點就 miss。
@@ -110,9 +111,21 @@ public struct CardsHostView: View {
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .glassEffect(.regular, in: .circle)
         .tint(.primary)
         .accessibilityLabel(Text("cards.createAria", bundle: .module))
+
+        // glassEffect 在 iOS 是 26.0+。低於這個版本（deployment target
+        // 降到 18 後）fallback 用 Material.regular + shadow 模擬 glass
+        // 質感，跟 DailyHostView 的 createTaskFAB 一致。
+        if #available(iOS 26.0, macOS 26.0, *) {
+            core.glassEffect(.regular, in: .circle)
+        } else {
+            core.background(
+                Circle()
+                    .fill(.regularMaterial)
+                    .shadow(color: Color.nudgeForeground.opacity(0.15), radius: 8, x: 0, y: 4)
+            )
+        }
     }
     #endif
 
