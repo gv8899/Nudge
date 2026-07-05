@@ -247,7 +247,10 @@ public struct CardsHostView: View {
     /// 與 Daily dashboard 不同，這裡不收合（全寬空間足夠、常駐更易發現）。
     private var searchBar: some View {
         VStack(spacing: 10) {
-            CardSearchField(query: $searchQuery, isFocused: $searchFocused)
+            HStack(spacing: 8) {
+                CardSearchField(query: $searchQuery, isFocused: $searchFocused)
+                createCardButton
+            }
             if !allTags.isEmpty {
                 CardTagChips(allTags: allTags, selectedTagIds: $selectedTagIds)
             }
@@ -255,6 +258,31 @@ public struct CardsHostView: View {
         .padding(.horizontal, 12)
         .padding(.top, 12)
         .padding(.bottom, 8)
+    }
+
+    /// 「+ 新增卡片」— 搜尋框右側、同款 fg 6% 填色（對齊 web cards 頁）。
+    private var createCardButton: some View {
+        Button {
+            NotificationCenter.default.post(name: NudgeCommands.createCardNotification, object: nil)
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "plus")
+                    .font(.system(size: 12, weight: .semibold))
+                Text("cards.createAria", bundle: .module)
+                    .nudgeFont(.inlineButtonLabel)
+                    .lineLimit(1)
+            }
+            .foregroundStyle(Color.nudgeForeground)
+            .padding(.horizontal, 14)
+            .frame(height: 34)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.nudgeForeground.opacity(0.06))
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(Text("cards.createAria", bundle: .module))
     }
 
     /// 全頁編輯：卡片詳情佔滿內容區（左側 app sidebar 保留）。對齊 web

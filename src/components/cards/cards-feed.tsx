@@ -177,9 +177,10 @@ export function CardsFeed() {
             disabled={isCreating}
             aria-label={t("createAria")}
             title={t("createAria")}
-            className="flex items-center justify-center h-9 w-9 rounded-full text-primary hover:bg-primary/10 disabled:opacity-50 transition-colors shrink-0"
+            className="flex items-center gap-1.5 h-9 px-4 rounded-lg bg-foreground/[0.06] text-foreground text-inline-button hover:bg-foreground/[0.10] disabled:opacity-50 transition-colors shrink-0"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4" />
+            {t("createAria")}
           </button>
         </div>
 

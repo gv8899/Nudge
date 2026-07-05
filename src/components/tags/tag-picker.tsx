@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Tag as TagIcon, Plus, Search, X, Check } from "lucide-react";
+import { Plus, Search, X, Check } from "lucide-react";
+import { SFIcon } from "@/components/ui/sf-icon";
 import { useTranslations } from "next-intl";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useTags } from "@/hooks/use-tags";
@@ -16,6 +17,8 @@ interface TagPickerProps {
    * toolbar tag 鈕 → TagPickerSheet，全頁本身不常駐 badge 列）。
    */
   variant?: "badges" | "icon";
+  /** icon variant 的 trigger 樣式覆寫（如頂部 toolbar 玻璃 chip）。 */
+  triggerClassName?: string;
 }
 
 /**
@@ -24,7 +27,7 @@ interface TagPickerProps {
  * onTagsChange）；X / Escape / 點 backdrop 關閉都直接丟棄 draft（不呼叫
  * onTagsChange，下次開啟重新從 selectedTags 播種）。
  */
-export function TagPicker({ selectedTags, onTagsChange, variant = "badges" }: TagPickerProps) {
+export function TagPicker({ selectedTags, onTagsChange, variant = "badges", triggerClassName }: TagPickerProps) {
   const t = useTranslations("tags");
   const tCommon = useTranslations("common");
   const { tags: allTags, mutate: mutateTags } = useTags();
@@ -90,9 +93,9 @@ export function TagPicker({ selectedTags, onTagsChange, variant = "badges" }: Ta
           onClick={() => setOpen(true)}
           aria-label={t("addTag")}
           title={t("addTag")}
-          className="shrink-0 text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
+          className={triggerClassName ?? "shrink-0 text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"}
         >
-          <TagIcon className="h-5 w-5" />
+          <SFIcon name="tag" className="h-4 w-4" />
         </button>
       ) : (
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -105,7 +108,7 @@ export function TagPicker({ selectedTags, onTagsChange, variant = "badges" }: Ta
             className="inline-flex items-center gap-1.5 text-xs text-text-dim hover:text-foreground transition-colors px-2 py-1 rounded hover:bg-muted cursor-pointer"
             aria-label={t("addTag")}
           >
-            <TagIcon className="h-3.5 w-3.5" />
+            <SFIcon name="tag" className="h-3.5 w-3.5" />
             <span>{selectedTags.length === 0 ? t("addTagShort") : "+"}</span>
           </button>
         </div>

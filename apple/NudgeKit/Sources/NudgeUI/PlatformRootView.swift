@@ -566,14 +566,9 @@ struct MacSidebarRoot: View {
             // 「重複 / 排程」(repeat) 鈕移除 —— 卡片詳情只保留 tag 入口；
             // 重複 / 提醒改由行動頁任務列的 … 選單管理（卡片本身不需排程）。
         } else {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    NotificationCenter.default.post(name: NudgeCommands.createCardNotification, object: nil)
-                } label: {
-                    Image(systemName: "plus")
-                }
-                .help(Text("cards.createAria", bundle: .module))
-            }
+            // 「+ 新增卡片」已移到內容區搜尋框右側（CardsHostView.searchBar，
+            // 對齊 web）；toolbar 不再放 create 入口。
+            ToolbarItem(placement: .principal) { EmptyView() }
         }
     }
 

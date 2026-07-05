@@ -136,7 +136,7 @@ export function CalendarMonthView({
       {!showSpinner && (
         <div
           role="grid"
-          className="grid grid-cols-7 grid-rows-6 h-[calc(100dvh-180px)] md:h-[calc(100dvh-228px)] min-h-[480px]"
+          className="grid grid-cols-7 grid-rows-6 h-[calc(100dvh-180px)] md:h-[calc(100dvh-176px)] min-h-[480px]"
         >
           {grid.flat().map((iso) => {
             const isPadDay = isoMonth(iso) !== anchorMonth;
@@ -175,12 +175,12 @@ export function CalendarMonthView({
                 aria-selected={isSelected}
                 aria-label={iso}
                 onClick={handleCellClick}
-                className={`flex flex-col items-stretch p-1 overflow-hidden border-t border-border/40 cursor-pointer transition-colors ${
+                className={`flex flex-col items-stretch gap-y-0.5 px-[3px] pt-1 pb-1 overflow-hidden border-t border-border/40 cursor-pointer transition-colors ${
                   isSelected ? "bg-selected-fill" : "hover:bg-surface-hover"
                 }`}
               >
                 {/* Day number */}
-                <div className="flex justify-center mb-0.5">
+                <div className="flex justify-center mb-0.5 shrink-0">
                   <span
                     className={`flex items-center justify-center w-6 h-6 rounded-full text-weekday-label select-none ${
                       isToday
@@ -200,7 +200,7 @@ export function CalendarMonthView({
                 {bars.map((e, idx) => {
                   const isPast = !e.allDay && new Date(e.end) < now;
                   const barBase =
-                    "w-full text-left rounded px-1 truncate text-chip-label";
+                    "w-full shrink-0 text-left rounded px-1 py-0.5 truncate text-chip-label leading-4";
                   const barColor = isPast
                     ? "bg-primary/30 text-text-dim"
                     : "bg-primary text-primary-foreground";
@@ -223,14 +223,14 @@ export function CalendarMonthView({
 
                 {/* Overflow: sm (shows when bar 2+ are hidden) */}
                 {overflowSm > 0 && (
-                  <span className="text-chip-label text-text-dim px-1 sm:hidden">
+                  <span className="shrink-0 text-chip-label text-text-dim px-1 sm:hidden">
                     +{overflowSm}
                   </span>
                 )}
 
                 {/* Overflow: md+ (only when > 3 events) */}
                 {overflowAll > 0 && (
-                  <span className="text-chip-label text-text-dim px-1 max-sm:hidden">
+                  <span className="shrink-0 text-chip-label text-text-dim px-1 max-sm:hidden">
                     +{overflowAll}
                   </span>
                 )}

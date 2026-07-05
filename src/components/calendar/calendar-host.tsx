@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
+import { useSidebarCollapsed } from "@/components/sidebar/sidebar-layout";
 import { isoToday, weekRange, monthGrid } from "@/lib/calendar-dates";
 import { useCalendarRange } from "@/hooks/use-calendar-range";
 import { CalendarDayView } from "./day-view";
@@ -24,6 +25,7 @@ export function CalendarHost({
   initialDate?: string;
 }) {
   const t = useTranslations("calendar");
+  const sidebarCollapsed = useSidebarCollapsed();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -89,33 +91,42 @@ export function CalendarHost({
     );
   }
 
+  const segmented = (
+    <div
+      className="inline-flex items-center gap-0.5 p-1 rounded-full bg-muted"
+      role="tablist"
+    >
+      {MODES.map((m) => (
+        <button
+          key={m}
+          role="tab"
+          aria-selected={mode === m}
+          onClick={() => setMode(m)}
+          className={`px-4 h-7 rounded-full text-inline-button transition-colors ${
+            mode === m
+              ? "bg-background text-foreground shadow-sm"
+              : "text-text-dim hover:text-foreground"
+          }`}
+        >
+          {t(
+            m === "day" ? "modeDay" : m === "week" ? "modeWeek" : "modeMonth"
+          )}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background pb-16 md:pb-8">
-      {/* 模式 segmented — 對齊 Mac 日|週|月 palette */}
-      <div className="flex justify-center pt-4">
-        <div
-          className="inline-flex rounded-full border border-border p-1 gap-1"
-          role="tablist"
-        >
-          {MODES.map((m) => (
-            <button
-              key={m}
-              role="tab"
-              aria-selected={mode === m}
-              onClick={() => setMode(m)}
-              className={`px-4 py-1.5 rounded-full text-inline-button transition-colors ${
-                mode === m
-                  ? "bg-primary text-primary-foreground"
-                  : "text-text-dim hover:text-foreground hover:bg-surface-hover"
-              }`}
-            >
-              {t(
-                m === "day" ? "modeDay" : m === "week" ? "modeWeek" : "modeMonth"
-              )}
-            </button>
-          ))}
-        </div>
+      {/* 日|週|月 segmented — 對齊 Mac calendarToolbar：md+ 放頂部 toolbar
+          帶左段（跟 sidebar 收合聯動滑動），手機留在內容頂。 */}
+      <div
+        className="hidden md:flex items-center fixed top-[14px] h-9 z-40 transition-[left] duration-300 ease-out"
+        style={{ left: sidebarCollapsed ? 66 : 200 }}
+      >
+        {segmented}
       </div>
+      <div className="flex justify-center pt-4 md:hidden">{segmented}</div>
 
       {mode === "day" && (
         <div className="mx-auto max-w-[720px] px-4 md:px-6">
