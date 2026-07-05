@@ -70,15 +70,19 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
         // 對照 Mac toolbar 鈕：寬扁膠囊（48×36）+ 16px 字形。展開時整顆落在
         // sidebar 卡片（x 8..216、y 8..）內、距卡片右/上各 6px，hover 底不能
         // 超出卡片圓角邊界；收合時回到 bar 左端垂直置中。
-        className="hidden md:flex fixed z-50 items-center justify-center h-9 w-12 rounded-full text-text-dim hover:text-foreground hover:bg-surface-hover transition-[left,top,color,background-color] duration-300 ease-out"
-        style={{ left: collapsed ? 10 : 162, top: 14 }}
+        className={`hidden md:flex fixed z-50 items-center justify-center h-9 w-12 rounded-full text-text-dim hover:text-foreground transition-[left,top,color,background-color] duration-300 ease-out ${
+          collapsed
+            ? "bg-card/80 backdrop-blur-md shadow-sm hover:bg-card"
+            : "hover:bg-surface-hover"
+        }`}
+        style={{ left: collapsed ? 10 : 134, top: 14 }}
       >
         <IconSidebarLeft className="h-4 w-4" />
       </button>
 
       <AppSidebar collapsed={collapsed} />
       <main
-        className={`${collapsed ? "md:ml-0" : "md:ml-56"} md:transition-[margin-left] md:duration-300 md:ease-out md:pt-12 min-h-screen pb-16 md:pb-0`}
+        className={`${collapsed ? "md:ml-0" : "md:ml-[196px]"} md:transition-[margin-left] md:duration-300 md:ease-out md:pt-12 min-h-screen pb-16 md:pb-0`}
       >
         {children}
       </main>

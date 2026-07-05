@@ -297,6 +297,8 @@
     "schedule.preset.monthlyNthWeekday": "0c9259d53b8b23bd480357ea7b4a81d0128a242e3366c09d5cfab913449ac507",
     "schedule.preset.yearly": "3fd8936ffb47086a62d576310ea0d9385af1a9cc9c075ddb4ea2749d629278e4",
     "schedule.recurrence.off": "adcade4d91b9b6763c1a3d9e1511908b0d75e5db54a185fb598692dae0e971ae",
+    "schedule.recurrence.frequency": "c73a517047027111c35f95b45a7e0e45b9e401080b4bfe339a13fd8e8611d642",
+    "schedule.recurrence.monthDayLabel": "275c86da821389dda12fd37ed97f4736c5a238a56fa06111b1cb6c49b5a75fd5",
     "schedule.recurrence.weekdaysLabel": "c398134d7d1f58e7c31cc6cb8eba142f42da3397c6b86ca3011465d39d68a996",
     "schedule.recurrence.monthDayN": "4bf80387e7bff00a07fbdd32cec98afe9a1c403dc15641dba1fb0ced5d7e3876",
     "schedule.recurrence.nthLabel": "707271c80f95e2c881d36c77b16942482f40453f4df8cbb95ad77c633a16a5ab",

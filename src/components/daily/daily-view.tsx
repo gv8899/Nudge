@@ -17,7 +17,7 @@ import { OfflineBanner, ErrorBanner } from "@/components/daily/daily-banners";
 import { useOnline } from "@/hooks/use-online";
 import { isoToday } from "@/lib/calendar-dates";
 import type { TaskStatus } from "@/lib/constants";
-import { ChevronDown, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight, Sparkles } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -392,7 +392,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
         className="min-h-screen bg-background lg:transition-[padding-right] lg:duration-300 lg:ease-out"
         style={{ paddingRight: mainPaddingRight }}
       >
-        <div className="mx-auto max-w-3xl px-4 md:px-6 pb-8">
+        <div className="mx-auto max-w-[760px] px-4 md:px-6 pb-8">
           {!online && <OfflineBanner lastUpdated={lastUpdatedRef.current} />}
           {online && showErrorBanner && <ErrorBanner onRetry={() => mutate()} />}
 
@@ -405,7 +405,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
               跟著 sidebar 開合一起滑動 */}
           <div
             className="hidden md:flex items-center fixed top-[14px] h-9 z-40 transition-[left] duration-300 ease-out"
-            style={{ left: sidebarCollapsed ? 54 : 228 }}
+            style={{ left: sidebarCollapsed ? 66 : 200 }}
           >
             <WeekNavControls date={currentDate} onDateChange={setCurrentDate} />
           </div>
@@ -423,7 +423,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                 className={
                   rightPanelOpen
                     ? "flex items-center justify-center h-9 w-12 rounded-full bg-primary text-primary-foreground transition-colors"
-                    : "flex items-center justify-center h-9 w-12 rounded-full text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors"
+                    : "flex items-center justify-center h-9 w-12 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-text-dim hover:text-foreground hover:bg-card transition-colors"
                 }
               >
                 <IconSidebarRight className="h-4 w-4" />
@@ -482,7 +482,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
               onArchive={handleArchive}
             />
             {currentDate === isoToday() && allAssignments.length > 0 && (
-              <div className="px-1 py-1.5 text-section-header text-text-dim">
+              <div className="px-6 py-1.5 text-section-header text-text-dim">
                 {t("todayHeader", { count: allAssignments.length })}
               </div>
             )}
@@ -516,14 +516,12 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                 <button
                   onClick={() => setCompletedExpanded((v) => !v)}
                   aria-expanded={completedExpanded}
-                  className="flex items-center gap-1 px-1 py-1.5 text-section-header text-text-dim hover:text-muted-foreground transition-colors w-full text-left"
+                  className="flex items-center justify-between gap-1 pl-6 pr-4 py-1.5 text-section-header text-text-dim hover:text-muted-foreground transition-colors w-full text-left"
                 >
-                  {completedExpanded ? (
-                    <ChevronDown className="h-3.5 w-3.5 shrink-0" />
-                  ) : (
-                    <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-                  )}
-                  {t("completedHeader", { count: completedAssignments.length })}
+                  <span>{t("completedHeader", { count: completedAssignments.length })}</span>
+                  <ChevronRight
+                    className={`h-4 w-4 shrink-0 transition-transform duration-200 ${completedExpanded ? "rotate-90" : ""}`}
+                  />
                 </button>
                 {completedExpanded &&
                   completedAssignments.map((a) => (
@@ -553,10 +551,19 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
           </div>
         </div>
       </div>
-      <TaskFab
-        onClick={() => setQuickAddOpen(true)}
-        style={rightPanelOpen && isLg ? { right: rightPanelWidth + 24 } : undefined}
-      />
+      {/* FAB 浮在任務欄右下（Mac trailing 24 / bottom 80）— 外層複製
+          內容欄的幾何（sidebar margin + panel padding + 置中 760），
+          FAB 才會貼著欄位右緣而不是視窗右緣。 */}
+      <div
+        className={`fixed bottom-20 left-0 right-0 z-30 pointer-events-none ${
+          sidebarCollapsed ? "" : "md:pl-[196px]"
+        } transition-[padding] duration-300 ease-out`}
+        style={{ paddingRight: mainPaddingRight }}
+      >
+        <div className="mx-auto max-w-[760px] flex justify-end pr-6">
+          <TaskFab onClick={() => setQuickAddOpen(true)} />
+        </div>
+      </div>
       <QuickAddDialog
         open={quickAddOpen}
         onOpenChange={setQuickAddOpen}

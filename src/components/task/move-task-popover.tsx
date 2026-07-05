@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { enUS, ja, zhTW } from "date-fns/locale";
 import { format } from "date-fns";
 import { getDefaultClassNames } from "react-day-picker";
-import { CalendarDays } from "lucide-react";
+import { SFIcon } from "@/components/ui/sf-icon";
 import {
   Dialog,
   DialogContent,
@@ -57,7 +57,7 @@ export function MoveTaskPopover({ currentDate, onMove }: MoveTaskPopoverProps) {
         className="text-text-faint hover:text-muted-foreground cursor-pointer transition-colors outline-none p-2"
         aria-label={t("moveToOtherDate")}
       >
-        <CalendarDays className="h-4 w-4" />
+        <SFIcon name="calendar" className="h-4 w-4" />
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>

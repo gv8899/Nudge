@@ -69,11 +69,11 @@ function NavLink({
       className={`flex items-center gap-2.5 px-2.5 h-10 rounded-md transition-colors ${
         active
           ? "bg-primary/[0.18] text-foreground"
-          : "text-text-dim hover:text-foreground hover:bg-border/50"
+          : "text-foreground hover:bg-border/50"
       }`}
     >
-      <span className="flex items-center justify-start w-5 h-5 shrink-0">
-        <Icon className="h-5 w-5" />
+      <span className="flex items-center justify-start w-4 h-4 shrink-0">
+        <Icon className="h-4 w-4" />
       </span>
       <span className="text-row-title">{label}</span>
     </Link>
@@ -98,7 +98,7 @@ export function AppSidebar({ collapsed }: AppSidebarProps) {
        * Mobile (<md) : hidden（bottom bar 導覽）。
        *
        * ⚠️  layout offset: sidebar-layout.tsx 的 <main> margin 必須跟著
-       *     collapsed state 切 md:ml-0 / md:ml-56。
+       *     collapsed state 切 md:ml-0 / md:ml-[196px]。
        */}
       <aside
         aria-label={t("mainNavAria")}
@@ -107,8 +107,8 @@ export function AppSidebar({ collapsed }: AppSidebarProps) {
         // 常駐 DOM、收合時整個滑出左緣（過渡動畫對齊 Mac NavigationSplitView）。
         // top-2：底色卡片包到頂（toggle 落在卡片右上，pt-12 讓 nav 從 toggle
         // 列下方開始）；z-45 蓋過 top bar 的 bg，toggle 是 z-50。
-        className={`hidden md:flex fixed left-2 top-2 bottom-2 z-45 w-52 flex-col gap-1 rounded-xl bg-foreground/[0.025] px-2 pt-12 pb-4 transition-transform duration-300 ease-out ${
-          collapsed ? "-translate-x-[224px]" : "translate-x-0"
+        className={`hidden md:flex fixed left-2 top-2 bottom-2 z-45 w-[180px] flex-col gap-1 rounded-xl bg-foreground/[0.025] px-2 pt-12 pb-4 transition-transform duration-300 ease-out ${
+          collapsed ? "-translate-x-[196px]" : "translate-x-0"
         }`}
       >
           {navItems.map((item) => (

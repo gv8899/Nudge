@@ -2,7 +2,11 @@
 import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-export function TaskFab({ onClick, style }: { onClick: () => void; style?: React.CSSProperties }) {
+/**
+ * 新增任務 FAB — 對齊 Mac createTaskFAB：60×60 玻璃圓（Material +
+ * shadow fallback）、無邊框、浮在任務欄右下（外層負責定位）。
+ */
+export function TaskFab({ onClick }: { onClick: () => void }) {
   const t = useTranslations("task");
   return (
     <button
@@ -10,10 +14,9 @@ export function TaskFab({ onClick, style }: { onClick: () => void; style?: React
       onClick={onClick}
       aria-label={t("createPlaceholder")}
       title={t("createPlaceholder")}
-      style={style}
-      className="fixed bottom-20 md:bottom-8 right-8 z-30 flex items-center justify-center h-12 w-12 rounded-full bg-card text-foreground border border-border shadow-md hover:bg-surface-hover transition-colors"
+      className="pointer-events-auto flex items-center justify-center h-[60px] w-[60px] rounded-full bg-card/80 backdrop-blur-md shadow-lg text-foreground hover:bg-card transition-colors"
     >
-      <Plus className="h-5 w-5" />
+      <Plus className="h-[22px] w-[22px]" />
     </button>
   );
 }

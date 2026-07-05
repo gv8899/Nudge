@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, ChevronRight, CalendarClock, MoreHorizontal } from "lucide-react";
+import { ChevronRight, MoreHorizontal } from "lucide-react";
+import { SFIcon } from "@/components/ui/sf-icon";
 import { ContextMenu as ContextMenuPrimitive } from "@base-ui/react/context-menu";
 import {
   DropdownMenu,
@@ -50,15 +51,14 @@ export function OverdueSection({
         onClick={() => setIsExpanded(!isExpanded)}
         aria-expanded={isExpanded}
         aria-controls="overdue-list"
-        className="flex items-center gap-2 w-full text-left px-1 py-2 text-section-header text-primary hover:bg-muted rounded-md transition-colors"
+        // 對齊 Mac OverdueSectionView.header：純文字 sectionHeader + textDim、
+        // chevron 靠最右（展開時轉 90°）、無 icon、px-24 內縮
+        className="flex items-center justify-between gap-2 w-full text-left pl-6 pr-4 min-h-11 text-section-header text-text-dim hover:bg-muted rounded-md transition-colors"
       >
-        {isExpanded ? (
-          <ChevronDown className="h-4 w-4" />
-        ) : (
-          <ChevronRight className="h-4 w-4" />
-        )}
-        <CalendarClock className="h-4 w-4" />
         <span>{t("overdueLabel", { count: overdueTasks.length })}</span>
+        <ChevronRight
+          className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
+        />
       </button>
 
       {isExpanded && (
@@ -121,24 +121,29 @@ function OverdueRow({
     return (
       <>
         <DropdownMenuItem onClick={() => onReschedule(assignment.id, todayStr)}>
+          <SFIcon name="calendar-badge-checkmark" className="h-[13px] w-[13px] shrink-0" />
           {t("moveToToday")}
         </DropdownMenuItem>
         {isRecurring ? (
           <DropdownMenuItem onClick={() => skipOccurrence(assignment.id, currentDate)}>
+            <SFIcon name="forward" className="h-[13px] w-[13px] shrink-0" />
             {t("skipThisOccurrence")}
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem onClick={onOpenSchedule}>
+            <SFIcon name="arrow-triangle-2-circlepath" className="h-[13px] w-[13px] shrink-0" />
             {t("setRecurring")}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={onOpenSchedule}>
+          <SFIcon name="bell" className="h-[13px] w-[13px] shrink-0" />
           {t("setReminder")}
         </DropdownMenuItem>
         <DropdownMenuItem
           variant="destructive"
           onClick={() => onArchive(assignment.id, assignment.taskId)}
         >
+          <SFIcon name="archivebox" className="h-[13px] w-[13px] shrink-0" />
           {t("archiveButton")}
         </DropdownMenuItem>
       </>
@@ -149,7 +154,7 @@ function OverdueRow({
     <ContextMenuPrimitive.Root>
       <ContextMenuPrimitive.Trigger
         render={
-          <div className="flex items-center gap-2 px-1 py-2 hover:bg-muted rounded-md transition-colors group" />
+          <div className="flex items-center gap-2 px-3 py-2 hover:bg-muted rounded-md transition-colors group" />
         }
       >
         {/* 對應 task-card 的 grip 占位（左邊對齊） */}
@@ -182,7 +187,7 @@ function OverdueRow({
           >
             <MoreHorizontal className="h-4 w-4" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="min-w-[200px]">
             {renderMenuItems()}
           </DropdownMenuContent>
         </DropdownMenu>

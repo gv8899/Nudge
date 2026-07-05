@@ -14,6 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { SFIcon } from "@/components/ui/sf-icon";
 import { GripVertical, MoreHorizontal } from "lucide-react";
 import type { DailyTaskAssignment } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
@@ -82,25 +83,30 @@ export function TaskCard({
       <>
         {!isToday && (
           <DropdownMenuItem onClick={() => onMoveToDate(assignment.id, todayStr)}>
+            <SFIcon name="calendar-badge-checkmark" className="h-[13px] w-[13px] shrink-0" />
             {tDaily("moveToToday")}
           </DropdownMenuItem>
         )}
         {isRecurring ? (
           <DropdownMenuItem onClick={() => skipOccurrence(assignment.id, currentDate)}>
+            <SFIcon name="forward" className="h-[13px] w-[13px] shrink-0" />
             {tDaily("skipThisOccurrence")}
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem onClick={() => setScheduleDialogOpen(true)}>
+            <SFIcon name="arrow-triangle-2-circlepath" className="h-[13px] w-[13px] shrink-0" />
             {tDaily("setRecurring")}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={() => setScheduleDialogOpen(true)}>
+          <SFIcon name="bell" className="h-[13px] w-[13px] shrink-0" />
           {tDaily("setReminder")}
         </DropdownMenuItem>
         <DropdownMenuItem
           variant="destructive"
           onClick={() => onArchive(assignment.id, task.id)}
         >
+          <SFIcon name="archivebox" className="h-[13px] w-[13px] shrink-0" />
           {tDaily("archiveButton")}
         </DropdownMenuItem>
       </>
@@ -108,10 +114,10 @@ export function TaskCard({
   }
 
   const popupClassName =
-    "z-50 max-h-(--available-height) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:overflow-hidden data-closed:fade-out-0 data-closed:zoom-out-95";
+    "z-50 max-h-(--available-height) min-w-[200px] origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:overflow-hidden data-closed:fade-out-0 data-closed:zoom-out-95";
 
   const itemClassName =
-    "relative flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50";
+    "relative flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-hidden select-none whitespace-nowrap focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50";
 
   return (
     <>
@@ -122,7 +128,7 @@ export function TaskCard({
             <div
               ref={setNodeRef}
               style={style}
-              className="flex items-center gap-2 px-1 py-2 hover:bg-muted rounded-md transition-colors group"
+              className="flex items-center gap-2 px-3 py-2 hover:bg-muted rounded-md transition-colors group"
             />
           }
         >
@@ -186,7 +192,7 @@ export function TaskCard({
             >
               <MoreHorizontal className="h-4 w-4" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="min-w-[200px]">
               {renderMenuItems()}
             </DropdownMenuContent>
           </DropdownMenu>

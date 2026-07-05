@@ -407,6 +407,8 @@
     },
     "recurrence": {
       "off": "Off",
+      "frequency": "Frequency",
+      "monthDayLabel": "Day of month",
       "weekdaysLabel": "Days of week",
       "monthDayN": "On day {n} each month",
       "nthLabel": "Week",

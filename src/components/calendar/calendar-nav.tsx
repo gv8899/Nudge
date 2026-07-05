@@ -76,7 +76,7 @@ export function CalendarNav({ date, onDateChange, dotDates }: CalendarNavProps) 
                     : "text-foreground"
                 }`}
               >
-                {format(day, "d")}
+                {format(day, "dd")}
               </span>
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
@@ -102,20 +102,20 @@ export function WeekNavControls({ date, onDateChange }: CalendarNavProps) {
       <button
         onClick={() => go(subDays(weekStart, 7))}
         aria-label={t("prevWeekAria")}
-        className="flex items-center justify-center h-9 w-9 rounded-full text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors"
+        className="flex items-center justify-center h-9 w-9 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-text-dim hover:bg-card hover:text-foreground transition-colors"
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
       <button
         onClick={() => go(new Date())}
-        className="flex items-center justify-center h-9 px-4 rounded-full text-row-title text-foreground hover:bg-surface-hover transition-colors whitespace-nowrap"
+        className="flex items-center justify-center h-9 px-4 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-row-title hover:bg-card text-foreground transition-colors whitespace-nowrap"
       >
         {tCommon("today")}
       </button>
       <button
         onClick={() => go(addDays(weekStart, 7))}
         aria-label={t("nextWeekAria")}
-        className="flex items-center justify-center h-9 w-9 rounded-full text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors"
+        className="flex items-center justify-center h-9 w-9 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-text-dim hover:bg-card hover:text-foreground transition-colors"
       >
         <ChevronRight className="h-4 w-4" />
       </button>

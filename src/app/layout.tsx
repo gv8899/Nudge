@@ -1,13 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
 import { cookies } from "next/headers";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://nudge.tw"),
@@ -49,7 +43,6 @@ export default async function RootLayout({
     resolvedFromCookie === "light" ? "light" : "dark";
 
   const htmlClass = [
-    geistSans.variable,
     "h-full antialiased",
     initialResolvedTheme === "dark" ? "dark" : "",
   ]

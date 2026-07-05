@@ -407,6 +407,8 @@
     },
     "recurrence": {
       "off": "なし",
+      "frequency": "頻度",
+      "monthDayLabel": "日にち",
       "weekdaysLabel": "曜日",
       "monthDayN": "毎月 {n} 日",
       "nthLabel": "第何週",

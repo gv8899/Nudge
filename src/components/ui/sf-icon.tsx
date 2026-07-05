@@ -19,11 +19,16 @@
  */
 
 export const SF_ICONS = [
+  "archivebox",
+  "arrow-triangle-2-circlepath",
+  "bell",
   "book",
   "calendar",
   "checkmark-circle",
   "chevron-left",
   "chevron-right",
+  "calendar-badge-checkmark",
+  "forward",
   "gearshape",
   "magnifyingglass",
   "plus",
