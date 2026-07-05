@@ -186,10 +186,20 @@ public struct TaskListView: View {
                     .rotationEffect(.degrees(isCompletedExpanded ? 90 : 0))
                     .foregroundStyle(Color.nudgeTextDim)
             }
-            .padding(.horizontal, 24)
+            // 與「今天 (N)」header（外層 24pt）對齊：iOS 清單自帶 16pt 外距
+            // → 這裡補 8；mac 外距 0 → 24。兩平台皆落在 24pt 縮排。
+            .padding(.horizontal, completedHeaderPaddingH)
             .frame(minHeight: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    private var completedHeaderPaddingH: CGFloat {
+        #if os(macOS)
+        return 24
+        #else
+        return 8
+        #endif
     }
 }

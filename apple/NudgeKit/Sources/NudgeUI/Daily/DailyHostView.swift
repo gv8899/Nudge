@@ -215,6 +215,14 @@ public struct DailyHostView: View {
                                 onSetReminder: { openScheduleSheet(for: $0) },
                                 onOpen: { navigationPath.append($0) }
                             )
+                            // 「今天 (N)」section 標題 — 對齊 Mac / Web：把
+                            // 今天的任務跟「前幾天」rollup 視覺分清楚。同
+                            // Mac 條件：看的是今天且當日有任務才顯示。
+                            if isViewingToday,
+                               let count = dailyData?.assignments.count,
+                               count > 0 {
+                                todaySectionHeader(count: count)
+                            }
                             TaskListView(
                                 assignments: dailyData?.assignments ?? [],
                                 isLoading: loadState == .loading,
@@ -389,6 +397,25 @@ public struct DailyHostView: View {
     }
 
     #endif
+
+    /// 「今天 (N)」section divider — 跟 OverdueSectionView header 視覺
+    /// 對齊（同 sectionHeader font + nudgeTextDim 顏色 + 同 padding）。
+    /// 純文字、不可展開（今天本來就是主要內容、不需要 collapsed by
+    /// default）。iOS / macOS 共用（兩邊清單都在 Overdue 後接今天區）。
+    private func todaySectionHeader(count: Int) -> some View {
+        HStack(spacing: 6) {
+            Text(String(
+                format: nudgeLocalized("daily.todaySectionTitle", locale: locale),
+                count
+            ))
+                .nudgeFont(.sectionHeader)
+                .foregroundStyle(Color.nudgeTextDim)
+            Spacer()
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 12)
+        .padding(.bottom, 6)
+    }
 
     /// iOS 26 / macOS 15+ neutral glass FAB — `.glass` (not
     /// `.glassProminent`) so the disk stays transparent instead of
@@ -979,25 +1006,6 @@ public struct DailyHostView: View {
         .padding(.horizontal, 24)
         .padding(.top, 16)
         .padding(.bottom, 12)
-    }
-
-    /// 「今天 (N)」section divider — 跟 OverdueSectionView header 視覺
-    /// 對齊（同 sectionHeader font + nudgeTextDim 顏色 + 同 padding）。
-    /// 純文字、不可展開（今天本來就是主要內容、不需要 collapsed by
-    /// default）。
-    private func todaySectionHeader(count: Int) -> some View {
-        HStack(spacing: 6) {
-            Text(String(
-                format: nudgeLocalized("daily.todaySectionTitle", locale: locale),
-                count
-            ))
-                .nudgeFont(.sectionHeader)
-                .foregroundStyle(Color.nudgeTextDim)
-            Spacer()
-        }
-        .padding(.horizontal, 24)
-        .padding(.top, 12)
-        .padding(.bottom, 6)
     }
 
     /// Calendar 專用 header — 跟 dashboardCardsHeaderWithSearchToggle 同
