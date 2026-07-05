@@ -45,6 +45,28 @@
         }
       }
     },
+    "billing.canceled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Canceled — Premium until %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャンセル済み — %@まで Premium 利用可"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消，Premium 使用至 %@"
+          }
+        }
+      }
+    },
     "billing.expired": {
       "localizations": {
         "en": {
@@ -63,6 +85,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "試用已結束"
+          }
+        }
+      }
+    },
+    "billing.pastDue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payment failed — update your payment method"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支払い失敗 — お支払い方法を更新してください"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "付款失敗，請更新付款方式"
           }
         }
       }
@@ -173,6 +217,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "訂閱"
+          }
+        }
+      }
+    },
+    "billing.subscriptionEnded": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscription ended"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サブスクリプション終了"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "訂閱已結束"
           }
         }
       }
@@ -745,6 +811,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "行事曆"
+          }
+        }
+      }
+    },
+    "calendar.syncPrivacyHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendar content is synced for display only — it's never stored in Nudge's database."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カレンダーの内容は同期表示のみで、Nudge のデータベースには保存されません。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "行事曆內容只做即時同步顯示，不會儲存到 Nudge 的資料庫。"
           }
         }
       }
@@ -2292,12 +2380,6 @@
     "editor.slashBulletDescription": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "建立無序列表"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2309,18 +2391,18 @@
             "state": "translated",
             "value": "箇条書きリストを作成"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建立無序列表"
+          }
         }
       }
     },
     "editor.slashBulletKeywords": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "list|bullet|ul|項目|清單|列表"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2332,18 +2414,18 @@
             "state": "translated",
             "value": "list|bullet|ul|箇条書き|リスト"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "list|bullet|ul|項目|清單|列表"
+          }
         }
       }
     },
     "editor.slashBulletLabel": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "項目符號列表"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2355,18 +2437,18 @@
             "state": "translated",
             "value": "箇条書き"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "項目符號列表"
+          }
         }
       }
     },
     "editor.slashCodeDescription": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "含語法高亮的程式碼區塊"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2378,18 +2460,18 @@
             "state": "translated",
             "value": "シンタックスハイライト付きコードブロック"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "含語法高亮的程式碼區塊"
+          }
         }
       }
     },
     "editor.slashCodeKeywords": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "code|block|程式|程式碼"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2401,18 +2483,18 @@
             "state": "translated",
             "value": "code|block|コード"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "code|block|程式|程式碼"
+          }
         }
       }
     },
     "editor.slashCodeLabel": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "程式碼區塊"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2424,18 +2506,18 @@
             "state": "translated",
             "value": "コードブロック"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "程式碼區塊"
+          }
         }
       }
     },
     "editor.slashDividerDescription": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "插入水平分隔線"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2447,18 +2529,18 @@
             "state": "translated",
             "value": "水平区切り線を挿入"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "插入水平分隔線"
+          }
         }
       }
     },
     "editor.slashDividerKeywords": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "hr|divider|separator|分隔|分隔線"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2470,18 +2552,18 @@
             "state": "translated",
             "value": "hr|divider|separator|区切り"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hr|divider|separator|分隔|分隔線"
+          }
         }
       }
     },
     "editor.slashDividerLabel": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分隔線"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2493,18 +2575,18 @@
             "state": "translated",
             "value": "区切り線"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分隔線"
+          }
         }
       }
     },
     "editor.slashH1Description": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "大標題"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2516,18 +2598,18 @@
             "state": "translated",
             "value": "大見出し"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大標題"
+          }
         }
       }
     },
     "editor.slashH1Keywords": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "h1|head|heading|標題|大標題"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2539,18 +2621,18 @@
             "state": "translated",
             "value": "h1|head|heading|見出し|大"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "h1|head|heading|標題|大標題"
+          }
         }
       }
     },
     "editor.slashH1Label": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "標題 1"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2562,18 +2644,18 @@
             "state": "translated",
             "value": "見出し 1"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "標題 1"
+          }
         }
       }
     },
     "editor.slashH2Description": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "中標題"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2585,18 +2667,18 @@
             "state": "translated",
             "value": "中見出し"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中標題"
+          }
         }
       }
     },
     "editor.slashH2Keywords": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "h2|head|heading|標題|中標題"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2608,18 +2690,18 @@
             "state": "translated",
             "value": "h2|head|heading|見出し|中"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "h2|head|heading|標題|中標題"
+          }
         }
       }
     },
     "editor.slashH2Label": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "標題 2"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2631,18 +2713,18 @@
             "state": "translated",
             "value": "見出し 2"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "標題 2"
+          }
         }
       }
     },
     "editor.slashH3Description": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "小標題"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2654,18 +2736,18 @@
             "state": "translated",
             "value": "小見出し"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小標題"
+          }
         }
       }
     },
     "editor.slashH3Keywords": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "h3|head|heading|標題|小標題"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2677,18 +2759,18 @@
             "state": "translated",
             "value": "h3|head|heading|見出し|小"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "h3|head|heading|標題|小標題"
+          }
         }
       }
     },
     "editor.slashH3Label": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "標題 3"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2700,18 +2782,18 @@
             "state": "translated",
             "value": "見出し 3"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "標題 3"
+          }
         }
       }
     },
     "editor.slashNoResults": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "沒有符合的項目"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2723,18 +2805,18 @@
             "state": "translated",
             "value": "該当する項目がありません"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有符合的項目"
+          }
         }
       }
     },
     "editor.slashOrderedDescription": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "建立編號列表"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2746,18 +2828,18 @@
             "state": "translated",
             "value": "番号付きリストを作成"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建立編號列表"
+          }
         }
       }
     },
     "editor.slashOrderedKeywords": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ol|number|ordered|數字|編號|列表"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2769,18 +2851,18 @@
             "state": "translated",
             "value": "ol|number|ordered|番号|リスト"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ol|number|ordered|數字|編號|列表"
+          }
         }
       }
     },
     "editor.slashOrderedLabel": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "數字列表"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2792,18 +2874,18 @@
             "state": "translated",
             "value": "番号付きリスト"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "數字列表"
+          }
         }
       }
     },
     "editor.slashQuoteDescription": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "引用區塊"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2815,18 +2897,18 @@
             "state": "translated",
             "value": "引用ブロック"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "引用區塊"
+          }
         }
       }
     },
     "editor.slashQuoteKeywords": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "quote|blockquote|引用|引言"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2838,18 +2920,18 @@
             "state": "translated",
             "value": "quote|blockquote|引用"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "quote|blockquote|引用|引言"
+          }
         }
       }
     },
     "editor.slashQuoteLabel": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "引言"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2861,18 +2943,18 @@
             "state": "translated",
             "value": "引用"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "引言"
+          }
         }
       }
     },
     "editor.slashTextDescription": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "普通段落文字"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2884,18 +2966,18 @@
             "state": "translated",
             "value": "通常の段落テキスト"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "普通段落文字"
+          }
         }
       }
     },
     "editor.slashTextKeywords": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "text|paragraph|body|內文|段落|普通"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2907,18 +2989,18 @@
             "state": "translated",
             "value": "text|paragraph|body|テキスト|段落"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "text|paragraph|body|內文|段落|普通"
+          }
         }
       }
     },
     "editor.slashTextLabel": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "內文"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2930,18 +3012,18 @@
             "state": "translated",
             "value": "テキスト"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "內文"
+          }
         }
       }
     },
     "editor.slashTodoDescription": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "可勾選的待辦清單"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2953,18 +3035,18 @@
             "state": "translated",
             "value": "チェックボックス付きリスト"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可勾選的待辦清單"
+          }
         }
       }
     },
     "editor.slashTodoKeywords": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "todo|task|check|待辦|任務"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2976,18 +3058,18 @@
             "state": "translated",
             "value": "todo|task|check|ToDo|タスク"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "todo|task|check|待辦|任務"
+          }
         }
       }
     },
     "editor.slashTodoLabel": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "待辦列表"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -2999,18 +3081,18 @@
             "state": "translated",
             "value": "ToDo リスト"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待辦列表"
+          }
         }
       }
     },
     "editor.toolbarBullet": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "項目符號"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -3022,18 +3104,18 @@
             "state": "translated",
             "value": "箇条書き"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "項目符號"
+          }
         }
       }
     },
     "editor.toolbarDismiss": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "收鍵盤"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -3045,18 +3127,18 @@
             "state": "translated",
             "value": "キーボードを閉じる"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收鍵盤"
+          }
         }
       }
     },
     "editor.toolbarHeading": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "標題"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -3068,18 +3150,18 @@
             "state": "translated",
             "value": "見出し"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "標題"
+          }
         }
       }
     },
     "editor.toolbarOrdered": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "數字清單"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -3091,18 +3173,18 @@
             "state": "translated",
             "value": "番号付きリスト"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "數字清單"
+          }
         }
       }
     },
     "editor.toolbarRedo": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重做"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -3114,18 +3196,18 @@
             "state": "translated",
             "value": "やり直し"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重做"
+          }
         }
       }
     },
     "editor.toolbarTaskList": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "核取清單"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -3137,18 +3219,18 @@
             "state": "translated",
             "value": "チェックリスト"
           }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核取清單"
+          }
         }
       }
     },
     "editor.toolbarUndo": {
       "extractionState": "manual",
       "localizations": {
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "還原"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
@@ -3159,6 +3241,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "元に戻す"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "還原"
           }
         }
       }
@@ -6019,72 +6107,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "今日"
-          }
-        }
-      }
-    },
-    "billing.canceled": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Canceled — Premium until %@"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "キャンセル済み — %@まで Premium 利用可"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已取消，Premium 使用至 %@"
-          }
-        }
-      }
-    },
-    "billing.pastDue": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Payment failed — update your payment method"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "支払い失敗 — お支払い方法を更新してください"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "付款失敗，請更新付款方式"
-          }
-        }
-      }
-    },
-    "billing.subscriptionEnded": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Subscription ended"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "サブスクリプション終了"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "訂閱已結束"
           }
         }
       }
