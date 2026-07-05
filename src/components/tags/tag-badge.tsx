@@ -14,7 +14,7 @@ interface TagBadgeProps {
 export function TagBadge({ name, onRemove }: TagBadgeProps) {
   const t = useTranslations("tags");
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded border border-border text-foreground">
+    <span className="inline-flex items-center gap-1 text-chip-label px-1.5 py-0.5 rounded border border-border text-foreground">
       {name}
       {onRemove && (
         <button

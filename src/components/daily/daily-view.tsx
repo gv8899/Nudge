@@ -11,11 +11,13 @@ import { CalendarNav, WeekNavControls } from "@/components/calendar/calendar-nav
 import { DateHeading } from "@/components/calendar/date-heading";
 import { OverdueSection } from "@/components/daily/overdue-section";
 import { DailyRightPanel, type RightPanelKind } from "@/components/daily/daily-right-panel";
+import { IconCards, IconCalendar, IconSidebarRight } from "@/components/ui/sf-icon";
+import { useSidebarCollapsed } from "@/components/sidebar/sidebar-layout";
 import { OfflineBanner, ErrorBanner } from "@/components/daily/daily-banners";
 import { useOnline } from "@/hooks/use-online";
 import { isoToday } from "@/lib/calendar-dates";
 import type { TaskStatus } from "@/lib/constants";
-import { ChevronDown, ChevronRight, Sparkles, PanelRight, CalendarDays } from "lucide-react";
+import { ChevronDown, ChevronRight, Sparkles } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -66,10 +68,6 @@ function lsReadNumber(key: string, fallback: number): number {
   return isNaN(n) ? fallback : n;
 }
 
-// ── CardsIcon (mirrors app-sidebar, local copy) ───────────────────────────
-function CardsIcon({ className }: { className?: string }) {
-  return <span className={`cards-icon ${className ?? ""}`} role="img" aria-hidden="true" />;
-}
 
 interface DailyViewProps {
   date: string;
@@ -87,6 +85,7 @@ function invalidateCardsCache() {
 
 export function DailyView({ date: initialDate }: DailyViewProps) {
   const t = useTranslations("daily");
+  const sidebarCollapsed = useSidebarCollapsed();
   const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
   const [currentDate, setCurrentDate] = useState(initialDate);
@@ -372,38 +371,49 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   const completedAssignments = allAssignments.filter((a) => a.isCompleted);
 
   // Right-panel padding: only apply when panel is open AND we're on lg+
-  const mainPaddingRight = rightPanelOpen && isLg ? rightPanelWidth : 0;
+  // （+8 = 卡片式面板 right-2 的內縮）
+  const mainPaddingRight = rightPanelOpen && isLg ? rightPanelWidth + 8 : 0;
 
   return (
     <>
-      {/* Right panel — mounts when open; fixed right, lg+ only */}
-      {rightPanelOpen && (
-        <DailyRightPanel
-          kind={rightPanelKind}
-          width={rightPanelWidth}
-          onWidthChange={handleWidthChange}
-          date={currentDate}
-          detailId={detailId}
-          onBackFromDetail={closeDetail}
-          onOpenCard={openDetailInPanel}
-        />
-      )}
+      {/* Right panel — 常駐掛載、開關用滑動動畫（對齊 Mac 所有 view 常駐）；lg+ only */}
+      <DailyRightPanel
+        open={rightPanelOpen}
+        kind={rightPanelKind}
+        width={rightPanelWidth}
+        onWidthChange={handleWidthChange}
+        date={currentDate}
+        detailId={detailId}
+        onBackFromDetail={closeDetail}
+        onOpenCard={openDetailInPanel}
+      />
 
       <div
-        className="min-h-screen bg-background lg:transition-[padding-right]"
+        className="min-h-screen bg-background lg:transition-[padding-right] lg:duration-300 lg:ease-out"
         style={{ paddingRight: mainPaddingRight }}
       >
         <div className="mx-auto max-w-3xl px-4 md:px-6 pb-8">
           {!online && <OfflineBanner lastUpdated={lastUpdatedRef.current} />}
           {online && showErrorBanner && <ErrorBanner onRetry={() => mutate()} />}
 
-          <div className="pt-6 mb-2 flex items-center">
+          {/* 週導覽 — 手機在內容流內；md+ 進頂部 toolbar 帶（對齊 Mac
+              titlebar 的 ‹ Today › 緊接 sidebar toggle 之後） */}
+          <div className="pt-6 mb-2 flex items-center md:hidden">
+            <WeekNavControls date={currentDate} onDateChange={setCurrentDate} />
+          </div>
+          {/* 對齊 Mac titlebar：展開時在 sidebar 右側，收合時緊接 toggle（10+36+8），
+              跟著 sidebar 開合一起滑動 */}
+          <div
+            className="hidden md:flex items-center fixed top-[14px] h-9 z-40 transition-[left] duration-300 ease-out"
+            style={{ left: sidebarCollapsed ? 54 : 228 }}
+          >
             <WeekNavControls date={currentDate} onDateChange={setCurrentDate} />
           </div>
 
-          {/* Right-panel controls — 對齊 Mac：固定在畫面右上、展開的右側區塊上方（lg+ only） */}
-          <div className="hidden lg:flex items-center gap-2 fixed top-4 right-6 z-40">
-              {/* Panel toggle — 開啟時 tan 填滿（對齊 Mac） */}
+          {/* Right-panel controls — 對齊 Mac：頂部 toolbar 帶右段（lg+ only） */}
+          <div className="hidden lg:flex items-center gap-2 fixed top-[14px] h-9 right-6 z-40">
+              {/* Panel toggle — SF sidebar.right、寬扁膠囊（48×36）+ 16px 字形、
+                  開啟時 tan 填滿（對齊 Mac）。 */}
               <button
                 type="button"
                 onClick={handleTogglePanel}
@@ -412,16 +422,16 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                 aria-pressed={rightPanelOpen}
                 className={
                   rightPanelOpen
-                    ? "flex items-center justify-center h-7 w-7 rounded-md bg-primary text-primary-foreground transition-colors"
-                    : "flex items-center justify-center h-7 w-7 rounded-md text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors"
+                    ? "flex items-center justify-center h-9 w-12 rounded-full bg-primary text-primary-foreground transition-colors"
+                    : "flex items-center justify-center h-9 w-12 rounded-full text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors"
                 }
               >
-                <PanelRight className="h-4 w-4" />
+                <IconSidebarRight className="h-4 w-4" />
               </button>
 
-              {/* Kind picker segmented — 只在面板開啟時顯示；active 為淡 highlight（非 tan 重填） */}
+              {/* Kind picker segmented — 只在面板開啟時顯示；膠囊容器 + 淡 highlight（非 tan 重填） */}
               {rightPanelOpen && (
-                <div className="flex items-center gap-0.5 p-0.5 rounded-md bg-muted">
+                <div className="flex items-center gap-0.5 p-1 rounded-full bg-muted">
                   <button
                     type="button"
                     onClick={() => handleKindChange("calendar")}
@@ -430,11 +440,11 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                     aria-pressed={rightPanelKind === "calendar"}
                     className={
                       rightPanelKind === "calendar"
-                        ? "flex items-center justify-center h-6 w-6 rounded bg-background text-foreground shadow-sm transition-colors"
-                        : "flex items-center justify-center h-6 w-6 rounded text-text-dim hover:text-foreground transition-colors"
+                        ? "flex items-center justify-center h-7 w-10 rounded-full bg-background text-foreground shadow-sm transition-colors"
+                        : "flex items-center justify-center h-7 w-10 rounded-full text-text-dim hover:text-foreground transition-colors"
                     }
                   >
-                    <CalendarDays className="h-3.5 w-3.5" />
+                    <IconCalendar className="h-4 w-4" />
                   </button>
                   <button
                     type="button"
@@ -444,21 +454,22 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                     aria-pressed={rightPanelKind === "cards" || rightPanelKind === "detail"}
                     className={
                       rightPanelKind === "cards" || rightPanelKind === "detail"
-                        ? "flex items-center justify-center h-6 w-6 rounded bg-background text-foreground shadow-sm transition-colors"
-                        : "flex items-center justify-center h-6 w-6 rounded text-text-dim hover:text-foreground transition-colors"
+                        ? "flex items-center justify-center h-7 w-10 rounded-full bg-background text-foreground shadow-sm transition-colors"
+                        : "flex items-center justify-center h-7 w-10 rounded-full text-text-dim hover:text-foreground transition-colors"
                     }
                   >
-                    <CardsIcon className="h-3.5 w-3.5 text-[length:inherit]" />
+                    <IconCards className="h-4 w-4" />
                   </button>
                 </div>
               )}
             </div>
 
-          <div className="pb-1">
+          <div className="pb-1 md:pt-5">
             <DateHeading date={currentDate} />
           </div>
 
-          <div className="sticky top-0 z-10 py-2 bg-background">
+          {/* sticky 錨點 md+ 要落在 top bar (48px) 下緣，否則會滑進 bar 底下 */}
+          <div className="sticky top-0 md:top-12 z-10 py-2 bg-background">
             <CalendarNav date={currentDate} onDateChange={setCurrentDate} />
           </div>
 
@@ -471,7 +482,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
               onArchive={handleArchive}
             />
             {currentDate === isoToday() && allAssignments.length > 0 && (
-              <div className="px-1 py-1.5 text-xs font-medium text-text-dim">
+              <div className="px-1 py-1.5 text-section-header text-text-dim">
                 {t("todayHeader", { count: allAssignments.length })}
               </div>
             )}
@@ -505,7 +516,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                 <button
                   onClick={() => setCompletedExpanded((v) => !v)}
                   aria-expanded={completedExpanded}
-                  className="flex items-center gap-1 px-1 py-1.5 text-xs font-medium text-text-dim hover:text-muted-foreground transition-colors w-full text-left"
+                  className="flex items-center gap-1 px-1 py-1.5 text-section-header text-text-dim hover:text-muted-foreground transition-colors w-full text-left"
                 >
                   {completedExpanded ? (
                     <ChevronDown className="h-3.5 w-3.5 shrink-0" />
@@ -534,7 +545,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
             {allAssignments.length === 0 && (
               <div className="flex flex-col items-center justify-center py-10 gap-2">
                 <Sparkles className="h-6 w-6 text-text-dim" />
-                <p className="text-sm text-text-dim text-center">
+                <p className="text-empty-state text-text-dim text-center">
                   {t("emptyToday")}
                 </p>
               </div>

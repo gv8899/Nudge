@@ -143,8 +143,8 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
     : "mx-auto max-w-3xl px-4 md:px-6 py-8";
 
   const titleClass = embedded
-    ? "min-w-0 flex-1 text-2xl font-bold text-foreground tracking-tight"
-    : "min-w-0 flex-1 text-3xl font-bold text-foreground tracking-tight";
+    ? "min-w-0 flex-1 text-card-detail-title text-foreground tracking-tight"
+    : "min-w-0 flex-1 text-card-detail-title text-foreground tracking-tight";
 
   const descMinHeight = embedded ? "min-h-[40vh]" : "min-h-[60vh]";
 

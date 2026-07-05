@@ -113,7 +113,7 @@ export function TagPicker({ selectedTags, onTagsChange, variant = "badges" }: Ta
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[460px] max-h-[560px] flex flex-col">
-          <DialogTitle className="text-base font-bold">{t("addTag")}</DialogTitle>
+          <DialogTitle className="text-column-detail-title font-bold">{t("addTag")}</DialogTitle>
 
           <div className="-mx-4 flex flex-1 flex-col min-h-0 border-t border-border">
             <div className="relative flex items-center gap-2 px-4 py-3 border-b border-border shrink-0">
@@ -123,7 +123,7 @@ export function TagPicker({ selectedTags, onTagsChange, variant = "badges" }: Ta
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("searchOrCreate")}
-                className="w-full pr-5 text-sm bg-transparent outline-none placeholder:text-text-faint text-foreground"
+                className="w-full pr-5 text-field bg-transparent outline-none placeholder:text-text-faint text-foreground"
               />
               {search && (
                 <button
@@ -145,7 +145,7 @@ export function TagPicker({ selectedTags, onTagsChange, variant = "badges" }: Ta
                   onClick={() => toggleDraft(tag.id)}
                   className="flex items-center gap-2 w-full min-h-11 text-left px-4 py-2 border-b border-border last:border-b-0 hover:bg-muted transition-colors"
                 >
-                  <span className="flex-1 truncate text-sm text-foreground">{tag.name}</span>
+                  <span className="flex-1 truncate text-row-title text-foreground">{tag.name}</span>
                   {draftIds.has(tag.id) && <Check className="h-4 w-4 text-primary shrink-0" />}
                 </button>
               ))}
@@ -153,7 +153,7 @@ export function TagPicker({ selectedTags, onTagsChange, variant = "badges" }: Ta
                 <button
                   type="button"
                   onClick={() => createTag(trimmedSearch)}
-                  className="flex items-center gap-2 w-full min-h-11 text-left px-4 py-2 text-sm text-primary hover:bg-muted transition-colors"
+                  className="flex items-center gap-2 w-full min-h-11 text-left px-4 py-2 text-row-title text-primary hover:bg-muted transition-colors"
                 >
                   <Plus className="h-3.5 w-3.5 shrink-0" />
                   {t("createNamed", { name: trimmedSearch })}
@@ -166,7 +166,7 @@ export function TagPicker({ selectedTags, onTagsChange, variant = "badges" }: Ta
             <button
               type="button"
               onClick={handleSave}
-              className="rounded-full bg-primary px-3.5 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+              className="rounded-full bg-primary px-3.5 py-1.5 text-inline-button text-primary-foreground hover:opacity-90 transition-opacity"
             >
               {tCommon("save")}
             </button>

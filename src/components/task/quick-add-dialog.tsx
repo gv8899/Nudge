@@ -15,13 +15,14 @@ interface QuickAddDialogProps {
 }
 
 /**
- * 快速新增任務 modal（對齊 Mac QuickAddTaskSheet）：單行輸入、Enter 或
- * 「新增」送出，Escape / 取消關閉。取代舊的 FAB toggle inline composer。
+ * 快速新增任務 modal — 對齊 Mac QuickAddTaskSheet（460×100）：極簡
+ * TextField + 「按 Enter 新增」hint，**無顯式按鈕、無 X**。⏎ submit、
+ * ⎋ / 點外面 cancel。hint 只在輸入後浮現（fade），高度固定避免 jump。
  */
 export function QuickAddDialog({ open, onOpenChange, onSubmit }: QuickAddDialogProps) {
   const t = useTranslations("task");
-  const tCommon = useTranslations("common");
   const [title, setTitle] = useState("");
+  const hasText = title.trim().length > 0;
 
   // 關閉時清空草稿（不論送出/取消/Escape/點外），下次開啟自然是空的 —
   // 避免在 effect 內 setState（cascading render lint 規則）。
@@ -39,7 +40,7 @@ export function QuickAddDialog({ open, onOpenChange, onSubmit }: QuickAddDialogP
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent showCloseButton={false} className="sm:max-w-[460px] gap-2 px-5 py-3.5">
         <DialogTitle className="sr-only">{t("createPlaceholder")}</DialogTitle>
         <form
           onSubmit={(e) => {
@@ -53,23 +54,14 @@ export function QuickAddDialog({ open, onOpenChange, onSubmit }: QuickAddDialogP
             onChange={(e) => setTitle(e.target.value)}
             placeholder={t("createPlaceholder")}
             aria-label={t("createPlaceholder")}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-text-faint outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            className="w-full rounded-xl bg-foreground/[0.06] px-4 py-3 text-field text-foreground placeholder-text-faint outline-none border-[1.5px] border-transparent focus:border-primary transition-colors"
           />
-          <div className="mt-4 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => handleOpenChange(false)}
-              className="rounded-md px-3 py-1.5 text-sm text-foreground hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-            >
-              {tCommon("cancel")}
-            </button>
-            <button
-              type="submit"
-              disabled={!title.trim()}
-              className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:opacity-50"
-            >
-              {t("quickAddSubmit")}
-            </button>
+          {/* hint row — 固定高度，輸入後才 fade in（對齊 Mac hintRow） */}
+          <div
+            aria-hidden={!hasText}
+            className={`mt-2 h-4 text-center text-row-body text-text-dim transition-opacity duration-200 ${hasText ? "opacity-100" : "opacity-0"}`}
+          >
+            {t("pressEnterToAdd")}
           </div>
         </form>
       </DialogContent>

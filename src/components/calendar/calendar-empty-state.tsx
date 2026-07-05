@@ -27,14 +27,14 @@ function ConnectHero({
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6 py-16 text-center">
       {/* Mac CalendarConnectPrompt icon 用 nudgePrimary */}
       <CalendarDays size={56} className="text-primary" />
-      <div className="text-base font-semibold text-foreground">{title}</div>
-      <div className="max-w-[280px] text-center text-sm text-text-dim">
+      <div className="text-column-title text-foreground">{title}</div>
+      <div className="max-w-[280px] text-center text-empty-state text-text-dim">
         {description}
       </div>
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
       <a
         href="/api/calendar/connect"
-        className={`rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground ${focusRing}`}
+        className={`rounded-full bg-primary px-5 py-2.5 text-row-title text-primary-foreground ${focusRing}`}
       >
         {ctaLabel}
       </a>
@@ -57,7 +57,7 @@ export function CalendarEmptyState({ variant, onRetry }: Props) {
 
   if (variant === "empty") {
     return (
-      <div className="p-4 text-center text-sm text-text-dim">
+      <div className="p-4 text-center text-empty-state text-text-dim">
         {t("panelEmpty")}
       </div>
     );
@@ -75,7 +75,7 @@ export function CalendarEmptyState({ variant, onRetry }: Props) {
 
   // error
   return (
-    <div className="flex flex-col items-start gap-2 p-3 text-sm">
+    <div className="flex flex-col items-start gap-2 p-3 text-row-meta">
       <div className="text-text-dim">{t("panelError")}</div>
       {onRetry && (
         <button

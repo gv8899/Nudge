@@ -59,7 +59,7 @@ function DesktopFeedList({ selectedDate, onSelect, today }: DesktopFeedListProps
     <div className="px-4 md:px-6 py-6">
       {/* Header */}
       <header className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-foreground">{tNav("notes")}</h1>
+        <h1 className="text-column-title text-foreground">{tNav("notes")}</h1>
         {/* On desktop split, the canvas is always visible so no toggle needed */}
       </header>
 
@@ -95,7 +95,7 @@ function DesktopFeedList({ selectedDate, onSelect, today }: DesktopFeedListProps
             <p className="text-sm text-text-dim">{tCommon("loading")}</p>
           )}
           {!hasMore && notes.length > 0 && (
-            <p className="text-sm text-text-faint">{t("noMoreEntries")}</p>
+            <p className="text-row-body text-text-faint">{t("noMoreEntries")}</p>
           )}
         </div>
       </div>
@@ -132,10 +132,10 @@ function TodayPlaceholderRow({ today, selected, onSelect }: TodayPlaceholderRowP
       }`}
     >
       <div className="w-14 shrink-0 flex flex-col items-center">
-        <span className="text-xl font-semibold text-foreground tabular-nums">
+        <span className="text-feed-day-number text-foreground tabular-nums">
           {dayNum}
         </span>
-        <span className="text-xs text-text-dim">{month}</span>
+        <span className="text-weekday-label text-text-dim">{month}</span>
       </div>
 
       <p className="flex-1 min-w-0 text-row-body text-text-dim italic line-clamp-3">
@@ -190,7 +190,7 @@ function DesktopDetailPane({ selectedDate, today }: DesktopDetailPaneProps) {
       {/* A38：「日誌」標題只在 feed pane（DesktopFeedList）保留一份，
           detail pane header 只留日期，避免雙標題。 */}
       <header className="flex items-center justify-between gap-4 mb-8">
-        <span className="text-sm text-text-dim tabular-nums truncate">{fullLabel}</span>
+        <span className="text-column-title text-text-dim tabular-nums truncate">{fullLabel}</span>
       </header>
 
       {/* Canvas editor — keyed by date so TipTap remounts on date switch */}
@@ -226,7 +226,7 @@ function MobileFeedList() {
     <div className="mx-auto max-w-3xl px-4 md:px-6 py-6">
       {/* Header */}
       <header className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-foreground">{tNav("notes")}</h1>
+        <h1 className="text-column-title text-foreground">{tNav("notes")}</h1>
         <Link
           href="/notes"
           aria-label={t("backToCanvasAria")}
@@ -257,7 +257,7 @@ function MobileFeedList() {
             <p className="text-sm text-text-dim">{tCommon("loading")}</p>
           )}
           {!hasMore && notes.length > 0 && (
-            <p className="text-sm text-text-faint">{t("noMoreEntries")}</p>
+            <p className="text-row-body text-text-faint">{t("noMoreEntries")}</p>
           )}
         </div>
       </div>
@@ -315,7 +315,8 @@ export function NotesSplit({ initialDate, mobileView }: NotesSplitProps) {
 
   // ── Desktop split layout ─────────────────────────────────────────────────
   return (
-    <div className="flex h-[100dvh] overflow-hidden">
+    // md+ 扣掉頂部 toolbar 帶 48px，否則整頁會多出一截捲動
+    <div className="flex h-[100dvh] md:h-[calc(100dvh-48px)] overflow-hidden">
       {/* LEFT: feed column */}
       <div className="flex-1 min-w-0 overflow-y-auto">
         <div className="max-w-[720px] mx-auto">

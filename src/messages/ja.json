@@ -59,17 +59,6 @@
     "dangerZone": {
       "section": "危険な操作"
     },
-    "notifications": {
-      "title": "通知",
-      "morningEnabled": "朝の通知",
-      "morningTime": "時刻",
-      "morningContent": "内容",
-      "eveningEnabled": "夜の通知",
-      "eveningTime": "時刻",
-      "eveningContent": "内容",
-      "perTaskEnabled": "タスクごとのリマインダー",
-      "platformNote": "通知はアプリ（iOS / macOS）で配信されます"
-    },
     "deleteAccount": {
       "label": "アカウントを削除",
       "labelLoading": "削除中…",
@@ -99,6 +88,7 @@
     "cards": "カード",
     "settings": "設定",
     "mainNavAria": "メインナビ",
+    "toggleSidebar": "サイドバーを切り替え",
     "settingsAria": "設定を開く",
     "calendar": "カレンダー"
   },
@@ -117,7 +107,7 @@
     "expandContentAria": "「{title}」の内容を展開",
     "detailExpandPage": "展開",
     "createPlaceholder": "タスクを追加",
-    "quickAddSubmit": "追加",
+    "pressEnterToAdd": "Enter キーで追加",
     "viewDetails": "詳細を見る",
     "complete": "タスクを完了",
     "uncomplete": "未完了に戻す",
@@ -239,10 +229,10 @@
     "panelReauth": "認証が切れました。再連携してください",
     "panelRefresh": "更新",
     "eventAllDay": "終日",
+    "eventDescription": "メモ",
     "eventBusy": "ビジー",
     "eventLocation": "場所",
     "eventAttendees": "参加者",
-    "eventDescription": "メモ",
     "eventJoinMeet": "会議に参加",
     "mobileCollapsedCount": "今日の予定 · {count} 件",
     "mobileCollapsedEmpty": "今日は予定なし",

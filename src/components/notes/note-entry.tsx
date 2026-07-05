@@ -47,10 +47,10 @@ export function NoteEntry({
       }`}
     >
       <div className="w-14 shrink-0 flex flex-col items-center">
-        <span className="text-xl font-semibold text-foreground tabular-nums">
+        <span className="text-feed-day-number text-foreground tabular-nums">
           {dayNum}
         </span>
-        <span className="text-xs text-text-dim">{month}</span>
+        <span className="text-weekday-label text-text-dim">{month}</span>
       </div>
 
       {/* A35：真實 entry 預覽用 text-foreground（跟 placeholder 的 dim 區隔）*/}

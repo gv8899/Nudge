@@ -50,7 +50,7 @@ export function OverdueSection({
         onClick={() => setIsExpanded(!isExpanded)}
         aria-expanded={isExpanded}
         aria-controls="overdue-list"
-        className="flex items-center gap-2 w-full text-left px-1 py-2 text-sm font-medium text-primary hover:bg-muted rounded-md transition-colors"
+        className="flex items-center gap-2 w-full text-left px-1 py-2 text-section-header text-primary hover:bg-muted rounded-md transition-colors"
       >
         {isExpanded ? (
           <ChevronDown className="h-4 w-4" />
@@ -164,7 +164,7 @@ function OverdueRow({
           className="h-[18px] w-[18px] rounded-[4px] border-2 border-text-dim bg-transparent hover:border-muted-foreground shrink-0 cursor-pointer flex items-center justify-center transition-colors"
         />
 
-        <span className="flex-1 min-w-0 text-sm text-foreground truncate">
+        <span className="flex-1 min-w-0 text-primary-row-title text-foreground truncate">
           {task.title}
         </span>
 

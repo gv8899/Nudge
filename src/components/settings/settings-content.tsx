@@ -11,7 +11,6 @@ import {
   Palette,
   Globe,
   Tag,
-  Bell,
   AlertTriangle,
   ChevronsUpDown,
 } from "lucide-react";
@@ -20,7 +19,6 @@ import { useRouter, usePathname, type Locale } from "@/i18n/routing";
 import { fetcher } from "@/lib/fetcher";
 import { TagManager } from "@/components/tags/tag-manager";
 import { CalendarSection } from "./calendar-section";
-import { NotificationsSection } from "./notifications-section";
 import { SubscriptionSection } from "./subscription-section";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { SettingsGroup, SettingsRow, SettingsActionRow } from "./settings-primitives";
@@ -57,7 +55,7 @@ const LOCALE_OPTIONS: {
 /** Trigger row shared by theme/language: current value + chevrons icon. */
 function DropdownTrigger({ label }: { label: string }) {
   return (
-    <DropdownMenuTrigger className="flex items-center gap-1.5 text-sm text-foreground outline-none">
+    <DropdownMenuTrigger className="flex items-center gap-1.5 text-row-title text-foreground outline-none">
       {label}
       <ChevronsUpDown className="h-3.5 w-3.5 text-text-dim" aria-hidden />
     </DropdownMenuTrigger>
@@ -243,11 +241,6 @@ export function SettingsContent() {
         </SettingsRow>
       </SettingsGroup>
 
-      {/* 通知偏好（Mac 沒有，保留） */}
-      <SettingsGroup icon={Bell} title={t("notifications.title")}>
-        <NotificationsSection />
-      </SettingsGroup>
-
       {/* 標籤管理 */}
       <SettingsGroup icon={Tag} title={t("tags.section")}>
         <TagManager />
@@ -275,19 +268,19 @@ export function SettingsContent() {
           </SettingsActionRow>
         </SettingsGroup>
         {cleanResult && (
-          <p className="px-1 text-xs text-text-dim" role="status">
+          <p className="px-1 text-row-meta text-text-dim" role="status">
             {cleanResult}
           </p>
         )}
         {deleteError && (
-          <p className="px-1 text-xs text-destructive" role="alert">
+          <p className="px-1 text-row-meta text-destructive" role="alert">
             {tCommon("errorSaving")}
           </p>
         )}
       </div>
 
       {/* A30：版本 footer */}
-      <p className="text-center text-xs text-text-faint">Nudge {pkg.version}</p>
+      <p className="text-center text-chip-label text-text-faint">Nudge {pkg.version}</p>
 
       <ConfirmDialog
         open={confirmLogout}

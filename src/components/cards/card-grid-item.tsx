@@ -32,16 +32,16 @@ export function CardGridItem({ card, selected = false, onOpenInline }: CardGridI
         onClick={() => onOpenInline(card.id)}
         className={`${sharedClassName} text-left w-full`}
       >
-        <h3 className="text-sm font-semibold line-clamp-2">
+        <h3 className="text-card-title line-clamp-2">
           {card.title ? (
             <span className="text-foreground">{card.title}</span>
           ) : (
             <span className="italic text-text-dim">{t("untitled")}</span>
           )}
         </h3>
-        <p className="text-xs text-text-dim line-clamp-5 flex-1">{preview}</p>
+        <p className="text-row-body text-text-dim line-clamp-5 flex-1">{preview}</p>
         <div className="flex items-center justify-end gap-2 pt-2">
-          <span className="text-xs text-text-dim tabular-nums">{updated}</span>
+          <span className="text-row-meta text-text-dim tabular-nums">{updated}</span>
         </div>
       </button>
     );
@@ -52,16 +52,16 @@ export function CardGridItem({ card, selected = false, onOpenInline }: CardGridI
       href={`/cards/${card.id}`}
       className={sharedClassName}
     >
-      <h3 className="text-sm font-semibold line-clamp-2">
+      <h3 className="text-card-title line-clamp-2">
         {card.title ? (
           <span className="text-foreground">{card.title}</span>
         ) : (
           <span className="italic text-text-dim">{t("untitled")}</span>
         )}
       </h3>
-      <p className="text-xs text-text-dim line-clamp-5 flex-1">{preview}</p>
+      <p className="text-row-body text-text-dim line-clamp-5 flex-1">{preview}</p>
       <div className="flex items-center justify-end gap-2 pt-2">
-        <span className="text-xs text-text-dim tabular-nums">{updated}</span>
+        <span className="text-row-meta text-text-dim tabular-nums">{updated}</span>
       </div>
     </Link>
   );

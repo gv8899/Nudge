@@ -11,7 +11,7 @@ export default async function SettingsPage({
 
   return (
     <div className="max-w-[720px] mx-auto px-4 md:px-6 py-8">
-      <h1 className="text-2xl font-bold text-foreground mb-6">{t("title")}</h1>
+      <h1 className="text-column-detail-title text-foreground mb-6">{t("title")}</h1>
       <SettingsContent />
     </div>
   );

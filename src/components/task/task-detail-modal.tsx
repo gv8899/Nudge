@@ -203,10 +203,10 @@ export function TaskDetailModal({
                   }
                 }}
                 aria-label={t("editTitleAria")}
-                className="flex-1 min-w-0 text-lg font-semibold text-foreground bg-transparent border-none outline-none focus:ring-0 px-0"
+                className="flex-1 min-w-0 text-card-detail-title text-foreground bg-transparent border-none outline-none focus:ring-0 px-0"
               />
             ) : (
-              <h2 id="task-detail-title" className="text-lg font-semibold text-foreground">
+              <h2 id="task-detail-title" className="text-card-detail-title text-foreground">
                 {task.title}
               </h2>
             )}

@@ -41,18 +41,18 @@ export const CalendarEventItem = React.forwardRef<HTMLButtonElement, Props>(
         {...rest}
       >
         {/* Time column */}
-        <div className={`w-16 shrink-0 font-mono text-xs tabular-nums ${timeColor}`}>
+        <div className={`w-16 shrink-0 text-column-title tabular-nums ${timeColor}`}>
           {/* Mac eventCard 只顯示開始時間（CalendarDayView.swift）；結束時間留給 popover */}
           {event.allDay ? t("eventAllDay") : formatHHMM(event.start)}
         </div>
 
         {/* Title + location column */}
         <div className="min-w-0 flex-1">
-          <div className={`line-clamp-2 text-sm ${titleColor}`} title={event.title}>
+          <div className={`line-clamp-2 text-row-title-em ${titleColor}`} title={event.title}>
             {event.title}
           </div>
           {event.location && (
-            <div className="mt-1 flex items-center gap-1 text-xs text-text-dim">
+            <div className="mt-1 flex items-center gap-1 text-row-body text-text-dim">
               <MapPin size={13} className="shrink-0" />
               <span className="truncate">{event.location}</span>
             </div>

@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <!-- Back card outline -->
-  <rect x="2" y="3" width="13" height="17" rx="1.5" transform="rotate(-6 8.5 11.5)" fill="none" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- Front card fill (eraser — black = hidden in luminance mask) -->
-  <rect x="9" y="2.5" width="13" height="17" rx="1.5" transform="rotate(6 15.5 11)" fill="black" stroke="none"/>
-  <!-- Front card outline -->
-  <rect x="9" y="2.5" width="13" height="17" rx="1.5" transform="rotate(6 15.5 11)" fill="none" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>

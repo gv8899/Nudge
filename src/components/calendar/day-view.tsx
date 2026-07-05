@@ -102,7 +102,7 @@ export function CalendarDayView({ date, onDateChange, eventsByDate, isLoading }:
               <div key={section.key} className="space-y-1.5">
                 {/* Section header — skip for allDay */}
                 {section.labelKey !== null && (
-                  <h3 className="text-section-header text-text-dim px-1">
+                  <h3 className="text-weekday-label text-text-dim px-1">
                     {t(section.labelKey as Parameters<typeof t>[0])}
                   </h3>
                 )}

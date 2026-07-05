@@ -3,15 +3,19 @@
 import type { ComponentType } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/routing";
-import { CheckCircle2, BookOpen, Settings, CalendarDays } from "lucide-react";
-
-function CardsIcon({ className }: { className?: string }) {
-  return <span className={`cards-icon ${className ?? ""}`} role="img" aria-hidden="true" />;
-}
+import {
+  IconTasks,
+  IconCalendar,
+  IconCards,
+  IconNotes,
+  IconSettings,
+} from "@/components/ui/sf-icon";
 
 // 注意：Tasks 連到 / —— `src/app/page.tsx` 是 server component，會 redirect
 // 到當天的日期。這樣 sidebar 不需要在 client 端呼叫 new Date()，避免 SSR/
 // hydrate 時差造成的 mismatch。
+// Icon 對齊 Mac sidebar（PlatformRootView.swift:180-187）：checkmark.circle /
+// calendar / square.stack / book（SF 的 book 是開卷書）/ gearshape。
 const navItems: {
   href: string;
   match: string;
@@ -21,25 +25,25 @@ const navItems: {
   {
     href: "/",
     match: "/day/",
-    icon: CheckCircle2,
+    icon: IconTasks,
     labelKey: "tasks",
   },
   {
     href: "/calendar",
     match: "/calendar",
-    icon: CalendarDays,
+    icon: IconCalendar,
     labelKey: "calendar",
   },
   {
     href: "/cards",
     match: "/cards",
-    icon: CardsIcon,
+    icon: IconCards,
     labelKey: "cards",
   },
   {
     href: "/notes",
     match: "/notes",
-    icon: BookOpen,
+    icon: IconNotes,
     labelKey: "notes",
   },
 ];
@@ -60,25 +64,27 @@ function NavLink({
       href={href}
       title={label}
       aria-current={active ? "page" : undefined}
-      // A31：選中態改 primary 18% tint 圓角 pill（對齊 Mac PlatformRootView.swift:376-411
-      // 的 listRowBackground inset pill），lg+ 展開態才加 mx-2 內縮 —
-      // 收合 icon rail（md）空間太窄，內縮會把 icon 擠出可視範圍。
-      className={`flex items-center gap-3 px-3 h-10 w-full rounded-md transition-colors lg:mx-2 lg:w-[calc(100%-1rem)] ${
+      // A31：選中態 = primary 18% tint 圓角 pill（對齊 Mac PlatformRootView.swift:376-411
+      // 的 listRowBackground inset pill）。
+      className={`flex items-center gap-2.5 px-2.5 h-10 rounded-md transition-colors ${
         active
           ? "bg-primary/[0.18] text-foreground"
           : "text-text-dim hover:text-foreground hover:bg-border/50"
       }`}
     >
-      {/* Icon: centred in the collapsed (md) rail, left-aligned in the wide (lg) sidebar */}
-      <span className="flex items-center justify-center w-5 h-5 shrink-0 lg:justify-start">
+      <span className="flex items-center justify-start w-5 h-5 shrink-0">
         <Icon className="h-5 w-5" />
       </span>
-      <span className="hidden lg:inline text-sm">{label}</span>
+      <span className="text-row-title">{label}</span>
     </Link>
   );
 }
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  collapsed: boolean;
+}
+
+export function AppSidebar({ collapsed }: AppSidebarProps) {
   const t = useTranslations("nav");
   const pathname = usePathname();
   const settingsActive = pathname.startsWith("/settings");
@@ -86,38 +92,45 @@ export function AppSidebar() {
   return (
     <>
       {/*
-       * Desktop sidebar — single <aside> with responsive width:
-       *   md–lg  : w-14 (56 px) icon-only rail  — labels hidden via `hidden lg:inline`
-       *   lg+    : w-52 (208 px) labeled sidebar — labels visible
-       * Mobile (<md) : hidden (bottom bar handles navigation)
+       * Desktop sidebar — 對齊 Mac NavigationSplitView：收合 = 整個消失
+       * （不留 icon rail，只剩 top bar 的 toggle），展開 = 卡片式底色
+       * （rounded + foreground 2.5% tint、上下左各留 8px，同右欄卡片）。
+       * Mobile (<md) : hidden（bottom bar 導覽）。
        *
-       * ⚠️  layout offset: sidebar-layout.tsx must use `md:ml-14 lg:ml-52`
-       *     so content doesn't slide under the wider sidebar at lg+.
+       * ⚠️  layout offset: sidebar-layout.tsx 的 <main> margin 必須跟著
+       *     collapsed state 切 md:ml-0 / md:ml-56。
        */}
       <aside
         aria-label={t("mainNavAria")}
-        className="hidden md:flex fixed left-0 top-0 bottom-0 z-40 w-14 lg:w-52 flex-col items-center lg:items-stretch gap-1 border-r border-border bg-background pt-4 pb-4 px-1.5 lg:px-3"
+        aria-hidden={collapsed}
+        inert={collapsed}
+        // 常駐 DOM、收合時整個滑出左緣（過渡動畫對齊 Mac NavigationSplitView）。
+        // top-2：底色卡片包到頂（toggle 落在卡片右上，pt-12 讓 nav 從 toggle
+        // 列下方開始）；z-45 蓋過 top bar 的 bg，toggle 是 z-50。
+        className={`hidden md:flex fixed left-2 top-2 bottom-2 z-45 w-52 flex-col gap-1 rounded-xl bg-foreground/[0.025] px-2 pt-12 pb-4 transition-transform duration-300 ease-out ${
+          collapsed ? "-translate-x-[224px]" : "translate-x-0"
+        }`}
       >
-        {navItems.map((item) => (
-          <NavLink
-            key={item.match}
-            href={item.href}
-            active={pathname.startsWith(item.match)}
-            icon={item.icon}
-            label={t(item.labelKey)}
-          />
-        ))}
-        <div className="mt-auto w-full">
-          {/* A25+R20：Settings 改 in-content route（不再開 modal），
-              同 navItems 的 active-state 邏輯（pathname 前綴比對）。 */}
-          <NavLink
-            href="/settings"
-            active={settingsActive}
-            icon={Settings}
-            label={t("settings")}
-          />
-        </div>
-      </aside>
+          {navItems.map((item) => (
+            <NavLink
+              key={item.match}
+              href={item.href}
+              active={pathname.startsWith(item.match)}
+              icon={item.icon}
+              label={t(item.labelKey)}
+            />
+          ))}
+
+          {/* Settings — 對齊 Mac：獨立 Section 接在 Notes 下方，只用間距分段（無分隔線） */}
+          <div className="mt-5">
+            <NavLink
+              href="/settings"
+              active={settingsActive}
+              icon={IconSettings}
+              label={t("settings")}
+            />
+          </div>
+        </aside>
 
       {/* Mobile: bottom bar — icon-only, unchanged */}
       <nav
@@ -150,7 +163,7 @@ export function AppSidebar() {
               : "text-text-dim hover:text-foreground hover:bg-border/50"
           }`}
         >
-          <Settings className="h-5 w-5" />
+          <IconSettings className="h-5 w-5" />
         </Link>
       </nav>
     </>

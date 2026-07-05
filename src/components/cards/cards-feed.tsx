@@ -154,7 +154,7 @@ export function CardsFeed() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("searchPlaceholder")}
-              className="w-full pl-10 pr-8 py-2 text-sm rounded-lg border border-border bg-background text-foreground placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+              className="w-full pl-10 pr-8 py-2 text-field rounded-lg border border-border bg-background text-foreground placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
               aria-label={t("searchAria")}
             />
             {query && (
@@ -177,7 +177,7 @@ export function CardsFeed() {
             disabled={isCreating}
             aria-label={t("createAria")}
             title={t("createAria")}
-            className="flex items-center justify-center h-9 w-9 rounded-lg text-primary hover:bg-primary/10 disabled:opacity-50 transition-colors shrink-0"
+            className="flex items-center justify-center h-9 w-9 rounded-full text-primary hover:bg-primary/10 disabled:opacity-50 transition-colors shrink-0"
           >
             <Plus className="h-5 w-5" />
           </button>
@@ -196,8 +196,8 @@ export function CardsFeed() {
                   aria-pressed={active}
                   className={
                     active
-                      ? "text-xs px-2.5 py-1 rounded-full bg-primary text-primary-foreground border border-primary transition-colors"
-                      : "text-xs px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted transition-colors"
+                      ? "text-field font-medium px-2.5 py-1 rounded-full bg-primary text-primary-foreground border border-primary transition-colors"
+                      : "text-field font-medium px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted transition-colors"
                   }
                 >
                   {tag.name}
@@ -208,7 +208,7 @@ export function CardsFeed() {
               <button
                 type="button"
                 onClick={() => setSelectedTagIds([])}
-                className="inline-flex items-center gap-1 text-xs text-text-dim hover:text-foreground transition-colors px-2 py-1"
+                className="inline-flex items-center gap-1 text-field font-medium text-text-dim hover:text-foreground transition-colors px-2 py-1"
               >
                 <X className="h-3 w-3" />
                 {tCommon("clear")}
@@ -264,10 +264,10 @@ export function CardsFeed() {
       {!isFiltering && (
         <div ref={sentinelRef} className="py-4 text-center">
           {isLoadingMore && (
-            <p className="text-sm text-text-dim">{t("loadMore")}</p>
+            <p className="text-row-body text-text-dim">{t("loadMore")}</p>
           )}
           {!hasMore && cards.length > 0 && (
-            <p className="text-sm text-text-faint">{t("noMore")}</p>
+            <p className="text-row-body text-text-faint">{t("noMore")}</p>
           )}
         </div>
       )}

@@ -163,7 +163,7 @@ export function TaskCard({
           {/* 標題 */}
           <button
             onClick={() => setIsModalOpen(true)}
-            className={`flex-1 min-w-0 text-sm text-left cursor-pointer bg-transparent border-none p-0 truncate ${
+            className={`flex-1 min-w-0 text-primary-row-title text-left cursor-pointer bg-transparent border-none p-0 truncate ${
               assignment.isCompleted
                 ? "line-through text-text-dim"
                 : "text-foreground"

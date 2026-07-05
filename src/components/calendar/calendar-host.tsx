@@ -94,7 +94,7 @@ export function CalendarHost({
       {/* 模式 segmented — 對齊 Mac 日|週|月 palette */}
       <div className="flex justify-center pt-4">
         <div
-          className="inline-flex rounded-lg border border-border p-1 gap-1"
+          className="inline-flex rounded-full border border-border p-1 gap-1"
           role="tablist"
         >
           {MODES.map((m) => (
@@ -103,7 +103,7 @@ export function CalendarHost({
               role="tab"
               aria-selected={mode === m}
               onClick={() => setMode(m)}
-              className={`px-4 py-1.5 rounded-md text-inline-button transition-colors ${
+              className={`px-4 py-1.5 rounded-full text-inline-button transition-colors ${
                 mode === m
                   ? "bg-primary text-primary-foreground"
                   : "text-text-dim hover:text-foreground hover:bg-surface-hover"

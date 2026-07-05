@@ -66,14 +66,14 @@ export function CalendarNav({ date, onDateChange, dotDates }: CalendarNavProps) 
               aria-current={isSelected ? "date" : undefined}
               className="flex-1 flex flex-col items-center gap-1 py-1 transition-colors"
             >
-              <span className="text-xs font-medium text-text-dim">
+              <span className="text-weekday-label text-text-dim">
                 {format(day, "EEE", { locale: dateFnsLocale }).replace(/^週/, "")}
               </span>
               <span
-                className={`flex items-center justify-center h-9 w-9 rounded-full text-lg tabular-nums transition-all ${
+                className={`flex items-center justify-center h-9 w-9 rounded-full text-weekday-number tabular-nums transition-all ${
                   isSelected
-                    ? "bg-primary text-primary-foreground font-semibold"
-                    : "text-foreground font-medium"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground"
                 }`}
               >
                 {format(day, "d")}
@@ -108,7 +108,7 @@ export function WeekNavControls({ date, onDateChange }: CalendarNavProps) {
       </button>
       <button
         onClick={() => go(new Date())}
-        className="flex items-center justify-center h-9 px-4 rounded-full text-sm text-foreground hover:bg-surface-hover transition-colors whitespace-nowrap"
+        className="flex items-center justify-center h-9 px-4 rounded-full text-row-title text-foreground hover:bg-surface-hover transition-colors whitespace-nowrap"
       >
         {tCommon("today")}
       </button>

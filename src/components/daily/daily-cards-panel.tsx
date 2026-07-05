@@ -88,7 +88,7 @@ export function DailyCardsPanel({ onOpenCard }: DailyCardsPanelProps = {}) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("searchPlaceholder")}
-              className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border bg-background text-foreground placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+              className="w-full pl-8 pr-3 py-1.5 text-field rounded-lg border border-border bg-background text-foreground placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
               aria-label={t("searchAria")}
             />
           </div>
@@ -106,8 +106,8 @@ export function DailyCardsPanel({ onOpenCard }: DailyCardsPanelProps = {}) {
                     aria-pressed={active}
                     className={
                       active
-                        ? "text-xs px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground border border-primary transition-colors"
-                        : "text-xs px-2.5 py-0.5 rounded-full border border-border text-foreground hover:bg-muted transition-colors"
+                        ? "text-field font-medium px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground border border-primary transition-colors"
+                        : "text-field font-medium px-2.5 py-0.5 rounded-full border border-border text-foreground hover:bg-muted transition-colors"
                     }
                   >
                     {tag.name}
@@ -118,7 +118,7 @@ export function DailyCardsPanel({ onOpenCard }: DailyCardsPanelProps = {}) {
                 <button
                   type="button"
                   onClick={clearTagFilters}
-                  className="text-xs text-text-dim hover:text-foreground transition-colors px-1.5 py-0.5"
+                  className="text-field font-medium text-text-dim hover:text-foreground transition-colors px-1.5 py-0.5"
                 >
                   {tCommon("cancel")}
                 </button>

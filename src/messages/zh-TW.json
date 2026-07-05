@@ -59,17 +59,6 @@
     "dangerZone": {
       "section": "危險區"
     },
-    "notifications": {
-      "title": "通知",
-      "morningEnabled": "早晨通知",
-      "morningTime": "時間",
-      "morningContent": "內容",
-      "eveningEnabled": "晚間通知",
-      "eveningTime": "時間",
-      "eveningContent": "內容",
-      "perTaskEnabled": "個別任務提醒",
-      "platformNote": "通知只在 App（iOS / macOS）推送"
-    },
     "deleteAccount": {
       "label": "刪除帳號",
       "labelLoading": "刪除中…",
@@ -99,6 +88,7 @@
     "cards": "卡片",
     "settings": "設定",
     "mainNavAria": "主導覽",
+    "toggleSidebar": "切換側邊欄",
     "settingsAria": "開啟設定",
     "calendar": "日曆"
   },
@@ -117,7 +107,7 @@
     "expandContentAria": "展開「{title}」的內文",
     "detailExpandPage": "展開",
     "createPlaceholder": "新增任務",
-    "quickAddSubmit": "新增",
+    "pressEnterToAdd": "按 Enter 新增任務",
     "viewDetails": "查看詳情",
     "complete": "完成任務",
     "uncomplete": "取消完成",
@@ -239,10 +229,10 @@
     "panelReauth": "授權過期，請重新連結",
     "panelRefresh": "重新整理",
     "eventAllDay": "整日",
+    "eventDescription": "備註",
     "eventBusy": "忙碌",
     "eventLocation": "地點",
     "eventAttendees": "與會者",
-    "eventDescription": "備註",
     "eventJoinMeet": "加入線上會議",
     "mobileCollapsedCount": "今日行程 · {count} 件",
     "mobileCollapsedEmpty": "今日無行程",

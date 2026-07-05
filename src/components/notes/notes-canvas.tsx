@@ -35,9 +35,9 @@ export function NotesCanvas({ date, isToday }: NotesCanvasProps) {
     <div className="mx-auto max-w-3xl px-4 md:px-6 py-6">
       {/* Header */}
       <header className="flex items-center justify-between gap-4 mb-8">
-        <h1 className="text-2xl font-bold text-foreground shrink-0">{tNav("notes")}</h1>
+        <h1 className="text-column-title text-foreground shrink-0">{tNav("notes")}</h1>
         <div className="flex items-center gap-4 min-w-0">
-          <span className="text-sm text-text-dim tabular-nums truncate">
+          <span className="text-column-title text-text-dim tabular-nums truncate">
             {fullLabel}
           </span>
           <Link

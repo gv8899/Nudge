@@ -132,7 +132,7 @@ export function TagManager() {
                 if (e.key === "Enter") saveEdit(tag.id);
                 if (e.key === "Escape") setEditingId(null);
               }}
-              className="flex-1 min-w-0 text-sm bg-transparent outline-none border-b border-primary text-foreground"
+              className="flex-1 min-w-0 text-row-title bg-transparent outline-none border-b border-primary text-foreground"
             />
           ) : (
             <button
@@ -141,7 +141,7 @@ export function TagManager() {
                 setEditingId(tag.id);
                 setEditingName(tag.name);
               }}
-              className="flex-1 min-w-0 text-left text-sm text-foreground truncate hover:text-primary transition-colors"
+              className="flex-1 min-w-0 text-left text-row-title text-foreground truncate hover:text-primary transition-colors"
             >
               {tag.name}
             </button>
@@ -168,13 +168,13 @@ export function TagManager() {
             if (e.key === "Enter") createTag();
           }}
           placeholder={t("newTagPlaceholder")}
-          className="flex-1 text-sm bg-transparent outline-none placeholder:text-text-faint text-foreground"
+          className="flex-1 text-row-title bg-transparent outline-none placeholder:text-text-faint text-foreground"
         />
         {newName.trim() && (
           <button
             type="button"
             onClick={createTag}
-            className="text-xs text-primary hover:text-primary/80 font-medium transition-colors shrink-0"
+            className="text-row-meta text-primary hover:text-primary/80 transition-colors shrink-0"
           >
             {t("add")}
           </button>
