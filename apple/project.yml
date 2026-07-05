@@ -3,7 +3,7 @@ options:
   bundleIdPrefix: tw.nudge
   createIntermediateGroups: true
   deploymentTarget:
-    iOS: "26.0"
+    iOS: "18.0"
     macOS: "15.0"
   developmentLanguage: "zh-Hant"
   groupSortPosition: top
@@ -36,7 +36,7 @@ targets:
   Nudge-iOS:
     type: application
     platform: iOS
-    deploymentTarget: "26.0"
+    deploymentTarget: "18.0"
     sources:
       - path: Nudge-iOS
         excludes:
@@ -88,7 +88,7 @@ targets:
   NudgeWidget:
     type: app-extension
     platform: iOS
-    deploymentTarget: "26.0"
+    deploymentTarget: "18.0"
     sources:
       - path: NudgeWidget
         excludes:
