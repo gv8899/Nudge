@@ -269,7 +269,7 @@ public struct SettingsView: View {
                     HStack(spacing: 8) {
                         ProgressView().controlSize(.small)
                         Text("calendar.checkingStatus", bundle: .module)
-                            .font(.footnote)
+                            .nudgeFont(.rowMeta)
                             .foregroundStyle(Color.nudgeTextDim)
                     }
                 } trailing: {
@@ -307,7 +307,7 @@ public struct SettingsView: View {
                     SettingsDivider()
                     SettingsRow {
                         Text(verbatim: connectError)
-                            .font(.footnote)
+                            .nudgeFont(.errorMeta)
                             .foregroundStyle(Color.nudgeDestructive)
                             .lineLimit(2)
                     } trailing: {
@@ -376,7 +376,7 @@ public struct SettingsView: View {
                 label(selection.wrappedValue)
                     .foregroundStyle(Color.nudgeForeground)
                 Image(systemName: "chevron.up.chevron.down")
-                    .font(.caption2)
+                    .nudgeFont(.fieldIcon)
                     .foregroundStyle(Color.nudgeTextDim)
             }
             .contentShape(Rectangle())
@@ -453,7 +453,7 @@ public struct SettingsView: View {
         return HStack {
             Spacer()
             Text(verbatim: "Nudge \(short) (\(build))")
-                .font(.caption2)
+                .nudgeFont(.rowMeta)
                 .foregroundStyle(Color.nudgeTextDim)
             Spacer()
         }
@@ -554,10 +554,10 @@ private struct SettingsGroup<Content: View>: View {
                 HStack(spacing: 6) {
                     if let icon {
                         Image(systemName: icon)
-                            .font(.caption.weight(.medium))
+                            .nudgeFont(.rowMeta)
                     }
                     Text(header, bundle: .module)
-                        .font(.caption.weight(.medium))
+                        .nudgeFont(.rowMeta)
                         .textCase(.uppercase)
                 }
                 .foregroundStyle(Color.nudgeTextDim)

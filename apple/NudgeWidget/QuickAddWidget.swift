@@ -65,28 +65,32 @@ struct QuickAddWidgetEntryView: View {
         .containerBackground(Color(red: 0.94, green: 0.91, blue: 0.83), for: .widget) // #efe9d4 // nudge:allow-color
     }
 
+    // 鎖定畫面走 `.widgetURL` 而非 Button(intent:)：鎖定畫面的互動按鈕
+    // iOS 只在背景跑 intent、不會把 app 帶到前景（openAppWhenRun 無效），
+    // 使用者點了看起來像沒反應。deep link 會在解鎖後開 app，由
+    // NotificationRouter.handleWidgetURL 接 `nudge://daily/new` 開快速
+    // 新增。主畫面 systemSmall 維持 Button(intent:)（cold-launch replay
+    // 的考量只在主畫面那條路徑）。
     private var lockRectangularView: some View {
-        Button(intent: QuickAddTaskIntent()) {
-            HStack(spacing: 10) {
-                ZStack {
-                    Circle()
-                        .fill(.primary)
-                    Text(verbatim: "＋")
-                        .font(.system(size: 22, weight: .light))
-                        .foregroundStyle(.background)
-                }
-                .frame(width: 32, height: 32)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("widget.quickAdd.label", bundle: .main)
-                        .font(.system(size: 14, weight: .semibold))
-                    Text(verbatim: "Nudge")
-                        .font(.system(size: 11, weight: .medium))
-                        .opacity(0.7)
-                }
-                Spacer(minLength: 0)
+        HStack(spacing: 10) {
+            ZStack {
+                Circle()
+                    .fill(.primary)
+                Text(verbatim: "＋")
+                    .font(.system(size: 22, weight: .light))
+                    .foregroundStyle(.background)
             }
+            .frame(width: 32, height: 32)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("widget.quickAdd.label", bundle: .main)
+                    .font(.system(size: 14, weight: .semibold))
+                Text(verbatim: "Nudge")
+                    .font(.system(size: 11, weight: .medium))
+                    .opacity(0.7)
+            }
+            Spacer(minLength: 0)
         }
-        .buttonStyle(.plain)
+        .widgetURL(URL(string: "nudge://daily/new"))
         .containerBackground(.clear, for: .widget)
     }
 }

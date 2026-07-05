@@ -215,6 +215,14 @@ public struct DailyHostView: View {
                                 onSetReminder: { openScheduleSheet(for: $0) },
                                 onOpen: { navigationPath.append($0) }
                             )
+                            // 「今天 (N)」section 標題 — 對齊 Mac / Web：把
+                            // 今天的任務跟「前幾天」rollup 視覺分清楚。同
+                            // Mac 條件：看的是今天且當日有任務才顯示。
+                            if isViewingToday,
+                               let count = dailyData?.assignments.count,
+                               count > 0 {
+                                todaySectionHeader(count: count)
+                            }
                             TaskListView(
                                 assignments: dailyData?.assignments ?? [],
                                 isLoading: loadState == .loading,
@@ -297,7 +305,10 @@ public struct DailyHostView: View {
                 navigationPath.append(TaskIdRoute(id: taskId))
                 notificationRouter.clear()
             }
-            .onChange(of: notificationRouter.pendingNewTask) { _, isPending in
+            // `initial: true` — 鎖定畫面 widget 的 `nudge://daily/new` deep
+            // link 冷啟動時，onOpenURL 在本 view mount 前就設好 flag，純
+            // onChange 收不到（同 pendingTaskId 的冷啟動陷阱）。
+            .onChange(of: notificationRouter.pendingNewTask, initial: true) { _, isPending in
                 guard isPending else { return }
                 // Mirror the FAB tap path — fresh empty input then present
                 // the quick-add alert. Today selected so the new task lands
@@ -389,6 +400,25 @@ public struct DailyHostView: View {
     }
 
     #endif
+
+    /// 「今天 (N)」section divider — 跟 OverdueSectionView header 視覺
+    /// 對齊（同 sectionHeader font + nudgeTextDim 顏色 + 同 padding）。
+    /// 純文字、不可展開（今天本來就是主要內容、不需要 collapsed by
+    /// default）。iOS / macOS 共用（兩邊清單都在 Overdue 後接今天區）。
+    private func todaySectionHeader(count: Int) -> some View {
+        HStack(spacing: 6) {
+            Text(String(
+                format: nudgeLocalized("daily.todaySectionTitle", locale: locale),
+                count
+            ))
+                .nudgeFont(.sectionHeader)
+                .foregroundStyle(Color.nudgeTextDim)
+            Spacer()
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 12)
+        .padding(.bottom, 6)
+    }
 
     /// iOS 26 / macOS 15+ neutral glass FAB — `.glass` (not
     /// `.glassProminent`) so the disk stays transparent instead of
@@ -981,25 +1011,6 @@ public struct DailyHostView: View {
         .padding(.bottom, 12)
     }
 
-    /// 「今天 (N)」section divider — 跟 OverdueSectionView header 視覺
-    /// 對齊（同 sectionHeader font + nudgeTextDim 顏色 + 同 padding）。
-    /// 純文字、不可展開（今天本來就是主要內容、不需要 collapsed by
-    /// default）。
-    private func todaySectionHeader(count: Int) -> some View {
-        HStack(spacing: 6) {
-            Text(String(
-                format: nudgeLocalized("daily.todaySectionTitle", locale: locale),
-                count
-            ))
-                .nudgeFont(.sectionHeader)
-                .foregroundStyle(Color.nudgeTextDim)
-            Spacer()
-        }
-        .padding(.horizontal, 24)
-        .padding(.top, 12)
-        .padding(.bottom, 6)
-    }
-
     /// Calendar 專用 header — 跟 dashboardCardsHeaderWithSearchToggle 同
     /// 字體 / padding，標題改 "今日行程"，無 search toggle。
     /// `.frame(minHeight: 44)` 是為了跟 cards header 對齊：cards 那邊的
@@ -1050,6 +1061,12 @@ public struct DailyHostView: View {
                 }
                 if !dashboardCardSearchExpanded {
                     dashboardCardSearchFieldFocused = false
+                    // 按 X 收合 = 結束這次搜尋：關鍵字 / tag 篩選一併清空，
+                    // 「最近卡片」回到未過濾狀態。否則面板收起來了、清單卻
+                    // 還停在舊篩選結果，看起來像卡片不見了。
+                    dashboardCardSearchQuery = ""
+                    dashboardCardDebouncedQuery = ""
+                    dashboardCardSelectedTagIds = []
                 }
             }
         }

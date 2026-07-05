@@ -34,6 +34,10 @@ struct IOSTabRoot: View {
     @Bindable var auth: AuthRepository
     @Environment(NotificationRouter.self) private var notificationRouter
     @State private var selectedTab: RootTab = .tasks
+    /// 離開搜尋 tab 時 +1 → `.id` 換掉 CardSearchView 讓它整顆重 mount，
+    /// 關鍵字 / tag 篩選 / 結果 / navigation path 全部歸零。下次進來是
+    /// 乾淨的搜尋頁（「關閉搜尋要清空搜尋條件」）。
+    @State private var searchEpoch = 0
 
     // iOS 26 `Tab` API with a dedicated `.search` role — iOS renders
     // the search tab as the separated glass pill on the right of the
@@ -86,6 +90,7 @@ struct IOSTabRoot: View {
             // search view routes internally over those repos.
             Tab(value: RootTab.search, role: .search) {
                 CardSearchView()
+                    .id(searchEpoch)
             } label: {
                 Label {
                     Text("common.search", bundle: .module)
@@ -107,6 +112,11 @@ struct IOSTabRoot: View {
         }
         .onChange(of: notificationRouter.pendingTaskId) { _, taskId in
             if taskId != nil { selectedTab = .tasks }
+        }
+        .onChange(of: selectedTab) { oldTab, newTab in
+            if oldTab == .search && newTab != .search {
+                searchEpoch += 1
+            }
         }
     }
 }
