@@ -14,6 +14,7 @@ import {
 import type { DailyTaskAssignment } from "@/lib/types";
 import { MoveTaskPopover } from "@/components/task/move-task-popover";
 import { ScheduleDialog } from "@/components/task/schedule-dialog";
+import { TaskDetailModal } from "@/components/task/task-detail-modal";
 import { skipOccurrence } from "@/lib/skip-task";
 import { isoToday } from "@/lib/calendar-dates";
 
@@ -23,6 +24,8 @@ interface OverdueSectionProps {
   onToggleComplete: (assignmentId: string, taskId: string, completed: boolean) => void;
   onReschedule: (assignmentId: string, targetDate: string) => void;
   onArchive: (assignmentId: string, taskId: string) => void;
+  onUpdateTask: (taskId: string, updates: { title?: string; description?: string }) => void;
+  onOpenDetail?: (taskId: string) => void;
 }
 
 const popupClassName =
@@ -37,6 +40,8 @@ export function OverdueSection({
   onToggleComplete,
   onReschedule,
   onArchive,
+  onUpdateTask,
+  onOpenDetail,
 }: OverdueSectionProps) {
   const t = useTranslations("daily");
   // 一律預設展開 — 不論平日/週末（對齊 mac / iOS app）。
@@ -71,6 +76,8 @@ export function OverdueSection({
               onToggleComplete={onToggleComplete}
               onReschedule={onReschedule}
               onArchive={onArchive}
+              onUpdateTask={onUpdateTask}
+              onOpenDetail={onOpenDetail}
               onOpenSchedule={() => setScheduleTaskId(a.taskId)}
             />
           ))}
@@ -94,6 +101,8 @@ interface OverdueRowProps {
   onToggleComplete: (assignmentId: string, taskId: string, completed: boolean) => void;
   onReschedule: (assignmentId: string, targetDate: string) => void;
   onArchive: (assignmentId: string, taskId: string) => void;
+  onUpdateTask: (taskId: string, updates: { title?: string; description?: string }) => void;
+  onOpenDetail?: (taskId: string) => void;
   onOpenSchedule: () => void;
 }
 
@@ -106,10 +115,13 @@ function OverdueRow({
   onToggleComplete,
   onReschedule,
   onArchive,
+  onUpdateTask,
+  onOpenDetail,
   onOpenSchedule,
 }: OverdueRowProps) {
   const t = useTranslations("daily");
   const { task } = assignment;
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const isRecurring = assignment.isRecurring;
   const todayStr = isoToday();
 
@@ -154,7 +166,10 @@ function OverdueRow({
     <ContextMenuPrimitive.Root>
       <ContextMenuPrimitive.Trigger
         render={
-          <div className="flex items-center gap-2 px-3 py-2 hover:bg-muted rounded-md transition-colors group" />
+          <div
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 hover:bg-muted rounded-md transition-colors group cursor-pointer"
+          />
         }
       >
         {/* 對應 task-card 的 grip 占位（左邊對齊） */}
@@ -165,15 +180,22 @@ function OverdueRow({
           role="checkbox"
           aria-checked={false}
           aria-label={t("overdueIncompleteAria", { title: task.title })}
-          onClick={() => onToggleComplete(assignment.id, assignment.taskId, true)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleComplete(assignment.id, assignment.taskId, true);
+          }}
           className="h-[18px] w-[18px] rounded-[4px] border-2 border-text-dim bg-transparent hover:border-muted-foreground shrink-0 cursor-pointer flex items-center justify-center transition-colors"
         />
 
-        <span className="flex-1 min-w-0 text-primary-row-title text-foreground truncate">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex-1 min-w-0 text-primary-row-title text-left cursor-pointer bg-transparent border-none p-0 truncate text-foreground"
+        >
           {task.title}
-        </span>
+        </button>
 
-        {/* 移動日期 */}
+        {/* 移動日期 — 擋冒泡避免點 icon 也開 modal */}
+        <span onClick={(e) => e.stopPropagation()} className="contents">
         <MoveTaskPopover
           currentDate={assignment.date}
           onMove={(targetDate) => onReschedule(assignment.id, targetDate)}
@@ -191,6 +213,7 @@ function OverdueRow({
             {renderMenuItems()}
           </DropdownMenuContent>
         </DropdownMenu>
+        </span>
       </ContextMenuPrimitive.Trigger>
 
       {/* Right-click popup */}
@@ -225,6 +248,24 @@ function OverdueRow({
           </ContextMenuPrimitive.Popup>
         </ContextMenuPrimitive.Positioner>
       </ContextMenuPrimitive.Portal>
+
+      <TaskDetailModal
+        task={task}
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onDescChange={(html) => onUpdateTask(task.id, { description: html })}
+        onStatusChange={() => {}}
+        onTitleChange={(title) => onUpdateTask(task.id, { title })}
+        onExpand={
+          onOpenDetail
+            ? () => {
+                onOpenDetail(task.id);
+                setIsModalOpen(false);
+              }
+            : undefined
+        }
+        wide
+      />
     </ContextMenuPrimitive.Root>
   );
 }

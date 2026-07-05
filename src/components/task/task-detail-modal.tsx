@@ -174,10 +174,10 @@ export function TaskDetailModal({
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className={`relative z-10 w-[calc(100vw-2rem)] ${wide ? "max-w-[920px]" : "max-w-[680px]"} h-[600px] max-h-[88dvh] overflow-y-auto rounded-2xl bg-popover border border-border shadow-2xl outline-none`}
+        className={`relative z-10 w-[calc(100vw-2rem)] ${wide ? "max-w-[920px]" : "max-w-[680px]"} h-[600px] max-h-[88dvh] overflow-y-auto rounded-2xl bg-popover shadow-2xl outline-none`}
       >
         {/* 頂部列 */}
-        <div className="sticky top-0 z-10 px-6 py-4 bg-popover border-b border-border rounded-t-xl">
+        <div className="sticky top-0 z-10 px-6 py-4 bg-popover rounded-t-xl">
           <div className="flex items-center justify-between">
             {onTitleChange ? (
               <input
@@ -221,7 +221,7 @@ export function TaskDetailModal({
                 }}
                 aria-label={t("detailExpandPage")}
                 title={t("detailExpandPage")}
-                className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
+                className="flex items-center justify-center h-9 w-9 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-text-dim hover:text-foreground hover:bg-card transition-colors"
               >
                 <Maximize2 className="h-4 w-4" />
               </button>
@@ -234,7 +234,7 @@ export function TaskDetailModal({
                 }}
                 aria-label={t("detailExpandPage")}
                 title={t("detailExpandPage")}
-                className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
+                className="flex items-center justify-center h-9 w-9 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-text-dim hover:text-foreground hover:bg-card transition-colors"
               >
                 <Maximize2 className="h-4 w-4" />
               </a>
@@ -243,9 +243,9 @@ export function TaskDetailModal({
               onClick={handleClose}
               aria-label={tCommon("done")}
               title={tCommon("done")}
-              className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
+              className="flex items-center justify-center h-9 w-9 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-text-dim hover:text-foreground hover:bg-card transition-colors"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
             </div>
           </div>

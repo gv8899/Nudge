@@ -19,7 +19,7 @@ export function CardGridItem({ card, selected = false, onOpenInline }: CardGridI
 
   // selected 優先於 hover（對齊 Mac CardGridItemView）— 選中時不套 hover fill，
   // 否則 hover:* 的 specificity 會蓋掉 bg-selected-fill。
-  const sharedClassName = `flex flex-col gap-2 p-4 rounded-xl transition-colors h-full${
+  const sharedClassName = `flex flex-col gap-2 p-4 rounded-xl transition-colors h-full min-h-[168px]${
     selected
       ? " bg-selected-fill ring-1 ring-selected-stroke"
       : " bg-card hover:bg-surface-hover"

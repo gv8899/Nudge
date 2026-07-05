@@ -389,10 +389,10 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
       />
 
       <div
-        className="min-h-screen bg-background lg:transition-[padding-right] lg:duration-300 lg:ease-out"
+        className="min-h-screen md:min-h-0 md:h-[calc(100dvh-48px)] md:overflow-hidden bg-background lg:transition-[padding-right] lg:duration-300 lg:ease-out"
         style={{ paddingRight: mainPaddingRight }}
       >
-        <div className="mx-auto max-w-[760px] px-4 md:px-6 pb-8">
+        <div className="mx-auto max-w-[760px] px-4 md:px-6 pb-8 md:pb-0 md:h-full md:flex md:flex-col">
           {!online && <OfflineBanner lastUpdated={lastUpdatedRef.current} />}
           {online && showErrorBanner && <ErrorBanner onRetry={() => mutate()} />}
 
@@ -464,22 +464,24 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
               )}
             </div>
 
-          <div className="pb-1 md:pt-5">
+          <div className="pb-1 md:pt-5 shrink-0">
             <DateHeading date={currentDate} />
           </div>
 
           {/* sticky 錨點 md+ 要落在 top bar (48px) 下緣，否則會滑進 bar 底下 */}
-          <div className="sticky top-0 md:top-12 z-10 py-2 bg-background">
+          <div className="sticky top-0 md:static z-10 py-2 bg-background shrink-0">
             <CalendarNav date={currentDate} onDateChange={setCurrentDate} />
           </div>
 
-          <div className="space-y-0 pt-2">
+          <div className="space-y-0 pt-2 md:flex-1 md:min-h-0 md:overflow-y-auto md:pb-8">
             <OverdueSection
               overdueTasks={data?.overdueTasks || []}
               currentDate={currentDate}
               onToggleComplete={handleOverdueToggleComplete}
               onReschedule={handleReschedule}
               onArchive={handleArchive}
+              onUpdateTask={handleUpdateTask}
+              onOpenDetail={openDetailInPanel}
             />
             {currentDate === isoToday() && allAssignments.length > 0 && (
               <div className="px-6 py-1.5 text-section-header text-text-dim">

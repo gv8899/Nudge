@@ -154,7 +154,7 @@ export function CardsFeed() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("searchPlaceholder")}
-              className="w-full pl-10 pr-8 py-2 text-field rounded-lg border border-border bg-background text-foreground placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+              className="w-full pl-10 pr-8 py-2 text-field rounded-lg bg-foreground/[0.06] text-foreground placeholder:text-text-faint caret-primary focus:outline-none transition-colors"
               aria-label={t("searchAria")}
             />
             {query && (
@@ -185,7 +185,7 @@ export function CardsFeed() {
 
         {/* Tag filter chip cloud — AND semantics */}
         {allTags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2.5">
             {allTags.map((tag) => {
               const active = selectedTagIds.includes(tag.id);
               return (
@@ -196,8 +196,8 @@ export function CardsFeed() {
                   aria-pressed={active}
                   className={
                     active
-                      ? "text-field font-medium px-2.5 py-1 rounded-full bg-primary text-primary-foreground border border-primary transition-colors"
-                      : "text-field font-medium px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted transition-colors"
+                      ? "text-field font-medium px-3 py-1.5 rounded-full bg-primary text-primary-foreground transition-colors"
+                      : "text-field font-medium px-3 py-1.5 rounded-full bg-foreground/[0.06] text-foreground hover:bg-foreground/[0.10] transition-colors"
                   }
                 >
                   {tag.name}
@@ -208,7 +208,7 @@ export function CardsFeed() {
               <button
                 type="button"
                 onClick={() => setSelectedTagIds([])}
-                className="inline-flex items-center gap-1 text-field font-medium text-text-dim hover:text-foreground transition-colors px-2 py-1"
+                className="inline-flex items-center gap-1 text-field font-medium text-primary hover:opacity-80 transition-opacity px-2.5 py-1.5"
               >
                 <X className="h-3 w-3" />
                 {tCommon("clear")}

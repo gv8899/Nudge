@@ -36,6 +36,7 @@ export const SF_ICONS = [
   "sidebar-right",
   "square-stack",
   "tag",
+  "xmark-circle-fill",
 ] as const;
 
 export type SFIconName = (typeof SF_ICONS)[number];

@@ -128,7 +128,8 @@ export function TaskCard({
             <div
               ref={setNodeRef}
               style={style}
-              className="flex items-center gap-2 px-3 py-2 hover:bg-muted rounded-md transition-colors group"
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 hover:bg-muted rounded-md transition-colors group cursor-pointer"
             />
           }
         >
@@ -136,6 +137,7 @@ export function TaskCard({
           <button
             {...attributes}
             {...listeners}
+            onClick={(e) => e.stopPropagation()}
             aria-label={t("dragReorder", { title: task.title })}
             className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-text-faint hover:text-muted-foreground transition-opacity shrink-0 touch-none"
           >
@@ -150,9 +152,10 @@ export function TaskCard({
               title: task.title,
               state: assignment.isCompleted ? t("stateCompleted") : t("stateIncomplete"),
             })}
-            onClick={() =>
-              onToggleComplete(assignment.id, task.id, !assignment.isCompleted)
-            }
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleComplete(assignment.id, task.id, !assignment.isCompleted);
+            }}
             className={`h-[18px] w-[18px] rounded-[4px] border-2 shrink-0 cursor-pointer flex items-center justify-center transition-colors ${
               assignment.isCompleted
                 ? "bg-primary border-primary"
@@ -178,7 +181,8 @@ export function TaskCard({
             {task.title}
           </button>
 
-          {/* 移動日期 */}
+          {/* 移動日期/選單 — 擋冒泡避免點 icon 也開 modal */}
+          <span onClick={(e) => e.stopPropagation()} className="contents">
           <MoveTaskPopover
             currentDate={currentDate}
             onMove={(targetDate) => onMoveToDate(assignment.id, targetDate)}
@@ -196,6 +200,7 @@ export function TaskCard({
               {renderMenuItems()}
             </DropdownMenuContent>
           </DropdownMenu>
+          </span>
         </ContextMenuPrimitive.Trigger>
 
         {/* Right-click popup */}
