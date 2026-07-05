@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { notificationPreferences } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
+import { notifyUserDevices } from "@/lib/notify-devices";
 
 const DEFAULTS = {
   morningEnabled: true,
@@ -94,5 +95,7 @@ export async function PATCH(req: NextRequest) {
     .from(notificationPreferences)
     .where(eq(notificationPreferences.userId, user.id))
     .limit(1);
+  // 通知偏好變動也推 —— 讓另一台裝置背景重排早/晚摘要與提醒。
+  notifyUserDevices(user.id);
   return NextResponse.json(saved);
 }

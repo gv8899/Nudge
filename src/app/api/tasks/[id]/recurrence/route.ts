@@ -13,6 +13,7 @@ import {
   type RecurrenceRule,
 } from "@/lib/recurrence";
 import { nanoid } from "nanoid";
+import { notifyUserDevices } from "@/lib/notify-devices";
 
 async function ownsTask(taskId: string, userId: string): Promise<boolean> {
   const [t] = await db
@@ -154,6 +155,10 @@ export async function PUT(
     .from(taskRecurrences)
     .where(eq(taskRecurrences.taskId, taskId))
     .limit(1);
+  // 重要：規則變動的 push 讓 iOS 在背景重排本地通知 —— 沒有這個，web/Mac
+  // 改窄規則後 iOS 已排入的舊 occurrence 通知會照舊觸發（推播了但當天清單
+  // 沒有任務的幽靈通知）。
+  notifyUserDevices(user.id);
   return NextResponse.json(saved);
 }
 
@@ -197,5 +202,6 @@ export async function DELETE(
       );
   }
 
+  notifyUserDevices(user.id);
   return NextResponse.json({ success: true });
 }

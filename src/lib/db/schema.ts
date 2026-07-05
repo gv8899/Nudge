@@ -160,6 +160,33 @@ export const notificationPreferences = pgTable("notification_preferences", {
   updatedAt: text("updated_at").notNull(),
 });
 
+// ── APNs 裝置 token（即時同步 silent push）─────────────────────────────────
+// 一台裝置一列，token 全域唯一（同裝置換帳號登入 → upsert 改 userId 歸屬）。
+// environment：DEBUG build 走 APNs sandbox、release 走 production —— 由 app
+// 註冊時自報，後端發推播時選對應的 APNs host。
+// last_pushed_at：per-device 節流戳（同 user 5 秒內多次變動只推一次），用
+// DB 原子 claim 避免 serverless 多實例重複推。
+export const deviceTokens = pgTable(
+  "device_tokens",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    token: text("token").notNull(),
+    platform: text("platform", { enum: ["ios", "macos"] }).notNull(),
+    environment: text("environment", { enum: ["sandbox", "production"] })
+      .notNull()
+      .default("production"),
+    createdAt: text("created_at").notNull(),
+    updatedAt: text("updated_at").notNull(),
+    lastPushedAt: text("last_pushed_at"),
+  },
+  (table) => ({
+    uniqToken: uniqueIndex("device_tokens_token_uniq").on(table.token),
+  }),
+);
+
 // ── 付費 entitlement（Phase 1，演進自 Slice A）──────────────────────────────
 // provider-neutral：所有授權來源（trial/comp/promo/manual/paddle/apple/newebpay）
 // 都經單一寫入點（grantAccess）upsert 進這張表。一 user 一列、all-or-nothing。

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { tasks, tags, taskTags } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
+import { notifyUserDevices } from "@/lib/notify-devices";
 
 export async function GET(
   _request: NextRequest,
@@ -80,6 +81,7 @@ export async function PATCH(
   await db.update(tasks).set(updates).where(eq(tasks.id, id));
 
   const [updated] = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
+  notifyUserDevices(user.id);
   return NextResponse.json(updated);
 }
 
@@ -93,5 +95,6 @@ export async function DELETE(
   const { id } = await params;
   await db.delete(tasks)
     .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)));
+  notifyUserDevices(user.id);
   return NextResponse.json({ success: true });
 }

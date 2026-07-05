@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { tasks, taskTags } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
+import { notifyUserDevices } from "@/lib/notify-devices";
 
 export async function PUT(
   request: NextRequest,
@@ -32,5 +33,6 @@ export async function PUT(
     await db.insert(taskTags).values({ taskId: id, tagId });
   }
 
+  notifyUserDevices(user.id);
   return NextResponse.json({ tagIds });
 }

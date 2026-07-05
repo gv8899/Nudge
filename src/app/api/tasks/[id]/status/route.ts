@@ -5,6 +5,7 @@ import { eq, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { TASK_STATUS_LIST } from "@/lib/constants";
 import { getUser } from "@/lib/get-user";
+import { notifyUserDevices } from "@/lib/notify-devices";
 
 export async function PATCH(
   request: NextRequest,
@@ -49,6 +50,7 @@ export async function PATCH(
     });
 
   const [updated] = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
+  notifyUserDevices(user.id);
   return NextResponse.json(updated);
 }
 

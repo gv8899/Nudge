@@ -4,6 +4,7 @@ import { tasks, statusHistory } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getUser } from "@/lib/get-user";
+import { notifyUserDevices } from "@/lib/notify-devices";
 
 export async function GET(request: NextRequest) {
   const user = await getUser();
@@ -63,5 +64,6 @@ export async function POST(request: NextRequest) {
       note: null,
     });
 
+  notifyUserDevices(user.id);
   return NextResponse.json(task, { status: 201 });
 }
