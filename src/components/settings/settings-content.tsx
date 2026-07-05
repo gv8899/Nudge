@@ -280,7 +280,7 @@ export function SettingsContent() {
       </div>
 
       {/* A30：版本 footer */}
-      <p className="text-center text-chip-label text-text-faint">Nudge {pkg.version}</p>
+      <p className="text-center text-row-meta text-text-faint">Nudge {pkg.version}</p>
 
       <ConfirmDialog
         open={confirmLogout}

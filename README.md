@@ -62,7 +62,7 @@ iOS Debug build 預設打 `http://localhost:3000`（DEBUG = development），Rel
 | DB | Postgres + drizzle-orm |
 | 即時同步 | 30s polling + ETag conditional GET (304 短路) |
 | Editor | TipTap 3 (Web 用 React adapter；iOS/macOS 用 Vite bundle 跑在 WKWebView) |
-| iOS / macOS | Swift 6 + SwiftUI（iOS 26 / macOS 15 deployment target）+ WidgetKit + SwiftData cache |
+| iOS / macOS | Swift 6 + SwiftUI（iOS 18 / macOS 15 deployment target；glassEffect 走 `#available(iOS 26)` 降級）+ WidgetKit + SwiftData cache |
 | i18n | 自製 sync tool，canonical zh-TW + LLM 生成 en/ja → 鏡像到 web `src/messages` 與 Apple xcstrings |
 | Deploy | Zeabur（Next.js + Postgres）+ TestFlight (iOS) |
 

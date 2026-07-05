@@ -453,7 +453,7 @@ public struct SettingsView: View {
         return HStack {
             Spacer()
             Text(verbatim: "Nudge \(short) (\(build))")
-                .nudgeFont(.chipLabel)
+                .nudgeFont(.rowMeta)
                 .foregroundStyle(Color.nudgeTextDim)
             Spacer()
         }
@@ -554,10 +554,10 @@ private struct SettingsGroup<Content: View>: View {
                 HStack(spacing: 6) {
                     if let icon {
                         Image(systemName: icon)
-                            .nudgeFont(.columnTitleAccessory)
+                            .nudgeFont(.rowMeta)
                     }
                     Text(header, bundle: .module)
-                        .nudgeFont(.columnTitleAccessory)
+                        .nudgeFont(.rowMeta)
                         .textCase(.uppercase)
                 }
                 .foregroundStyle(Color.nudgeTextDim)

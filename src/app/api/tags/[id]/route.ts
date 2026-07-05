@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { tags } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
+import { notifyUserDevices } from "@/lib/notify-devices";
 
 export async function PATCH(
   request: NextRequest,
@@ -34,6 +35,7 @@ export async function PATCH(
   }
 
   const [updated] = await db.select().from(tags).where(eq(tags.id, id)).limit(1);
+  notifyUserDevices(user.id);
   return NextResponse.json(updated);
 }
 
@@ -56,5 +58,6 @@ export async function DELETE(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await db.delete(tags).where(eq(tags.id, id));
+  notifyUserDevices(user.id);
   return NextResponse.json({ deleted: true });
 }

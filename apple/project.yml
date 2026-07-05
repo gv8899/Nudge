@@ -3,7 +3,7 @@ options:
   bundleIdPrefix: tw.nudge
   createIntermediateGroups: true
   deploymentTarget:
-    iOS: "26.0"
+    iOS: "18.0"
     macOS: "15.0"
   developmentLanguage: "zh-Hant"
   groupSortPosition: top
@@ -19,7 +19,7 @@ settings:
     MARKETING_VERSION: "1.0.0"
     # Flutter 版在 tw.nudge.app 用過較低 build；從 100 起跳避免 ASC
     # 因 build number 不夠大拒絕 upload。之後每次 TestFlight +1 即可。
-    CURRENT_PROJECT_VERSION: "123"
+    CURRENT_PROJECT_VERSION: "124"
 
 packages:
   NudgeKit:
@@ -36,7 +36,7 @@ targets:
   Nudge-iOS:
     type: application
     platform: iOS
-    deploymentTarget: "26.0"
+    deploymentTarget: "18.0"
     sources:
       - path: Nudge-iOS
         excludes:
@@ -73,6 +73,9 @@ targets:
         GoogleIOSClientID: "465373997523-qk21bth6e1ob034ie7hmsa9sa4gfe0ed.apps.googleusercontent.com"
         # 只用 HTTPS + 系統內建加密，不自行實作密碼學 → 豁免 export compliance
         ITSAppUsesNonExemptEncryption: false
+        # 即時同步 silent push（content-available:1）要背景喚醒 app
+        UIBackgroundModes:
+          - remote-notification
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLName: google-oauth
@@ -88,7 +91,7 @@ targets:
   NudgeWidget:
     type: app-extension
     platform: iOS
-    deploymentTarget: "26.0"
+    deploymentTarget: "18.0"
     sources:
       - path: NudgeWidget
         excludes:

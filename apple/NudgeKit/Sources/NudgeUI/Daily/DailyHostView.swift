@@ -16,9 +16,9 @@ public struct DailyHostView: View {
     @Environment(CardRepository.self) private var cardRepo
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
-    #if os(iOS)
+    // Injected on both platforms (NudgeiOSApp / NudgeMacApp). iOS pushes the
+    // task detail onto navigationPath; macOS opens it in the right column.
     @Environment(NotificationRouter.self) private var notificationRouter
-    #endif
 
     @State private var selectedDate: String = DateFormatters.isoDate(Date())
     @State private var dailyData: DailyDataDTO?
@@ -215,6 +215,14 @@ public struct DailyHostView: View {
                                 onSetReminder: { openScheduleSheet(for: $0) },
                                 onOpen: { navigationPath.append($0) }
                             )
+                            // 「今天 (N)」section 標題 — 對齊 Mac / Web：把
+                            // 今天的任務跟「前幾天」rollup 視覺分清楚。同
+                            // Mac 條件：看的是今天且當日有任務才顯示。
+                            if isViewingToday,
+                               let count = dailyData?.assignments.count,
+                               count > 0 {
+                                todaySectionHeader(count: count)
+                            }
                             TaskListView(
                                 assignments: dailyData?.assignments ?? [],
                                 isLoading: loadState == .loading,
@@ -285,12 +293,22 @@ public struct DailyHostView: View {
                     onUpdateTags: { newIds in await updateTaskTags(taskId: route.id, tagIds: newIds) }
                 )
             }
-            .onChange(of: notificationRouter.pendingTaskId) { _, taskId in
+            // `initial: true` is required, not cosmetic: on a cold launch from
+            // a notification tap the delegate sets `pendingTaskId` before this
+            // view mounts (Tasks is the default tab, so DailyHostView mounts at
+            // launch behind the auth gate). A plain `.onChange` only fires on a
+            // transition *while subscribed*, so it would miss the already-set
+            // value and never push. Mirrors the CardsHostView `pendingNewCard`
+            // contract. Warm taps (value transitions after mount) fire too.
+            .onChange(of: notificationRouter.pendingTaskId, initial: true) { _, taskId in
                 guard let taskId else { return }
                 navigationPath.append(TaskIdRoute(id: taskId))
                 notificationRouter.clear()
             }
-            .onChange(of: notificationRouter.pendingNewTask) { _, isPending in
+            // `initial: true` — 鎖定畫面 widget 的 `nudge://daily/new` deep
+            // link 冷啟動時，onOpenURL 在本 view mount 前就設好 flag，純
+            // onChange 收不到（同 pendingTaskId 的冷啟動陷阱）。
+            .onChange(of: notificationRouter.pendingNewTask, initial: true) { _, isPending in
                 guard isPending else { return }
                 // Mirror the FAB tap path — fresh empty input then present
                 // the quick-add alert. Today selected so the new task lands
@@ -383,6 +401,25 @@ public struct DailyHostView: View {
 
     #endif
 
+    /// 「今天 (N)」section divider — 跟 OverdueSectionView header 視覺
+    /// 對齊（同 sectionHeader font + nudgeTextDim 顏色 + 同 padding）。
+    /// 純文字、不可展開（今天本來就是主要內容、不需要 collapsed by
+    /// default）。iOS / macOS 共用（兩邊清單都在 Overdue 後接今天區）。
+    private func todaySectionHeader(count: Int) -> some View {
+        HStack(spacing: 6) {
+            Text(String(
+                format: nudgeLocalized("daily.todaySectionTitle", locale: locale),
+                count
+            ))
+                .nudgeFont(.sectionHeader)
+                .foregroundStyle(Color.nudgeTextDim)
+            Spacer()
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 12)
+        .padding(.bottom, 6)
+    }
+
     /// iOS 26 / macOS 15+ neutral glass FAB — `.glass` (not
     /// `.glassProminent`) so the disk stays transparent instead of
     /// carrying a tint. Matches the unemphasized liquid-glass affordance
@@ -432,6 +469,16 @@ public struct DailyHostView: View {
         // toolbar items 漂進外層 NavigationSplitView 共用 toolbar。
         NavigationStack(path: $navigationPath) {
             macOSContent
+        }
+        // Notification tap → open the task's card in the right column.
+        // `initial: true` for the same reason as iOS: on a cold launch from a
+        // notification the delegate sets `pendingTaskId` before this view
+        // mounts, so a plain `.onChange` would miss the already-set value.
+        // (Previously macOS never consumed pendingTaskId at all → taps no-op'd.)
+        .onChange(of: notificationRouter.pendingTaskId, initial: true) { _, taskId in
+            guard let taskId else { return }
+            openTaskInRightColumn(taskId: taskId)
+            notificationRouter.clear()
         }
         // macOS 全部 modal（排程 / move-to-date / quick-add / task popover）
         // 都上移到 MacSidebarRoot 用 window-level overlay 渲染（支援點外取消）。
@@ -751,13 +798,19 @@ public struct DailyHostView: View {
     /// 起或正在顯示 Calendar，自動切到 Cards 並打開，確保點下去一定有
     /// 東西可看。fetch 完才更新 state，期間維持上次的 detail（避免閃爍）。
     private func openTaskInRightColumn(_ assignment: DailyAssignmentDTO) {
+        openTaskInRightColumn(taskId: assignment.task.id)
+    }
+
+    /// Open a task's card in the right column by id. Shared by the in-app
+    /// tap path and the notification-tap path (macOS deep link).
+    private func openTaskInRightColumn(taskId: String) {
         if !dashboardRightPanelOpen { dashboardRightPanelOpen = true }
         if dashboardRightPanelKind != .cards {
             dashboardRightPanelKindRaw = DashboardRightPanelKind.cards.rawValue
         }
         Task {
             do {
-                let card = try await cardRepo.get(cardId: assignment.task.id)
+                let card = try await cardRepo.get(cardId: taskId)
                 await MainActor.run {
                     dashboardCardDetailCard = card
                 }
@@ -958,25 +1011,6 @@ public struct DailyHostView: View {
         .padding(.bottom, 12)
     }
 
-    /// 「今天 (N)」section divider — 跟 OverdueSectionView header 視覺
-    /// 對齊（同 sectionHeader font + nudgeTextDim 顏色 + 同 padding）。
-    /// 純文字、不可展開（今天本來就是主要內容、不需要 collapsed by
-    /// default）。
-    private func todaySectionHeader(count: Int) -> some View {
-        HStack(spacing: 6) {
-            Text(String(
-                format: nudgeLocalized("daily.todaySectionTitle", locale: locale),
-                count
-            ))
-                .nudgeFont(.sectionHeader)
-                .foregroundStyle(Color.nudgeTextDim)
-            Spacer()
-        }
-        .padding(.horizontal, 24)
-        .padding(.top, 12)
-        .padding(.bottom, 6)
-    }
-
     /// Calendar 專用 header — 跟 dashboardCardsHeaderWithSearchToggle 同
     /// 字體 / padding，標題改 "今日行程"，無 search toggle。
     /// `.frame(minHeight: 44)` 是為了跟 cards header 對齊：cards 那邊的
@@ -1027,6 +1061,12 @@ public struct DailyHostView: View {
                 }
                 if !dashboardCardSearchExpanded {
                     dashboardCardSearchFieldFocused = false
+                    // 按 X 收合 = 結束這次搜尋：關鍵字 / tag 篩選一併清空，
+                    // 「最近卡片」回到未過濾狀態。否則面板收起來了、清單卻
+                    // 還停在舊篩選結果，看起來像卡片不見了。
+                    dashboardCardSearchQuery = ""
+                    dashboardCardDebouncedQuery = ""
+                    dashboardCardSelectedTagIds = []
                 }
             }
         }

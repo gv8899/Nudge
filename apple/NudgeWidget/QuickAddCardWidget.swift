@@ -66,28 +66,28 @@ struct QuickAddCardWidgetEntryView: View {
         .containerBackground(Color(red: 0.94, green: 0.91, blue: 0.83), for: .widget) // #efe9d4 // nudge:allow-color
     }
 
+    // 鎖定畫面走 `.widgetURL`（`nudge://card/new`）— 理由同 QuickAddWidget：
+    // 鎖定畫面的 Button(intent:) 不會把 app 帶到前景，點了像沒反應。
     private var lockRectangularView: some View {
-        Button(intent: QuickAddCardIntent()) {
-            HStack(spacing: 10) {
-                ZStack {
-                    Circle()
-                        .fill(.primary)
-                    Image(systemName: "square.stack")
-                        .font(.system(size: 22, weight: .regular))
-                        .foregroundStyle(.background)
-                }
-                .frame(width: 32, height: 32)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("widget.quickAddCard.label", bundle: .main)
-                        .font(.system(size: 14, weight: .semibold))
-                    Text(verbatim: "Nudge")
-                        .font(.system(size: 11, weight: .medium))
-                        .opacity(0.7)
-                }
-                Spacer(minLength: 0)
+        HStack(spacing: 10) {
+            ZStack {
+                Circle()
+                    .fill(.primary)
+                Image(systemName: "square.stack")
+                    .font(.system(size: 22, weight: .regular))
+                    .foregroundStyle(.background)
             }
+            .frame(width: 32, height: 32)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("widget.quickAddCard.label", bundle: .main)
+                    .font(.system(size: 14, weight: .semibold))
+                Text(verbatim: "Nudge")
+                    .font(.system(size: 11, weight: .medium))
+                    .opacity(0.7)
+            }
+            Spacer(minLength: 0)
         }
-        .buttonStyle(.plain)
+        .widgetURL(URL(string: "nudge://card/new"))
         .containerBackground(.clear, for: .widget)
     }
 }

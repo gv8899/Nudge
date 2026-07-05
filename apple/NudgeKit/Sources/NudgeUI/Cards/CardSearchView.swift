@@ -244,8 +244,13 @@ private struct InnerContent: View {
 
     @ViewBuilder
     private var bottomChipPanel: some View {
-        let twoRowsHeight: CGFloat = 82
-        VStack(spacing: 0) {
+        // 三行 chips 的高度（一行 36 + 行距 10：36×3 + 10×2）。之前兩行
+        // (82) 標籤稍多就得捲，加一行呼吸空間。
+        let threeRowsHeight: CGFloat = 128
+        // 「清除」釘在面板右上、不進 FlowLayout —— 之前它是 flow 的最後一個
+        // 元素，標籤超過兩行時會流到第三行、被面板兩行高度上限裁掉（看起來
+        // 「被擋住」）。拔出來固定後，chips 自己捲、清除永遠可見可點。
+        HStack(alignment: .top, spacing: 0) {
             ScrollView(.vertical, showsIndicators: false) {
                 FlowLayout(spacing: 8, lineSpacing: 10) {
                     ForEach(allTags) { tag in
@@ -262,32 +267,33 @@ private struct InnerContent: View {
                             }
                         }
                     }
-                    if !selectedTagIds.isEmpty {
-                        Button {
-                            withAnimation(.easeOut(duration: 0.2)) {
-                                selectedTagIds.removeAll()
-                            }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "xmark")
-                                    .font(.footnote.weight(.semibold))
-                                Text("common.clear", bundle: .module)
-                                    .font(.footnote.weight(.medium))
-                            }
-                            .foregroundStyle(Color.nudgePrimary)
-                            .padding(.horizontal, 10)
-                            .frame(minHeight: 36)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(Text("common.clear", bundle: .module))
-                    }
                 }
-                .padding(.horizontal, 16)
+                .padding(.leading, 16)
                 .padding(.top, 10)
                 .padding(.bottom, 16)
             }
-            .frame(maxHeight: twoRowsHeight + 26)
+            .frame(maxHeight: threeRowsHeight + 26)
+
+            if !selectedTagIds.isEmpty {
+                Button {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        selectedTagIds.removeAll()
+                    }
+                } label: {
+                    // 只留 ✕（省空間，user 拍板）；語意靠 a11y label 補。
+                    Image(systemName: "xmark")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Color.nudgePrimary)
+                        .padding(.horizontal, 12)
+                        .frame(minHeight: 36)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("common.clear", bundle: .module))
+                // 與 chips 第一行對齊（chips 區 top padding 10）。
+                .padding(.top, 10)
+                .padding(.trailing, 8)
+            }
         }
         .background(.ultraThinMaterial)
     }
