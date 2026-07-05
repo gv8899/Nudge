@@ -288,8 +288,18 @@ public struct SettingsView: View {
                             .lineLimit(1)
                             .truncationMode(.middle)
                     }
-                    SettingsDivider()
                 }
+                // 隱私提示 — 緊貼「已連結」之下、中間不加分隔線（user
+                // 拍板）；跟下方中斷連結之間才有線。
+                SettingsRow {
+                    Text("calendar.syncPrivacyHint", bundle: .module)
+                        .nudgeFont(.rowMeta)
+                        .foregroundStyle(Color.nudgeTextDim)
+                        .fixedSize(horizontal: false, vertical: true)
+                } trailing: {
+                    EmptyView()
+                }
+                SettingsDivider()
                 SettingsActionRow(
                     labelKey: "calendar.disconnectButton",
                     role: .destructive
@@ -303,6 +313,16 @@ public struct SettingsView: View {
                     isLoading: isConnecting,
                     action: connectCalendar
                 )
+                // 隱私提示（連結前版位）— 放在連結按鈕之下。
+                SettingsDivider()
+                SettingsRow {
+                    Text("calendar.syncPrivacyHint", bundle: .module)
+                        .nudgeFont(.rowMeta)
+                        .foregroundStyle(Color.nudgeTextDim)
+                        .fixedSize(horizontal: false, vertical: true)
+                } trailing: {
+                    EmptyView()
+                }
                 if let connectError {
                     SettingsDivider()
                     SettingsRow {

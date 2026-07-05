@@ -215,6 +215,7 @@
     "section": "カレンダー",
     "connectTitle": "Google カレンダーを連携",
     "connectDescription": "会議とタスクを一緒に確認。",
+    "syncPrivacyHint": "カレンダーの内容は同期表示のみで、Nudge のデータベースには保存されません。",
     "connectButton": "連携する",
     "disconnectButton": "連携解除",
     "disconnectConfirmTitle": "連携解除",

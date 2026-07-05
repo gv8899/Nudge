@@ -215,6 +215,7 @@
     "section": "Calendar",
     "connectTitle": "Connect Google Calendar",
     "connectDescription": "See your meetings alongside today's tasks.",
+    "syncPrivacyHint": "Calendar content is synced for display only — it's never stored in Nudge's database.",
     "connectButton": "Connect",
     "disconnectButton": "Disconnect",
     "disconnectConfirmTitle": "Disconnect",

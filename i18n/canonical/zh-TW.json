@@ -215,6 +215,7 @@
     "section": "行事曆",
     "connectTitle": "連結 Google Calendar",
     "connectDescription": "看看今天有哪些行程、會議，跟任務排在一起的安排。",
+    "syncPrivacyHint": "行事曆內容只做即時同步顯示，不會儲存到 Nudge 的資料庫。",
     "connectButton": "連結",
     "disconnectButton": "中斷連結",
     "disconnectConfirmTitle": "中斷連結",
