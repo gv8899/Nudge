@@ -21,7 +21,7 @@ export function SettingsGroup({
 }) {
   return (
     <section className="space-y-2">
-      <div className="flex items-center gap-1.5 px-1 text-chip-label uppercase tracking-wide text-text-faint">
+      <div className="flex items-center gap-1.5 px-1 text-column-title-acc uppercase tracking-wide text-text-faint">
         <Icon className="h-3.5 w-3.5" aria-hidden />
         <span>{title}</span>
       </div>
