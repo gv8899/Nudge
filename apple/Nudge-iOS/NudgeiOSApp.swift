@@ -30,6 +30,9 @@ private struct WidgetRefresherImpl: WidgetRefreshing {
 
 @main
 struct NudgeiOSApp: App {
+    // Remote-notification callback（silent push 即時同步）只能走 UIKit
+    // delegate，SwiftUI App 需經 adaptor 掛上；依賴在 init 尾端 static 注入。
+    @UIApplicationDelegateAdaptor(PushSyncAppDelegate.self) private var pushDelegate
     @Environment(\.scenePhase) private var scenePhase
     @State private var auth: AuthRepository
     @State private var taskRepo: TaskRepository
@@ -104,6 +107,21 @@ struct NudgeiOSApp: App {
         self.googleSignIn = GoogleSignInServiceIOS.fromInfoPlist()
         self.keychain = keychain
         self.sharedTokenStore = sharedTokenStore
+
+        // Silent push 即時同步的依賴注入（adaptor 由 UIKit 實例化，只能 static）。
+        let reminderRepo = self.reminderRepo
+        PushSyncAppDelegate.client = client
+        PushSyncAppDelegate.refreshData = { [weak taskRepo] in
+            await taskRepo?.refreshIfChanged(date: DateFormatters.isoDate(Date()))
+        }
+        PushSyncAppDelegate.rescheduleReminders = {
+            do {
+                let reminders = try await reminderRepo.all()
+                await NotificationScheduler.shared.rescheduleAllTaskReminders(reminders)
+            } catch {
+                print("[PushSync] reminder resync failed: \(error)")
+            }
+        }
     }
 
     var body: some Scene {
@@ -140,6 +158,10 @@ struct NudgeiOSApp: App {
                     // not fire for the initial active state, so do it
                     // here too. Idempotent.
                     await rescheduleNotifications()
+                    // APNs 註冊（silent push 即時同步）。不需要使用者授權
+                    //（跟 alert 通知權限無關），idempotent —— token 沒變時
+                    // delegate callback 也只是重送一次 upsert。
+                    UIApplication.shared.registerForRemoteNotifications()
                 }
                 .onOpenURL { url in
                     if GIDSignIn.sharedInstance.handle(url) {
@@ -219,6 +241,9 @@ struct NudgeiOSApp: App {
             // then seed today's snapshot so the widget renders immediately.
             syncTokenToSharedStore()
             await taskRepo.refreshWidgetSnapshot()
+            // 登入後重新註冊 device token —— launch 時那次若因未登入 401，
+            // 這裡補上（POST /api/devices 需要 bearer）。
+            await MainActor.run { UIApplication.shared.registerForRemoteNotifications() }
             return .success(())
         } catch {
             return .failure(error)
@@ -238,6 +263,7 @@ struct NudgeiOSApp: App {
             )
             syncTokenToSharedStore()
             await taskRepo.refreshWidgetSnapshot()
+            await MainActor.run { UIApplication.shared.registerForRemoteNotifications() }
             return .success(())
         } catch {
             return .failure(error)

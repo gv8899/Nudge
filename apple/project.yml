@@ -73,6 +73,9 @@ targets:
         GoogleIOSClientID: "465373997523-qk21bth6e1ob034ie7hmsa9sa4gfe0ed.apps.googleusercontent.com"
         # 只用 HTTPS + 系統內建加密，不自行實作密碼學 → 豁免 export compliance
         ITSAppUsesNonExemptEncryption: false
+        # 即時同步 silent push（content-available:1）要背景喚醒 app
+        UIBackgroundModes:
+          - remote-notification
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLName: google-oauth
