@@ -7,12 +7,17 @@
     "loadFailed": "載入失敗",
     "today": "今天",
     "errorSaving": "儲存失敗，請再試一次",
-    "retry": "重試"
+    "retry": "重試",
+    "done": "完成",
+    "clear": "清除",
+    "confirm": "確認"
   },
   "settings": {
     "title": "設定",
     "account": {
       "section": "帳號資料",
+      "email": "電子郵件",
+      "name": "名稱",
       "unnamed": "未命名",
       "joinedAt": "加入於 {date}"
     },
@@ -23,9 +28,7 @@
       "system": "跟隨系統"
     },
     "appearance": {
-      "section": "外觀",
-      "paperLabel": "紙質感",
-      "paperDesc": "讓背景帶有細微的紙張顆粒紋理"
+      "section": "外觀"
     },
     "language": {
       "section": "語言",
@@ -56,17 +59,6 @@
     "dangerZone": {
       "section": "危險區"
     },
-    "notifications": {
-      "title": "通知",
-      "morningEnabled": "早晨通知",
-      "morningTime": "時間",
-      "morningContent": "內容",
-      "eveningEnabled": "晚間通知",
-      "eveningTime": "時間",
-      "eveningContent": "內容",
-      "perTaskEnabled": "個別任務提醒",
-      "platformNote": "通知只在 App（iOS / macOS）推送"
-    },
     "deleteAccount": {
       "label": "刪除帳號",
       "labelLoading": "刪除中…",
@@ -96,6 +88,7 @@
     "cards": "卡片",
     "settings": "設定",
     "mainNavAria": "主導覽",
+    "toggleSidebar": "切換側邊欄",
     "settingsAria": "開啟設定",
     "calendar": "日曆"
   },
@@ -112,11 +105,9 @@
     "stateIncomplete": "未完成",
     "editTitleAria": "編輯任務標題",
     "expandContentAria": "展開「{title}」的內文",
-    "detailExpandPage": "展開為單頁",
-    "detailClose": "關閉",
-    "detailContentPlaceholder": "輸入內文...",
+    "detailExpandPage": "展開",
     "createPlaceholder": "新增任務",
-    "moveToOtherDay": "移到其他天",
+    "pressEnterToAdd": "按 Enter 新增任務",
     "viewDetails": "查看詳情",
     "complete": "完成任務",
     "uncomplete": "取消完成",
@@ -165,12 +156,7 @@
     "emptyToday": "今天還沒有任務",
     "overdueSectionAria": "前幾天的任務",
     "overdueLabel": "前幾天的 ({count})",
-    "overdueScheduleToday": "排入今天",
-    "overdueOriginalDateAria": "原始日期：{date}",
-    "overdueArchiveAria": "封存任務：{title}",
     "overdueIncompleteAria": "{title}：未完成",
-    "archiveTitle": "封存任務",
-    "archiveConfirmBody": "確定要封存「{title}」嗎？封存後不會出現在任務列表。",
     "archiveButton": "封存",
     "calendarNavAria": "週曆導航",
     "prevWeekAria": "上一週",
@@ -190,30 +176,19 @@
     "moveToToday": "移到今天",
     "setRecurring": "設成重複任務…",
     "setReminder": "設定提醒…",
-    "skipThisOccurrence": "跳過這次",
-    "skipConfirmTitle": "跳過這次",
-    "skipConfirmBody": "確定要跳過「{title}」這一次嗎？下次重複時間照常出現。",
-    "skipConfirmAction": "跳過"
+    "skipThisOccurrence": "跳過這次"
   },
   "cards": {
     "recentTitle": "最近卡片",
     "createAria": "新增卡片",
-    "cleanUntitledAria": "清除空白的卡片",
-    "viewListAria": "列表檢視",
-    "viewGridAria": "網格檢視",
     "searchPlaceholder": "搜尋卡片...",
     "searchAria": "搜尋卡片",
     "emptyWithQuery": "沒有符合的卡片",
     "emptyNoCards": "還沒有寫過內容的任務",
+    "emptyDescription": "記下一個想法、靈感或筆記。卡片可被搜尋與重新整理。",
     "emptyMobile": "還沒有卡片",
     "loadMore": "載入更多...",
     "noMore": "沒有更多卡片了",
-    "cleanDialogTitle": "清除空白的卡片",
-    "cleanDialogBody": "將刪除所有沒有標題的卡片，此操作無法復原。",
-    "cleanConfirmButton": "確定清除",
-    "cleanLoading": "清除中...",
-    "toastCleaned": "已清除 {count} 張空白卡片",
-    "toastNothingToClean": "沒有需要清除的卡片",
     "untitled": "未命名"
   },
   "cardDetail": {
@@ -222,28 +197,24 @@
     "editTitleAria": "編輯標題",
     "editorPlaceholder": "打 / 插入標題、清單…",
     "titleHint": "標題",
-    "createdAt": "建立 {date}",
-    "updatedAt": "更新 {date}"
+    "untitled": "未命名"
   },
   "notes": {
     "backToCanvasAria": "回到今天 canvas",
     "backToCanvasTitle": "回到今天",
     "emptyFeedPrompt": "還沒有過去的日記。現在先從今天開始寫吧。",
-    "emptyFeedShort": "還沒有過去的日記",
-    "goToCanvas": "去今天的 canvas",
-    "goToToday": "去今天的日誌",
     "noMoreEntries": "沒有更多日記了",
-    "canvasPlaceholder": "寫點什麼⋯⋯",
+    "canvasPlaceholder": "今天怎麼樣？",
     "canvasToggleFeedAria": "切換到 feed",
     "canvasToggleFeedTitle": "切換到 feed",
     "entryAria": "{year}年{month}月{day}日的日記",
     "monthLabel": "{month} 月",
-    "todayPlaceholder": "開始寫今天的日誌"
+    "todayPlaceholder": "今天 — 還沒開始寫"
   },
   "calendar": {
     "section": "行事曆",
     "connectTitle": "連結 Google Calendar",
-    "connectDescription": "看看今天有哪些會議",
+    "connectDescription": "看看今天有哪些行程、會議，跟任務排在一起的安排。",
     "connectButton": "連結",
     "disconnectButton": "中斷連結",
     "disconnectConfirmTitle": "中斷連結",
@@ -258,12 +229,11 @@
     "panelReauth": "授權過期，請重新連結",
     "panelRefresh": "重新整理",
     "eventAllDay": "整日",
+    "eventDescription": "備註",
     "eventBusy": "忙碌",
     "eventLocation": "地點",
     "eventAttendees": "與會者",
-    "eventDescription": "描述",
-    "eventOpenInGoogle": "在 Google Calendar 開啟",
-    "eventJoinMeet": "使用 Google Meet 加入會議",
+    "eventJoinMeet": "加入線上會議",
     "mobileCollapsedCount": "今日行程 · {count} 件",
     "mobileCollapsedEmpty": "今日無行程",
     "mobileConnectPrompt": "連結 Google Calendar →",
@@ -424,6 +394,7 @@
     }
   },
   "schedule": {
+    "dialogTitle": "排程設定",
     "recurrenceTitle": "重複",
     "preset": {
       "daily": "每天",
@@ -436,6 +407,8 @@
     },
     "recurrence": {
       "off": "不重複",
+      "frequency": "週期",
+      "monthDayLabel": "每月日期",
       "weekdaysLabel": "星期",
       "monthDayN": "每月 {n} 號",
       "nthLabel": "第幾個",

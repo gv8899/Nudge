@@ -79,19 +79,19 @@ export function CalendarMonthView({
           type="button"
           onClick={() => onSelectDate(addMonths(date, -1))}
           aria-label={t("prevMonthAria")}
-          className="flex items-center justify-center w-9 h-9 rounded-md text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors shrink-0"
+          className="flex items-center justify-center w-9 h-9 rounded-full text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors shrink-0"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
 
         <div className="flex flex-1 items-center justify-center gap-3">
-          <span className="text-column-detail-title text-foreground">
+          <span className="text-column-title text-foreground">
             {formatMonthTitle(date, locale)}
           </span>
           <button
             type="button"
             onClick={() => onSelectDate(isoToday())}
-            className="text-row-meta text-foreground hover:bg-surface-hover px-2 py-1 rounded-md transition-colors"
+            className="text-row-meta text-foreground hover:bg-surface-hover px-3 py-1 rounded-full transition-colors"
           >
             {tCommon("today")}
           </button>
@@ -101,7 +101,7 @@ export function CalendarMonthView({
           type="button"
           onClick={() => onSelectDate(addMonths(date, 1))}
           aria-label={t("nextMonthAria")}
-          className="flex items-center justify-center w-9 h-9 rounded-md text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors shrink-0"
+          className="flex items-center justify-center w-9 h-9 rounded-full text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors shrink-0"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -136,7 +136,7 @@ export function CalendarMonthView({
       {!showSpinner && (
         <div
           role="grid"
-          className="grid grid-cols-7 grid-rows-6 h-[calc(100dvh-180px)] min-h-[480px]"
+          className="grid grid-cols-7 grid-rows-6 h-[calc(100dvh-180px)] md:h-[calc(100dvh-228px)] min-h-[480px]"
         >
           {grid.flat().map((iso) => {
             const isPadDay = isoMonth(iso) !== anchorMonth;
@@ -182,7 +182,7 @@ export function CalendarMonthView({
                 {/* Day number */}
                 <div className="flex justify-center mb-0.5">
                   <span
-                    className={`flex items-center justify-center w-6 h-6 rounded-full text-row-meta select-none ${
+                    className={`flex items-center justify-center w-6 h-6 rounded-full text-weekday-label select-none ${
                       isToday
                         ? "bg-primary text-primary-foreground"
                         : isSelected && !isToday

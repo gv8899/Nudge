@@ -7,12 +7,17 @@
     "loadFailed": "Failed to load",
     "today": "Today",
     "errorSaving": "Couldn't save, try again",
-    "retry": "Retry"
+    "retry": "Retry",
+    "done": "Done",
+    "clear": "Clear",
+    "confirm": "Confirm"
   },
   "settings": {
     "title": "Settings",
     "account": {
       "section": "Account",
+      "email": "Email",
+      "name": "Name",
       "unnamed": "Unnamed",
       "joinedAt": "Joined {date}"
     },
@@ -23,9 +28,7 @@
       "system": "System"
     },
     "appearance": {
-      "section": "Appearance",
-      "paperLabel": "Paper texture",
-      "paperDesc": "Subtle paper grain on the background"
+      "section": "Appearance"
     },
     "language": {
       "section": "Language",
@@ -56,17 +59,6 @@
     "dangerZone": {
       "section": "Danger Zone"
     },
-    "notifications": {
-      "title": "Notifications",
-      "morningEnabled": "Morning notification",
-      "morningTime": "Time",
-      "morningContent": "Content",
-      "eveningEnabled": "Evening notification",
-      "eveningTime": "Time",
-      "eveningContent": "Content",
-      "perTaskEnabled": "Per-task reminders",
-      "platformNote": "Notifications are delivered in the app (iOS / macOS)"
-    },
     "deleteAccount": {
       "label": "Delete Account",
       "labelLoading": "Deleting…",
@@ -96,6 +88,7 @@
     "cards": "Cards",
     "settings": "Settings",
     "mainNavAria": "Main navigation",
+    "toggleSidebar": "Toggle sidebar",
     "settingsAria": "Open settings",
     "calendar": "Calendar"
   },
@@ -112,11 +105,9 @@
     "stateIncomplete": "Not completed",
     "editTitleAria": "Edit task title",
     "expandContentAria": "Expand content of \"{title}\"",
-    "detailExpandPage": "Expand to full page",
-    "detailClose": "Close",
-    "detailContentPlaceholder": "Write content...",
+    "detailExpandPage": "Expand",
     "createPlaceholder": "Add a task",
-    "moveToOtherDay": "Move to another day",
+    "pressEnterToAdd": "Press Enter to add",
     "viewDetails": "View details",
     "complete": "Complete task",
     "uncomplete": "Mark as incomplete",
@@ -165,12 +156,7 @@
     "emptyToday": "No tasks for today",
     "overdueSectionAria": "Tasks from previous days",
     "overdueLabel": "From earlier ({count})",
-    "overdueScheduleToday": "Move to today",
-    "overdueOriginalDateAria": "Original date: {date}",
-    "overdueArchiveAria": "Archive task: {title}",
     "overdueIncompleteAria": "{title}: not completed",
-    "archiveTitle": "Archive task",
-    "archiveConfirmBody": "Archive \"{title}\"? Archived tasks will not appear in your task list.",
     "archiveButton": "Archive",
     "calendarNavAria": "Weekly calendar",
     "prevWeekAria": "Previous week",
@@ -190,30 +176,19 @@
     "moveToToday": "Move to today",
     "setRecurring": "Repeat…",
     "setReminder": "Set reminder…",
-    "skipThisOccurrence": "Skip this one",
-    "skipConfirmTitle": "Skip this one",
-    "skipConfirmBody": "Skip this occurrence of \"{title}\"? The next one shows up as usual.",
-    "skipConfirmAction": "Skip"
+    "skipThisOccurrence": "Skip this one"
   },
   "cards": {
     "recentTitle": "Recent Cards",
     "createAria": "New card",
-    "cleanUntitledAria": "Clean untitled cards",
-    "viewListAria": "List view",
-    "viewGridAria": "Grid view",
     "searchPlaceholder": "Search cards...",
     "searchAria": "Search cards",
     "emptyWithQuery": "No matching cards",
     "emptyNoCards": "No cards with content yet",
+    "emptyDescription": "Capture a thought, idea, or note. Cards are searchable and re-discoverable.",
     "emptyMobile": "No cards yet",
     "loadMore": "Loading more...",
     "noMore": "No more cards",
-    "cleanDialogTitle": "Clean untitled cards",
-    "cleanDialogBody": "This will delete all cards without a title. This action cannot be undone.",
-    "cleanConfirmButton": "Confirm delete",
-    "cleanLoading": "Cleaning...",
-    "toastCleaned": "Cleaned {count} untitled card(s)",
-    "toastNothingToClean": "No cards to clean",
     "untitled": "Untitled"
   },
   "cardDetail": {
@@ -222,28 +197,24 @@
     "editTitleAria": "Edit title",
     "editorPlaceholder": "Type / to insert headings, lists…",
     "titleHint": "Title",
-    "createdAt": "Created {date}",
-    "updatedAt": "Updated {date}"
+    "untitled": "Untitled"
   },
   "notes": {
     "backToCanvasAria": "Back to today's canvas",
     "backToCanvasTitle": "Back to today",
     "emptyFeedPrompt": "No past journal entries yet. Start writing from today.",
-    "emptyFeedShort": "No past journal entries yet",
-    "goToCanvas": "Go to today's canvas",
-    "goToToday": "Go to today's journal",
     "noMoreEntries": "No more entries",
-    "canvasPlaceholder": "Write something...",
+    "canvasPlaceholder": "How was your day?",
     "canvasToggleFeedAria": "Switch to feed",
     "canvasToggleFeedTitle": "Switch to feed",
     "entryAria": "Journal for {month}/{day}/{year}",
     "monthLabel": "{month}",
-    "todayPlaceholder": "Start today's note"
+    "todayPlaceholder": "Today — start writing"
   },
   "calendar": {
     "section": "Calendar",
     "connectTitle": "Connect Google Calendar",
-    "connectDescription": "See your meetings for today",
+    "connectDescription": "See your meetings alongside today's tasks.",
     "connectButton": "Connect",
     "disconnectButton": "Disconnect",
     "disconnectConfirmTitle": "Disconnect",
@@ -258,12 +229,11 @@
     "panelReauth": "Authorization expired, reconnect",
     "panelRefresh": "Refresh",
     "eventAllDay": "All day",
+    "eventDescription": "Notes",
     "eventBusy": "Busy",
     "eventLocation": "Location",
     "eventAttendees": "Attendees",
-    "eventDescription": "Description",
-    "eventOpenInGoogle": "Open in Google Calendar",
-    "eventJoinMeet": "Join with Google Meet",
+    "eventJoinMeet": "Join meeting",
     "mobileCollapsedCount": "Today · {count} events",
     "mobileCollapsedEmpty": "Nothing today",
     "mobileConnectPrompt": "Connect Google Calendar →",
@@ -424,6 +394,7 @@
     }
   },
   "schedule": {
+    "dialogTitle": "Schedule",
     "recurrenceTitle": "Repeat",
     "preset": {
       "daily": "Daily",
@@ -436,6 +407,8 @@
     },
     "recurrence": {
       "off": "Off",
+      "frequency": "Frequency",
+      "monthDayLabel": "Day of month",
       "weekdaysLabel": "Days of week",
       "monthDayN": "On day {n} each month",
       "nthLabel": "Week",

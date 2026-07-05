@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, X } from "lucide-react";
 import useSWR, { mutate as globalMutate } from "swr";
 import { useCardsFeed } from "@/hooks/use-cards-feed";
 import { useTags } from "@/hooks/use-tags";
@@ -92,6 +92,7 @@ export function CardsFeed() {
   const { tags: allTags } = useTags();
   const [isCreating, setIsCreating] = useState(false);
   const [modalCardId, setModalCardId] = useState<string | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // debounce 搜尋
   useEffect(() => {
@@ -148,13 +149,27 @@ export function CardsFeed() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim pointer-events-none" />
             <input
+              ref={searchInputRef}
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("searchPlaceholder")}
-              className="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground placeholder:text-text-faint focus:outline-none focus:border-primary transition-colors"
+              className="w-full pl-10 pr-8 py-2 text-field rounded-lg bg-foreground/[0.06] text-foreground placeholder:text-text-faint caret-primary focus:outline-none transition-colors"
               aria-label={t("searchAria")}
             />
+            {query && (
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery("");
+                  searchInputRef.current?.focus();
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim hover:text-foreground transition-colors"
+                aria-label={tCommon("clear")}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
           {/* 新增卡片 */}
           <button
@@ -162,7 +177,7 @@ export function CardsFeed() {
             disabled={isCreating}
             aria-label={t("createAria")}
             title={t("createAria")}
-            className="flex items-center justify-center h-9 w-9 rounded-lg text-primary hover:bg-primary/10 disabled:opacity-50 transition-colors shrink-0"
+            className="flex items-center justify-center h-9 w-9 rounded-full text-primary hover:bg-primary/10 disabled:opacity-50 transition-colors shrink-0"
           >
             <Plus className="h-5 w-5" />
           </button>
@@ -170,7 +185,7 @@ export function CardsFeed() {
 
         {/* Tag filter chip cloud — AND semantics */}
         {allTags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2.5">
             {allTags.map((tag) => {
               const active = selectedTagIds.includes(tag.id);
               return (
@@ -181,8 +196,8 @@ export function CardsFeed() {
                   aria-pressed={active}
                   className={
                     active
-                      ? "text-xs px-2.5 py-1 rounded-full bg-primary text-primary-foreground border border-primary transition-colors"
-                      : "text-xs px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted transition-colors"
+                      ? "text-field font-medium px-3 py-1.5 rounded-full bg-primary text-primary-foreground transition-colors"
+                      : "text-field font-medium px-3 py-1.5 rounded-full bg-foreground/[0.06] text-foreground hover:bg-foreground/[0.10] transition-colors"
                   }
                 >
                   {tag.name}
@@ -193,9 +208,10 @@ export function CardsFeed() {
               <button
                 type="button"
                 onClick={() => setSelectedTagIds([])}
-                className="text-xs text-text-dim hover:text-foreground transition-colors px-2 py-1"
+                className="inline-flex items-center gap-1 text-field font-medium text-primary hover:opacity-80 transition-opacity px-2.5 py-1.5"
               >
-                {tCommon("cancel")}
+                <X className="h-3 w-3" />
+                {tCommon("clear")}
               </button>
             )}
           </div>
@@ -208,14 +224,26 @@ export function CardsFeed() {
           <p className="text-sm text-text-dim">{tCommon("loading")}</p>
         </div>
       ) : cards.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center py-16 gap-2">
+        <div className="flex-1 flex flex-col items-center justify-center py-16 gap-2 text-center">
           {isFiltering ? (
             <>
               <Search className="h-6 w-6 text-text-dim" />
               <p className="text-empty-state text-text-dim">{t("emptyWithQuery")}</p>
             </>
           ) : (
-            <p className="text-empty-state text-text-dim">{t("emptyNoCards")}</p>
+            <>
+              <p className="text-empty-state text-text-dim">{t("emptyNoCards")}</p>
+              <p className="text-sm text-text-faint max-w-[280px]">{t("emptyDescription")}</p>
+              <button
+                type="button"
+                onClick={handleCreate}
+                disabled={isCreating}
+                className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                {t("createAria")}
+              </button>
+            </>
           )}
         </div>
       ) : (
@@ -236,10 +264,10 @@ export function CardsFeed() {
       {!isFiltering && (
         <div ref={sentinelRef} className="py-4 text-center">
           {isLoadingMore && (
-            <p className="text-sm text-text-dim">{t("loadMore")}</p>
+            <p className="text-row-body text-text-dim">{t("loadMore")}</p>
           )}
           {!hasMore && cards.length > 0 && (
-            <p className="text-sm text-text-faint">{t("noMore")}</p>
+            <p className="text-row-body text-text-faint">{t("noMore")}</p>
           )}
         </div>
       )}

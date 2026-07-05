@@ -17,7 +17,13 @@ export function CardGridItem({ card, selected = false, onOpenInline }: CardGridI
   const preview = stripHtml(card.description, 240);
   const updated = format(parseISO(card.updatedAt), "M/d");
 
-  const sharedClassName = `flex flex-col gap-2 p-4 rounded-lg border border-border bg-card hover:border-border-light transition-colors h-full${selected ? " bg-selected-fill ring-1 ring-selected-stroke" : ""}`;
+  // selected 優先於 hover（對齊 Mac CardGridItemView）— 選中時不套 hover fill，
+  // 否則 hover:* 的 specificity 會蓋掉 bg-selected-fill。
+  const sharedClassName = `flex flex-col gap-2 p-4 rounded-xl transition-colors h-full min-h-[168px]${
+    selected
+      ? " bg-selected-fill ring-1 ring-selected-stroke"
+      : " bg-card hover:bg-surface-hover"
+  }`;
 
   if (onOpenInline) {
     return (
@@ -26,16 +32,16 @@ export function CardGridItem({ card, selected = false, onOpenInline }: CardGridI
         onClick={() => onOpenInline(card.id)}
         className={`${sharedClassName} text-left w-full`}
       >
-        <h3 className="text-sm font-semibold line-clamp-2">
+        <h3 className="text-card-title line-clamp-2">
           {card.title ? (
             <span className="text-foreground">{card.title}</span>
           ) : (
             <span className="italic text-text-dim">{t("untitled")}</span>
           )}
         </h3>
-        <p className="text-xs text-text-dim line-clamp-4 flex-1">{preview}</p>
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-          <span className="text-xs text-text-dim tabular-nums">{updated}</span>
+        <p className="text-row-body text-text-dim line-clamp-5 flex-1">{preview}</p>
+        <div className="flex items-center justify-end gap-2 pt-2">
+          <span className="text-row-meta text-text-dim tabular-nums">{updated}</span>
         </div>
       </button>
     );
@@ -46,16 +52,16 @@ export function CardGridItem({ card, selected = false, onOpenInline }: CardGridI
       href={`/cards/${card.id}`}
       className={sharedClassName}
     >
-      <h3 className="text-sm font-semibold line-clamp-2">
+      <h3 className="text-card-title line-clamp-2">
         {card.title ? (
           <span className="text-foreground">{card.title}</span>
         ) : (
           <span className="italic text-text-dim">{t("untitled")}</span>
         )}
       </h3>
-      <p className="text-xs text-text-dim line-clamp-4 flex-1">{preview}</p>
-      <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
-        <span className="text-xs text-text-dim tabular-nums">{updated}</span>
+      <p className="text-row-body text-text-dim line-clamp-5 flex-1">{preview}</p>
+      <div className="flex items-center justify-end gap-2 pt-2">
+        <span className="text-row-meta text-text-dim tabular-nums">{updated}</span>
       </div>
     </Link>
   );

@@ -57,20 +57,20 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
           type="button"
           onClick={() => onDateChange(addDays(date, -7))}
           aria-label={tDaily("prevWeekAria")}
-          className="flex items-center justify-center w-9 h-9 rounded-md text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors shrink-0"
+          className="flex items-center justify-center w-9 h-9 rounded-full text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors shrink-0"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
 
         {/* Center: range label + 本週 button */}
         <div className="flex flex-1 items-center justify-center gap-3">
-          <span className="text-column-detail-title text-foreground tabular-nums">
+          <span className="text-column-title text-foreground tabular-nums">
             {rangeLabel}
           </span>
           <button
             type="button"
             onClick={() => onDateChange(isoToday())}
-            className="text-row-meta text-foreground hover:bg-surface-hover px-2 py-1 rounded-md transition-colors"
+            className="text-row-meta text-foreground hover:bg-surface-hover px-3 py-1 rounded-full transition-colors"
           >
             {t("thisWeek")}
           </button>
@@ -81,7 +81,7 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
           type="button"
           onClick={() => onDateChange(addDays(date, 7))}
           aria-label={tDaily("nextWeekAria")}
-          className="flex items-center justify-center w-9 h-9 rounded-md text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors shrink-0"
+          className="flex items-center justify-center w-9 h-9 rounded-full text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors shrink-0"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -128,7 +128,7 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
               <section key={dayStr} aria-label={dayLabel}>
                 {/* Day label */}
                 <div
-                  className={`text-section-header mb-2 ${
+                  className={`text-row-title-em mb-2 ${
                     hasEvents ? "text-foreground" : "text-text-dim"
                   }`}
                 >
@@ -153,7 +153,7 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
                           >
                             {/* Time column */}
                             <span
-                              className={`w-14 shrink-0 font-mono text-xs tabular-nums ${textColor}`}
+                              className={`w-14 shrink-0 text-row-title-em tabular-nums ${textColor}`}
                             >
                               {e.allDay ? t("eventAllDay") : formatHHMM(e.start)}
                             </span>

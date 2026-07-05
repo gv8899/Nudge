@@ -7,7 +7,7 @@ import { WifiOff, AlertTriangle, RotateCw } from "lucide-react";
 export function OfflineBanner({ lastUpdated }: { lastUpdated: string }) {
   const t = useTranslations("offline");
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-warning/10 text-sm text-foreground">
+    <div className="flex items-center gap-2 px-4 py-2 bg-warning/10 text-row-body text-foreground">
       <WifiOff className="h-4 w-4 text-warning shrink-0" aria-hidden="true" />
       <span>{lastUpdated ? t("banner", { lastUpdated }) : t("bannerNoTime")}</span>
     </div>
@@ -19,7 +19,7 @@ export function ErrorBanner({ onRetry }: { onRetry: () => void }) {
   const t = useTranslations("error");
   const tCommon = useTranslations("common");
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-destructive/10 text-sm text-foreground">
+    <div className="flex items-center gap-2 px-4 py-2 bg-destructive/10 text-row-body text-foreground">
       <AlertTriangle className="h-4 w-4 text-destructive shrink-0" aria-hidden="true" />
       <span className="flex-1">{t("unknown")}</span>
       <button

@@ -1,13 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
 import { cookies } from "next/headers";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://nudge.tw"),
@@ -48,15 +42,9 @@ export default async function RootLayout({
   const initialResolvedTheme: "light" | "dark" =
     resolvedFromCookie === "light" ? "light" : "dark";
 
-  const paperFromCookie = cookieStore.get("nudge:paper-texture")?.value;
-  const initialPaperTexture: "on" | "off" =
-    paperFromCookie === "off" ? "off" : "on";
-
   const htmlClass = [
-    geistSans.variable,
     "h-full antialiased",
     initialResolvedTheme === "dark" ? "dark" : "",
-    initialPaperTexture === "on" ? "paper-texture" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -64,10 +52,7 @@ export default async function RootLayout({
   return (
     <html lang="zh-TW" className={htmlClass}>
       <body className="min-h-full bg-background text-foreground font-sans">
-        <ThemeProvider
-          initialResolvedTheme={initialResolvedTheme}
-          initialPaperTexture={initialPaperTexture}
-        >
+        <ThemeProvider initialResolvedTheme={initialResolvedTheme}>
           {children}
         </ThemeProvider>
       </body>

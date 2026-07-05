@@ -4,6 +4,7 @@ import useSWR from "swr";
 import { useTranslations } from "next-intl";
 import { format, parseISO } from "date-fns";
 import { fetcher } from "@/lib/fetcher";
+import { SettingsRow } from "./settings-primitives";
 
 interface Entitlement {
   isActive: boolean;
@@ -61,25 +62,22 @@ export function SubscriptionSection() {
   }
 
   return (
-    <section className="py-4">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-text-dim mb-3">
-        {t("section")}
-      </h3>
+    <SettingsRow>
       {ent ? (
-        <div
-          className={`rounded-lg border px-3 py-2.5 text-sm ${
+        <span
+          className={
             ent.isActive && ATTENTION_STATUSES.includes(ent.status)
-              ? "border-chart-2/40 bg-chart-2/5 text-foreground"
+              ? "text-chart-2"
               : ent.isActive
-                ? "border-primary/40 bg-primary/5 text-foreground"
-                : "border-border text-text-dim"
-          }`}
+                ? "text-primary"
+                : "text-text-dim"
+          }
         >
           {statusLine()}
-        </div>
+        </span>
       ) : (
-        <div className="h-10 animate-pulse rounded bg-muted" />
+        <span className="text-text-dim">…</span>
       )}
-    </section>
+    </SettingsRow>
   );
 }

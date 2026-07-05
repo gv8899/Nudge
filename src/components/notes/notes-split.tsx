@@ -59,7 +59,7 @@ function DesktopFeedList({ selectedDate, onSelect, today }: DesktopFeedListProps
     <div className="px-4 md:px-6 py-6">
       {/* Header */}
       <header className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-foreground">{tNav("notes")}</h1>
+        <h1 className="text-column-title text-foreground">{tNav("notes")}</h1>
         {/* On desktop split, the canvas is always visible so no toggle needed */}
       </header>
 
@@ -80,23 +80,22 @@ function DesktopFeedList({ selectedDate, onSelect, today }: DesktopFeedListProps
           />
         )}
 
-        {notes.map((note, i) => (
+        {notes.map((note) => (
           <NoteEntry
             key={note.id}
             date={note.date}
             content={note.content}
-            isLast={i === notes.length - 1 && !hasMore}
             onSelect={onSelect}
             selected={note.date === selectedDate}
           />
         ))}
 
-        <div ref={sentinelRef} className="pl-16 md:pl-20 py-4 text-center">
+        <div ref={sentinelRef} className="py-4 text-center">
           {isLoadingMore && (
             <p className="text-sm text-text-dim">{tCommon("loading")}</p>
           )}
           {!hasMore && notes.length > 0 && (
-            <p className="text-sm text-text-faint">{t("noMoreEntries")}</p>
+            <p className="text-row-body text-text-faint">{t("noMoreEntries")}</p>
           )}
         </div>
       </div>
@@ -118,40 +117,28 @@ function TodayPlaceholderRow({ today, selected, onSelect }: TodayPlaceholderRowP
   const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
   const d = parseISO(today);
   const dayNum = format(d, "d");
-  const month = t("monthLabel", { month: d.getMonth() + 1 });
-  const weekday = format(d, "EEE", { locale: dateFnsLocale });
+  // en 用縮寫月名（"Apr"）對齊 Mac；同 note-entry.tsx 的處理
+  const month =
+    locale === "en"
+      ? format(d, "MMM", { locale: dateFnsLocale })
+      : t("monthLabel", { month: d.getMonth() + 1 });
 
+  // 同 NoteEntry 的 pillar anatomy — placeholder 預覽維持 italic dim
+  // （A34：對齊 Mac todayPlaceholderRow；A35：真實內容才用 foreground）。
   const inner = (
     <article
-      className={`relative pl-16 md:pl-20 pb-10 min-h-[88px] group${selected ? " bg-selected-fill" : ""}`}
+      className={`flex items-start gap-3 px-4 py-3.5 min-h-[88px] rounded-lg transition-colors duration-300${
+        selected ? " bg-selected-fill" : " hover:bg-surface-hover"
+      }`}
     >
-      {/* Timeline column */}
-      <div
-        className="absolute left-5 md:left-6 top-0 bottom-0 w-3 flex flex-col items-center pointer-events-none"
-        aria-hidden="true"
-      >
-        <div className="h-[18px] w-px bg-border" />
-        <div className="h-3 w-3 rounded-full border-2 border-primary bg-background shrink-0" />
-        <div className="flex-1 w-px bg-border" />
-      </div>
-
-      {/* Hover feedback */}
-      <div className="absolute left-12 md:left-14 right-0 top-0 bottom-4 rounded-lg bg-muted/0 group-hover:bg-muted/40 transition-colors pointer-events-none" />
-
-      {/* Date header */}
-      <header className="relative flex items-center gap-3 mb-5 px-4 pt-3.5">
-        <span className="text-[2.25rem] font-black text-primary tabular-nums leading-none tracking-tight">
+      <div className="w-14 shrink-0 flex flex-col items-center">
+        <span className="text-feed-day-number text-foreground tabular-nums">
           {dayNum}
         </span>
-        <div className="self-stretch w-px bg-primary/25 my-1" aria-hidden="true" />
-        <div className="flex flex-col gap-1 text-[10px] font-bold tracking-[0.18em] uppercase leading-none">
-          <span className="text-foreground/75">{month}</span>
-          <span className="text-text-dim">{weekday}</span>
-        </div>
-      </header>
+        <span className="text-weekday-label text-text-dim">{month}</span>
+      </div>
 
-      {/* Placeholder text */}
-      <p className="relative px-4 pb-3.5 text-row-body text-text-dim italic line-clamp-3">
+      <p className="flex-1 min-w-0 text-row-body text-text-dim italic line-clamp-3">
         {t("todayPlaceholder")}
       </p>
     </article>
@@ -184,7 +171,6 @@ interface DesktopDetailPaneProps {
 }
 
 function DesktopDetailPane({ selectedDate, today }: DesktopDetailPaneProps) {
-  const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
   const locale = useLocale();
   const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
@@ -201,12 +187,10 @@ function DesktopDetailPane({ selectedDate, today }: DesktopDetailPaneProps) {
 
   return (
     <div className="px-4 md:px-6 py-6 h-full overflow-y-auto">
-      {/* Header */}
+      {/* A38：「日誌」標題只在 feed pane（DesktopFeedList）保留一份，
+          detail pane header 只留日期，避免雙標題。 */}
       <header className="flex items-center justify-between gap-4 mb-8">
-        <h1 className="text-2xl font-bold text-foreground shrink-0">{tNav("notes")}</h1>
-        <div className="flex items-center gap-4 min-w-0">
-          <span className="text-sm text-text-dim tabular-nums truncate">{fullLabel}</span>
-        </div>
+        <span className="text-column-title text-text-dim tabular-nums truncate">{fullLabel}</span>
       </header>
 
       {/* Canvas editor — keyed by date so TipTap remounts on date switch */}
@@ -242,7 +226,7 @@ function MobileFeedList() {
     <div className="mx-auto max-w-3xl px-4 md:px-6 py-6">
       {/* Header */}
       <header className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-foreground">{tNav("notes")}</h1>
+        <h1 className="text-column-title text-foreground">{tNav("notes")}</h1>
         <Link
           href="/notes"
           aria-label={t("backToCanvasAria")}
@@ -264,21 +248,16 @@ function MobileFeedList() {
           <TodayPlaceholderRow today={today} selected={false} />
         )}
 
-        {notes.map((note, i) => (
-          <NoteEntry
-            key={note.id}
-            date={note.date}
-            content={note.content}
-            isLast={i === notes.length - 1 && !hasMore}
-          />
+        {notes.map((note) => (
+          <NoteEntry key={note.id} date={note.date} content={note.content} />
         ))}
 
-        <div ref={sentinelRef} className="pl-16 md:pl-20 py-4 text-center">
+        <div ref={sentinelRef} className="py-4 text-center">
           {isLoadingMore && (
             <p className="text-sm text-text-dim">{tCommon("loading")}</p>
           )}
           {!hasMore && notes.length > 0 && (
-            <p className="text-sm text-text-faint">{t("noMoreEntries")}</p>
+            <p className="text-row-body text-text-faint">{t("noMoreEntries")}</p>
           )}
         </div>
       </div>
@@ -336,7 +315,8 @@ export function NotesSplit({ initialDate, mobileView }: NotesSplitProps) {
 
   // ── Desktop split layout ─────────────────────────────────────────────────
   return (
-    <div className="flex h-[100dvh] overflow-hidden">
+    // md+ 扣掉頂部 toolbar 帶 48px，否則整頁會多出一截捲動
+    <div className="flex h-[100dvh] md:h-[calc(100dvh-48px)] overflow-hidden">
       {/* LEFT: feed column */}
       <div className="flex-1 min-w-0 overflow-y-auto">
         <div className="max-w-[720px] mx-auto">
@@ -350,7 +330,7 @@ export function NotesSplit({ initialDate, mobileView }: NotesSplitProps) {
 
       {/* RIGHT: detail pane with resize handle */}
       <div
-        className="flex shrink-0 border-l border-border overflow-hidden"
+        className="flex shrink-0 overflow-hidden"
         style={{ width: detailWidth }}
       >
         <ResizeHandle

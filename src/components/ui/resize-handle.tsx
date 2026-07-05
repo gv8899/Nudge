@@ -60,13 +60,13 @@ export function ResizeHandle({
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
     >
-      {/* Visual line: centered 1px, transparent by default, appears on hover/drag */}
+      {/* Visual line: centered, transparent by default. A37+A39：對齊
+          Mac ResizeHandle — hover 跟拖曳同視覺（3pt primary 線），平常
+          完全隱形，不再是「hover 灰線、拖曳才 primary」兩階段。 */}
       <div
         className={cn(
-          "absolute inset-y-0 left-1/2 w-px -translate-x-1/2 transition-colors",
-          dragging
-            ? "bg-primary"
-            : "bg-transparent group-hover:bg-border",
+          "absolute inset-y-0 left-1/2 w-[3px] -translate-x-1/2 transition-colors",
+          dragging ? "bg-primary" : "bg-transparent group-hover:bg-primary",
         )}
       />
     </div>

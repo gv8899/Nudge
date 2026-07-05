@@ -1,18 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations, useLocale } from "next-intl";
-import { ChevronDown, ChevronRight, CalendarClock, Archive } from "lucide-react";
-import { format, parseISO } from "date-fns";
-import { enUS, ja, zhTW } from "date-fns/locale";
+import { useTranslations } from "next-intl";
+import { ChevronRight, MoreHorizontal } from "lucide-react";
+import { SFIcon } from "@/components/ui/sf-icon";
+import { ContextMenu as ContextMenuPrimitive } from "@base-ui/react/context-menu";
 import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import type { DailyTaskAssignment } from "@/lib/types";
 import { MoveTaskPopover } from "@/components/task/move-task-popover";
+import { ScheduleDialog } from "@/components/task/schedule-dialog";
+import { TaskDetailModal } from "@/components/task/task-detail-modal";
+import { skipOccurrence } from "@/lib/skip-task";
+import { isoToday } from "@/lib/calendar-dates";
 
 interface OverdueSectionProps {
   overdueTasks: DailyTaskAssignment[];
@@ -20,7 +24,15 @@ interface OverdueSectionProps {
   onToggleComplete: (assignmentId: string, taskId: string, completed: boolean) => void;
   onReschedule: (assignmentId: string, targetDate: string) => void;
   onArchive: (assignmentId: string, taskId: string) => void;
+  onUpdateTask: (taskId: string, updates: { title?: string; description?: string }) => void;
+  onOpenDetail?: (taskId: string) => void;
 }
+
+const popupClassName =
+  "z-50 max-h-(--available-height) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:overflow-hidden data-closed:fade-out-0 data-closed:zoom-out-95";
+
+const itemClassName =
+  "relative flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50";
 
 export function OverdueSection({
   overdueTasks,
@@ -28,14 +40,13 @@ export function OverdueSection({
   onToggleComplete,
   onReschedule,
   onArchive,
+  onUpdateTask,
+  onOpenDetail,
 }: OverdueSectionProps) {
   const t = useTranslations("daily");
-  const tCommon = useTranslations("common");
-  const locale = useLocale();
-  const dateFnsLocale = locale === "ja" ? ja : locale === "en" ? enUS : zhTW;
   // 一律預設展開 — 不論平日/週末（對齊 mac / iOS app）。
   const [isExpanded, setIsExpanded] = useState(true);
-  const [archiveTarget, setArchiveTarget] = useState<{ assignmentId: string; taskId: string; title: string } | null>(null);
+  const [scheduleTaskId, setScheduleTaskId] = useState<string | null>(null);
 
   if (overdueTasks.length === 0) return null;
 
@@ -45,105 +56,216 @@ export function OverdueSection({
         onClick={() => setIsExpanded(!isExpanded)}
         aria-expanded={isExpanded}
         aria-controls="overdue-list"
-        className="flex items-center gap-2 w-full text-left px-1 py-2 text-sm font-medium text-primary hover:bg-muted rounded-md transition-colors"
+        // 對齊 Mac OverdueSectionView.header：純文字 sectionHeader + textDim、
+        // chevron 靠最右（展開時轉 90°）、無 icon、px-24 內縮
+        className="flex items-center justify-between gap-2 w-full text-left pl-6 pr-4 min-h-11 text-section-header text-text-dim hover:bg-muted rounded-md transition-colors"
       >
-        {isExpanded ? (
-          <ChevronDown className="h-4 w-4" />
-        ) : (
-          <ChevronRight className="h-4 w-4" />
-        )}
-        <CalendarClock className="h-4 w-4" />
         <span>{t("overdueLabel", { count: overdueTasks.length })}</span>
+        <ChevronRight
+          className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
+        />
       </button>
 
       {isExpanded && (
         <div id="overdue-list">
           {overdueTasks.map((a) => (
-            <div
+            <OverdueRow
               key={a.id}
-              className="flex items-center gap-2 px-1 py-2 hover:bg-muted rounded-md transition-colors group"
-            >
-              {/* 對應 task-card 的 grip 占位（左邊對齊） */}
-              <div className="h-4 w-4 shrink-0" aria-hidden="true" />
-
-              {/* Checkbox — 與 TaskCard 一致 */}
-              <button
-                role="checkbox"
-                aria-checked={false}
-                aria-label={t("overdueIncompleteAria", { title: a.task.title })}
-                onClick={() => onToggleComplete(a.id, a.taskId, true)}
-                className="h-[18px] w-[18px] rounded-[4px] border-2 border-text-dim bg-transparent hover:border-muted-foreground shrink-0 cursor-pointer flex items-center justify-center transition-colors"
-              />
-
-              {/* 標題 + 日期 */}
-              <div className="flex-1 min-w-0 flex items-center gap-2">
-                <span className="text-sm text-foreground truncate">
-                  {a.task.title}
-                </span>
-                <span
-                  className="text-xs text-text-dim shrink-0 tabular-nums"
-                  aria-label={t("overdueOriginalDateAria", {
-                    date: format(parseISO(a.date), "PP", { locale: dateFnsLocale }),
-                  })}
-                >
-                  {format(parseISO(a.date), "M/d")}
-                </span>
-              </div>
-
-              {/* 右側操作區 */}
-              <button
-                onClick={() => onReschedule(a.id, currentDate)}
-                className="text-xs px-2 py-1 rounded text-primary hover:bg-muted-foreground/10 transition-colors shrink-0"
-              >
-                {t("overdueScheduleToday")}
-              </button>
-
-              <MoveTaskPopover
-                currentDate={a.date}
-                onMove={(targetDate) => onReschedule(a.id, targetDate)}
-              />
-
-              <button
-                onClick={() => setArchiveTarget({ assignmentId: a.id, taskId: a.taskId, title: a.task.title })}
-                aria-label={t("overdueArchiveAria", { title: a.task.title })}
-                className="text-text-faint hover:text-muted-foreground transition-colors shrink-0 cursor-pointer p-2 rounded"
-              >
-                <Archive className="h-4 w-4" />
-              </button>
-            </div>
+              assignment={a}
+              currentDate={currentDate}
+              onToggleComplete={onToggleComplete}
+              onReschedule={onReschedule}
+              onArchive={onArchive}
+              onUpdateTask={onUpdateTask}
+              onOpenDetail={onOpenDetail}
+              onOpenSchedule={() => setScheduleTaskId(a.taskId)}
+            />
           ))}
         </div>
       )}
-      {/* 封存確認 */}
-      <Dialog open={archiveTarget !== null} onOpenChange={(open) => { if (!open) setArchiveTarget(null); }}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogTitle className="text-base font-semibold">
-            {t("archiveTitle")}
-          </DialogTitle>
-          <DialogDescription className="text-sm text-text-dim">
-            {t("archiveConfirmBody", { title: archiveTarget?.title ?? "" })}
-          </DialogDescription>
-          <div className="flex justify-end gap-2 mt-4">
-            <button
-              onClick={() => setArchiveTarget(null)}
-              className="px-3 py-1.5 text-sm rounded-lg border border-border text-text-dim hover:text-foreground hover:bg-muted transition-colors"
+
+      <ScheduleDialog
+        taskId={scheduleTaskId}
+        open={scheduleTaskId !== null}
+        onOpenChange={(open) => {
+          if (!open) setScheduleTaskId(null);
+        }}
+      />
+    </section>
+  );
+}
+
+interface OverdueRowProps {
+  assignment: DailyTaskAssignment;
+  currentDate: string;
+  onToggleComplete: (assignmentId: string, taskId: string, completed: boolean) => void;
+  onReschedule: (assignmentId: string, targetDate: string) => void;
+  onArchive: (assignmentId: string, taskId: string) => void;
+  onUpdateTask: (taskId: string, updates: { title?: string; description?: string }) => void;
+  onOpenDetail?: (taskId: string) => void;
+  onOpenSchedule: () => void;
+}
+
+/** Overdue row — 對齊 Mac OverdueSectionView：checkbox + title + 移到其他日期
+ * icon + 完整「…」選單（移到今天/skip 或設重複/提醒/封存）+ 右鍵選單。
+ */
+function OverdueRow({
+  assignment,
+  currentDate,
+  onToggleComplete,
+  onReschedule,
+  onArchive,
+  onUpdateTask,
+  onOpenDetail,
+  onOpenSchedule,
+}: OverdueRowProps) {
+  const t = useTranslations("daily");
+  const { task } = assignment;
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const isRecurring = assignment.isRecurring;
+  const todayStr = isoToday();
+
+  // Shared menu items rendered by both the … DropdownMenu and the right-click
+  // ContextMenu — a plain function invoked as `{renderMenuItems()}` (not JSX
+  // `<MenuItems />`) so it isn't treated as a component recreated on every
+  // render.
+  function renderMenuItems() {
+    return (
+      <>
+        <DropdownMenuItem onClick={() => onReschedule(assignment.id, todayStr)}>
+          <SFIcon name="calendar-badge-checkmark" className="h-[13px] w-[13px] shrink-0" />
+          {t("moveToToday")}
+        </DropdownMenuItem>
+        {isRecurring ? (
+          <DropdownMenuItem onClick={() => skipOccurrence(assignment.id, currentDate)}>
+            <SFIcon name="forward" className="h-[13px] w-[13px] shrink-0" />
+            {t("skipThisOccurrence")}
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem onClick={onOpenSchedule}>
+            <SFIcon name="arrow-triangle-2-circlepath" className="h-[13px] w-[13px] shrink-0" />
+            {t("setRecurring")}
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem onClick={onOpenSchedule}>
+          <SFIcon name="bell" className="h-[13px] w-[13px] shrink-0" />
+          {t("setReminder")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          variant="destructive"
+          onClick={() => onArchive(assignment.id, assignment.taskId)}
+        >
+          <SFIcon name="archivebox" className="h-[13px] w-[13px] shrink-0" />
+          {t("archiveButton")}
+        </DropdownMenuItem>
+      </>
+    );
+  }
+
+  return (
+    <ContextMenuPrimitive.Root>
+      <ContextMenuPrimitive.Trigger
+        render={
+          <div
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 hover:bg-muted rounded-md transition-colors group cursor-pointer"
+          />
+        }
+      >
+        {/* 對應 task-card 的 grip 占位（左邊對齊） */}
+        <div className="h-4 w-4 shrink-0" aria-hidden="true" />
+
+        {/* Checkbox — 與 TaskCard 一致 */}
+        <button
+          role="checkbox"
+          aria-checked={false}
+          aria-label={t("overdueIncompleteAria", { title: task.title })}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleComplete(assignment.id, assignment.taskId, true);
+          }}
+          className="h-[18px] w-[18px] rounded-[4px] border-2 border-text-dim bg-transparent hover:border-muted-foreground shrink-0 cursor-pointer flex items-center justify-center transition-colors"
+        />
+
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex-1 min-w-0 text-primary-row-title text-left cursor-pointer bg-transparent border-none p-0 truncate text-foreground"
+        >
+          {task.title}
+        </button>
+
+        {/* 移動日期 — 擋冒泡避免點 icon 也開 modal */}
+        <span onClick={(e) => e.stopPropagation()} className="contents">
+        <MoveTaskPopover
+          currentDate={assignment.date}
+          onMove={(targetDate) => onReschedule(assignment.id, targetDate)}
+        />
+
+        {/* … DropdownMenu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            aria-label={t("rowMenu")}
+            className="rounded p-1 text-text-dim hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[200px]">
+            {renderMenuItems()}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        </span>
+      </ContextMenuPrimitive.Trigger>
+
+      {/* Right-click popup */}
+      <ContextMenuPrimitive.Portal>
+        <ContextMenuPrimitive.Positioner className="isolate z-50 outline-none">
+          <ContextMenuPrimitive.Popup className={popupClassName}>
+            <ContextMenuPrimitive.Item
+              className={itemClassName}
+              onClick={() => onReschedule(assignment.id, todayStr)}
             >
-              {tCommon("cancel")}
-            </button>
-            <button
-              onClick={() => {
-                if (archiveTarget) {
-                  onArchive(archiveTarget.assignmentId, archiveTarget.taskId);
-                  setArchiveTarget(null);
-                }
-              }}
-              className="px-3 py-1.5 text-sm rounded-lg border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors"
+              {t("moveToToday")}
+            </ContextMenuPrimitive.Item>
+            <ContextMenuPrimitive.Item
+              className={itemClassName}
+              onClick={
+                isRecurring
+                  ? () => skipOccurrence(assignment.id, currentDate)
+                  : onOpenSchedule
+              }
+            >
+              {isRecurring ? t("skipThisOccurrence") : t("setRecurring")}
+            </ContextMenuPrimitive.Item>
+            <ContextMenuPrimitive.Item className={itemClassName} onClick={onOpenSchedule}>
+              {t("setReminder")}
+            </ContextMenuPrimitive.Item>
+            <ContextMenuPrimitive.Item
+              className={itemClassName + " text-destructive"}
+              onClick={() => onArchive(assignment.id, assignment.taskId)}
             >
               {t("archiveButton")}
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </section>
+            </ContextMenuPrimitive.Item>
+          </ContextMenuPrimitive.Popup>
+        </ContextMenuPrimitive.Positioner>
+      </ContextMenuPrimitive.Portal>
+
+      <TaskDetailModal
+        task={task}
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onDescChange={(html) => onUpdateTask(task.id, { description: html })}
+        onStatusChange={() => {}}
+        onTitleChange={(title) => onUpdateTask(task.id, { title })}
+        onExpand={
+          onOpenDetail
+            ? () => {
+                onOpenDetail(task.id);
+                setIsModalOpen(false);
+              }
+            : undefined
+        }
+        wide
+      />
+    </ContextMenuPrimitive.Root>
   );
 }

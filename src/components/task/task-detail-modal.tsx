@@ -39,9 +39,16 @@ export function TaskDetailModal({
   editorReloadToken = 0,
 }: TaskDetailModalProps) {
   const t = useTranslations("task");
+  const tCommon = useTranslations("common");
+  const tCardDetail = useTranslations("cardDetail");
   const [titleDraft, setTitleDraft] = useState(task.title);
+  // 打字中（focused）時不要讓 task.title prop 變化蓋掉草稿 —
+  // debounced 存檔後 parent 會 refetch，task.title 會變，
+  // 但使用者可能還在輸入下一個字。
+  const isTitleFocusedRef = useRef(false);
 
   useEffect(() => {
+    if (isTitleFocusedRef.current) return;
     setTitleDraft(task.title);
   }, [task.title]);
 
@@ -64,10 +71,26 @@ export function TaskDetailModal({
   // unmount 時 flush（對齊 Mac onDisappear）
   useEffect(() => () => descSaver.flush(), [descSaver]);
 
+  // 標題打字即 debounce 存（對齊 Mac CardDetailView），blur/Enter 仍立即 flush。
+  const onTitleChangeRef = useRef(onTitleChange);
+  useEffect(() => {
+    onTitleChangeRef.current = onTitleChange;
+  });
+  const [titleSaver] = useState(
+    // eslint-disable-next-line react-hooks/refs -- 同上，callback 非 render 期執行
+    () =>
+      new DebouncedSaver<string>((v) => {
+        const trimmed = v.trim();
+        if (trimmed) onTitleChangeRef.current?.(trimmed);
+      }, 500)
+  );
+  useEffect(() => () => titleSaver.flush(), [titleSaver]);
+
   const handleClose = useCallback(() => {
     descSaver.flush();
+    titleSaver.flush();
     onClose();
-  }, [descSaver, onClose]);
+  }, [descSaver, titleSaver, onClose]);
 
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -140,42 +163,50 @@ export function TaskDetailModal({
       aria-modal="true"
       aria-labelledby="task-detail-title"
     >
-      {/* 背景遮罩 */}
+      {/* 背景遮罩 — 對齊 Mac NudgeModalOverlay：黑 30%、無 blur */}
       <div
-        className="absolute inset-0 bg-background/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/30"
         onClick={handleClose}
         aria-hidden="true"
       />
 
-      {/* 內容 */}
+      {/* 內容 — 對齊 Mac 920×600 固定尺寸（現在所有呼叫端都是 wide，高度固定內部捲動） */}
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className={`relative z-10 w-[calc(100vw-2rem)] ${wide ? "max-w-[920px]" : "max-w-[680px]"} max-h-[88dvh] overflow-y-auto rounded-2xl bg-popover border border-border shadow-2xl outline-none`}
+        className={`relative z-10 w-[calc(100vw-2rem)] ${wide ? "max-w-[920px]" : "max-w-[680px]"} h-[600px] max-h-[88dvh] overflow-y-auto rounded-2xl bg-popover shadow-2xl outline-none`}
       >
         {/* 頂部列 */}
-        <div className="sticky top-0 z-10 px-6 py-4 bg-popover border-b border-border rounded-t-xl">
+        <div className="sticky top-0 z-10 px-6 py-4 bg-popover rounded-t-xl">
           <div className="flex items-center justify-between">
             {onTitleChange ? (
               <input
                 id="task-detail-title"
                 value={titleDraft}
-                onChange={(e) => setTitleDraft(e.target.value)}
+                onChange={(e) => {
+                  setTitleDraft(e.target.value);
+                  titleSaver.schedule(e.target.value);
+                }}
+                onFocus={() => {
+                  isTitleFocusedRef.current = true;
+                }}
                 onBlur={() => {
+                  isTitleFocusedRef.current = false;
+                  titleSaver.flush();
                   const v = titleDraft.trim();
-                  if (v && v !== task.title) onTitleChange(v);
-                  else setTitleDraft(task.title);
+                  if (!v) setTitleDraft(task.title);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
+                    titleSaver.flush();
                     (e.target as HTMLInputElement).blur();
                   }
                 }}
                 aria-label={t("editTitleAria")}
-                className="flex-1 min-w-0 text-lg font-semibold text-foreground bg-transparent border-none outline-none focus:ring-0 px-0"
+                className="flex-1 min-w-0 text-card-detail-title text-foreground bg-transparent border-none outline-none focus:ring-0 px-0"
               />
             ) : (
-              <h2 id="task-detail-title" className="text-lg font-semibold text-foreground">
+              <h2 id="task-detail-title" className="text-card-detail-title text-foreground">
                 {task.title}
               </h2>
             )}
@@ -185,38 +216,42 @@ export function TaskDetailModal({
                 type="button"
                 onClick={() => {
                   descSaver.flush();
+                  titleSaver.flush();
                   onExpand!();
                 }}
                 aria-label={t("detailExpandPage")}
                 title={t("detailExpandPage")}
-                className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
+                className="flex items-center justify-center h-9 w-9 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-text-dim hover:text-foreground hover:bg-card transition-colors"
               >
                 <Maximize2 className="h-4 w-4" />
               </button>
             ) : (
               <a
                 href={`/cards/${task.id}`}
-                onClick={() => descSaver.flush()}
+                onClick={() => {
+                  descSaver.flush();
+                  titleSaver.flush();
+                }}
                 aria-label={t("detailExpandPage")}
                 title={t("detailExpandPage")}
-                className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
+                className="flex items-center justify-center h-9 w-9 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-text-dim hover:text-foreground hover:bg-card transition-colors"
               >
                 <Maximize2 className="h-4 w-4" />
               </a>
             )}
             <button
               onClick={handleClose}
-              aria-label={t("detailClose")}
-              className="text-text-dim hover:text-foreground transition-colors p-2 rounded-md hover:bg-border"
+              aria-label={tCommon("done")}
+              title={tCommon("done")}
+              className="flex items-center justify-center h-9 w-9 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-text-dim hover:text-foreground hover:bg-card transition-colors"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
             </div>
           </div>
           {onTagsChange && (
             <div className="mt-2">
               <TagPicker
-                taskId={task.id}
                 selectedTags={tags}
                 onTagsChange={onTagsChange}
               />
@@ -230,9 +265,9 @@ export function TaskDetailModal({
             key={`${task.id}-${editorReloadToken}`}
             content={task.description || ""}
             onChange={handleDescChange}
-            placeholder={t("detailContentPlaceholder")}
+            placeholder={tCardDetail("editorPlaceholder")}
             editable={true}
-            autoFocus={true}
+            autoFocus={false}
           />
         </div>
       </div>

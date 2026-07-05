@@ -66,17 +66,17 @@ export function CalendarNav({ date, onDateChange, dotDates }: CalendarNavProps) 
               aria-current={isSelected ? "date" : undefined}
               className="flex-1 flex flex-col items-center gap-1 py-1 transition-colors"
             >
-              <span className="text-xs font-medium text-text-dim">
+              <span className="text-weekday-label text-text-dim">
                 {format(day, "EEE", { locale: dateFnsLocale }).replace(/^週/, "")}
               </span>
               <span
-                className={`flex items-center justify-center h-9 w-9 rounded-full text-lg tabular-nums transition-all ${
+                className={`flex items-center justify-center h-9 w-9 rounded-full text-weekday-number tabular-nums transition-all ${
                   isSelected
-                    ? "bg-primary text-primary-foreground font-semibold"
-                    : "text-foreground font-medium"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground"
                 }`}
               >
-                {format(day, "d")}
+                {format(day, "dd")}
               </span>
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
@@ -102,20 +102,20 @@ export function WeekNavControls({ date, onDateChange }: CalendarNavProps) {
       <button
         onClick={() => go(subDays(weekStart, 7))}
         aria-label={t("prevWeekAria")}
-        className="flex items-center justify-center h-9 w-9 rounded-full text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors"
+        className="flex items-center justify-center h-9 w-9 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-text-dim hover:bg-card hover:text-foreground transition-colors"
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
       <button
         onClick={() => go(new Date())}
-        className="flex items-center justify-center h-9 px-4 rounded-full text-sm text-foreground hover:bg-surface-hover transition-colors whitespace-nowrap"
+        className="flex items-center justify-center h-9 px-4 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-row-title hover:bg-card text-foreground transition-colors whitespace-nowrap"
       >
         {tCommon("today")}
       </button>
       <button
         onClick={() => go(addDays(weekStart, 7))}
         aria-label={t("nextWeekAria")}
-        className="flex items-center justify-center h-9 w-9 rounded-full text-text-dim hover:text-foreground hover:bg-surface-hover transition-colors"
+        className="flex items-center justify-center h-9 w-9 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-text-dim hover:bg-card hover:text-foreground transition-colors"
       >
         <ChevronRight className="h-4 w-4" />
       </button>

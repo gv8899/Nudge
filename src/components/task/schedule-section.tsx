@@ -16,6 +16,12 @@ import {
   weekdaysToCsv,
 } from "@/lib/schedule-validation";
 import { composeRemindAtISO, splitRemindAtISO } from "@/lib/reminder-time";
+import {
+  NudgeSwitch,
+  NudgeDropdown,
+  NudgeDateField,
+  NudgeTimeField,
+} from "@/components/ui/nudge-controls";
 
 const PRESETS: (RecurrencePreset | null)[] = [
   null,
@@ -227,37 +233,58 @@ export function ScheduleSection({ taskId }: Props) {
     }
   }
 
+  // 對齊 Mac ScheduleSection.rowLabel：emphasized（重複/推播通知）=
+  // sectionHeader 14/600、sub row = primaryRowTitle 14/400。
+  const rowClass = "flex items-center justify-between gap-3 min-h-12 py-1";
+
   return (
-    <div className="space-y-4">
-      <div className="space-y-3">
-        <label className="block text-sm font-medium text-foreground">
-          {t("schedule.recurrenceTitle")}
-        </label>
-        <select
-          value={preset ?? ""}
-          onChange={(e) => {
-            const next = (e.target.value || null) as RecurrencePreset | null;
-            setPreset(next);
-            if (next !== null && hasReminder && !remindAt) setRemindAt("09:00");
-          }}
-          className="rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-          aria-label={t("schedule.recurrenceTitle")}
-        >
-          {PRESETS.map((p) => (
-            <option key={p ?? "off"} value={p ?? ""}>
-              {p === null
-                ? t("schedule.recurrence.off")
-                : t(`schedule.preset.${presetToI18nKey(p)}`)}
-            </option>
-          ))}
-        </select>
+    <div className="space-y-[18px]">
+      {/* 重複 — Mac 兩張 tinted section card 之一（fg 4% + 14pt 圓角） */}
+      <div className="rounded-[14px] bg-foreground/[0.04] px-[18px] py-1.5 divide-y divide-border/60">
+        {/* Row 1: 重複 on/off — Mac 是 NudgeSwitch，不是下拉 */}
+        <div className={rowClass}>
+          <span className="text-section-header text-foreground">
+            {t("schedule.recurrenceTitle")}
+          </span>
+          <NudgeSwitch
+            checked={preset !== null}
+            onChange={(on) => {
+              if (on) {
+                setPreset("daily");
+                if (hasReminder && !remindAt) setRemindAt("09:00");
+              } else {
+                setPreset(null);
+              }
+            }}
+            ariaLabel={t("schedule.recurrenceTitle")}
+          />
+        </div>
+
+        {/* Row 2: 週期 dropdown（toggle 開啟後才出現，不含「不重複」） */}
+        {preset !== null && (
+          <div className={rowClass}>
+            <span className="text-primary-row-title text-foreground">
+              {t("schedule.recurrence.frequency")}
+            </span>
+            <NudgeDropdown
+              value={preset}
+              options={PRESETS.filter((p): p is RecurrencePreset => p !== null).map((p) => ({
+                value: p,
+                label: t(`schedule.preset.${presetToI18nKey(p)}`),
+              }))}
+              onChange={(next) => {
+                setPreset(next);
+                if (hasReminder && !remindAt) setRemindAt("09:00");
+              }}
+              ariaLabel={t("schedule.recurrence.frequency")}
+            />
+          </div>
+        )}
 
         {(preset === "weekly" || preset === "biweekly") && (
-          <div>
-            <label className="text-xs text-text-dim">
-              {t("schedule.recurrence.weekdaysLabel")}
-            </label>
-            <div className="mt-1 flex gap-1">
+          <div className="py-2.5">
+            {/* Mac weekdaysPicker：32px 圓、active = primary 填、inactive = 透明 + border */}
+            <div className="flex justify-between gap-1.5">
               {WEEKDAYS.map((d, i) => {
                 const active = weekdays.has(d);
                 return (
@@ -270,10 +297,10 @@ export function ScheduleSection({ taskId }: Props) {
                       else next.add(d);
                       setWeekdays(next);
                     }}
-                    className={`h-8 w-8 rounded-full text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                    className={`h-8 w-8 rounded-full text-row-meta transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
                       active
                         ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-foreground"
+                        : "border border-border text-foreground hover:bg-surface-hover"
                     }`}
                     aria-pressed={active}
                   >
@@ -283,7 +310,7 @@ export function ScheduleSection({ taskId }: Props) {
               })}
             </div>
             {errWeekday && (
-              <p className="mt-1 text-xs text-destructive" role="alert">
+              <p className="mt-1.5 text-row-meta text-destructive" role="alert">
                 {t("schedule.validation.weeklyNeedsWeekday")}
               </p>
             )}
@@ -291,162 +318,149 @@ export function ScheduleSection({ taskId }: Props) {
         )}
 
         {preset === "monthly_day" && (
-          <select
-            value={monthDay}
-            onChange={(e) => setMonthDay(parseInt(e.target.value, 10))}
-            className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-            aria-label={t("schedule.preset.monthlyDay")}
-          >
-            {Array.from({ length: 31 }, (_, i) => i + 1).map((n) => (
-              <option key={n} value={n}>
-                {t("schedule.recurrence.monthDayN", { n })}
-              </option>
-            ))}
-          </select>
+          <div className={rowClass}>
+            <span className="text-primary-row-title text-foreground">
+              {t("schedule.recurrence.monthDayLabel")}
+            </span>
+            <NudgeDropdown
+              value={monthDay}
+              options={Array.from({ length: 31 }, (_, i) => i + 1).map((n) => ({
+                value: n,
+                label: t("schedule.recurrence.monthDayN", { n }),
+              }))}
+              onChange={setMonthDay}
+              ariaLabel={t("schedule.recurrence.monthDayLabel")}
+            />
+          </div>
         )}
 
         {preset === "monthly_nth_weekday" && (
-          <div className="flex gap-2">
-            <select
-              value={monthNth}
-              onChange={(e) => setMonthNth(parseInt(e.target.value, 10))}
-              className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-              aria-label={t("schedule.recurrence.nthLabel")}
-            >
-              {[1, 2, 3, 4].map((n) => (
-                <option key={n} value={n}>
-                  {t("schedule.recurrence.nthN", { n })}
-                </option>
-              ))}
-              <option value={5}>{t("schedule.recurrence.last")}</option>
-            </select>
-            <select
-              value={monthNthWeekday}
-              onChange={(e) =>
-                setMonthNthWeekday(parseInt(e.target.value, 10))
-              }
-              className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-              aria-label={t("schedule.recurrence.weekday")}
-            >
-              {WEEKDAYS.map((d, i) => (
-                <option key={d} value={d}>
-                  {t(`weekday.${WEEKDAY_KEYS[i]}`)}
-                </option>
-              ))}
-            </select>
+          <div className={rowClass}>
+            <span className="text-primary-row-title text-foreground">
+              {t("schedule.recurrence.nthLabel")}
+            </span>
+            <div className="flex gap-1.5">
+              <NudgeDropdown
+                value={monthNth}
+                options={[
+                  ...[1, 2, 3, 4].map((n) => ({
+                    value: n,
+                    label: t("schedule.recurrence.nthN", { n }),
+                  })),
+                  { value: 5, label: t("schedule.recurrence.last") },
+                ]}
+                onChange={setMonthNth}
+                ariaLabel={t("schedule.recurrence.nthLabel")}
+              />
+              <NudgeDropdown
+                value={monthNthWeekday}
+                options={WEEKDAYS.map((d, i) => ({
+                  value: d,
+                  label: t(`weekday.${WEEKDAY_KEYS[i]}`),
+                }))}
+                onChange={setMonthNthWeekday}
+                ariaLabel={t("schedule.recurrence.weekday")}
+              />
+            </div>
           </div>
         )}
 
         {preset !== null && (
           <>
-            <DateRow
-              label={t("schedule.recurrence.startDate")}
-              value={startDate}
-              onChange={setStartDate}
-            />
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={hasEndDate}
-                onChange={(e) => setHasEndDate(e.target.checked)}
+            <div className={rowClass}>
+              <span className="text-primary-row-title text-foreground">
+                {t("schedule.recurrence.startDate")}
+              </span>
+              <NudgeDateField
+                value={startDate}
+                onChange={setStartDate}
+                ariaLabel={t("schedule.recurrence.startDate")}
               />
-              {t("schedule.recurrence.hasEndDate")}
-            </label>
+            </div>
+            <div className={rowClass}>
+              <span className="text-primary-row-title text-foreground">
+                {t("schedule.recurrence.hasEndDate")}
+              </span>
+              <NudgeSwitch
+                checked={hasEndDate}
+                onChange={setHasEndDate}
+                ariaLabel={t("schedule.recurrence.hasEndDate")}
+              />
+            </div>
             {hasEndDate && (
-              <>
-                <DateRow
-                  label={t("schedule.recurrence.endDate")}
-                  value={endDate}
-                  onChange={setEndDate}
-                />
+              <div>
+                <div className={rowClass}>
+                  <span className="text-primary-row-title text-foreground">
+                    {t("schedule.recurrence.endDate")}
+                  </span>
+                  <NudgeDateField
+                    value={endDate}
+                    onChange={setEndDate}
+                    ariaLabel={t("schedule.recurrence.endDate")}
+                  />
+                </div>
                 {errEnd && (
-                  <p className="text-xs text-destructive" role="alert">
+                  <p className="pb-2 text-row-meta text-destructive" role="alert">
                     {t("schedule.validation.endBeforeStart")}
                   </p>
                 )}
-              </>
+              </div>
             )}
           </>
         )}
       </div>
 
-      <div className="space-y-3 border-t border-border pt-4">
-        <label className="flex items-center justify-between gap-3 text-sm font-medium text-foreground">
-          {t("schedule.reminder.enabled")}
-          <input
-            type="checkbox"
-            role="switch"
+      {/* 推播通知 — 第二張 section card */}
+      <div className="rounded-[14px] bg-foreground/[0.04] px-[18px] py-1.5 divide-y divide-border/60">
+        <div className={rowClass}>
+          <span className="text-section-header text-foreground">
+            {t("schedule.reminder.enabled")}
+          </span>
+          <NudgeSwitch
             checked={hasReminder}
-            onChange={(e) => {
-              setHasReminder(e.target.checked);
-              if (!e.target.checked) setRemindAt("");
-              if (e.target.checked && preset !== null && !remindAt) {
-                setRemindAt("09:00");
-              }
+            onChange={(on) => {
+              setHasReminder(on);
+              if (!on) setRemindAt("");
+              if (on && preset !== null && !remindAt) setRemindAt("09:00");
             }}
-            aria-label={t("schedule.reminder.enabled")}
+            ariaLabel={t("schedule.reminder.enabled")}
           />
-        </label>
+        </div>
 
         {hasReminder && preset !== null && (
-          <div className="flex items-center justify-between gap-3 text-sm">
-            <span className="text-foreground">{t("schedule.reminder.label")}</span>
-            <input
-              type="time"
+          <div className={rowClass}>
+            <span className="text-primary-row-title text-foreground">
+              {t("schedule.reminder.label")}
+            </span>
+            <NudgeTimeField
               value={remindAt || "09:00"}
-              onChange={(e) => setRemindAt(e.target.value)}
-              className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-              aria-label={t("schedule.reminder.label")}
+              onChange={setRemindAt}
+              ariaLabel={t("schedule.reminder.label")}
             />
           </div>
         )}
 
         {hasReminder && preset === null && (
-          <div className="flex items-center justify-between gap-3 text-sm">
-            <span className="text-foreground">{t("schedule.reminder.dateTime")}</span>
-            <div className="flex gap-2">
-              <input
-                type="date"
+          <div className={rowClass}>
+            <span className="text-primary-row-title text-foreground">
+              {t("schedule.reminder.dateTime")}
+            </span>
+            <div className="flex gap-1.5">
+              <NudgeDateField
                 value={absDate}
-                onChange={(e) => setAbsDate(e.target.value)}
-                className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                aria-label={t("schedule.reminder.dateTime")}
+                onChange={setAbsDate}
+                ariaLabel={t("schedule.reminder.dateTime")}
               />
-              <input
-                type="time"
+              <NudgeTimeField
                 value={absTime}
-                onChange={(e) => setAbsTime(e.target.value)}
-                className="rounded-md border border-border bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                aria-label={t("schedule.reminder.dateTime")}
+                onChange={setAbsTime}
+                ariaLabel={t("schedule.reminder.dateTime")}
               />
             </div>
           </div>
         )}
       </div>
     </div>
-  );
-}
-
-function DateRow({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <label className="flex items-center justify-between gap-3 text-sm">
-      <span className="text-foreground">{label}</span>
-      <input
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="rounded-md border border-border bg-background px-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-        aria-label={label}
-      />
-    </label>
   );
 }
 

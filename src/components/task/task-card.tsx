@@ -8,23 +8,18 @@ import { ContextMenu as ContextMenuPrimitive } from "@base-ui/react/context-menu
 import { MoveTaskPopover } from "./move-task-popover";
 import { TaskDetailModal } from "./task-detail-modal";
 import { ScheduleDialog } from "./schedule-dialog";
-import { SkipConfirmationDialog } from "./skip-confirmation-dialog";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { SFIcon } from "@/components/ui/sf-icon";
 import { GripVertical, MoreHorizontal } from "lucide-react";
 import type { DailyTaskAssignment } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
 import { isoToday } from "@/lib/calendar-dates";
+import { skipOccurrence } from "@/lib/skip-task";
 
 interface TaskCardProps {
   assignment: DailyTaskAssignment;
@@ -48,13 +43,10 @@ export function TaskCard({
   onArchive,
 }: TaskCardProps) {
   const t = useTranslations("task");
-  const tCommon = useTranslations("common");
   const tDaily = useTranslations("daily");
   const { task } = assignment;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
-  const [skipDialogOpen, setSkipDialogOpen] = useState(false);
-  const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
 
   const isRecurring = assignment.isRecurring;
   const todayStr = isoToday();
@@ -82,31 +74,39 @@ export function TaskCard({
     [task.id, onUpdateTask]
   );
 
-  /** Shared menu items used by both the … DropdownMenu and the right-click ContextMenu */
-  function MenuItems() {
+  // Shared menu items rendered by both the … DropdownMenu and the right-click
+  // ContextMenu — a plain function invoked as `{renderMenuItems()}` (not JSX
+  // `<MenuItems />`) so it isn't treated as a component recreated on every
+  // render.
+  function renderMenuItems() {
     return (
       <>
         {!isToday && (
           <DropdownMenuItem onClick={() => onMoveToDate(assignment.id, todayStr)}>
+            <SFIcon name="calendar-badge-checkmark" className="h-[13px] w-[13px] shrink-0" />
             {tDaily("moveToToday")}
           </DropdownMenuItem>
         )}
         {isRecurring ? (
-          <DropdownMenuItem onClick={() => setSkipDialogOpen(true)}>
+          <DropdownMenuItem onClick={() => skipOccurrence(assignment.id, currentDate)}>
+            <SFIcon name="forward" className="h-[13px] w-[13px] shrink-0" />
             {tDaily("skipThisOccurrence")}
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem onClick={() => setScheduleDialogOpen(true)}>
+            <SFIcon name="arrow-triangle-2-circlepath" className="h-[13px] w-[13px] shrink-0" />
             {tDaily("setRecurring")}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={() => setScheduleDialogOpen(true)}>
+          <SFIcon name="bell" className="h-[13px] w-[13px] shrink-0" />
           {tDaily("setReminder")}
         </DropdownMenuItem>
         <DropdownMenuItem
           variant="destructive"
-          onClick={() => setArchiveConfirmOpen(true)}
+          onClick={() => onArchive(assignment.id, task.id)}
         >
+          <SFIcon name="archivebox" className="h-[13px] w-[13px] shrink-0" />
           {tDaily("archiveButton")}
         </DropdownMenuItem>
       </>
@@ -114,10 +114,10 @@ export function TaskCard({
   }
 
   const popupClassName =
-    "z-50 max-h-(--available-height) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:overflow-hidden data-closed:fade-out-0 data-closed:zoom-out-95";
+    "z-50 max-h-(--available-height) min-w-[200px] origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:overflow-hidden data-closed:fade-out-0 data-closed:zoom-out-95";
 
   const itemClassName =
-    "relative flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50";
+    "relative flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-hidden select-none whitespace-nowrap focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50";
 
   return (
     <>
@@ -128,7 +128,8 @@ export function TaskCard({
             <div
               ref={setNodeRef}
               style={style}
-              className="flex items-center gap-2 px-1 py-2 hover:bg-muted rounded-md transition-colors group"
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 hover:bg-muted rounded-md transition-colors group cursor-pointer"
             />
           }
         >
@@ -136,6 +137,7 @@ export function TaskCard({
           <button
             {...attributes}
             {...listeners}
+            onClick={(e) => e.stopPropagation()}
             aria-label={t("dragReorder", { title: task.title })}
             className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-text-faint hover:text-muted-foreground transition-opacity shrink-0 touch-none"
           >
@@ -150,9 +152,10 @@ export function TaskCard({
               title: task.title,
               state: assignment.isCompleted ? t("stateCompleted") : t("stateIncomplete"),
             })}
-            onClick={() =>
-              onToggleComplete(assignment.id, task.id, !assignment.isCompleted)
-            }
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleComplete(assignment.id, task.id, !assignment.isCompleted);
+            }}
             className={`h-[18px] w-[18px] rounded-[4px] border-2 shrink-0 cursor-pointer flex items-center justify-center transition-colors ${
               assignment.isCompleted
                 ? "bg-primary border-primary"
@@ -169,7 +172,7 @@ export function TaskCard({
           {/* 標題 */}
           <button
             onClick={() => setIsModalOpen(true)}
-            className={`flex-1 min-w-0 text-sm text-left cursor-pointer bg-transparent border-none p-0 truncate ${
+            className={`flex-1 min-w-0 text-primary-row-title text-left cursor-pointer bg-transparent border-none p-0 truncate ${
               assignment.isCompleted
                 ? "line-through text-text-dim"
                 : "text-foreground"
@@ -178,7 +181,8 @@ export function TaskCard({
             {task.title}
           </button>
 
-          {/* 移動日期 */}
+          {/* 移動日期/選單 — 擋冒泡避免點 icon 也開 modal */}
+          <span onClick={(e) => e.stopPropagation()} className="contents">
           <MoveTaskPopover
             currentDate={currentDate}
             onMove={(targetDate) => onMoveToDate(assignment.id, targetDate)}
@@ -192,10 +196,11 @@ export function TaskCard({
             >
               <MoreHorizontal className="h-4 w-4" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <MenuItems />
+            <DropdownMenuContent align="end" className="min-w-[200px]">
+              {renderMenuItems()}
             </DropdownMenuContent>
           </DropdownMenu>
+          </span>
         </ContextMenuPrimitive.Trigger>
 
         {/* Right-click popup */}
@@ -212,7 +217,7 @@ export function TaskCard({
               )}
               <ContextMenuPrimitive.Item
                 className={itemClassName}
-                onClick={isRecurring ? () => setSkipDialogOpen(true) : () => setScheduleDialogOpen(true)}
+                onClick={isRecurring ? () => skipOccurrence(assignment.id, currentDate) : () => setScheduleDialogOpen(true)}
               >
                 {isRecurring ? tDaily("skipThisOccurrence") : tDaily("setRecurring")}
               </ContextMenuPrimitive.Item>
@@ -224,7 +229,7 @@ export function TaskCard({
               </ContextMenuPrimitive.Item>
               <ContextMenuPrimitive.Item
                 className={itemClassName + " text-destructive"}
-                onClick={() => setArchiveConfirmOpen(true)}
+                onClick={() => onArchive(assignment.id, task.id)}
               >
                 {tDaily("archiveButton")}
               </ContextMenuPrimitive.Item>
@@ -241,6 +246,7 @@ export function TaskCard({
         onStatusChange={(s) => onStatusChange(task.id, s)}
         onTitleChange={(title) => onUpdateTask(task.id, { title })}
         onExpand={onOpenDetail ? () => { onOpenDetail(task.id); setIsModalOpen(false); } : undefined}
+        wide
       />
 
       <ScheduleDialog
@@ -248,43 +254,6 @@ export function TaskCard({
         open={scheduleDialogOpen}
         onOpenChange={setScheduleDialogOpen}
       />
-
-      <SkipConfirmationDialog
-        assignmentId={skipDialogOpen ? assignment.id : null}
-        taskTitle={task.title}
-        currentDate={currentDate}
-        open={skipDialogOpen}
-        onOpenChange={setSkipDialogOpen}
-      />
-
-      <Dialog open={archiveConfirmOpen} onOpenChange={setArchiveConfirmOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogTitle className="text-base font-semibold">
-            {tDaily("archiveTitle")}
-          </DialogTitle>
-          <DialogDescription className="text-sm text-text-dim">
-            {tDaily("archiveConfirmBody", { title: task.title })}
-          </DialogDescription>
-          <div className="flex justify-end gap-2 mt-4">
-            <button
-              onClick={() => setArchiveConfirmOpen(false)}
-              className="px-3 py-1.5 text-sm rounded-lg border border-border text-text-dim hover:text-foreground hover:bg-muted transition-colors"
-            >
-              {tCommon("cancel")}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onArchive(assignment.id, task.id);
-                setArchiveConfirmOpen(false);
-              }}
-              className="rounded-lg border border-destructive/40 px-3 py-1.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-            >
-              {tDaily("archiveButton")}
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
