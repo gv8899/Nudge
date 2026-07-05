@@ -305,7 +305,10 @@ public struct DailyHostView: View {
                 navigationPath.append(TaskIdRoute(id: taskId))
                 notificationRouter.clear()
             }
-            .onChange(of: notificationRouter.pendingNewTask) { _, isPending in
+            // `initial: true` — 鎖定畫面 widget 的 `nudge://daily/new` deep
+            // link 冷啟動時，onOpenURL 在本 view mount 前就設好 flag，純
+            // onChange 收不到（同 pendingTaskId 的冷啟動陷阱）。
+            .onChange(of: notificationRouter.pendingNewTask, initial: true) { _, isPending in
                 guard isPending else { return }
                 // Mirror the FAB tap path — fresh empty input then present
                 // the quick-add alert. Today selected so the new task lands
