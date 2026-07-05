@@ -1050,6 +1050,12 @@ public struct DailyHostView: View {
                 }
                 if !dashboardCardSearchExpanded {
                     dashboardCardSearchFieldFocused = false
+                    // 按 X 收合 = 結束這次搜尋：關鍵字 / tag 篩選一併清空，
+                    // 「最近卡片」回到未過濾狀態。否則面板收起來了、清單卻
+                    // 還停在舊篩選結果，看起來像卡片不見了。
+                    dashboardCardSearchQuery = ""
+                    dashboardCardDebouncedQuery = ""
+                    dashboardCardSelectedTagIds = []
                 }
             }
         }

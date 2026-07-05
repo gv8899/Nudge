@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { tags } from "@/lib/db/schema";
-import { eq, asc, max } from "drizzle-orm";
+import { eq, asc, min } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
 import { nanoid } from "nanoid";
 import { notifyUserDevices } from "@/lib/notify-devices";
@@ -30,12 +30,15 @@ export async function POST(request: NextRequest) {
   if (!name)
     return NextResponse.json({ error: "name required" }, { status: 400 });
 
-  const [maxRow] = await db
-    .select({ maxSort: max(tags.sortOrder) })
+  // 新標籤排最上面（清單 asc 排序 → 取最小值再 -1）。三端建立後都重抓
+  // server 清單，這裡是唯一的排序決定點。負值 OK：web 拖曳重排會把
+  // sortOrder 正規化回 0..n。
+  const [minRow] = await db
+    .select({ minSort: min(tags.sortOrder) })
     .from(tags)
     .where(eq(tags.userId, user.id))
     .limit(1);
-  const nextSort = (maxRow?.maxSort ?? -1) + 1;
+  const nextSort = (minRow?.minSort ?? 1) - 1;
 
   const tag = {
     id: nanoid(),

@@ -64,7 +64,18 @@ export function DailyCardsPanel({ onOpenCard }: DailyCardsPanelProps = {}) {
         </div>
         <button
           type="button"
-          onClick={() => setSearchExpanded((v) => !v)}
+          onClick={() => {
+            setSearchExpanded((v) => {
+              // 按 X 收合 = 結束這次搜尋：關鍵字 / tag 篩選一併清空，
+              // 「最近卡片」回到未過濾狀態（對齊 Mac dashboard 同一顆 X）。
+              if (v) {
+                setQuery("");
+                setDebouncedQuery("");
+                setSelectedTagIds([]);
+              }
+              return !v;
+            });
+          }}
           aria-label={t("searchAria")}
           aria-pressed={searchExpanded}
           className="flex items-center justify-center h-7 w-7 rounded-md text-text-dim hover:text-foreground hover:bg-muted transition-colors"
@@ -77,7 +88,7 @@ export function DailyCardsPanel({ onOpenCard }: DailyCardsPanelProps = {}) {
         </button>
       </div>
 
-      {/* Search area — visible when expanded; collapsing does NOT clear filters */}
+      {/* Search area — visible when expanded; X 收合時會一併清空搜尋條件 */}
       {searchExpanded && (
         <div className="px-3 pb-2 shrink-0 space-y-2">
           {/* Search input */}
