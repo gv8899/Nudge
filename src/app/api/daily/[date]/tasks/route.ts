@@ -4,6 +4,7 @@ import { dailyTaskAssignments, tasks, statusHistory } from "@/lib/db/schema";
 import { eq, and, lt, ne, min } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getUser } from "@/lib/get-user";
+import { notifyUserDevices } from "@/lib/notify-devices";
 
 async function getTopSortOrder(date: string) {
   const [row] = await db
@@ -78,6 +79,7 @@ export async function POST(
   };
 
   await db.insert(dailyTaskAssignments).values(assignment);
+  notifyUserDevices(user.id);
   return NextResponse.json(assignment, { status: 201 });
 }
 
@@ -88,6 +90,7 @@ export async function DELETE(request: NextRequest) {
   const body = await request.json();
   await db.delete(dailyTaskAssignments)
     .where(eq(dailyTaskAssignments.id, body.assignmentId));
+  notifyUserDevices(user.id);
   return NextResponse.json({ success: true });
 }
 
@@ -183,6 +186,7 @@ export async function PATCH(request: NextRequest) {
         );
     }
 
+    notifyUserDevices(user.id);
     return NextResponse.json({ success: true });
   }
 
@@ -222,5 +226,6 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
+  notifyUserDevices(user.id);
   return NextResponse.json({ success: true });
 }

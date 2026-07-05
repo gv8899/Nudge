@@ -4,6 +4,7 @@ import { tags } from "@/lib/db/schema";
 import { eq, asc, max } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
 import { nanoid } from "nanoid";
+import { notifyUserDevices } from "@/lib/notify-devices";
 
 export async function GET() {
   const user = await getUser();
@@ -45,5 +46,6 @@ export async function POST(request: NextRequest) {
   };
 
   await db.insert(tags).values(tag);
+  notifyUserDevices(user.id);
   return NextResponse.json(tag, { status: 201 });
 }

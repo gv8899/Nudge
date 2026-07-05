@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { tasks } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
+import { notifyUserDevices } from "@/lib/notify-devices";
 
 /**
  * DELETE /api/cards/untitled
@@ -33,5 +34,6 @@ export async function DELETE() {
     await db.delete(tasks).where(eq(tasks.id, id));
   }
 
+  notifyUserDevices(user.id);
   return NextResponse.json({ deleted: idsToDelete.length });
 }

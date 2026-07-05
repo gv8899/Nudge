@@ -25,6 +25,9 @@ public struct RichTextEditor: View {
     let onBlurSave: ((String) -> Void)?
 
     @Environment(\.colorScheme) private var colorScheme
+    #if os(macOS)
+    @Environment(\.nudgeMacDetailActive) private var macDetailActive
+    #endif
     @State private var contentHeight: CGFloat = 0
 
     public init(
@@ -88,7 +91,8 @@ public struct RichTextEditor: View {
             onActiveMarks: { marks in activeMarks?.wrappedValue = marks },
             onHeight: { _ in },
             commandBus: commandBus,
-            onBlurSave: onBlurSave
+            onBlurSave: onBlurSave,
+            isDetailActive: macDetailActive
         )
         #endif
     }
@@ -206,6 +210,11 @@ private struct AppKitEditor: NSViewRepresentable {
     let onHeight: (CGFloat) -> Void
     let commandBus: EditorCommandBus?
     let onBlurSave: ((String) -> Void)?
+    /// 所在的 Mac sidebar 分頁是否為當前顯示中（見 MacDetailActive.swift）。
+    /// inactive 時把 webview 在 AppKit 層 isHidden —— SwiftUI 的 opacity(0)
+    /// 藏不掉 NSView 的 tracking area，WebKit 會持續把游標搶回箭頭，弄壞
+    /// 其他分頁（Daily）分隔線的 resize 游標。
+    let isDetailActive: Bool
 
     func makeCoordinator() -> EditorCoordinator {
         EditorCoordinator(
@@ -225,6 +234,7 @@ private struct AppKitEditor: NSViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.setValue(false, forKey: "drawsBackground")
         webView.isInspectable = true
+        webView.isHidden = !isDetailActive
         context.coordinator.attach(webView: webView)
         context.coordinator.pushTheme(scheme: colorScheme)
         context.coordinator.loadBundle()
@@ -239,6 +249,7 @@ private struct AppKitEditor: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
+        nsView.isHidden = !isDetailActive
         context.coordinator.pushTheme(scheme: colorScheme)
         context.coordinator.applyIncomingHTMLIfNeeded()
     }

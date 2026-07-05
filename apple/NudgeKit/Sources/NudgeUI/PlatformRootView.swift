@@ -590,6 +590,12 @@ struct MacSidebarRoot: View {
             .allowsHitTesting(isActive)
             .accessibilityHidden(!isActive)
             .zIndex(isActive ? 1 : 0)
+            // opacity/allowsHitTesting 只擋 SwiftUI 層；AppKit-backed view
+            // （WKWebView 編輯器）的 NSView + tracking area 仍活著，會持續
+            // 搶游標（inactive Notes canvas 蓋住 Daily 分隔線 → resize 游標
+            // 被 WebKit 每次 mouseMoved 重設回箭頭）。AppKitEditor 讀這個
+            // env、inactive 時把 webview isHidden，AppKit 層才真正退場。
+            .environment(\.nudgeMacDetailActive, isActive)
     }
 }
 #endif

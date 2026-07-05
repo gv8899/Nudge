@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { dailyTaskAssignments, tasks } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
+import { notifyUserDevices } from "@/lib/notify-devices";
 
 /**
  * PATCH /api/daily-assignments/[id] — 更新單筆 assignment 的 isSkipped /
@@ -49,5 +50,6 @@ export async function PATCH(
     .from(dailyTaskAssignments)
     .where(eq(dailyTaskAssignments.id, id))
     .limit(1);
+  notifyUserDevices(user.id);
   return NextResponse.json(updated);
 }

@@ -4,6 +4,7 @@ import { dailyNotes } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getUser } from "@/lib/get-user";
+import { notifyUserDevices } from "@/lib/notify-devices";
 
 async function upsertNote(userId: string, date: string, content: string) {
   const now = new Date().toISOString();
@@ -17,11 +18,13 @@ async function upsertNote(userId: string, date: string, content: string) {
     await db.update(dailyNotes)
       .set({ content, createdAt: now })
       .where(eq(dailyNotes.id, existing.id));
+    notifyUserDevices(userId);
     return NextResponse.json({ id: existing.id, content });
   } else {
     const id = nanoid();
     await db.insert(dailyNotes)
       .values({ id, userId, date, content, createdAt: now, sortOrder: 0 });
+    notifyUserDevices(userId);
     return NextResponse.json({ id, content });
   }
 }

@@ -16,9 +16,9 @@ public struct DailyHostView: View {
     @Environment(CardRepository.self) private var cardRepo
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
-    #if os(iOS)
+    // Injected on both platforms (NudgeiOSApp / NudgeMacApp). iOS pushes the
+    // task detail onto navigationPath; macOS opens it in the right column.
     @Environment(NotificationRouter.self) private var notificationRouter
-    #endif
 
     @State private var selectedDate: String = DateFormatters.isoDate(Date())
     @State private var dailyData: DailyDataDTO?
@@ -285,7 +285,14 @@ public struct DailyHostView: View {
                     onUpdateTags: { newIds in await updateTaskTags(taskId: route.id, tagIds: newIds) }
                 )
             }
-            .onChange(of: notificationRouter.pendingTaskId) { _, taskId in
+            // `initial: true` is required, not cosmetic: on a cold launch from
+            // a notification tap the delegate sets `pendingTaskId` before this
+            // view mounts (Tasks is the default tab, so DailyHostView mounts at
+            // launch behind the auth gate). A plain `.onChange` only fires on a
+            // transition *while subscribed*, so it would miss the already-set
+            // value and never push. Mirrors the CardsHostView `pendingNewCard`
+            // contract. Warm taps (value transitions after mount) fire too.
+            .onChange(of: notificationRouter.pendingTaskId, initial: true) { _, taskId in
                 guard let taskId else { return }
                 navigationPath.append(TaskIdRoute(id: taskId))
                 notificationRouter.clear()
@@ -432,6 +439,16 @@ public struct DailyHostView: View {
         // toolbar items 漂進外層 NavigationSplitView 共用 toolbar。
         NavigationStack(path: $navigationPath) {
             macOSContent
+        }
+        // Notification tap → open the task's card in the right column.
+        // `initial: true` for the same reason as iOS: on a cold launch from a
+        // notification the delegate sets `pendingTaskId` before this view
+        // mounts, so a plain `.onChange` would miss the already-set value.
+        // (Previously macOS never consumed pendingTaskId at all → taps no-op'd.)
+        .onChange(of: notificationRouter.pendingTaskId, initial: true) { _, taskId in
+            guard let taskId else { return }
+            openTaskInRightColumn(taskId: taskId)
+            notificationRouter.clear()
         }
         // macOS 全部 modal（排程 / move-to-date / quick-add / task popover）
         // 都上移到 MacSidebarRoot 用 window-level overlay 渲染（支援點外取消）。
@@ -751,13 +768,19 @@ public struct DailyHostView: View {
     /// 起或正在顯示 Calendar，自動切到 Cards 並打開，確保點下去一定有
     /// 東西可看。fetch 完才更新 state，期間維持上次的 detail（避免閃爍）。
     private func openTaskInRightColumn(_ assignment: DailyAssignmentDTO) {
+        openTaskInRightColumn(taskId: assignment.task.id)
+    }
+
+    /// Open a task's card in the right column by id. Shared by the in-app
+    /// tap path and the notification-tap path (macOS deep link).
+    private func openTaskInRightColumn(taskId: String) {
         if !dashboardRightPanelOpen { dashboardRightPanelOpen = true }
         if dashboardRightPanelKind != .cards {
             dashboardRightPanelKindRaw = DashboardRightPanelKind.cards.rawValue
         }
         Task {
             do {
-                let card = try await cardRepo.get(cardId: assignment.task.id)
+                let card = try await cardRepo.get(cardId: taskId)
                 await MainActor.run {
                     dashboardCardDetailCard = card
                 }
