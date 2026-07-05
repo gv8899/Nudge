@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { CalendarEvent } from "@/lib/google-calendar/types";
-import { CalendarNav, WeekNavControls } from "./calendar-nav";
+import { CalendarNav } from "./calendar-nav";
 import { CalendarEventItem } from "./calendar-event-item";
 import { EventPopover } from "./event-popover";
 
@@ -61,9 +61,7 @@ export function CalendarDayView({ date, onDateChange, eventsByDate, isLoading }:
 
   return (
     <div className="pt-3 space-y-4">
-      {/* Week nav controls (prev/today/next) */}
-      <WeekNavControls date={date} onDateChange={onDateChange} />
-
+      {/* 對齊 Mac：Day 檢視無 ‹ Today › 導覽組，只有週條 */}
       {/* Week strip nav */}
       <CalendarNav
         date={date}

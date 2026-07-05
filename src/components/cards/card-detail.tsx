@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import useSWR, { mutate as globalMutate } from "swr";
 import { ChevronLeft } from "lucide-react";
+import { SFIcon } from "@/components/ui/sf-icon";
+import { useSidebarCollapsed } from "@/components/sidebar/sidebar-layout";
 import { fetcher } from "@/lib/fetcher";
 import { DebouncedSaver } from "@/lib/debounced-saver";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
@@ -37,6 +39,7 @@ function invalidateCardsCache() {
 }
 
 export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
+  const sidebarCollapsed = useSidebarCollapsed();
   const t = useTranslations("cardDetail");
   const tCommon = useTranslations("common");
   const { data, error, isLoading, mutate } = useSWR<CardData>(
@@ -184,6 +187,28 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
 
   return (
     <div className={containerClass}>
+      {/* 全頁（md+）：返回 + 標籤 = 頂部 toolbar 帶左段兩顆玻璃 chip（對齊 Mac） */}
+      {!embedded && (
+        <div
+          className="hidden md:flex items-center gap-2 fixed top-[14px] h-9 z-40 transition-[left] duration-300 ease-out"
+          style={{ left: sidebarCollapsed ? 66 : 200 }}
+        >
+          <Link
+            href="/cards"
+            aria-label={t("backToCards")}
+            title={t("backToCards")}
+            className="flex items-center justify-center h-9 w-9 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-foreground hover:bg-card transition-colors"
+          >
+            <SFIcon name="chevron-left" className="h-4 w-4" />
+          </Link>
+          <TagPicker
+            selectedTags={cardTags}
+            onTagsChange={handleTagsChange}
+            variant="icon"
+            triggerClassName="flex items-center justify-center h-9 w-9 rounded-full bg-card/80 backdrop-blur-md shadow-sm text-foreground hover:bg-card transition-colors"
+          />
+        </div>
+      )}
       <header className="flex items-center gap-2 mb-6">
         {/* 返回按鈕：只在 embedded（右側 pane）顯示；全頁靠左側 nav 回卡片列表，不需返回鈕 */}
         {embedded && (
@@ -224,13 +249,15 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
           className={`${titleClass} bg-transparent rounded outline-none border-b-2 border-transparent focus:border-primary transition-colors placeholder:text-text-faint placeholder:font-normal`}
         />
 
-        {/* tags 入口 — 全頁對齊 Mac toolbar 鈕，開批次儲存的 TagPicker dialog；embedded（右側 pane）維持無 tags 入口 */}
+        {/* tags 入口（手機）— md+ 已移到頂部 toolbar 帶 */}
         {!embedded && (
-          <TagPicker
-            selectedTags={cardTags}
-            onTagsChange={handleTagsChange}
-            variant="icon"
-          />
+          <span className="md:hidden">
+            <TagPicker
+              selectedTags={cardTags}
+              onTagsChange={handleTagsChange}
+              variant="icon"
+            />
+          </span>
         )}
       </header>
 
