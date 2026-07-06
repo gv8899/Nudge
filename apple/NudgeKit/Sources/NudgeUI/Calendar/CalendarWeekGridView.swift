@@ -225,8 +225,9 @@ struct CalendarWeekGridView: View {
     }
 
     private func scrollToInitialHour() {
-        // 往上多留 12pt，時間刻度 label 才不會被上緣（整日列）切掉一半。
-        scrollPosition.scrollTo(y: max(CGFloat(initialScrollHour) * hourHeight - 12, 0))
+        // 上移一個小時：頂端剛好蓋住最早事件的前一小時（-12pt 讓該刻度
+        // label 完整可見）。
+        scrollPosition.scrollTo(y: max(CGFloat(initialScrollHour - 1) * hourHeight - 12, 0))
     }
 
     /// 起始定位在「當週最早的非全天事件」那個小時（如最早 9:30 → 定位

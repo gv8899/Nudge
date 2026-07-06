@@ -77,7 +77,9 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
     const hour = mins.length
       ? Math.min(Math.max(Math.floor(Math.min(...mins) / 60), 0), 23)
       : 9;
-    el.scrollTop = Math.max(hour * HOUR_H - 12, 0);
+    // 上移一個小時：頂端剛好蓋住最早事件的前一小時（-12px 讓該刻度
+    // label 完整可見）。
+    el.scrollTop = Math.max((hour - 1) * HOUR_H - 12, 0);
     scrolledWeekRef.current = start;
   });
 
