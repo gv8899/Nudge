@@ -12,7 +12,7 @@
 
 - Seeded example content becomes the user's **real data** — no sample flag.
 - Timestamps stored as **text ISO strings**, not timestamptz. New column `onboarded_at: text` nullable.
-- Migration naming `drizzle/000X_snake_name.sql`; run manually via `psql`. Additive nullable + backfill existing users to now().
+- Migration naming `drizzle/000X_snake_name.sql`; run manually via `psql`. Additive nullable + backfill existing users to a FIXED PAST timestamp (epoch), not now() — marks them onboarded without tripping the 7-day "recent" welcome window.
 - Deploy order: ship code depending on the new column **before** running the migration (nullable/backfill makes it safe).
 - Only build today/past `daily_task_assignments`; recurrence `start_date = today`; never pre-materialize future assignments (orphan invariant).
 - Colors from design tokens only (Web: `globals.css`/Tailwind token names; Apple: `Color.nudgeXxx`). No hardcoded hex / default palette colors.
@@ -61,8 +61,9 @@
 - [ ] Write migration:
 ```sql
 ALTER TABLE users ADD COLUMN onboarded_at text;
--- existing users are considered already-onboarded so they are never seeded
-UPDATE users SET onboarded_at = now()::text WHERE onboarded_at IS NULL;
+-- existing users are considered already-onboarded so they are never seeded;
+-- fixed past timestamp (not now()) so they don't trip the frontend 7-day window
+UPDATE users SET onboarded_at = '1970-01-01T00:00:00.000Z' WHERE onboarded_at IS NULL;
 ```
 - [ ] `npx next build` (type check schema). Commit.
 

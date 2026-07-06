@@ -16,4 +16,10 @@
 
 ALTER TABLE "users" ADD COLUMN "onboarded_at" text;
 
-UPDATE "users" SET "onboarded_at" = now()::text WHERE "onboarded_at" IS NULL;
+-- Backfill existing users with a FIXED PAST timestamp (epoch), not now(): this
+-- marks them "already onboarded" (so the seed's `WHERE onboarded_at IS NULL`
+-- gate never fires for them) WITHOUT making them look "recently onboarded" to
+-- the frontend — the welcome card / hints only show when onboarded_at is within
+-- the last 7 days. Using now() here would flash the welcome UI at every existing
+-- user for a week. New signups get a real now() timestamp from the seed writer.
+UPDATE "users" SET "onboarded_at" = '1970-01-01T00:00:00.000Z' WHERE "onboarded_at" IS NULL;
