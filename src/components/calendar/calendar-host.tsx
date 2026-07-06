@@ -30,7 +30,7 @@ export function CalendarHost({
   const pathname = usePathname();
 
   const [mode, setMode] = useState<Mode>(() =>
-    MODES.includes(initialMode as Mode) ? (initialMode as Mode) : "day"
+    MODES.includes(initialMode as Mode) ? (initialMode as Mode) : "week"
   );
   const [date, setDate] = useState<string>(() =>
     initialDate && DATE_RE.test(initialDate) ? initialDate : isoToday()
