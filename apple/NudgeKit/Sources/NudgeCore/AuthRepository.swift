@@ -133,6 +133,21 @@ public final class AuthRepository {
         }
     }
 
+    /// 重新抓完整 user（/api/me）並更新 status + entitlement。login 回應不帶
+    /// `entitlement` / `onboardedAt`，first-run 導覽需要 `onboardedAt` → 進主
+    /// 畫面時呼叫一次補齊。網路 / 其他錯誤靜默忽略（維持現有 status）。
+    public func refreshCurrentUser() async {
+        do {
+            let user: UserDTO = try await client.get("/api/me")
+            entitlement = user.entitlement
+            status = .authenticated(user)
+        } catch {
+            if !APIError.isCancellation(error) {
+                print("[AuthRepository] refreshCurrentUser failed: \(error)")
+            }
+        }
+    }
+
     /// 兌換 promo code → 更新 entitlement、回獲得天數。失敗 throw（server 回
     /// 400/各 reason，native 顯示通用錯誤訊息）。
     @discardableResult

@@ -41,6 +41,12 @@ public struct DailyHostView: View {
     @State private var showQuickAdd = false
     @State private var quickAddText = ""
 
+    // First-run welcome 導覽 —— 顯示條件見 OnboardingGate（近期 onboard +
+    // 本地未看過）。dismissWelcome() 後本地 flag 記已看過、welcomeDismissed
+    // 立即隱藏。onboardedAt 由 refreshOnboardingUser() 從 /api/me 補進
+    // auth.currentUser（login 回應不帶）。
+    @State private var welcomeDismissed = OnboardingGate.isSeen(.welcome)
+
     // 30 秒 smart polling — server 多數時候回 304，只有真有變動才更新
     // 本地 cache + widget snapshot。scenePhase 切走時 cancel，回前景再啟。
     @State private var pollingTask: Task<Void, Never>?
@@ -159,6 +165,50 @@ public struct DailyHostView: View {
             pollingTask?.cancel()
             pollingTask = nil
         }
+        // First-run welcome overlay — 掛在 iOS / macOS 兩種 layout 之上，
+        // 一處 mount 兩平台共用。用共用 NudgeModalOverlay（backdrop / 圓角 /
+        // 陰影 / ⎋ / 點外關閉都在裡面）。
+        .overlay { welcomeOverlay }
+        // login 回應不帶 onboardedAt / entitlement —— 進主畫面補抓 /api/me
+        // 一次，讓 first-run welcome 的近期 onboard 判斷拿得到 onboardedAt。
+        .task { await auth.refreshCurrentUser() }
+    }
+
+    // MARK: - First-run welcome overlay
+
+    /// 顯示條件（見 OnboardingGate / spec §5）：本地未看過 + 近期 onboard。
+    private var showWelcome: Bool {
+        !welcomeDismissed
+            && OnboardingGate.isRecentlyOnboarded(auth.currentUser?.onboardedAt)
+    }
+
+    @ViewBuilder
+    private var welcomeOverlay: some View {
+        if showWelcome {
+            NudgeModalOverlay(onDismiss: dismissWelcome) {
+                OnboardingWelcomeView(
+                    onStart: dismissWelcome,
+                    onViewCards: {
+                        dismissWelcome()
+                        // mac：PlatformRootView（MacSidebarRoot）監聽 switchTab
+                        // → 切 Cards。NudgeCommands 是 macOS-only；iOS TabView
+                        // 走 notificationRouter、無此監聽 → 僅關閉（可接受）。
+                        #if os(macOS)
+                        NotificationCenter.default.post(
+                            name: NudgeCommands.switchTabNotification,
+                            object: "cards"
+                        )
+                        #endif
+                    }
+                )
+                .frame(maxWidth: 420)
+            }
+        }
+    }
+
+    private func dismissWelcome() {
+        OnboardingGate.markSeen(.welcome)
+        welcomeDismissed = true
     }
 
     /// 啟動 30 秒 polling loop。Idempotent — 重複呼叫先 cancel 舊的。
