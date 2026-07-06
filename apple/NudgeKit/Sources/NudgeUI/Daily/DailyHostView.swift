@@ -44,6 +44,10 @@ public struct DailyHostView: View {
     // 30 秒 smart polling — server 多數時候回 304，只有真有變動才更新
     // 本地 cache + widget snapshot。scenePhase 切走時 cancel，回前景再啟。
     @State private var pollingTask: Task<Void, Never>?
+    /// 最近一次本機 mutation（打勾/拖曳排序/移動/封存/跳過/新增）的時間。
+    /// 輪詢在這之後 3 秒內只刷 widget、不重載清單 —— 避免把還沒落地的樂觀
+    /// 更新打回（edge case ①②）。由 markLocalMutation() 更新。
+    @State private var lastLocalMutationAt: Date = .distantPast
 
     // Used by both platforms now — macOS pushes detail into the
     // sidebar's content column NavigationStack instead of opening a
@@ -162,17 +166,49 @@ public struct DailyHostView: View {
     /// cancel 掉，loop 自然結束。
     private func startPolling() {
         pollingTask?.cancel()
-        pollingTask = Task { [weak taskRepo] in
+        pollingTask = Task {
+            // 進畫面 / 回前景先立刻刷一次 —— 不用等 30 秒才反映遠端變動
+            // （之前用 refreshIfChanged 只更 cache+widget、**沒更新畫面綁的
+            // dailyData**，所以 in-app 清單一直不動；改用 reloadSilently 直接
+            // 更新畫面 @State，widget 另外刷）。
+            await pollRefreshOnce()
             while !Task.isCancelled {
                 // 30 秒 — 用 nanoseconds 避免新 API 在較舊 deployment
                 // target 上不可用的問題
                 try? await Task.sleep(nanoseconds: 30_000_000_000)
                 if Task.isCancelled { break }
-                guard let repo = taskRepo else { break }
-                let today = DateFormatters.isoDate(Date())
-                await repo.refreshIfChanged(date: today)
+                await pollRefreshOnce()
             }
         }
+    }
+
+    /// 一次輪詢刷新：更新 in-app 畫面（reloadSilently 設 dailyData @State，
+    /// 304 短路保留現狀）＋ widget snapshot。Mac / iOS 前景共用。
+    private func pollRefreshOnce() async {
+        // 閘門：編輯器開著（iOS 進了 detail / Mac 右欄卡片編輯）或剛做過本機
+        // mutation（樂觀更新在途）時 → 只刷 widget、**不重載清單**。避免 poll
+        // 把正在編輯的畫面 churn 掉（Mac 右欄重載會把編輯器打掉重建）、或把
+        // 還沒落地的樂觀狀態（打勾/拖曳排序）打回（edge case ①②③）。widget
+        // 照刷、不影響背景同步。
+        #if os(macOS)
+        let editorOpen = dashboardCardDetailCard != nil
+        #else
+        let editorOpen = false
+        #endif
+        let editing = !navigationPath.isEmpty || editorOpen
+        let recentlyMutated = Date().timeIntervalSince(lastLocalMutationAt) < 3
+        if editing || recentlyMutated {
+            await taskRepo.refreshWidgetSnapshot()
+            return
+        }
+        await reloadSilently()
+        await taskRepo.refreshWidgetSnapshot()
+    }
+
+    /// 本機 optimistic mutation 進入點呼叫 —— 讓接下來 3 秒的輪詢先別重載
+    /// 清單，避免把還沒落地的樂觀更新打回。
+    private func markLocalMutation() {
+        lastLocalMutationAt = Date()
     }
 
     // MARK: - iOS layout
@@ -1273,6 +1309,7 @@ extension DailyHostView {
     }
 
     func createTask(_ title: String) {
+        markLocalMutation()
         Task {
             do {
                 _ = try await taskRepo.createTask(date: selectedDate, title: title)
@@ -1284,6 +1321,7 @@ extension DailyHostView {
     }
 
     func toggleComplete(_ assignment: DailyAssignmentDTO) {
+        markLocalMutation()
         if !assignment.isCompleted { completionTicker &+= 1 }
         let newValue = !assignment.isCompleted
         // Optimistic update: flip isCompleted locally so the row redraws
@@ -1369,6 +1407,7 @@ extension DailyHostView {
     }
 
     func handleMove(_ indices: IndexSet, _ newOffset: Int) {
+        markLocalMutation()
         guard var assignments = dailyData?.assignments, !indices.isEmpty else { return }
         assignments.move(fromOffsets: indices, toOffset: newOffset)
         let ids = assignments.map(\.id)
@@ -1383,6 +1422,7 @@ extension DailyHostView {
     }
 
     func moveAssignment(_ assignment: DailyAssignmentDTO, to newDate: String) {
+        markLocalMutation()
         if assignment.date == newDate {
             return
         }
@@ -1402,6 +1442,7 @@ extension DailyHostView {
     }
 
     func archiveTask(_ assignment: DailyAssignmentDTO) {
+        markLocalMutation()
         archiveTicker &+= 1
         Task {
             do {
@@ -1477,6 +1518,7 @@ extension DailyHostView {
     /// hiding it from the row list while preserving the recurrence rule
     /// so the next occurrence still materializes.
     func skipOccurrence(_ assignment: DailyAssignmentDTO) {
+        markLocalMutation()
         archiveTicker &+= 1
         Task {
             do {
