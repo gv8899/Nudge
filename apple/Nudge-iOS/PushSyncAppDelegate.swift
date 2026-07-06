@@ -35,6 +35,9 @@ final class PushSyncAppDelegate: NSObject, UIApplicationDelegate {
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
     ) {
         let token = deviceToken.map { String(format: "%02x", $0) }.joined()
+        // 讓 APIClient 之後能把這個 token 帶進 X-Nudge-Device-Id header
+        // → 後端排除自己、不推給發起 mutation 的裝置。
+        PushDeviceToken.current = token
         #if DEBUG
         let environment = "sandbox"
         #else

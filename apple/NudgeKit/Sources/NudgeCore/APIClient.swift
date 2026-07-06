@@ -157,6 +157,13 @@ public final class APIClient: Sendable {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
+        // 本機 APNs token → 後端排除「發起 mutation 的裝置」，不推給自己
+        // （避免打字存檔時自己被喚醒刷新、撞編輯器 409 重載）。macOS 無 token
+        // → 不帶（Mac 本來就收不到 push）。
+        if let deviceId = PushDeviceToken.current {
+            request.setValue(deviceId, forHTTPHeaderField: "X-Nudge-Device-Id")
+        }
+
         // GET-only: 帶上同 path 的 last-seen ETag，server 一致回 304。
         // Cache key 用 request.url?.path 與 perform 存 ETag 的 key 對齊。
         if method == "GET",

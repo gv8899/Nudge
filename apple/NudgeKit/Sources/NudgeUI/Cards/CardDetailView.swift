@@ -126,6 +126,11 @@ public struct CardDetailView: View {
         // 跨裝置衝突解決：別台先存、這台被 server 擋（409）→ 靜默改用 server 最新。
         .onReceive(NotificationCenter.default.publisher(for: CardVersionStore.conflictResolved)) { note in
             guard note.object as? String == initialCard.id, let info = note.userInfo else { return }
+            // 我正在編輯這張卡 → 本機內容才是最新，**不採用 server 版、不
+            // reloadToken 重建編輯器**（那會把正在打的字砍掉、游標跳回頂端）。
+            // base 已由 repo advance，接下來的存檔會用新 base 重送而勝出。
+            // 只有「純檢視、沒編輯過」時才採用 server 最新（真正的跨裝置同步）。
+            if hasEditedTitle || hasEditedDescription { return }
             // 取消還在排隊的本機存檔，別用舊內容回頭覆蓋剛採用的 server 最新。
             titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
             descriptionSaveWorkItem?.cancel(); descriptionSaveWorkItem = nil
