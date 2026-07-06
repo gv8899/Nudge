@@ -131,7 +131,9 @@ struct CalendarWeekGridView: View {
             }
         }
         .overlay(alignment: .bottom) {
+            // 底線左端與小時格線同起點（時間數字右側），不延伸到最左緣。
             Rectangle().fill(Color.nudgeBorder).frame(height: 1)
+                .padding(.leading, axisWidth)
         }
     }
 
@@ -180,7 +182,9 @@ struct CalendarWeekGridView: View {
             }
         }
         .overlay(alignment: .bottom) {
+            // 同 dayHeaderRow — 底線不延伸到時間數字下方。
             Rectangle().fill(Color.nudgeBorder).frame(height: 1)
+                .padding(.leading, axisWidth)
         }
     }
 

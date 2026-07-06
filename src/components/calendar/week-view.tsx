@@ -131,8 +131,8 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
         <div>
           <div className="overflow-x-auto">
             <div className="min-w-[760px]">
-              {/* 日 header 列 */}
-              <div className="grid grid-cols-[56px_repeat(7,1fr)] border-b border-border">
+              {/* 日 header 列 — 底線只畫在日欄（時間數字上方不留線） */}
+              <div className="grid grid-cols-[56px_repeat(7,1fr)]">
                 <div />
                 {days.map((dayStr) => {
                   const dayDate = new Date(dayStr + "T00:00:00");
@@ -140,7 +140,7 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
                   return (
                     <div
                       key={dayStr}
-                      className="border-l border-border py-2.5 text-center"
+                      className="border-l border-b border-border py-2.5 text-center"
                     >
                       <div
                         className={`mb-1 text-[11px] tracking-wide ${
@@ -163,14 +163,14 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
 
               {/* 全天事件列 — 只在本週有全天事件時出現，平常不佔空帶 */}
               {allWeekEvents.some((e) => e.allDay) && (
-                <div className="grid min-h-[30px] grid-cols-[56px_repeat(7,1fr)] border-b border-border">
+                <div className="grid min-h-[30px] grid-cols-[56px_repeat(7,1fr)]">
                   <div className="pr-2 pt-2 text-right text-[10px] text-text-faint">
                     {t("eventAllDay")}
                   </div>
                   {days.map((dayStr) => {
                     const allDayEvents = (eventsByDate.get(dayStr) ?? []).filter((e) => e.allDay);
                     return (
-                      <div key={dayStr} className="flex flex-col gap-[3px] border-l border-border p-[3px]">
+                      <div key={dayStr} className="flex flex-col gap-[3px] border-l border-b border-border p-[3px]">
                         {allDayEvents.map((e) => (
                           <EventPopover key={`${e.calendarId}-${e.id}`} event={e}>
                             <button
