@@ -20,7 +20,6 @@ struct CalendarWeekGridView: View {
     private let hourHeight: CGFloat = 48
     private let axisWidth: CGFloat = 56
 
-    @State private var didInitialScroll = false
     @State private var scrollPosition = ScrollPosition(edge: .top)
 
     private var calendar: Calendar {
@@ -212,16 +211,19 @@ struct CalendarWeekGridView: View {
             scrollToInitialHour()
         }
         // onAppear 時 events 常常還沒載回來（async reload）→ 先落在
-        // fallback 9:00；資料第一次到位後再對齊當週最早事件一次。
+        // fallback；資料到位或切週後（events 內容改變才會觸發，DTO 是
+        // Equatable）重新對齊當週最早事件。
         .onChange(of: events) { _, _ in
-            guard !didInitialScroll, !events.isEmpty else { return }
-            didInitialScroll = true
+            scrollToInitialHour()
+        }
+        .onChange(of: weekStart) { _, _ in
             scrollToInitialHour()
         }
     }
 
     private func scrollToInitialHour() {
-        scrollPosition.scrollTo(y: CGFloat(initialScrollHour) * hourHeight)
+        // 往上多留 12pt，時間刻度 label 才不會被上緣（整日列）切掉一半。
+        scrollPosition.scrollTo(y: max(CGFloat(initialScrollHour) * hourHeight - 12, 0))
     }
 
     /// 起始定位在「當週最早的非全天事件」那個小時（如最早 9:30 → 定位

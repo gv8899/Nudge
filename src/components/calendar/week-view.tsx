@@ -61,12 +61,14 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
   const allWeekEvents = days.flatMap((d) => eventsByDate.get(d) ?? []);
   const now = new Date();
 
-  // 初始捲動：定位在「當週最早的非全天事件」那個小時（如最早 9:30 →
-  // 定位 9:00）；整週沒事件 → 09:00。與 mac 一致。只捲一次。
+  // 捲動定位：「當週最早的非全天事件」那個小時（如最早 9:30 → 定位
+  // 9:00）；整週沒事件 → 09:00。每次切週、資料到位後都重新定位（用
+  // weekStart 當 key）。往上多留 12px，時間刻度 label 才不會被上緣
+  // （整日列）切掉一半。與 mac 一致。
   const scrollRef = useRef<HTMLDivElement>(null);
-  const didScrollRef = useRef(false);
+  const scrolledWeekRef = useRef<string | null>(null);
   useEffect(() => {
-    if (didScrollRef.current || isLoading) return;
+    if (isLoading || scrolledWeekRef.current === start) return;
     const el = scrollRef.current;
     if (!el) return;
     const mins = allWeekEvents
@@ -75,10 +77,9 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
     const hour = mins.length
       ? Math.min(Math.max(Math.floor(Math.min(...mins) / 60), 0), 23)
       : 9;
-    el.scrollTop = hour * HOUR_H;
-    didScrollRef.current = true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
+    el.scrollTop = Math.max(hour * HOUR_H - 12, 0);
+    scrolledWeekRef.current = start;
+  });
 
   return (
     <div className="pt-4 pb-8 space-y-5">
