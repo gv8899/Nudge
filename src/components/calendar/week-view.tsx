@@ -117,7 +117,7 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
           <span className="sr-only">{t("panelLoading")}</span>
         </div>
       ) : (
-        <div className="border border-border rounded-xl overflow-hidden">
+        <div>
           <div className="overflow-x-auto">
             <div className="min-w-[760px]">
               {/* 日 header 列 */}
@@ -164,7 +164,7 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
                           <button
                             type="button"
                             title={e.title}
-                            className="truncate rounded-md border-l-[3px] border-primary bg-primary/15 px-2 py-[3px] text-left text-[11.5px] font-medium text-foreground hover:bg-primary/25"
+                            className="truncate rounded-md bg-[color-mix(in_srgb,var(--primary)_18%,var(--background))] px-2 py-[3px] text-left text-[11.5px] font-medium text-foreground hover:bg-[color-mix(in_srgb,var(--primary)_28%,var(--background))]"
                           >
                             {e.title}
                           </button>
@@ -220,10 +220,10 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
                               <button
                                 type="button"
                                 title={`${e.title}\n${formatHHMM(e.start)} – ${formatHHMM(e.end)}`}
-                                className={`absolute overflow-hidden rounded-[7px] border-l-[3px] px-1.5 py-[3px] text-left transition-colors ${
+                                className={`absolute overflow-hidden rounded-[7px] px-1.5 py-[3px] text-left transition-colors ${
                                   isPast
-                                    ? "border-border-light bg-foreground/[0.05] hover:bg-primary/15"
-                                    : "border-primary bg-primary/15 hover:bg-primary/25"
+                                    ? "bg-[color-mix(in_srgb,var(--foreground)_7%,var(--background))] hover:bg-[color-mix(in_srgb,var(--primary)_18%,var(--background))]"
+                                    : "bg-[color-mix(in_srgb,var(--primary)_18%,var(--background))] hover:bg-[color-mix(in_srgb,var(--primary)_28%,var(--background))]"
                                 }`}
                                 style={{
                                   top: (startMin / 60) * HOUR_H + 1,

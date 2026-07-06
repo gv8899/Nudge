@@ -88,16 +88,12 @@ struct CalendarWeekGridView: View {
     // MARK: - Grid
 
     private var gridFrame: some View {
+        // 不畫最外圈框線 — 只留內部的欄位線與小時格線。
         VStack(spacing: 0) {
             dayHeaderRow
             allDayRow
             timeGrid
         }
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Color.nudgeBorder, lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .padding(.horizontal, 8)
         .padding(.bottom, 8)
     }
@@ -184,12 +180,14 @@ struct CalendarWeekGridView: View {
     }
 
     private var allDayChipBackground: some View {
-        ZStack(alignment: .leading) {
+        // 底層先鋪 nudgeBackground 再疊 primary tint → 不透明，
+        // 蓋得住底下的格線。
+        ZStack {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(Color.nudgePrimary.opacity(0.15))
-            Rectangle().fill(Color.nudgePrimary).frame(width: 3)
+                .fill(Color.nudgeBackground)
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(Color.nudgePrimary.opacity(0.18))
         }
-        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
     }
 
     private var timeGrid: some View {
@@ -313,15 +311,15 @@ struct CalendarWeekGridView: View {
             .padding(.horizontal, 5)
             .padding(.vertical, isShort ? 1 : 3)
             .frame(width: blockWidth, height: blockHeight, alignment: .topLeading)
-            .background(alignment: .leading) {
-                ZStack(alignment: .leading) {
+            .background {
+                // 底層先鋪 nudgeBackground 再疊 tint → 不透明，蓋得住格線；
+                // 無左側色條。
+                ZStack {
                     RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(past ? Color.nudgeForeground.opacity(0.05) : Color.nudgePrimary.opacity(0.15))
-                    Rectangle()
-                        .fill(past ? Color.nudgeBorderLight : Color.nudgePrimary)
-                        .frame(width: 3)
+                        .fill(Color.nudgeBackground)
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(past ? Color.nudgeForeground.opacity(0.07) : Color.nudgePrimary.opacity(0.18))
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
             }
             .contentShape(Rectangle())
         }
