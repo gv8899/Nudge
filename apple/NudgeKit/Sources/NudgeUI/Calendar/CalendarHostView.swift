@@ -118,9 +118,15 @@ public struct CalendarHostView: View {
         // popover/sheet 只在 callback nil 時才實際 present
         // (selectedEvent 永遠不會被 set 當 callback 存在)。
         #if os(macOS)
-        .popover(item: $selectedEvent, arrowEdge: .top) { event in
-            CalendarEventDetailSheet(event: event)
-                .frame(width: 480, height: 380)
+        // 置中 modal — 跟 Daily 頁點事件的呈現對齊（NudgeModalOverlay：
+        // dim backdrop + 點外面 / ⎋ 關閉 + 圓角卡片），不再用錨定 popover。
+        .overlay {
+            if let event = selectedEvent {
+                NudgeModalOverlay(onDismiss: { selectedEvent = nil }) {
+                    CalendarEventDetailSheet(event: event)
+                        .frame(width: 580, height: 520)
+                }
+            }
         }
         #else
         .sheet(item: $selectedEvent) { event in

@@ -21,6 +21,7 @@ struct CalendarWeekGridView: View {
     private let axisWidth: CGFloat = 56
 
     @State private var didInitialScroll = false
+    @State private var scrollPosition = ScrollPosition(edge: .top)
 
     private var calendar: Calendar {
         var c = Calendar(identifier: .gregorian)
@@ -188,32 +189,39 @@ struct CalendarWeekGridView: View {
     }
 
     private var timeGrid: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                HStack(alignment: .top, spacing: 0) {
-                    axisColumn
-                    GeometryReader { geo in
-                        HStack(spacing: 0) {
-                            ForEach(days, id: \.self) { day in
-                                dayColumn(day: day, width: geo.size.width / 7)
-                            }
+        // 注意：不能用 ScrollViewReader + `.id()` 捲動 — 時間軸 label 是用
+        // `.offset` 視覺位移的，layout frame 全部在容器頂端，scrollTo(id)
+        // 只會捲到 y=0（實際踩過：怎麼捲都停在最上面）。改用 ScrollPosition
+        // 直接捲到 y 座標。
+        ScrollView {
+            HStack(alignment: .top, spacing: 0) {
+                axisColumn
+                GeometryReader { geo in
+                    HStack(spacing: 0) {
+                        ForEach(days, id: \.self) { day in
+                            dayColumn(day: day, width: geo.size.width / 7)
                         }
                     }
-                    .frame(height: hourHeight * 24)
                 }
                 .frame(height: hourHeight * 24)
             }
-            .onAppear {
-                proxy.scrollTo(initialScrollHour, anchor: .top)
-            }
-            // onAppear 時 events 常常還沒載回來（async reload）→ 先落在
-            // fallback 9:00；資料第一次到位後再對齊當週最早事件一次。
-            .onChange(of: events) { _, _ in
-                guard !didInitialScroll, !events.isEmpty else { return }
-                didInitialScroll = true
-                proxy.scrollTo(initialScrollHour, anchor: .top)
-            }
+            .frame(height: hourHeight * 24)
         }
+        .scrollPosition($scrollPosition)
+        .onAppear {
+            scrollToInitialHour()
+        }
+        // onAppear 時 events 常常還沒載回來（async reload）→ 先落在
+        // fallback 9:00；資料第一次到位後再對齊當週最早事件一次。
+        .onChange(of: events) { _, _ in
+            guard !didInitialScroll, !events.isEmpty else { return }
+            didInitialScroll = true
+            scrollToInitialHour()
+        }
+    }
+
+    private func scrollToInitialHour() {
+        scrollPosition.scrollTo(y: CGFloat(initialScrollHour) * hourHeight)
     }
 
     /// 起始定位在「當週最早的非全天事件」那個小時（如最早 9:30 → 定位
@@ -237,7 +245,6 @@ struct CalendarWeekGridView: View {
                     .foregroundStyle(Color.nudgeTextDim)
                     .padding(.trailing, 8)
                     .offset(y: CGFloat(h) * hourHeight - 8)
-                    .id(h)
             }
         }
         .frame(width: axisWidth, height: hourHeight * 24)
