@@ -158,30 +158,32 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
                 })}
               </div>
 
-              {/* 全天事件列 */}
-              <div className="grid min-h-[30px] grid-cols-[56px_repeat(7,1fr)] border-b border-border">
-                <div className="pr-2 pt-2 text-right text-[10px] text-text-faint">
-                  {t("eventAllDay")}
+              {/* 全天事件列 — 只在本週有全天事件時出現，平常不佔空帶 */}
+              {allWeekEvents.some((e) => e.allDay) && (
+                <div className="grid min-h-[30px] grid-cols-[56px_repeat(7,1fr)] border-b border-border">
+                  <div className="pr-2 pt-2 text-right text-[10px] text-text-faint">
+                    {t("eventAllDay")}
+                  </div>
+                  {days.map((dayStr) => {
+                    const allDayEvents = (eventsByDate.get(dayStr) ?? []).filter((e) => e.allDay);
+                    return (
+                      <div key={dayStr} className="flex flex-col gap-[3px] border-l border-border p-[3px]">
+                        {allDayEvents.map((e) => (
+                          <EventPopover key={`${e.calendarId}-${e.id}`} event={e}>
+                            <button
+                              type="button"
+                              title={e.title}
+                              className="truncate rounded-md bg-primary px-2 py-[3px] text-left text-[11.5px] font-medium text-primary-foreground hover:bg-primary/90"
+                            >
+                              {e.title}
+                            </button>
+                          </EventPopover>
+                        ))}
+                      </div>
+                    );
+                  })}
                 </div>
-                {days.map((dayStr) => {
-                  const allDayEvents = (eventsByDate.get(dayStr) ?? []).filter((e) => e.allDay);
-                  return (
-                    <div key={dayStr} className="flex flex-col gap-[3px] border-l border-border p-[3px]">
-                      {allDayEvents.map((e) => (
-                        <EventPopover key={`${e.calendarId}-${e.id}`} event={e}>
-                          <button
-                            type="button"
-                            title={e.title}
-                            className="truncate rounded-md bg-primary px-2 py-[3px] text-left text-[11.5px] font-medium text-primary-foreground hover:bg-primary/90"
-                          >
-                            {e.title}
-                          </button>
-                        </EventPopover>
-                      ))}
-                    </div>
-                  );
-                })}
-              </div>
+              )}
 
               {/* 時間網格（垂直捲動） */}
               <div ref={scrollRef} className="h-[calc(100dvh-240px)] min-h-[320px] overflow-y-auto">

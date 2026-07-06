@@ -93,7 +93,10 @@ struct CalendarWeekGridView: View {
         // 不畫最外圈框線 — 只留內部的欄位線與小時格線。
         VStack(spacing: 0) {
             dayHeaderRow
-            allDayRow
+            // 全天列只在本週有全天事件時出現，平常不佔空帶。
+            if events.contains(where: \.allDay) {
+                allDayRow
+            }
             timeGrid
         }
         .padding(.horizontal, 8)
