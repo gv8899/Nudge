@@ -5,7 +5,7 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { verifyJWT } from "@/lib/jwt";
-import { ensureTrial } from "@/lib/entitlement";
+import { provisionNewUser } from "@/lib/onboarding/provision-user";
 
 export async function getUser() {
   // 1. 優先檢查 Bearer token（App）
@@ -47,13 +47,14 @@ export async function getUser() {
       appleSub: null,
       createdAt: now,
       trialStartedAt: null,
+      onboardedAt: null,
       googleCalendarAccessToken: null,
       googleCalendarRefreshToken: null,
       googleCalendarTokenExpires: null,
       googleCalendarSelectedIds: null,
     };
     await db.insert(users).values(newUser);
-    await ensureTrial(newUser.id);
+    await provisionNewUser(newUser.id, { locale: null });
     user = newUser;
   }
 

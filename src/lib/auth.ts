@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { ensureTrial } from "@/lib/entitlement";
+import { provisionNewUser } from "@/lib/onboarding/provision-user";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [Google],
@@ -39,7 +39,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             googleCalendarTokenExpires: null,
             googleCalendarSelectedIds: null,
           });
-          await ensureTrial(newUserId);
+          // locale 在此 callback 難以取得（無 request headers）→ 交給 seed
+          // 的 zh-TW fallback。
+          await provisionNewUser(newUserId, { locale: null });
         }
 
         return true;

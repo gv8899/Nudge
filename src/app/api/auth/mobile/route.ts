@@ -4,7 +4,7 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { signJWT } from "@/lib/jwt";
-import { ensureTrial } from "@/lib/entitlement";
+import { provisionNewUser, localeFromAcceptLanguage } from "@/lib/onboarding/provision-user";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -48,13 +48,16 @@ export async function POST(request: NextRequest) {
       appleSub: null,
       createdAt: now,
       trialStartedAt: null,
+      onboardedAt: null,
       googleCalendarAccessToken: null,
       googleCalendarRefreshToken: null,
       googleCalendarTokenExpires: null,
       googleCalendarSelectedIds: null,
     };
     await db.insert(users).values(newUser);
-    await ensureTrial(newUser.id);
+    await provisionNewUser(newUser.id, {
+      locale: localeFromAcceptLanguage(request.headers.get("accept-language")),
+    });
     user = newUser;
   }
 

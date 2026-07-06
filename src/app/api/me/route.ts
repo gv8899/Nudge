@@ -36,6 +36,9 @@ export async function GET() {
     avatarUrl: user.avatarUrl,
     locale: user.locale,
     createdAt: user.createdAt,
+    // First-run onboarding 門閂：前端據此 + 近期窗 + 本地已讀 flag 決定是否顯示
+    // welcome 卡 / inline 提示。
+    onboardedAt: user.onboardedAt,
     entitlement,
     // 各平台硬付費牆是否啟用（soft 模式預設全 false）。
     paywall: paywallEnforcement(),

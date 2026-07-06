@@ -5,7 +5,7 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { signJWT } from "@/lib/jwt";
-import { ensureTrial } from "@/lib/entitlement";
+import { provisionNewUser, localeFromAcceptLanguage } from "@/lib/onboarding/provision-user";
 
 // Apple 的公鑰集 —— 驗 identityToken 簽章用。createRemoteJWKSet 內建快取
 // （依 Cache-Control），不會每次 request 都打 Apple。
@@ -91,13 +91,16 @@ export async function POST(request: NextRequest) {
       appleSub: sub,
       createdAt: now,
       trialStartedAt: null,
+      onboardedAt: null,
       googleCalendarAccessToken: null,
       googleCalendarRefreshToken: null,
       googleCalendarTokenExpires: null,
       googleCalendarSelectedIds: null,
     };
     await db.insert(users).values(newUser);
-    await ensureTrial(newUser.id);
+    await provisionNewUser(newUser.id, {
+      locale: localeFromAcceptLanguage(request.headers.get("accept-language")),
+    });
     user = newUser;
   }
 

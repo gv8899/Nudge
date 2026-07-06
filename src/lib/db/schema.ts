@@ -13,6 +13,11 @@ export const users = pgTable("users", {
   // 試用一生一次：首次發 trial 時寫入（綁帳號）。NULL = 從沒試用過。
   // 帳號刪除重建仍以 apple_sub/email 識別，避免重複領免費試用。
   trialStartedAt: text("trial_started_at"),
+  // First-run onboarding 門閂（ISO string）。NULL = 尚未 onboard（新帳號建立
+  // 時 seed 範例任務/卡片後寫入時間戳）。既有帳號在 migration 一次性設為 now()
+  // → 視為已 onboard，永不 seed。條件式 UPDATE ... WHERE onboarded_at IS NULL
+  // 保證只 seed 一次（跨裝置首登 race-safe）。
+  onboardedAt: text("onboarded_at"),
   // Google Calendar integration
   googleCalendarAccessToken: text("google_calendar_access_token"),
   googleCalendarRefreshToken: text("google_calendar_refresh_token"),
