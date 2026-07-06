@@ -77,9 +77,10 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
     const hour = mins.length
       ? Math.min(Math.max(Math.floor(Math.min(...mins) / 60), 0), 23)
       : 9;
-    // 上移一個小時：頂端剛好蓋住最早事件的前一小時（-12px 讓該刻度
-    // label 完整可見）。
-    el.scrollTop = Math.max((hour - 1) * HOUR_H - 12, 0);
+    // 頂端落在「前一小時的線之後」(+14px 跳過該線與 label)：前一小時
+    // 的格線藏在視窗外，只露出該格空白當呼吸空間 — 頂端不會在 header
+    // 底線下多出一條線。
+    el.scrollTop = Math.max((hour - 1) * HOUR_H + 14, 0);
     scrolledWeekRef.current = start;
   });
 
