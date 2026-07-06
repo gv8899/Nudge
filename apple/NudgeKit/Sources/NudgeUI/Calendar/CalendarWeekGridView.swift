@@ -110,11 +110,11 @@ struct CalendarWeekGridView: View {
                 let isToday = iso == todayISO
                 VStack(spacing: 4) {
                     Text(verbatim: weekdayLabel(day))
-                        .font(.caption2)
+                        .nudgeFont(.weekdayLabel)
                         .foregroundStyle(isToday ? Color.nudgePrimary : Color.nudgeTextDim)
                         .fontWeight(isToday ? .semibold : .regular)
                     Text(verbatim: "\(calendar.component(.day, from: day))")
-                        .font(.body.weight(.semibold))
+                        .nudgeFont(.weekdayNumber)
                         .monospacedDigit()
                         .foregroundStyle(isToday ? Color.nudgePrimaryForeground : Color.nudgeForeground)
                         .frame(width: 30, height: 30)
@@ -144,10 +144,12 @@ struct CalendarWeekGridView: View {
     private var allDayRow: some View {
         HStack(alignment: .top, spacing: 0) {
             Text(verbatim: nudgeLocalized("calendar.eventAllDay", locale: locale))
-                .font(.caption2)
+                .nudgeFont(.rowMeta)
                 .foregroundStyle(Color.nudgeTextDim)
-                .frame(width: axisWidth, alignment: .trailing)
                 .padding(.trailing, 8)
+                // padding 要包在 frame 內，總寬才是 axisWidth —
+                // 否則整日列的分隔線會比上下的欄位線右移 8pt。
+                .frame(width: axisWidth, alignment: .trailing)
                 .padding(.top, 8)
             ForEach(days, id: \.self) { day in
                 let iso = DateFormatters.isoDate(day)
@@ -156,7 +158,7 @@ struct CalendarWeekGridView: View {
                     ForEach(allDayEvents, id: \.id) { event in
                         Button { onEventTap(event) } label: {
                             Text(verbatim: event.title)
-                                .font(.caption.weight(.medium))
+                                .nudgeFont(.rowMeta)
                                 .foregroundStyle(Color.nudgeForeground)
                                 .lineLimit(1)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -212,23 +214,19 @@ struct CalendarWeekGridView: View {
         }
     }
 
-    /// 今天首個非全天事件小時 − 1（不足取 0）；今天無事件或不在本週 → 8。
-    private var initialScrollHour: Int {
-        let todayTimed = (eventsByDate[todayISO] ?? []).filter { !$0.allDay }
-        guard let firstMin = todayTimed.map({ minutesOfDay($0.start) }).min() else { return 8 }
-        return max(Int(firstMin) / 60 - 1, 0)
-    }
+    /// 顯示固定從 09:00 開始（可往上捲看更早時段）— 與 web 一致。
+    private let initialScrollHour = 9
 
     private var axisColumn: some View {
         ZStack(alignment: .topTrailing) {
             Color.clear
             ForEach(1..<24, id: \.self) { h in
                 Text(verbatim: String(format: "%02d:00", h))
-                    .font(.caption2)
+                    .nudgeFont(.rowMeta)
                     .monospacedDigit()
                     .foregroundStyle(Color.nudgeTextDim)
                     .padding(.trailing, 8)
-                    .offset(y: CGFloat(h) * hourHeight - 7)
+                    .offset(y: CGFloat(h) * hourHeight - 8)
                     .id(h)
             }
         }
@@ -301,12 +299,12 @@ struct CalendarWeekGridView: View {
         return Button { onEventTap(event) } label: {
             VStack(alignment: .leading, spacing: 1) {
                 Text(verbatim: event.title)
-                    .font(.caption.weight(past ? .medium : .semibold))
+                    .nudgeFont(past ? .rowTitle : .rowTitleEmphasized)
                     .foregroundStyle(past ? Color.nudgeTextDim : Color.nudgeForeground)
                     .lineLimit(isShort ? 1 : 2)
                 if !isShort {
                     Text(verbatim: "\(shortTime(event.start)) – \(shortTime(event.end))")
-                        .font(.caption2)
+                        .nudgeFont(.rowMeta)
                         .monospacedDigit()
                         .foregroundStyle(Color.nudgeTextDim)
                         .lineLimit(1)

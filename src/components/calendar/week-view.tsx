@@ -61,21 +61,17 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
   const allWeekEvents = days.flatMap((d) => eventsByDate.get(d) ?? []);
   const now = new Date();
 
-  // 初始捲動：資料首次到位後捲一次到今天首個非全天事件前一小時；
-  // 今天無事件（或不在本週）→ 08:00。之後切週不再重捲。
+  // 初始捲動：顯示固定從 09:00 開始（可往上捲看更早時段）— 與 mac 一致。
+  // 只捲一次，之後切週不再重捲。
   const scrollRef = useRef<HTMLDivElement>(null);
   const didScrollRef = useRef(false);
   useEffect(() => {
     if (didScrollRef.current || isLoading) return;
     const el = scrollRef.current;
     if (!el) return;
-    const todayEvents = (eventsByDate.get(today) ?? []).filter((e) => !e.allDay);
-    const firstMin = todayEvents.length
-      ? Math.min(...todayEvents.map((e) => minutesOfDay(e.start)))
-      : 9 * 60;
-    el.scrollTop = (Math.max(firstMin - 60, 0) / 60) * HOUR_H;
+    el.scrollTop = 9 * HOUR_H;
     didScrollRef.current = true;
-  }, [isLoading, eventsByDate, today]);
+  }, [isLoading]);
 
   return (
     <div className="pt-4 pb-8 space-y-5">
