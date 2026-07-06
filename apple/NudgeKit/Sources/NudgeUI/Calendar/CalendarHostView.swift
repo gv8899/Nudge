@@ -7,7 +7,7 @@ import NudgeCore
 public struct CalendarHostView: View {
     @Environment(CalendarRepository.self) private var calendarRepo
     @Environment(\.scenePhase) private var scenePhase
-    @AppStorage(CalendarPreferenceKey.viewMode) private var modeRaw: String = CalendarViewMode.day.rawValue
+    @AppStorage(CalendarPreferenceKey.viewMode) private var modeRaw: String = CalendarViewMode.platformDefault.rawValue
 
     @State private var selectedDate: String = DateFormatters.isoDate(Date())
     @State private var events: [CalendarEventDTO] = []
@@ -57,7 +57,7 @@ public struct CalendarHostView: View {
         if externalSelectedDate != nil {
             return .day
         }
-        return CalendarViewMode(rawValue: modeRaw) ?? .day
+        return CalendarViewMode(rawValue: modeRaw) ?? .platformDefault
     }
 
     private var selectedDateObj: Date {
