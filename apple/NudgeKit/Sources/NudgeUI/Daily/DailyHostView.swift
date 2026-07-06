@@ -162,17 +162,29 @@ public struct DailyHostView: View {
     /// cancel 掉，loop 自然結束。
     private func startPolling() {
         pollingTask?.cancel()
-        pollingTask = Task { [weak taskRepo] in
+        pollingTask = Task {
+            // 進畫面 / 回前景先立刻刷一次 —— 不用等 30 秒才反映遠端變動
+            // （之前用 refreshIfChanged 只更 cache+widget、**沒更新畫面綁的
+            // dailyData**，所以 in-app 清單一直不動；改用 reloadSilently 直接
+            // 更新畫面 @State，widget 另外刷）。
+            await pollRefreshOnce()
             while !Task.isCancelled {
                 // 30 秒 — 用 nanoseconds 避免新 API 在較舊 deployment
                 // target 上不可用的問題
                 try? await Task.sleep(nanoseconds: 30_000_000_000)
                 if Task.isCancelled { break }
-                guard let repo = taskRepo else { break }
-                let today = DateFormatters.isoDate(Date())
-                await repo.refreshIfChanged(date: today)
+                await pollRefreshOnce()
             }
         }
+    }
+
+    /// 一次輪詢刷新：更新 in-app 畫面（reloadSilently 設 dailyData @State，
+    /// 304 短路保留現狀）＋ widget snapshot。Mac / iOS 前景共用。
+    private func pollRefreshOnce() async {
+        // 只在 selectedDate 是「今天」時做無感刷新 —— 看歷史日期時不該被
+        // 輪詢蓋掉（reloadSilently 內部也對 requestedDate == selectedDate 把關）。
+        await reloadSilently()
+        await taskRepo.refreshWidgetSnapshot()
     }
 
     // MARK: - iOS layout
