@@ -1723,6 +1723,10 @@ private struct DashboardColumnCardDetail: View {
         // 跨裝置衝突解決：別台先存、這台被 server 擋（409）→ 靜默改用 server 最新。
         .onReceive(NotificationCenter.default.publisher(for: CardVersionStore.conflictResolved)) { note in
             guard note.object as? String == card.id, let info = note.userInfo else { return }
+            // 正在編輯這張卡 → 本機內容最新，不採用 server 版、不重建編輯器
+            // （避免打字被 409 打斷、跳頂）。base 已 advance，下次存檔勝出。
+            // 純檢視才採用 server 最新。（見 CardDetailView 同段註解）
+            if hasEditedTitle || hasEditedDescription { return }
             titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
             descSaveWorkItem?.cancel(); descSaveWorkItem = nil
             suppressEditDetection = true
