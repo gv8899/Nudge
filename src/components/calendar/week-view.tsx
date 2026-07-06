@@ -61,16 +61,23 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
   const allWeekEvents = days.flatMap((d) => eventsByDate.get(d) ?? []);
   const now = new Date();
 
-  // 初始捲動：顯示固定從 09:00 開始（可往上捲看更早時段）— 與 mac 一致。
-  // 只捲一次，之後切週不再重捲。
+  // 初始捲動：定位在「當週最早的非全天事件」那個小時（如最早 9:30 →
+  // 定位 9:00）；整週沒事件 → 09:00。與 mac 一致。只捲一次。
   const scrollRef = useRef<HTMLDivElement>(null);
   const didScrollRef = useRef(false);
   useEffect(() => {
     if (didScrollRef.current || isLoading) return;
     const el = scrollRef.current;
     if (!el) return;
-    el.scrollTop = 9 * HOUR_H;
+    const mins = allWeekEvents
+      .filter((e) => !e.allDay)
+      .map((e) => minutesOfDay(e.start));
+    const hour = mins.length
+      ? Math.min(Math.max(Math.floor(Math.min(...mins) / 60), 0), 23)
+      : 9;
+    el.scrollTop = hour * HOUR_H;
     didScrollRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading]);
 
   return (
@@ -164,7 +171,7 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
                           <button
                             type="button"
                             title={e.title}
-                            className="truncate rounded-md bg-[color-mix(in_srgb,var(--primary)_18%,var(--background))] px-2 py-[3px] text-left text-[11.5px] font-medium text-foreground hover:bg-[color-mix(in_srgb,var(--primary)_28%,var(--background))]"
+                            className="truncate rounded-md bg-primary px-2 py-[3px] text-left text-[11.5px] font-medium text-primary-foreground hover:bg-primary/90"
                           >
                             {e.title}
                           </button>
@@ -222,8 +229,8 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
                                 title={`${e.title}\n${formatHHMM(e.start)} – ${formatHHMM(e.end)}`}
                                 className={`absolute overflow-hidden rounded-[7px] px-1.5 py-[3px] text-left transition-colors ${
                                   isPast
-                                    ? "bg-[color-mix(in_srgb,var(--foreground)_7%,var(--background))] hover:bg-[color-mix(in_srgb,var(--primary)_18%,var(--background))]"
-                                    : "bg-[color-mix(in_srgb,var(--primary)_18%,var(--background))] hover:bg-[color-mix(in_srgb,var(--primary)_28%,var(--background))]"
+                                    ? "bg-[color-mix(in_srgb,var(--foreground)_7%,var(--background))] hover:bg-[color-mix(in_srgb,var(--foreground)_12%,var(--background))]"
+                                    : "bg-primary text-primary-foreground hover:bg-primary/90"
                                 }`}
                                 style={{
                                   top: (startMin / 60) * HOUR_H + 1,
@@ -237,13 +244,17 @@ export function CalendarWeekView({ date, onDateChange, eventsByDate, isLoading }
                                   className={`text-xs leading-tight ${
                                     isPast
                                       ? "font-medium text-text-dim"
-                                      : "font-semibold text-foreground"
+                                      : "font-semibold text-primary-foreground"
                                   } ${isShort ? "line-clamp-1 text-[11.5px]" : "line-clamp-2"}`}
                                 >
                                   {e.title}
                                 </div>
                                 {!isShort && (
-                                  <div className="truncate text-[10.5px] text-text-dim tabular-nums">
+                                  <div
+                                    className={`truncate text-[10.5px] tabular-nums ${
+                                      isPast ? "text-text-dim" : "text-primary-foreground/80"
+                                    }`}
+                                  >
                                     {formatHHMM(e.start)} – {formatHHMM(e.end)}
                                   </div>
                                 )}

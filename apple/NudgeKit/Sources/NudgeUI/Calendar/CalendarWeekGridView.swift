@@ -20,6 +20,8 @@ struct CalendarWeekGridView: View {
     private let hourHeight: CGFloat = 48
     private let axisWidth: CGFloat = 56
 
+    @State private var didInitialScroll = false
+
     private var calendar: Calendar {
         var c = Calendar(identifier: .gregorian)
         c.firstWeekday = 2
@@ -58,12 +60,12 @@ struct CalendarWeekGridView: View {
             )
             Spacer()
             Text(verbatim: headerRangeLabel)
-                .font(.title3.weight(.semibold))
+                .nudgeFont(.columnTitle)
                 .foregroundStyle(Color.nudgeForeground)
             Spacer()
             Button(action: onThisWeek) {
                 Text("calendar.thisWeek", bundle: .module)
-                    .font(.footnote)
+                    .nudgeFont(.inlineButtonLabel)
                     .foregroundStyle(Color.nudgeForeground)
                     .frame(minHeight: 44)
                     .padding(.horizontal, 8)
@@ -155,7 +157,7 @@ struct CalendarWeekGridView: View {
                         Button { onEventTap(event) } label: {
                             Text(verbatim: event.title)
                                 .nudgeFont(.rowMeta)
-                                .foregroundStyle(Color.nudgeForeground)
+                                .foregroundStyle(Color.nudgePrimaryForeground)
                                 .lineLimit(1)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, 6)
@@ -180,14 +182,9 @@ struct CalendarWeekGridView: View {
     }
 
     private var allDayChipBackground: some View {
-        // 底層先鋪 nudgeBackground 再疊 primary tint → 不透明，
-        // 蓋得住底下的格線。
-        ZStack {
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(Color.nudgeBackground)
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(Color.nudgePrimary.opacity(0.18))
-        }
+        // 主色實心 — 與時間軸上的未過期事件塊一致。
+        RoundedRectangle(cornerRadius: 6, style: .continuous)
+            .fill(Color.nudgePrimary)
     }
 
     private var timeGrid: some View {
@@ -209,11 +206,26 @@ struct CalendarWeekGridView: View {
             .onAppear {
                 proxy.scrollTo(initialScrollHour, anchor: .top)
             }
+            // onAppear 時 events 常常還沒載回來（async reload）→ 先落在
+            // fallback 9:00；資料第一次到位後再對齊當週最早事件一次。
+            .onChange(of: events) { _, _ in
+                guard !didInitialScroll, !events.isEmpty else { return }
+                didInitialScroll = true
+                proxy.scrollTo(initialScrollHour, anchor: .top)
+            }
         }
     }
 
-    /// 顯示固定從 09:00 開始（可往上捲看更早時段）— 與 web 一致。
-    private let initialScrollHour = 9
+    /// 起始定位在「當週最早的非全天事件」那個小時（如最早 9:30 → 定位
+    /// 9:00）；整週沒事件 → 09:00。與 web 一致。
+    private var initialScrollHour: Int {
+        let earliest = events
+            .filter { !$0.allDay }
+            .map { minutesOfDay($0.start) }
+            .min()
+        guard let earliest else { return 9 }
+        return min(max(Int(earliest) / 60, 0), 23)
+    }
 
     private var axisColumn: some View {
         ZStack(alignment: .topTrailing) {
@@ -298,13 +310,13 @@ struct CalendarWeekGridView: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(verbatim: event.title)
                     .nudgeFont(past ? .rowTitle : .rowTitleEmphasized)
-                    .foregroundStyle(past ? Color.nudgeTextDim : Color.nudgeForeground)
+                    .foregroundStyle(past ? Color.nudgeTextDim : Color.nudgePrimaryForeground)
                     .lineLimit(isShort ? 1 : 2)
                 if !isShort {
                     Text(verbatim: "\(shortTime(event.start)) – \(shortTime(event.end))")
                         .nudgeFont(.rowMeta)
                         .monospacedDigit()
-                        .foregroundStyle(Color.nudgeTextDim)
+                        .foregroundStyle(past ? Color.nudgeTextDim : Color.nudgePrimaryForeground.opacity(0.78))
                         .lineLimit(1)
                 }
             }
@@ -312,13 +324,14 @@ struct CalendarWeekGridView: View {
             .padding(.vertical, isShort ? 1 : 3)
             .frame(width: blockWidth, height: blockHeight, alignment: .topLeading)
             .background {
-                // 底層先鋪 nudgeBackground 再疊 tint → 不透明，蓋得住格線；
-                // 無左側色條。
+                // 還沒發生的事件 → 主色實心（同事件詳情「加入線上會議」鈕），
+                // 深淺色模式都吃 token；過去事件 → 淡灰不透明。底層一律先鋪
+                // nudgeBackground 確保蓋得住格線。
                 ZStack {
                     RoundedRectangle(cornerRadius: 7, style: .continuous)
                         .fill(Color.nudgeBackground)
                     RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(past ? Color.nudgeForeground.opacity(0.07) : Color.nudgePrimary.opacity(0.18))
+                        .fill(past ? Color.nudgeForeground.opacity(0.07) : Color.nudgePrimary)
                 }
             }
             .contentShape(Rectangle())
