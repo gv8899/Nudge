@@ -64,7 +64,7 @@ public struct CalendarDayView: View {
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if dayEvents.isEmpty {
                 Text("calendar.panelEmpty", bundle: .module)
-                    .font(.subheadline)
+                    .nudgeFont(.emptyStateBody)
                     .foregroundStyle(Color.nudgeTextDim)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -97,7 +97,7 @@ public struct CalendarDayView: View {
     private func sectionView(_ section: PeriodSection) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(section.label, bundle: .module)
-                .font(.caption.weight(.medium))
+                .nudgeFont(.rowMeta)
                 .foregroundStyle(Color.nudgeTextDim)
                 .padding(.horizontal, 4)
 
@@ -128,11 +128,11 @@ public struct CalendarDayView: View {
             Group {
                 if event.allDay {
                     Text("calendar.eventAllDay", bundle: .module)
-                        .font(.subheadline.weight(.semibold))
+                        .nudgeFont(.sectionHeader)
                         .foregroundStyle(timeColor)
                 } else {
                     Text(shortTime(event.start))
-                        .font(.title3.weight(.semibold))
+                        .nudgeFont(.columnTitle)
                         .monospacedDigit()
                         .foregroundStyle(timeColor)
                 }
@@ -150,7 +150,7 @@ public struct CalendarDayView: View {
             // 像 label。
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: event.title)
-                    .font(.body.weight(.semibold))
+                    .nudgeFont(.rowTitleEmphasized)
                     .foregroundStyle(titleColor)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
@@ -158,9 +158,9 @@ public struct CalendarDayView: View {
                 if let location = event.location, !location.isEmpty {
                     HStack(spacing: 4) {
                         Image(systemName: "mappin.and.ellipse")
-                            .font(.caption2)
+                            .nudgeFont(.fieldIcon)
                         Text(verbatim: location)
-                            .font(.caption)
+                            .nudgeFont(.rowMeta)
                             .lineLimit(1)
                     }
                     .foregroundStyle(Color.nudgeTextDim)

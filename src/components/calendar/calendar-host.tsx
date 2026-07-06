@@ -30,7 +30,7 @@ export function CalendarHost({
   const pathname = usePathname();
 
   const [mode, setMode] = useState<Mode>(() =>
-    MODES.includes(initialMode as Mode) ? (initialMode as Mode) : "day"
+    MODES.includes(initialMode as Mode) ? (initialMode as Mode) : "week"
   );
   const [date, setDate] = useState<string>(() =>
     initialDate && DATE_RE.test(initialDate) ? initialDate : isoToday()
@@ -139,7 +139,7 @@ export function CalendarHost({
         </div>
       )}
       {mode === "week" && (
-        <div className="mx-auto max-w-[720px] px-4 md:px-6">
+        <div className="mx-auto max-w-[1200px] px-4 md:px-6">
           <CalendarWeekView
             date={date}
             onDateChange={setDate}

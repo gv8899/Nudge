@@ -7,7 +7,7 @@ import NudgeCore
 public struct CalendarHostView: View {
     @Environment(CalendarRepository.self) private var calendarRepo
     @Environment(\.scenePhase) private var scenePhase
-    @AppStorage(CalendarPreferenceKey.viewMode) private var modeRaw: String = CalendarViewMode.day.rawValue
+    @AppStorage(CalendarPreferenceKey.viewMode) private var modeRaw: String = CalendarViewMode.platformDefault.rawValue
 
     @State private var selectedDate: String = DateFormatters.isoDate(Date())
     @State private var events: [CalendarEventDTO] = []
@@ -57,7 +57,7 @@ public struct CalendarHostView: View {
         if externalSelectedDate != nil {
             return .day
         }
-        return CalendarViewMode(rawValue: modeRaw) ?? .day
+        return CalendarViewMode(rawValue: modeRaw) ?? .platformDefault
     }
 
     private var selectedDateObj: Date {
@@ -118,9 +118,15 @@ public struct CalendarHostView: View {
         // popover/sheet 只在 callback nil 時才實際 present
         // (selectedEvent 永遠不會被 set 當 callback 存在)。
         #if os(macOS)
-        .popover(item: $selectedEvent, arrowEdge: .top) { event in
-            CalendarEventDetailSheet(event: event)
-                .frame(width: 480, height: 380)
+        // 置中 modal — 跟 Daily 頁點事件的呈現對齊（NudgeModalOverlay：
+        // dim backdrop + 點外面 / ⎋ 關閉 + 圓角卡片），不再用錨定 popover。
+        .overlay {
+            if let event = selectedEvent {
+                NudgeModalOverlay(onDismiss: { selectedEvent = nil }) {
+                    CalendarEventDetailSheet(event: event)
+                        .frame(width: 580, height: 520)
+                }
+            }
         }
         #else
         .sheet(item: $selectedEvent) { event in
@@ -215,8 +221,24 @@ public struct CalendarHostView: View {
         case .week:
             let start = weekStart(selectedDateObj)
             let end = calendar.date(byAdding: .day, value: 6, to: start) ?? start
-            // week 僅在 standalone Calendar tab 出現（embedded 強制 day），
-            // 同樣置中收窄對齊 Cards 佈局。
+            // week 僅在 standalone Calendar tab 出現（embedded 強制 day）。
+            #if os(macOS)
+            // macOS：時間軸網格，加寬到 1200（比 Cards 的 720 寬 —
+            // 7 欄時間格需要橫向空間）並置中。
+            CalendarWeekGridView(
+                weekStart: start,
+                weekEnd: end,
+                events: events,
+                isLoading: isLoading,
+                onPrevWeek: { offsetWeek(-1) },
+                onNextWeek: { offsetWeek(1) },
+                onThisWeek: { selectedDate = DateFormatters.isoDate(Date()) },
+                onEventTap: handleEventTap
+            )
+            .frame(maxWidth: 1200)
+            .frame(maxWidth: .infinity)
+            #else
+            // iOS：維持 agenda 列表（iPhone 螢幕窄，七欄時間格太擠）。
             centeredColumn {
                 CalendarWeekView(
                     weekStart: start,
@@ -229,6 +251,7 @@ public struct CalendarHostView: View {
                     onEventTap: handleEventTap
                 )
             }
+            #endif
         case .month:
             CalendarMonthView(
                 selectedDate: $selectedDate,

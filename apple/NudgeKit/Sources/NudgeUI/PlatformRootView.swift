@@ -162,7 +162,7 @@ struct MacSidebarRoot: View {
     // NotificationCenter (existing menu-command pattern).
     @AppStorage("daily.mac.rightPanelOpen") private var dashboardRightPanelOpen: Bool = false
     @AppStorage("daily.mac.rightPanelKind") private var dashboardRightPanelKindRaw: String = "calendar"
-    @AppStorage(CalendarPreferenceKey.viewMode) private var calendarModeRaw: String = CalendarViewMode.day.rawValue
+    @AppStorage(CalendarPreferenceKey.viewMode) private var calendarModeRaw: String = CalendarViewMode.platformDefault.rawValue
 
     // 排程 modal — 在 root 層級用 overlay 渲染（而非 DailyHostView `.sheet`），
     // 這樣 dim backdrop 蓋得到整個 window、「點 modal 外取消」才有「外面」
