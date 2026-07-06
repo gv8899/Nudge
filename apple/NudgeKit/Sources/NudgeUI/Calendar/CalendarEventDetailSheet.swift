@@ -57,10 +57,10 @@ public struct CalendarEventDetailSheet: View {
                 if let desc = event.description, !desc.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("calendar.description", bundle: .module)
-                            .font(.subheadline.weight(.semibold))
+                            .nudgeFont(.sectionHeader)
                             .foregroundStyle(Color.nudgeForeground)
                         Text(verbatim: desc)
-                            .font(.body)
+                            .nudgeFont(.rowTitle)
                             .foregroundStyle(Color.nudgeForeground)
                     }
                 }
@@ -70,7 +70,7 @@ public struct CalendarEventDetailSheet: View {
                     // 不再用分隔線。
                     VStack(alignment: .leading, spacing: 10) {
                         Text(verbatim: "\(nudgeLocalized("calendar.attendees", locale: locale)) (\(event.attendees.count))")
-                            .font(.subheadline.weight(.semibold))
+                            .nudgeFont(.sectionHeader)
                             .foregroundStyle(Color.nudgeForeground)
                         VStack(alignment: .leading, spacing: 6) {
                             ForEach(event.attendees, id: \.self) { a in
@@ -90,11 +90,11 @@ public struct CalendarEventDetailSheet: View {
             // 時間 row — 主要 metadata，從 nudgeTextDim 拉成 nudgeForeground
             // 70% 對比，比原本灰更好讀但仍弱於標題。
             Text(verbatim: timeRowText)
-                .font(.subheadline.weight(.semibold))
+                .nudgeFont(.rowMetaEmphasized)
                 .monospacedDigit()
                 .foregroundStyle(Color.nudgeForeground.opacity(0.7))
             Text(verbatim: event.title)
-                .font(.title2.weight(.semibold))
+                .nudgeFont(.columnDetailTitle)
                 .foregroundStyle(Color.nudgeForeground)
         }
     }
@@ -121,7 +121,7 @@ public struct CalendarEventDetailSheet: View {
             } icon: {
                 Image(systemName: "video.fill")
             }
-            .font(.body.weight(.semibold))
+            .nudgeFont(.rowTitleEmphasized)
             .foregroundStyle(Color.nudgePrimaryForeground)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
@@ -133,11 +133,11 @@ public struct CalendarEventDetailSheet: View {
     private func infoRow(systemImage: String, text: String) -> some View {
         HStack(spacing: 10) {
             Image(systemName: systemImage)
-                .font(.body)
+                .nudgeFont(.rowTitle)
                 .foregroundStyle(Color.nudgeTextDim)
                 .frame(width: 20)
             Text(verbatim: text)
-                .font(.body)
+                .nudgeFont(.rowTitle)
                 .foregroundStyle(Color.nudgeForeground)
         }
     }
@@ -151,7 +151,7 @@ public struct CalendarEventDetailSheet: View {
                 .frame(width: 6, height: 6)
                 .frame(width: 20, alignment: .center)
             Text(verbatim: name)
-                .font(.body)
+                .nudgeFont(.rowTitle)
                 .foregroundStyle(Color.nudgeForeground)
         }
     }
