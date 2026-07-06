@@ -1,4 +1,20 @@
 {
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to Nudge",
+      "intro": "We've added a few examples so you can learn as you go:",
+      "pointTasks": "Tasks: plan what to do each day — tap the circle to complete",
+      "pointCards": "Cards: really just \"tasks with content\" — great for longer notes",
+      "pointRecurring": "Repeats & reminders: things like \"weekly report\" appear every week and remind you",
+      "cta": "Get started",
+      "viewCards": "See the example cards"
+    },
+    "hint": {
+      "complete": "Tap the circle on the left to mark it done",
+      "recurring": "This one repeats automatically, and can remind you",
+      "dismiss": "Got it"
+    }
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
@@ -10,7 +26,8 @@
     "retry": "Retry",
     "done": "Done",
     "clear": "Clear",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "close": "Close"
   },
   "settings": {
     "title": "Settings",

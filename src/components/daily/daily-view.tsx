@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { useTranslations } from "next-intl";
 import { mutate as globalMutate } from "swr";
 import { useDaily } from "@/hooks/use-daily";
@@ -14,6 +14,9 @@ import { DailyRightPanel, type RightPanelKind } from "@/components/daily/daily-r
 import { IconCards, IconCalendar, IconSidebarRight } from "@/components/ui/sf-icon";
 import { useSidebarCollapsed } from "@/components/sidebar/sidebar-layout";
 import { OfflineBanner, ErrorBanner } from "@/components/daily/daily-banners";
+import { WelcomeCard } from "@/components/onboarding/welcome-card";
+import { OnboardingHint } from "@/components/onboarding/onboarding-hint";
+import { useOnboarding, ONBOARDING_IDS } from "@/hooks/use-onboarding";
 import { useOnline } from "@/hooks/use-online";
 import { isoToday } from "@/lib/calendar-dates";
 import type { TaskStatus } from "@/lib/constants";
@@ -88,6 +91,8 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   const sidebarCollapsed = useSidebarCollapsed();
   const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
+  const tHint = useTranslations("onboarding.hint");
+  const { showWelcome, hintVisible, dismiss } = useOnboarding();
   const [currentDate, setCurrentDate] = useState(initialDate);
   const [completedExpanded, setCompletedExpanded] = useState(true);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -370,6 +375,18 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   const incompleteAssignments = allAssignments.filter((a) => !a.isCompleted);
   const completedAssignments = allAssignments.filter((a) => a.isCompleted);
 
+  // Onboarding inline 提示的結構性錨點（不靠 stored key）：
+  //   - recurring 提示錨在第一個重複任務
+  //   - complete 提示錨在第一個「非該重複錨點」的未完成任務
+  // 只在今日檢視顯示（seed 的示範任務都排在今天）。
+  const isTodayView = currentDate === isoToday();
+  const recurringAnchorId = isTodayView
+    ? incompleteAssignments.find((a) => a.isRecurring)?.id
+    : undefined;
+  const completeAnchorId = isTodayView
+    ? incompleteAssignments.find((a) => a.id !== recurringAnchorId)?.id
+    : undefined;
+
   // Right-panel padding: only apply when panel is open AND we're on lg+
   // （+8 = 卡片式面板 right-2 的內縮）
   const mainPaddingRight = rightPanelOpen && isLg ? rightPanelWidth + 8 : 0;
@@ -474,6 +491,9 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
           </div>
 
           <div className="space-y-0 pt-2 md:flex-1 md:min-h-0 md:overflow-y-auto md:pb-8">
+            {showWelcome && isTodayView && (
+              <WelcomeCard onDismiss={() => dismiss(ONBOARDING_IDS.welcome)} />
+            )}
             <OverdueSection
               overdueTasks={data?.overdueTasks || []}
               currentDate={currentDate}
@@ -498,17 +518,32 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                 strategy={verticalListSortingStrategy}
               >
                 {incompleteAssignments.map((a) => (
-                  <TaskCard
-                    key={a.id}
-                    assignment={a}
-                    currentDate={currentDate}
-                    onToggleComplete={handleToggleComplete}
-                    onStatusChange={handleStatusChange}
-                    onMoveToDate={handleMoveToDate}
-                    onUpdateTask={handleUpdateTask}
-                    onOpenDetail={openDetailInPanel}
-                    onArchive={handleArchive}
-                  />
+                  <Fragment key={a.id}>
+                    {a.id === completeAnchorId &&
+                      hintVisible(ONBOARDING_IDS.hintComplete) && (
+                        <OnboardingHint
+                          text={tHint("complete")}
+                          onDismiss={() => dismiss(ONBOARDING_IDS.hintComplete)}
+                        />
+                      )}
+                    {a.id === recurringAnchorId &&
+                      hintVisible(ONBOARDING_IDS.hintRecurring) && (
+                        <OnboardingHint
+                          text={tHint("recurring")}
+                          onDismiss={() => dismiss(ONBOARDING_IDS.hintRecurring)}
+                        />
+                      )}
+                    <TaskCard
+                      assignment={a}
+                      currentDate={currentDate}
+                      onToggleComplete={handleToggleComplete}
+                      onStatusChange={handleStatusChange}
+                      onMoveToDate={handleMoveToDate}
+                      onUpdateTask={handleUpdateTask}
+                      onOpenDetail={openDetailInPanel}
+                      onArchive={handleArchive}
+                    />
+                  </Fragment>
                 ))}
               </SortableContext>
             </DndContext>

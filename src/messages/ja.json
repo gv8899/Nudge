@@ -1,4 +1,20 @@
 {
+  "onboarding": {
+    "welcome": {
+      "title": "Nudge へようこそ",
+      "intro": "使いながら覚えられるよう、サンプルをいくつか入れておきました：",
+      "pointTasks": "タスク：その日にやることを並べ、丸をタップで完了",
+      "pointCards": "カード：実は「内容のあるタスク」。長めのメモに便利",
+      "pointRecurring": "繰り返しとリマインド：「週報」などは毎週自動で現れて知らせます",
+      "cta": "はじめる",
+      "viewCards": "サンプルのカードを見る"
+    },
+    "hint": {
+      "complete": "左の丸をタップして完了にします",
+      "recurring": "これは自動で繰り返し、リマインドもできます",
+      "dismiss": "OK"
+    }
+  },
   "common": {
     "save": "保存",
     "cancel": "キャンセル",
@@ -10,7 +26,8 @@
     "retry": "再試行",
     "done": "完了",
     "clear": "クリア",
-    "confirm": "確認"
+    "confirm": "確認",
+    "close": "閉じる"
   },
   "settings": {
     "title": "設定",

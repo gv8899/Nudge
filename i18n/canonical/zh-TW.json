@@ -1,4 +1,20 @@
 {
+  "onboarding": {
+    "welcome": {
+      "title": "歡迎使用 Nudge",
+      "intro": "我們先放了一些範例，讓你邊看邊上手：",
+      "pointTasks": "任務：安排每天要做的事，點圈圈就完成",
+      "pointCards": "卡片：其實就是「有內容的任務」，可以寫長筆記",
+      "pointRecurring": "重複與提醒：像「寫週報」會每週自動出現並提醒你",
+      "cta": "開始使用",
+      "viewCards": "看看範例卡片"
+    },
+    "hint": {
+      "complete": "點左邊的圈圈，把它標成完成",
+      "recurring": "這個會自動重複，還能設定提醒",
+      "dismiss": "知道了"
+    }
+  },
   "common": {
     "save": "儲存",
     "cancel": "取消",
@@ -10,7 +26,8 @@
     "retry": "重試",
     "done": "完成",
     "clear": "清除",
-    "confirm": "確認"
+    "confirm": "確認",
+    "close": "關閉"
   },
   "settings": {
     "title": "設定",
