@@ -14,6 +14,13 @@ cat > "$HOOK_DIR/pre-commit" <<'HOOK'
 set -euo pipefail
 REPO_ROOT=$(git rev-parse --show-toplevel)
 "$REPO_ROOT/scripts/lint-swift-tokens.sh"
+
+# Keep the codebase-memory architecture graph in sync with the commit.
+# Incremental + fast (sub-second); non-fatal and skipped when the MCP isn't installed.
+CBM="$HOME/.local/bin/codebase-memory-mcp"
+if [ -x "$CBM" ]; then
+  "$CBM" cli index_repository "{\"repo_path\":\"$REPO_ROOT\"}" >/dev/null 2>&1 || true
+fi
 HOOK
 chmod +x "$HOOK_DIR/pre-commit"
 

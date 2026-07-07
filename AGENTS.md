@@ -17,10 +17,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | i18n 同步 | `npm run i18n:sync`（CI 檢查：`npm run i18n:check`） |
 | Apple 重生 xcodeproj | `cd apple && xcodegen generate`（改 `project.yml` 後必跑；`.xcodeproj` 不進 git） |
 | Mac DMG 打包 | `./apple/scripts/build-dmg.sh` |
-| 裝 pre-commit hook | `./scripts/install-git-hooks.sh`（一次性，掛 Swift token lint） |
+| 裝 pre-commit hook | `./scripts/install-git-hooks.sh`（一次性，掛 Swift token lint + commit 時自動增量更新 codebase 圖譜） |
+| 裝 codebase 圖譜 MCP | `./scripts/setup-codebase-memory.sh`（新 clone / 新機器一次性，裝 binary + 註冊 MCP + 建索引） |
 
 - **測試慣例**：vitest，測試檔跟 source 同層放 `*.test.ts`。純邏輯（`recurrence`、`schedule-validation`、i18n transpile）都有測試 — 改這些先補 / 跑測試（紅→綠）。
-- **pre-commit hook**：`scripts/install-git-hooks.sh` 會掛 `lint-swift-tokens.sh`，commit 時擋硬編碼 Swift 色。新 clone 記得跑一次，不然 token 違規會漏出去。
+- **pre-commit hook**：`scripts/install-git-hooks.sh` 會掛 `lint-swift-tokens.sh`，commit 時擋硬編碼 Swift 色；同時**增量更新 codebase 圖譜**（sub-second、non-fatal、沒裝 MCP 就自動跳過），讓架構圖永遠跟 commit 同步。新 clone 記得跑一次，不然 token 違規會漏出去。
 
 # 設計系統
 
@@ -52,6 +53,19 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Schema source = `src/lib/db/schema.ts`（drizzle-orm）。Migration SQL 在 `drizzle/`，**依序手動跑**：`psql "$DATABASE_URL" -f drizzle/000X_xxx.sql`。package.json **沒有** `drizzle-kit push/migrate`，不要假設有自動 migrate。
 - 改 schema 流程：改 `schema.ts` → `npx drizzle-kit generate` 產新 SQL → 人工檢視 → 依序跑。
 - **部署順序雷**：production 與 dev 可能共用同一個 Postgres。跑 migration 前先確保「依賴新欄位的 code」已經上線，否則還在跑舊 code 的進程會撞到 schema 不一致。加欄位優先用 nullable / default，必要時分兩段部署（先上相容 code，再跑 migration）。
+
+# Codebase 知識圖譜 (codebase-memory MCP)
+
+本專案已建 codebase 知識圖譜（user-scope MCP `codebase-memory-mcp`，專案名 `Users-huangyujia-Documents-Nudge`）。以下情境**先查圖、不要只 grep**：
+
+- **改共用純邏輯前**（`recurrence.ts` / `RecurrenceCalculator.swift`、`schedule-validation` 等）→ 用 `trace_path(direction=inbound)` 抓完整 caller / route 衝擊面，確認回歸範圍（例：改 `occurs` 會牽動 `/api/daily/[date]`、`/api/daily/week`、`PUT`/`DELETE /api/tasks/[id]/recurrence` 等多條 route）。
+- **問「誰呼叫 X / 改 X 會炸到誰 / X 的資料怎麼流」** → `trace_path`（modes: `calls` / `data_flow` / `cross_service`），勝過 grep。
+- **找定義、跨 TS/Swift 鏡像** → `search_graph`（BM25 + 語意），一次撈兩邊同名函式。
+- **找效能瓶頸 / 該重構的複雜函式** → `query_graph` Cypher 查 complexity 屬性（`cognitive` / `transitive_loop_depth` / `linear_scan_in_loop`）。⚠️ 過濾掉 `Resources.Editor`（打包過的第三方 bundle，是雜訊）。
+
+工具是 deferred，用前先 `ToolSearch` 載入。**圖是快照** —— code 改過後先跑 `detect_changes` 增量更新，圖才跟得上。3D 視覺化：`codebase-memory-mcp --ui=true` 後開 `http://localhost:9749/`。
+
+> **新機器 / 新 clone**：binary、MCP 註冊、索引都是本機專屬、**不跟著帳號同步**，跑一次 `./scripts/setup-codebase-memory.sh` 補齊（idempotent，可重跑），然後重啟 Claude Code。
 
 # 架構備忘（容易踩雷的設計）
 
