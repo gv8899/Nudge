@@ -32,7 +32,7 @@ export const en: OnboardingContent = {
       key: "nudge-guide",
       title: "How to use Nudge",
       tagKey: "knowledge",
-      createdOffset: -1,
+      createdOffset: 0, // newest → top of the cards list
       html: `<h2>Getting started with Nudge</h2>
 <p>Drop in what you need to do each day and check it off when it's done. <strong>Anything you don't finish shows up again on "Today" tomorrow</strong> — it never disappears, and you never have to move it by hand.</p>
 <h3>A few good habits</h3>
@@ -57,9 +57,9 @@ export const en: OnboardingContent = {
 <li>Eng locks the API contract first to avoid rework</li>
 </ul>
 <h3>Action items</h3>
-<ul>
-<li>PM: prioritize the backlog (by Wed)</li>
-<li>Design: prototypes A / B (review Thursday)</li>
+<ul data-type="taskList">
+<li data-type="taskItem" data-checked="false"><div><p>PM: prioritize the backlog (by Wed)</p></div></li>
+<li data-type="taskItem" data-checked="false"><div><p>Design: prototypes A / B (review Thursday)</p></div></li>
 </ul>`,
     },
     {
@@ -67,26 +67,14 @@ export const en: OnboardingContent = {
       title: "Trip checklist",
       tagKey: "checklist",
       createdOffset: -2,
-      html: `<h2>Before a work trip</h2>
-<p>Run through this the day before you leave:</p>
-<ul>
-<li>✅ Passport valid 6+ months</li>
-<li>✅ Flights and boarding docs</li>
-<li>◻️ Local data / roaming</li>
-<li>◻️ Adapter and power bank</li>
-<li>◻️ Screenshots of hotel and transit bookings</li>
-</ul>
-<p>When you're back, <strong>file expenses the same day</strong> — don't let it slide.</p>`,
+      html: `<ul data-type="taskList">
+<li data-type="taskItem" data-checked="true"><div><p>Passport valid 6+ months</p></div></li>
+<li data-type="taskItem" data-checked="true"><div><p>Flights and boarding docs</p></div></li>
+<li data-type="taskItem" data-checked="false"><div><p>Local data / roaming</p></div></li>
+<li data-type="taskItem" data-checked="false"><div><p>Adapter and power bank</p></div></li>
+<li data-type="taskItem" data-checked="false"><div><p>Screenshots of hotel and transit bookings</p></div></li>
+</ul>`,
     },
   ],
-  notes: [
-    {
-      key: "note-today",
-      dayOffset: 0,
-      lines: [
-        "Knocked out the stuck 'submit expenses' first — the rest flowed after that.",
-        "Turned the afternoon meeting async and saved an hour.",
-      ],
-    },
-  ],
+  notes: [],
 };

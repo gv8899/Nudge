@@ -10,8 +10,8 @@
       "viewCards": "See the example cards"
     },
     "hint": {
-      "complete": "Tap the circle on the left to mark it done",
-      "overdue": "Unfinished tasks from earlier days roll over to today so nothing slips",
+      "complete": "To complete a task, tap its checkbox — it moves down to the Completed section.",
+      "overdue": "Unfinished tasks from earlier days roll over to today. Tap ⋯ to move one to today or reschedule it.",
       "dismiss": "Got it"
     }
   },

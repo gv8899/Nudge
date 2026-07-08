@@ -32,7 +32,7 @@ export const ja: OnboardingContent = {
       key: "nudge-guide",
       title: "Nudge の使い方",
       tagKey: "knowledge",
-      createdOffset: -1,
+      createdOffset: 0, // 最新 → カード一覧の最上部
       html: `<h2>Nudge をはじめる</h2>
 <p>その日やることを入れて、終わったらチェック。<strong>やり残したものは、翌日の「今日」に自動で出てきます</strong>——消えないし、手で動かす必要もありません。</p>
 <h3>いくつかの良い習慣</h3>
@@ -57,9 +57,9 @@ export const ja: OnboardingContent = {
 <li>エンジニアはまず API 契約を確定し手戻りを防ぐ</li>
 </ul>
 <h3>アクション</h3>
-<ul>
-<li>PM：要件の優先順位付け（水曜まで）</li>
-<li>デザイン：プロトA／B（木曜レビュー）</li>
+<ul data-type="taskList">
+<li data-type="taskItem" data-checked="false"><div><p>PM：要件の優先順位付け（水曜まで）</p></div></li>
+<li data-type="taskItem" data-checked="false"><div><p>デザイン：プロトA／B（木曜レビュー）</p></div></li>
 </ul>`,
     },
     {
@@ -67,26 +67,14 @@ export const ja: OnboardingContent = {
       title: "出張チェックリスト",
       tagKey: "checklist",
       createdOffset: -2,
-      html: `<h2>出張・出国前の確認</h2>
-<p>出発の前日にもう一度チェック：</p>
-<ul>
-<li>✅ パスポート残存6か月以上</li>
-<li>✅ 航空券と搭乗書類</li>
-<li>◻️ 現地の通信／ローミング</li>
-<li>◻️ 変換プラグとモバイルバッテリー</li>
-<li>◻️ 宿泊・交通予約のスクショ</li>
-</ul>
-<p>帰ったら<strong>その日のうちに経費精算</strong>、後回しにしない。</p>`,
+      html: `<ul data-type="taskList">
+<li data-type="taskItem" data-checked="true"><div><p>パスポート残存6か月以上</p></div></li>
+<li data-type="taskItem" data-checked="true"><div><p>航空券と搭乗書類</p></div></li>
+<li data-type="taskItem" data-checked="false"><div><p>現地の通信／ローミング</p></div></li>
+<li data-type="taskItem" data-checked="false"><div><p>変換プラグとモバイルバッテリー</p></div></li>
+<li data-type="taskItem" data-checked="false"><div><p>宿泊・交通予約のスクショ</p></div></li>
+</ul>`,
     },
   ],
-  notes: [
-    {
-      key: "note-today",
-      dayOffset: 0,
-      lines: [
-        "詰まっていた「経費精算の提出」を先に片づけたら、あとはスムーズだった。",
-        "午後の会議を非同期にして1時間浮いた。",
-      ],
-    },
-  ],
+  notes: [],
 };

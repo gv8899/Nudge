@@ -3891,22 +3891,22 @@
     },
     "onboarding.hint.complete": {
       "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成任務時，點一下方框，任務會自動移到下方「已完成」區塊。"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tap the circle on the left to mark it done"
+            "value": "To complete a task, tap its checkbox — it moves down to the Completed section."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "左の丸をタップして完了にします"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "點左邊的圈圈，把它標成完成"
+            "value": "タスクを完了するにはチェックボックスをタップ。下の「完了」に移動します。"
           }
         }
       }
@@ -6336,19 +6336,19 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "前幾天沒做完的，會自動留到今天，不會漏掉"
+            "value": "前幾天沒完成的任務會自動滾到今天。點 ⋯ 可以移到今天來做，或調整到其他日期。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unfinished tasks from earlier days roll over to today so nothing slips"
+            "value": "Unfinished tasks from earlier days roll over to today. Tap ⋯ to move one to today or reschedule it."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "前の日にやり残したものは今日に自動で繰り越し、抜け漏れなし"
+            "value": "前の日にやり残したタスクは今日に自動で繰り越し。⋯ をタップで今日に移動、または別の日に変更できます。"
           }
         }
       }

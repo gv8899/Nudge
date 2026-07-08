@@ -33,7 +33,7 @@ export const zhTW: OnboardingContent = {
       key: "nudge-guide",
       title: "Nudge 使用說明",
       tagKey: "knowledge",
-      createdOffset: -1,
+      createdOffset: 0, // 最新 → 卡片列表最上方
       html: `<h2>Nudge 快速上手</h2>
 <p>把每天要做的事丟進來，完成就打勾。<strong>沒做完的，隔天會自動出現在「今天」</strong>，不會不見、也不用手動搬。</p>
 <h3>幾個好習慣</h3>
@@ -58,9 +58,9 @@ export const zhTW: OnboardingContent = {
 <li>工程先把 API 契約定下來，避免返工</li>
 </ul>
 <h3>待辦</h3>
-<ul>
-<li>PM：整理需求優先序（本週三前）</li>
-<li>設計：原型 A / B（週四評審）</li>
+<ul data-type="taskList">
+<li data-type="taskItem" data-checked="false"><div><p>PM：整理需求優先序（本週三前）</p></div></li>
+<li data-type="taskItem" data-checked="false"><div><p>設計：原型 A / B（週四評審）</p></div></li>
 </ul>`,
     },
     {
@@ -68,26 +68,14 @@ export const zhTW: OnboardingContent = {
       title: "出國確認清單",
       tagKey: "checklist",
       createdOffset: -2,
-      html: `<h2>出差／出國前確認</h2>
-<p>出發前一天再檢查一次：</p>
-<ul>
-<li>✅ 護照效期 6 個月以上</li>
-<li>✅ 機票與登機證明</li>
-<li>◻️ 當地網路 / 漫遊</li>
-<li>◻️ 轉接頭與行動電源</li>
-<li>◻️ 住宿與交通訂單截圖</li>
-</ul>
-<p>回來記得<strong>當天就報帳</strong>，別拖。</p>`,
+      html: `<ul data-type="taskList">
+<li data-type="taskItem" data-checked="true"><div><p>護照效期 6 個月以上</p></div></li>
+<li data-type="taskItem" data-checked="true"><div><p>機票與登機證明</p></div></li>
+<li data-type="taskItem" data-checked="false"><div><p>當地網路 / 漫遊</p></div></li>
+<li data-type="taskItem" data-checked="false"><div><p>轉接頭與行動電源</p></div></li>
+<li data-type="taskItem" data-checked="false"><div><p>住宿與交通訂單截圖</p></div></li>
+</ul>`,
     },
   ],
-  notes: [
-    {
-      key: "note-today",
-      dayOffset: 0,
-      lines: [
-        "把最卡的『送出報帳』先解決，剩下的就順了。",
-        "下午那場會改成非同步，省了一小時。",
-      ],
-    },
-  ],
+  notes: [],
 };
