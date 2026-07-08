@@ -9,6 +9,8 @@ import { provisionNewUser, localeFromAcceptLanguage } from "@/lib/onboarding/pro
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { idToken } = body;
+  // app 帶上的介面語言優先（比 Accept-Language 準）。
+  const bodyLocale = typeof body.locale === "string" ? body.locale : null;
 
   if (!idToken) {
     return NextResponse.json({ error: "idToken required" }, { status: 400 });
@@ -56,7 +58,7 @@ export async function POST(request: NextRequest) {
     };
     await db.insert(users).values(newUser);
     await provisionNewUser(newUser.id, {
-      locale: localeFromAcceptLanguage(request.headers.get("accept-language")),
+      locale: bodyLocale ?? localeFromAcceptLanguage(request.headers.get("accept-language")),
     });
     user = newUser;
   }

@@ -26,6 +26,8 @@ const ALLOWED_AUDIENCES = ["tw.nudge.app", "tw.nudge.mac"];
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { identityToken, fullName, email: bodyEmail } = body;
+  // app 帶上的介面語言優先（比 Accept-Language 準）。
+  const bodyLocale = typeof body.locale === "string" ? body.locale : null;
 
   if (!identityToken) {
     return NextResponse.json(
@@ -99,7 +101,7 @@ export async function POST(request: NextRequest) {
     };
     await db.insert(users).values(newUser);
     await provisionNewUser(newUser.id, {
-      locale: localeFromAcceptLanguage(request.headers.get("accept-language")),
+      locale: bodyLocale ?? localeFromAcceptLanguage(request.headers.get("accept-language")),
     });
     user = newUser;
   }

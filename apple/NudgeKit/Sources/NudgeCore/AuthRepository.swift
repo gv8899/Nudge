@@ -37,10 +37,10 @@ public final class AuthRepository {
     }
 
     @discardableResult
-    public func login(idToken: String) async throws -> UserDTO {
+    public func login(idToken: String, locale: String? = nil) async throws -> UserDTO {
         let response: MobileAuthResponse = try await client.post(
             "/api/auth/mobile",
-            body: MobileAuthRequest(idToken: idToken)
+            body: MobileAuthRequest(idToken: idToken, locale: locale)
         )
         try keychain.set(response.token, for: tokenKey)
         status = .authenticated(response.user)
@@ -53,14 +53,16 @@ public final class AuthRepository {
     public func loginWithApple(
         identityToken: String,
         fullName: String?,
-        email: String?
+        email: String?,
+        locale: String? = nil
     ) async throws -> UserDTO {
         let response: MobileAuthResponse = try await client.post(
             "/api/auth/apple",
             body: AppleAuthRequest(
                 identityToken: identityToken,
                 fullName: fullName,
-                email: email
+                email: email,
+                locale: locale
             )
         )
         try keychain.set(response.token, for: tokenKey)

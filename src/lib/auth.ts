@@ -39,9 +39,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             googleCalendarTokenExpires: null,
             googleCalendarSelectedIds: null,
           });
-          // locale 在此 callback 難以取得（無 request headers）→ 交給 seed
-          // 的 zh-TW fallback。
-          await provisionNewUser(newUserId, { locale: null });
+          // 用 NEXT_LOCALE cookie（登入頁在 /[locale]/login，middleware 會設）
+          // 當介面語言，讓 seed 內容對上使用者看到的語言。讀失敗就 fallback。
+          let webLocale: string | null = null;
+          try {
+            const { cookies } = await import("next/headers");
+            const cookieStore = await cookies();
+            webLocale = cookieStore.get("NEXT_LOCALE")?.value ?? null;
+          } catch {
+            webLocale = null;
+          }
+          await provisionNewUser(newUserId, { locale: webLocale });
         }
 
         return true;

@@ -206,7 +206,7 @@ struct NudgeMacApp: App {
     private func performLogin() async -> Result<Void, Error> {
         do {
             let idToken = try await googleSignIn.signIn()
-            _ = try await auth.login(idToken: idToken)
+            _ = try await auth.login(idToken: idToken, locale: NudgeLanguage.currentUITag())
             return .success(())
         } catch {
             return .failure(error)
@@ -222,7 +222,8 @@ struct NudgeMacApp: App {
             _ = try await auth.loginWithApple(
                 identityToken: identityToken,
                 fullName: fullName,
-                email: email
+                email: email,
+                locale: NudgeLanguage.currentUITag()
             )
             return .success(())
         } catch {
