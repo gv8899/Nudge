@@ -524,7 +524,8 @@ struct MacSidebarRoot: View {
 
     @ToolbarContentBuilder
     private var calendarToolbar: some ToolbarContent {
-        ToolbarItem(placement: .primaryAction) {
+        // .principal = toolbar 正中間（原本 .primaryAction 貼著 sidebar）。
+        ToolbarItem(placement: .principal) {
             // 日｜週｜月 segmented — 直接點擊切換，取代原本的下拉 Menu。
             // palette style + nudgePrimary 對齊 dailyToolbar 的 calendar/
             // cards picker。綁 @AppStorage(viewMode)，CalendarHostView 讀
