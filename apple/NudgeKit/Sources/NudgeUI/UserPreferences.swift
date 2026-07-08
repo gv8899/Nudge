@@ -27,6 +27,22 @@ public enum NudgeLanguage: String, CaseIterable, Identifiable, Sendable {
         case .ja: Locale(identifier: "ja")
         }
     }
+
+    /// 目前 app 內選定的介面語言，解析成 BCP-47 tag —— 登入時帶給後端，讓新帳號
+    /// seed 的範例內容語言 = 使用者實際看到的介面語言（而非 Accept-Language /
+    /// 系統語言）。`auto` → 取系統偏好語言。
+    public static func currentUITag() -> String {
+        let raw = UserDefaults.standard.string(forKey: NudgePreferenceKey.language)
+            ?? NudgeLanguage.auto.rawValue
+        switch NudgeLanguage(rawValue: raw) ?? .auto {
+        // auto → 用 app **實際解析到的**介面語言（bundle 支援語言 ∩ 裝置偏好），
+        // 而非原始裝置語言 —— 這樣非中日裝置解析到 en，內容才會對上英文介面。
+        case .auto: return Bundle.main.preferredLocalizations.first ?? "en"
+        case .zhTW: return "zh-Hant"
+        case .en: return "en"
+        case .ja: return "ja"
+        }
+    }
 }
 
 /// Keys used by `@AppStorage` across the app. Keep names in one place so

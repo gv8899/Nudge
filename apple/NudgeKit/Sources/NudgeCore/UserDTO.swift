@@ -52,6 +52,10 @@ public struct UserDTO: Codable, Equatable, Sendable {
     public let locale: String?
     /// 僅 /api/me 帶；login 回應沒有 → optional。
     public let entitlement: EntitlementDTO?
+    /// onboarding 門閂：ISO8601 時間戳（帳號被 seed 範例內容的時間）。
+    /// NULL = 尚未 onboard。僅 /api/me 帶；login 回應沒有 → optional。
+    /// first-run welcome 導覽用「近期 onboard」判斷是否顯示。
+    public let onboardedAt: String?
 
     public init(
         id: String,
@@ -59,7 +63,8 @@ public struct UserDTO: Codable, Equatable, Sendable {
         name: String?,
         avatarUrl: String?,
         locale: String?,
-        entitlement: EntitlementDTO? = nil
+        entitlement: EntitlementDTO? = nil,
+        onboardedAt: String? = nil
     ) {
         self.id = id
         self.email = email
@@ -67,5 +72,6 @@ public struct UserDTO: Codable, Equatable, Sendable {
         self.avatarUrl = avatarUrl
         self.locale = locale
         self.entitlement = entitlement
+        self.onboardedAt = onboardedAt
     }
 }

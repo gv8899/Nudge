@@ -1,4 +1,20 @@
 {
+  "onboarding": {
+    "welcome": {
+      "title": "歡迎使用 Nudge",
+      "intro": "我們先放了一些範例，讓你邊看邊上手：",
+      "pointTasks": "任務：安排每天要做的事，點圈圈就完成",
+      "pointRollover": "沒做完不會不見：自動留到隔天的「今天」",
+      "pointCards": "卡片：會議記錄、知識、清單，長內容都收進來",
+      "cta": "開始使用",
+      "viewCards": "看看範例卡片"
+    },
+    "hint": {
+      "complete": "完成任務時，點一下方框，任務會自動移到下方「已完成」區塊。",
+      "overdue": "前幾天沒完成的任務會自動滾到今天。點 ⋯ 可以移到今天來做，或調整到其他日期。",
+      "dismiss": "知道了"
+    }
+  },
   "common": {
     "save": "儲存",
     "cancel": "取消",
@@ -10,7 +26,8 @@
     "retry": "重試",
     "done": "完成",
     "clear": "清除",
-    "confirm": "確認"
+    "confirm": "確認",
+    "close": "關閉"
   },
   "settings": {
     "title": "設定",

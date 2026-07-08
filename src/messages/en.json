@@ -1,4 +1,20 @@
 {
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to Nudge",
+      "intro": "We've added a few examples so you can learn as you go:",
+      "pointTasks": "Tasks: plan what to do each day — tap the circle to complete",
+      "pointRollover": "Nothing slips: unfinished tasks roll over to the next day's \"Today\"",
+      "pointCards": "Cards: meeting notes, knowledge, checklists — anything longer lives here",
+      "cta": "Get started",
+      "viewCards": "See the example cards"
+    },
+    "hint": {
+      "complete": "To complete a task, tap its checkbox — it moves down to the Completed section.",
+      "overdue": "Unfinished tasks from earlier days roll over to today. Tap ⋯ to move one to today or reschedule it.",
+      "dismiss": "Got it"
+    }
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
@@ -10,7 +26,8 @@
     "retry": "Retry",
     "done": "Done",
     "clear": "Clear",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "close": "Close"
   },
   "settings": {
     "title": "Settings",

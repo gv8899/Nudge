@@ -236,7 +236,7 @@ struct NudgeiOSApp: App {
     private func performLogin() async -> Result<Void, Error> {
         do {
             let idToken = try await googleSignIn.signIn()
-            _ = try await auth.login(idToken: idToken)
+            _ = try await auth.login(idToken: idToken, locale: NudgeLanguage.currentUITag())
             // Make the freshly-stored token visible to the widget extension,
             // then seed today's snapshot so the widget renders immediately.
             syncTokenToSharedStore()
@@ -259,7 +259,8 @@ struct NudgeiOSApp: App {
             _ = try await auth.loginWithApple(
                 identityToken: identityToken,
                 fullName: fullName,
-                email: email
+                email: email,
+                locale: NudgeLanguage.currentUITag()
             )
             syncTokenToSharedStore()
             await taskRepo.refreshWidgetSnapshot()

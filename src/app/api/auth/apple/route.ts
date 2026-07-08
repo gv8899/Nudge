@@ -5,7 +5,7 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { signJWT } from "@/lib/jwt";
-import { ensureTrial } from "@/lib/entitlement";
+import { provisionNewUser, localeFromAcceptLanguage } from "@/lib/onboarding/provision-user";
 
 // Apple 的公鑰集 —— 驗 identityToken 簽章用。createRemoteJWKSet 內建快取
 // （依 Cache-Control），不會每次 request 都打 Apple。
@@ -26,6 +26,8 @@ const ALLOWED_AUDIENCES = ["tw.nudge.app", "tw.nudge.mac"];
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { identityToken, fullName, email: bodyEmail } = body;
+  // app 帶上的介面語言優先（比 Accept-Language 準）。
+  const bodyLocale = typeof body.locale === "string" ? body.locale : null;
 
   if (!identityToken) {
     return NextResponse.json(
@@ -91,13 +93,16 @@ export async function POST(request: NextRequest) {
       appleSub: sub,
       createdAt: now,
       trialStartedAt: null,
+      onboardedAt: null,
       googleCalendarAccessToken: null,
       googleCalendarRefreshToken: null,
       googleCalendarTokenExpires: null,
       googleCalendarSelectedIds: null,
     };
     await db.insert(users).values(newUser);
-    await ensureTrial(newUser.id);
+    await provisionNewUser(newUser.id, {
+      locale: bodyLocale ?? localeFromAcceptLanguage(request.headers.get("accept-language")),
+    });
     user = newUser;
   }
 

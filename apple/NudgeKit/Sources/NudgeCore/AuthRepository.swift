@@ -37,10 +37,10 @@ public final class AuthRepository {
     }
 
     @discardableResult
-    public func login(idToken: String) async throws -> UserDTO {
+    public func login(idToken: String, locale: String? = nil) async throws -> UserDTO {
         let response: MobileAuthResponse = try await client.post(
             "/api/auth/mobile",
-            body: MobileAuthRequest(idToken: idToken)
+            body: MobileAuthRequest(idToken: idToken, locale: locale)
         )
         try keychain.set(response.token, for: tokenKey)
         status = .authenticated(response.user)
@@ -53,14 +53,16 @@ public final class AuthRepository {
     public func loginWithApple(
         identityToken: String,
         fullName: String?,
-        email: String?
+        email: String?,
+        locale: String? = nil
     ) async throws -> UserDTO {
         let response: MobileAuthResponse = try await client.post(
             "/api/auth/apple",
             body: AppleAuthRequest(
                 identityToken: identityToken,
                 fullName: fullName,
-                email: email
+                email: email,
+                locale: locale
             )
         )
         try keychain.set(response.token, for: tokenKey)
@@ -129,6 +131,21 @@ public final class AuthRepository {
         } catch {
             if !APIError.isCancellation(error) {
                 print("[AuthRepository] refreshEntitlement failed: \(error)")
+            }
+        }
+    }
+
+    /// 重新抓完整 user（/api/me）並更新 status + entitlement。login 回應不帶
+    /// `entitlement` / `onboardedAt`，first-run 導覽需要 `onboardedAt` → 進主
+    /// 畫面時呼叫一次補齊。網路 / 其他錯誤靜默忽略（維持現有 status）。
+    public func refreshCurrentUser() async {
+        do {
+            let user: UserDTO = try await client.get("/api/me")
+            entitlement = user.entitlement
+            status = .authenticated(user)
+        } catch {
+            if !APIError.isCancellation(error) {
+                print("[AuthRepository] refreshCurrentUser failed: \(error)")
             }
         }
     }

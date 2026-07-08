@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { ensureTrial } from "@/lib/entitlement";
+import { provisionNewUser } from "@/lib/onboarding/provision-user";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [Google],
@@ -39,7 +39,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             googleCalendarTokenExpires: null,
             googleCalendarSelectedIds: null,
           });
-          await ensureTrial(newUserId);
+          // 用 NEXT_LOCALE cookie（登入頁在 /[locale]/login，middleware 會設）
+          // 當介面語言，讓 seed 內容對上使用者看到的語言。讀失敗就 fallback。
+          let webLocale: string | null = null;
+          try {
+            const { cookies } = await import("next/headers");
+            const cookieStore = await cookies();
+            webLocale = cookieStore.get("NEXT_LOCALE")?.value ?? null;
+          } catch {
+            webLocale = null;
+          }
+          await provisionNewUser(newUserId, { locale: webLocale });
         }
 
         return true;

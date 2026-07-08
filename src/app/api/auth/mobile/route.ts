@@ -4,11 +4,13 @@ import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { signJWT } from "@/lib/jwt";
-import { ensureTrial } from "@/lib/entitlement";
+import { provisionNewUser, localeFromAcceptLanguage } from "@/lib/onboarding/provision-user";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { idToken } = body;
+  // app 帶上的介面語言優先（比 Accept-Language 準）。
+  const bodyLocale = typeof body.locale === "string" ? body.locale : null;
 
   if (!idToken) {
     return NextResponse.json({ error: "idToken required" }, { status: 400 });
@@ -48,13 +50,16 @@ export async function POST(request: NextRequest) {
       appleSub: null,
       createdAt: now,
       trialStartedAt: null,
+      onboardedAt: null,
       googleCalendarAccessToken: null,
       googleCalendarRefreshToken: null,
       googleCalendarTokenExpires: null,
       googleCalendarSelectedIds: null,
     };
     await db.insert(users).values(newUser);
-    await ensureTrial(newUser.id);
+    await provisionNewUser(newUser.id, {
+      locale: bodyLocale ?? localeFromAcceptLanguage(request.headers.get("accept-language")),
+    });
     user = newUser;
   }
 

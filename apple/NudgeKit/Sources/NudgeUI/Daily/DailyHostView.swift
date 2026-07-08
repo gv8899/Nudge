@@ -41,6 +41,16 @@ public struct DailyHostView: View {
     @State private var showQuickAdd = false
     @State private var quickAddText = ""
 
+    // First-run welcome 導覽 —— 顯示條件見 OnboardingGate（近期 onboard +
+    // 本地未看過）。dismissWelcome() 後本地 flag 記已看過、welcomeDismissed
+    // 立即隱藏。onboardedAt 由 refreshOnboardingUser() 從 /api/me 補進
+    // auth.currentUser（login 回應不帶）。
+    @State private var welcomeDismissed = OnboardingGate.isSeen(.welcome)
+    // First-run 行內提示的本地已看過 flag（鏡像 web）：complete 掛在第一個
+    // 未完成任務、overdue 掛在逾期區（教「沒做完自動留到今天」）。
+    @State private var hintCompleteDismissed = OnboardingGate.isSeen(.hintComplete)
+    @State private var hintOverdueDismissed = OnboardingGate.isSeen(.hintOverdue)
+
     // 30 秒 smart polling — server 多數時候回 304，只有真有變動才更新
     // 本地 cache + widget snapshot。scenePhase 切走時 cancel，回前景再啟。
     @State private var pollingTask: Task<Void, Never>?
@@ -159,6 +169,91 @@ public struct DailyHostView: View {
             pollingTask?.cancel()
             pollingTask = nil
         }
+        // First-run welcome overlay — 掛在 iOS / macOS 兩種 layout 之上，
+        // 一處 mount 兩平台共用。用共用 NudgeModalOverlay（backdrop / 圓角 /
+        // 陰影 / ⎋ / 點外關閉都在裡面）。
+        .overlay { welcomeOverlay }
+        // login 回應不帶 onboardedAt / entitlement —— 進主畫面補抓 /api/me
+        // 一次，讓 first-run welcome 的近期 onboard 判斷拿得到 onboardedAt。
+        .task { await auth.refreshCurrentUser() }
+    }
+
+    // MARK: - First-run welcome overlay
+
+    /// 顯示條件（見 OnboardingGate / spec §5）：本地未看過 + 近期 onboard。
+    private var showWelcome: Bool {
+        !welcomeDismissed
+            && OnboardingGate.isRecentlyOnboarded(auth.currentUser?.onboardedAt)
+    }
+
+    @ViewBuilder
+    private var welcomeOverlay: some View {
+        if showWelcome {
+            NudgeModalOverlay(onDismiss: dismissWelcome) {
+                OnboardingWelcomeView(
+                    onStart: dismissWelcome,
+                    onViewCards: {
+                        dismissWelcome()
+                        // mac：PlatformRootView（MacSidebarRoot）監聽 switchTab
+                        // → 切 Cards。NudgeCommands 是 macOS-only；iOS TabView
+                        // 走 notificationRouter、無此監聽 → 僅關閉（可接受）。
+                        #if os(macOS)
+                        NotificationCenter.default.post(
+                            name: NudgeCommands.switchTabNotification,
+                            object: "cards"
+                        )
+                        #endif
+                    }
+                )
+                .frame(maxWidth: 420)
+            }
+        }
+    }
+
+    private func dismissWelcome() {
+        OnboardingGate.markSeen(.welcome)
+        welcomeDismissed = true
+    }
+
+    // MARK: - First-run inline hints
+
+    /// 是否近期 onboard（提示共用的前提）。
+    private var isRecentlyOnboarded: Bool {
+        OnboardingGate.isRecentlyOnboarded(auth.currentUser?.onboardedAt)
+    }
+
+    /// 任務清單的行內提示：complete 錨在第一個未完成任務。
+    /// 條件：近期 onboard + 本地未看過 + 錨點仍在 + 正在看今天。
+    private var onboardingHints: [TaskListInlineHint] {
+        guard isViewingToday, isRecentlyOnboarded, !hintCompleteDismissed else { return [] }
+        let pending = (dailyData?.assignments ?? [])
+            .filter { !$0.isCompleted }
+            .sorted { $0.sortOrder < $1.sortOrder }
+        guard let anchor = pending.first else { return [] }
+        return [TaskListInlineHint(
+            id: "hint-complete",
+            anchorAssignmentId: anchor.id,
+            textKey: "onboarding.hint.complete",
+            onDismiss: dismissHintComplete
+        )]
+    }
+
+    /// 逾期區上方的「rollover」提示：近期 onboard + 未看過 + 有逾期 + 看今天。
+    private var showOverdueHint: Bool {
+        isViewingToday
+            && isRecentlyOnboarded
+            && !hintOverdueDismissed
+            && !(dailyData?.overdueTasks ?? []).isEmpty
+    }
+
+    private func dismissHintComplete() {
+        OnboardingGate.markSeen(.hintComplete)
+        hintCompleteDismissed = true
+    }
+
+    private func dismissHintOverdue() {
+        OnboardingGate.markSeen(.hintOverdue)
+        hintOverdueDismissed = true
     }
 
     /// 啟動 30 秒 polling loop。Idempotent — 重複呼叫先 cancel 舊的。
@@ -239,6 +334,14 @@ public struct DailyHostView: View {
                     )
                     ScrollView {
                         VStack(spacing: 0) {
+                            if showOverdueHint {
+                                OnboardingHintBar(
+                                    textKey: "onboarding.hint.overdue",
+                                    onDismiss: dismissHintOverdue
+                                )
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 4)
+                            }
                             OverdueSectionView(
                                 overdueTasks: dailyData?.overdueTasks ?? [],
                                 currentDate: selectedDate,
@@ -271,7 +374,8 @@ public struct DailyHostView: View {
                                 onMoveToToday: { moveAssignment($0, to: DateFormatters.isoDate(Date())) },
                                 onSkipThisOccurrence: { skipOccurrence($0) },
                                 onSetRecurrence: { openScheduleSheet(for: $0) },
-                                onSetReminder: { openScheduleSheet(for: $0) }
+                                onSetReminder: { openScheduleSheet(for: $0) },
+                                inlineHints: onboardingHints
                             )
                         }
                     }
@@ -786,6 +890,14 @@ public struct DailyHostView: View {
             )
             ScrollView {
                 VStack(spacing: 0) {
+                    if showOverdueHint {
+                        OnboardingHintBar(
+                            textKey: "onboarding.hint.overdue",
+                            onDismiss: dismissHintOverdue
+                        )
+                        .padding(.horizontal, 12)
+                        .padding(.bottom, 4)
+                    }
                     OverdueSectionView(
                         overdueTasks: dailyData?.overdueTasks ?? [],
                         currentDate: selectedDate,
@@ -819,7 +931,8 @@ public struct DailyHostView: View {
                         onMoveToToday: { moveAssignment($0, to: DateFormatters.isoDate(Date())) },
                         onSkipThisOccurrence: { skipOccurrence($0) },
                         onSetRecurrence: { openScheduleSheet(for: $0) },
-                        onSetReminder: { openScheduleSheet(for: $0) }
+                        onSetReminder: { openScheduleSheet(for: $0) },
+                        inlineHints: onboardingHints
                     )
                     // alignment: .top — frame minHeight 300 是給 drop
                     // zone 用的，但沒指定 alignment 預設置中，內容變

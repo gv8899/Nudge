@@ -1475,6 +1475,28 @@
         }
       }
     },
+    "common.close": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "閉じる"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "關閉"
+          }
+        }
+      }
+    },
     "common.confirm": {
       "localizations": {
         "en": {
@@ -3867,6 +3889,182 @@
         }
       }
     },
+    "onboarding.hint.complete": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成任務時，點一下方框，任務會自動移到下方「已完成」區塊。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To complete a task, tap its checkbox — it moves down to the Completed section."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タスクを完了するにはチェックボックスをタップ。下の「完了」に移動します。"
+          }
+        }
+      }
+    },
+    "onboarding.hint.dismiss": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Got it"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "知道了"
+          }
+        }
+      }
+    },
+    "onboarding.welcome.cta": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get started"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "はじめる"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開始使用"
+          }
+        }
+      }
+    },
+    "onboarding.welcome.intro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We've added a few examples so you can learn as you go:"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使いながら覚えられるよう、サンプルをいくつか入れておきました："
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我們先放了一些範例，讓你邊看邊上手："
+          }
+        }
+      }
+    },
+    "onboarding.welcome.pointCards": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卡片：會議記錄、知識、清單，長內容都收進來"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cards: meeting notes, knowledge, checklists — anything longer lives here"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カード：議事録・ナレッジ・チェックリストなど長い内容はここに"
+          }
+        }
+      }
+    },
+    "onboarding.welcome.pointTasks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasks: plan what to do each day — tap the circle to complete"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タスク：その日にやることを並べ、丸をタップで完了"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任務：安排每天要做的事，點圈圈就完成"
+          }
+        }
+      }
+    },
+    "onboarding.welcome.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to Nudge"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nudge へようこそ"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "歡迎使用 Nudge"
+          }
+        }
+      }
+    },
+    "onboarding.welcome.viewCards": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See the example cards"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サンプルのカードを見る"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看範例卡片"
+          }
+        }
+      }
+    },
     "schedule.preset.biweekly": {
       "localizations": {
         "en": {
@@ -6107,6 +6305,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "今日"
+          }
+        }
+      }
+    },
+    "onboarding.welcome.pointRollover": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒做完不會不見：自動留到隔天的「今天」"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing slips: unfinished tasks roll over to the next day's \"Today\""
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "やり残しは消えない：翌日の「今日」に自動で繰り越し"
+          }
+        }
+      }
+    },
+    "onboarding.hint.overdue": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前幾天沒完成的任務會自動滾到今天。點 ⋯ 可以移到今天來做，或調整到其他日期。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unfinished tasks from earlier days roll over to today. Tap ⋯ to move one to today or reschedule it."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前の日にやり残したタスクは今日に自動で繰り越し。⋯ をタップで今日に移動、または別の日に変更できます。"
           }
         }
       }
