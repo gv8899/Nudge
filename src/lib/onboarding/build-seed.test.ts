@@ -62,15 +62,22 @@ describe("buildOnboardingSeed", () => {
 });
 
 describe("contentForLocale", () => {
-  it("falls back to zh-TW for null/unknown", () => {
-    expect(contentForLocale(null)).toBe(zhTW);
-    expect(contentForLocale("de")).toBe(zhTW);
+  it("falls back to English for null/unknown (international default)", () => {
+    expect(contentForLocale(null)).toBe(en);
+    expect(contentForLocale("de")).toBe(en);
+    expect(contentForLocale("ko-KR")).toBe(en);
+  });
+  it("maps Chinese variants to zh-TW", () => {
     expect(contentForLocale("zh")).toBe(zhTW);
+    expect(contentForLocale("zh-TW")).toBe(zhTW);
+    expect(contentForLocale("zh-Hant")).toBe(zhTW);
+    expect(contentForLocale("zh-Hans")).toBe(zhTW);
   });
   it("maps en/ja incl. region subtags", () => {
     expect(contentForLocale("en")).toBe(en);
     expect(contentForLocale("en-US")).toBe(en);
     expect(contentForLocale("ja")).toBe(ja);
+    expect(contentForLocale("ja-JP")).toBe(ja);
   });
 });
 

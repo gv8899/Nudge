@@ -12,15 +12,15 @@ const BY_LOCALE: Record<string, OnboardingContent> = {
 };
 
 /**
- * 依 locale 取範例內容。未知 / null 一律 fallback 到 zh-TW（app 預設語言）。
- * 只取主語言標籤前綴（"en-US" → "en"）。
+ * 依 locale 取範例內容。規則：中文（zh*）→ 繁中、日文（ja）→ 日文、
+ * **其他一律英文**（英文是國際 fallback，含未知 / null）。
+ * 只取主語言標籤前綴（"en-US" → "en"、"zh-Hant" → "zh"）。
  */
 export function contentForLocale(locale: string | null | undefined): OnboardingContent {
-  if (!locale) return zhTW;
+  if (!locale) return en;
   if (BY_LOCALE[locale]) return BY_LOCALE[locale];
   const base = locale.split("-")[0];
-  // en / ja 用前綴命中；zh 一律回 zh-TW。
-  if (base === "en") return en;
+  if (base === "zh") return zhTW; // 任何中文變體 → 繁中
   if (base === "ja") return ja;
-  return zhTW;
+  return en; // 其他一律英文
 }
