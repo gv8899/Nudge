@@ -13,7 +13,6 @@ import {
   dailyTaskAssignments,
   taskRecurrences,
   dailyNotes,
-  notificationPreferences,
 } from "@/lib/db/schema";
 import { contentForLocale } from "./content";
 import { buildOnboardingSeed } from "./build-seed";
@@ -117,7 +116,7 @@ export async function maybeSeedOnboarding(
         }
       }
 
-      // ⑤ 日誌。
+      // ⑤ 日誌（目前 onboarding 內容為空，保留寫入邏輯以備日後）。
       for (const n of plan.notes) {
         await tx.insert(dailyNotes).values({
           id: nanoid(),
@@ -129,14 +128,7 @@ export async function maybeSeedOnboarding(
         });
       }
 
-      // ⑥ 開啟 per-task 提醒（每 user 一筆）。
-      await tx
-        .insert(notificationPreferences)
-        .values({ userId, perTaskRemindersEnabled: true, updatedAt: nowISO })
-        .onConflictDoUpdate({
-          target: notificationPreferences.userId,
-          set: { perTaskRemindersEnabled: true, updatedAt: nowISO },
-        });
+      // 刻意不動 notification_preferences —— onboarding 不預設任何提醒 / 推播。
 
       return true;
     });

@@ -22,9 +22,7 @@ describe("buildOnboardingSeed", () => {
     expect(plan.notes).toHaveLength(zhTW.notes.length);
   });
 
-  it("overdue tasks roll to their past dates (demonstrate rollover)", () => {
-    expect(plan.tasks.find((r) => r.key === "expense-report")!.assignment?.date)
-      .toBe("2026-07-05"); // dayOffset -2
+  it("overdue task rolls to yesterday (demonstrate rollover)", () => {
     expect(plan.tasks.find((r) => r.key === "vendor-followup")!.assignment?.date)
       .toBe("2026-07-06"); // dayOffset -1
   });
@@ -41,25 +39,18 @@ describe("buildOnboardingSeed", () => {
     }
   });
 
-  it("weekly_fri task carries the 17:00 reminder", () => {
-    const t = plan.tasks.find((r) => r.key === "weekly-report")!;
-    expect(t.recurrence!.preset).toBe("weekly");
-    expect(t.recurrence!.weekdays).toBe("5");
-    expect(t.recurrence!.remindAtTimeOfDay).toBe("17:00");
-    expect(t.remindAt).toBe("2026-07-07T17:00:00");
+  it("no task sets a reminder (onboarding opts out of reminders/push)", () => {
+    for (const r of plan.tasks) {
+      expect(r.remindAt).toBeNull();
+      if (r.recurrence) expect(r.recurrence.remindAtTimeOfDay).toBeNull();
+    }
   });
 
-  it("weekdays task has no reminder", () => {
+  it("weekdays recurring task is present with no reminder", () => {
     const t = plan.tasks.find((r) => r.key === "standup")!;
     expect(t.recurrence!.preset).toBe("weekdays");
     expect(t.recurrence!.weekdays).toBe("1,2,3,4,5");
     expect(t.recurrence!.remindAtTimeOfDay).toBeNull();
-  });
-
-  it("done task becomes done + completed assignment", () => {
-    const t = plan.tasks.find((r) => r.key === "inbox-cleared")!;
-    expect(t.status).toBe("done");
-    expect(t.assignment?.isCompleted).toBe(true);
   });
 
   it("cards carry html description, a tag, and no assignment", () => {

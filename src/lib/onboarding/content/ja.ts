@@ -11,20 +11,10 @@ export const ja: OnboardingContent = {
     { key: "checklist", name: "チェックリスト", color: "chart-3" },
   ],
   tasks: [
-    // 今日
-    { key: "inbox-cleared", title: "朝のメール整理", dayOffset: 0, done: true },
-    { key: "reply-client", title: "顧客メールに返信", dayOffset: 0 },
+    // 今日（リマインド／プッシュなし）
     { key: "weekly-sync-prep", title: "週次会議の資料準備", dayOffset: 0 },
-    {
-      key: "weekly-report",
-      title: "週報を書く",
-      dayOffset: 0,
-      recurrence: "weekly_fri",
-      remindAtTimeOfDay: "17:00",
-    },
     { key: "standup", title: "朝のスタンドアップ", dayOffset: 0, recurrence: "weekdays" },
     // 前の日にやり残し → 今日に自動で繰り越し（期限切れ）
-    { key: "expense-report", title: "先月分の経費精算を提出", dayOffset: -2 },
     { key: "vendor-followup", title: "ベンダーの見積もりを催促", dayOffset: -1 },
   ],
   cards: [

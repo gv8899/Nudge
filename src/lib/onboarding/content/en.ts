@@ -11,20 +11,10 @@ export const en: OnboardingContent = {
     { key: "checklist", name: "Checklist", color: "chart-3" },
   ],
   tasks: [
-    // Today
-    { key: "inbox-cleared", title: "Clear the morning inbox", dayOffset: 0, done: true },
-    { key: "reply-client", title: "Reply to client email", dayOffset: 0 },
+    // Today (no reminders / push)
     { key: "weekly-sync-prep", title: "Prep the weekly sync deck", dayOffset: 0 },
-    {
-      key: "weekly-report",
-      title: "Write the weekly report",
-      dayOffset: 0,
-      recurrence: "weekly_fri",
-      remindAtTimeOfDay: "17:00",
-    },
     { key: "standup", title: "Daily stand-up", dayOffset: 0, recurrence: "weekdays" },
-    // Left unfinished on earlier days → rolled over to today as overdue
-    { key: "expense-report", title: "Submit last month's expenses", dayOffset: -2 },
+    // Left unfinished yesterday → rolled over to today as overdue
     { key: "vendor-followup", title: "Follow up on the vendor quote", dayOffset: -1 },
   ],
   cards: [

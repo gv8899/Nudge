@@ -12,20 +12,10 @@ export const zhTW: OnboardingContent = {
     { key: "checklist", name: "確認清單", color: "chart-3" },
   ],
   tasks: [
-    // 今天
-    { key: "inbox-cleared", title: "整理早晨收件匣", dayOffset: 0, done: true },
-    { key: "reply-client", title: "回覆客戶信件", dayOffset: 0 },
+    // 今天（不設提醒/推播）
     { key: "weekly-sync-prep", title: "準備週會簡報", dayOffset: 0 },
-    {
-      key: "weekly-report",
-      title: "寫週報",
-      dayOffset: 0,
-      recurrence: "weekly_fri",
-      remindAtTimeOfDay: "17:00",
-    },
     { key: "standup", title: "晨間站會", dayOffset: 0, recurrence: "weekdays" },
-    // 前幾天沒做完 → 自動滾到今天的逾期（示範 rollover）
-    { key: "expense-report", title: "送出上月報帳", dayOffset: -2 },
+    // 前一天沒做完 → 自動滾到今天的逾期（示範 rollover）
     { key: "vendor-followup", title: "追蹤供應商報價", dayOffset: -1 },
   ],
   cards: [
