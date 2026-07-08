@@ -35,7 +35,7 @@ struct NudgeTimeField: View {
         #if os(macOS)
         .whenHovered { hovered = $0 }
         #endif
-        .popover(isPresented: $open, arrowEdge: .bottom) {
+        .nudgePopover(isPresented: $open, arrowEdge: .bottom) {
             HStack(spacing: 4) {
                 TimeScrollWheel(values: Array(0..<24), selected: hourBinding)
                 Text(":")

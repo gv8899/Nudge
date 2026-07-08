@@ -154,7 +154,7 @@ public struct TaskRowMenu: View {
                 .accessibilityAddTraits(.isButton)
                 .accessibilityLabel(Text("daily.rowMenu", bundle: .module))
                 .help(Text("daily.rowMenu", bundle: .module))
-                .popover(isPresented: $menuShown, arrowEdge: .top) {
+                .nudgePopover(isPresented: $menuShown, arrowEdge: .top) {
                     menuItems
                         .padding(.vertical, 6)
                         .frame(minWidth: 200)
