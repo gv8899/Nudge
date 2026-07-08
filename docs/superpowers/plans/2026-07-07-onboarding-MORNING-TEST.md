@@ -40,6 +40,10 @@ Seed 只對**全新帳號**觸發。你現有的帳號跑完 migration 後 = 已
 - [ ] 全新帳號首登 → 落在 Today（有 seed 資料）→ **welcome overlay** 蓋在清單上
 - [ ] `onboardedAt` 有到 client（靠 `DailyHostView` 出現時呼叫 `refreshCurrentUser()`
       打 /api/me；login response 不帶這欄）——若 overlay 沒出現，先查這條
+- [ ] 關掉 welcome 後，清單裡「準備簡報」上方有「點左邊的丸…」、重複任務上方有
+      「這個會自動重複…」兩個 **inline 提示**（各自可關、關了重開不再出現）
+- [ ] ⚠️ 重點回歸測試：**勾選任務後 checkmark 正常顯示**（inline 提示插進清單，
+      要確認沒把「勾選後 checkmark 消失」那個 identity bug 引回來）
 - [ ] 開始使用 → 關閉；重開 app 不再出現（UserDefaults）
 - [ ] 看看範例卡片：**macOS** 會切到 Cards 分頁；**iOS 目前只關閉**（iOS TabView 沒接
       switchTab，想要 iOS 也跳 Cards 要另接 notificationRouter）
@@ -48,9 +52,9 @@ Seed 只對**全新帳號**觸發。你現有的帳號跑完 migration 後 = 已
 
 ## 已知取捨 / 待確認
 
-- **iOS/macOS inline 提示沒做**：TaskListView 的 Item identity 有歷史地雷
-      （勾選後 checkmark 消失那條），subagent 依授權只出 welcome overlay，提示文案
-      已進 xcstrings，要補時 copy-ready。web 有 inline 提示、Apple 只有 overlay。
+- **iOS/macOS inline 提示已補上**（三邊拉齊）：用穩定 id 的 `Item.hint` 插在錨定列
+      上方，走既有 flat-ForEach、不動任務列 identity，理論上不會重現「勾選後 checkmark
+      消失」——但**沒實機驗證**，請照上面「重點回歸測試」那條確認。
 - **en/ja 範例內容 + 部分 UI 文案是我初翻**：
   - 範例內容：`src/lib/onboarding/content/{en,ja}.ts`（檔頭有 `TODO(review)`）
   - UI 文案：`i18n/canonical/{en,ja}.json` 的 `onboarding.*`
