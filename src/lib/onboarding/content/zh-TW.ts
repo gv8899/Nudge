@@ -1,17 +1,21 @@
-// 繁體中文範例內容 —— 從 scripts/seed-landing-demo.mjs 的行銷故事線搬過來，
-// 作為 first-run onboarding 的教學素材。en / ja 為此檔的翻譯，結構須一致。
+// 繁體中文範例內容 —— first-run onboarding 教學素材。受眾：辦公室上班族。
+// 重點示範：① 今天的任務清單（含重複+提醒）② 沒做完的任務會自動滾到今天
+// （overdue / rollover）③ 卡片（會議記錄 / 知識 / 確認清單）。
+// en / ja 為此檔的翻譯，結構須一致（content-parity 測試會擋差異）。
 
 import type { OnboardingContent } from "./types";
 
 export const zhTW: OnboardingContent = {
   tags: [
-    { key: "work", name: "工作", color: "chart-1" },
-    { key: "study", name: "讀書", color: "chart-2" },
-    { key: "exercise", name: "運動", color: "chart-3" },
-    { key: "life", name: "生活", color: "chart-4" },
+    { key: "meeting-notes", name: "會議記錄", color: "chart-1" },
+    { key: "knowledge", name: "知識", color: "chart-2" },
+    { key: "checklist", name: "確認清單", color: "chart-3" },
   ],
   tasks: [
-    { key: "morning-exercise", title: "早晨運動", dayOffset: 0, done: true },
+    // 今天
+    { key: "inbox-cleared", title: "整理早晨收件匣", dayOffset: 0, done: true },
+    { key: "reply-client", title: "回覆客戶信件", dayOffset: 0 },
+    { key: "weekly-sync-prep", title: "準備週會簡報", dayOffset: 0 },
     {
       key: "weekly-report",
       title: "寫週報",
@@ -19,70 +23,61 @@ export const zhTW: OnboardingContent = {
       recurrence: "weekly_fri",
       remindAtTimeOfDay: "17:00",
     },
-    { key: "prep-slides", title: "準備簡報", dayOffset: 0 },
-    { key: "read-chapter", title: "閱讀 1 章", dayOffset: 0 },
     { key: "standup", title: "晨間站會", dayOffset: 0, recurrence: "weekdays" },
-    // 逾期（前幾天的）
-    { key: "pay-bills", title: "繳水電費", dayOffset: -5 },
-    { key: "reply-client", title: "回覆客戶 Email", dayOffset: -3 },
+    // 前幾天沒做完 → 自動滾到今天的逾期（示範 rollover）
+    { key: "expense-report", title: "送出上月報帳", dayOffset: -2 },
+    { key: "vendor-followup", title: "追蹤供應商報價", dayOffset: -1 },
   ],
   cards: [
     {
-      key: "okr",
-      title: "Q2 團隊 OKR 討論",
-      tagKey: "work",
+      key: "nudge-guide",
+      title: "Nudge 使用說明",
+      tagKey: "knowledge",
       createdOffset: -1,
-      html: `<h2>下季方向</h2>
-<p>今天會議意外談出了下季的方向。重點不是開多少會，是有沒有留下<strong>可以行動的結論</strong>。</p>
-<h3>三個 Key Result</h3>
+      html: `<h2>Nudge 快速上手</h2>
+<p>把每天要做的事丟進來，完成就打勾。<strong>沒做完的，隔天會自動出現在「今天」</strong>，不會不見、也不用手動搬。</p>
+<h3>幾個好習慣</h3>
 <ul>
-<li>新用戶啟用率從 32% 提升到 45%</li>
-<li>核心流程的 P50 延遲降到 200ms 以下</li>
-<li>每週固定出一篇產品紀錄</li>
+<li>早上先看「今天」，把最重要的三件排在最前面</li>
+<li>臨時想到的事，直接記成卡片，之後再整理</li>
+<li>重複性工作設成每週 / 每日重複，交給提醒</li>
 </ul>
-<blockquote><p>與其追蹤一堆指標，不如把一個指標做到位。</p></blockquote>`,
+<blockquote><p>先求每天清空，再求做得漂亮。</p></blockquote>`,
     },
     {
-      key: "running-notes",
-      title: "跑步筆記：第一個月的感想",
-      tagKey: "exercise",
-      createdOffset: -3,
-      html: `<p>剛起步時膝蓋會痠，配速也抓不準。三週後身體逐漸適應，從 5K 變成可以跑 8K 不喘。</p>
-<h3>學到的事</h3>
+      key: "product-meeting",
+      title: "產品開發會議記錄",
+      tagKey: "meeting-notes",
+      createdOffset: -1,
+      html: `<h2>產品開發週會</h2>
+<p><strong>時間：</strong>週一 10:00　<strong>與會：</strong>PM、設計、工程</p>
+<h3>結論</h3>
 <ul>
-<li>慢慢加量，比一次衝太快更能持續</li>
-<li>跑前動態伸展，膝蓋負擔小很多</li>
-<li>固定時間跑，最容易養成習慣</li>
+<li>下個版本聚焦「新人上手」流程，其他需求延後</li>
+<li>設計本週給出兩版原型，週四評審</li>
+<li>工程先把 API 契約定下來，避免返工</li>
+</ul>
+<h3>待辦</h3>
+<ul>
+<li>PM：整理需求優先序（本週三前）</li>
+<li>設計：原型 A / B（週四評審）</li>
 </ul>`,
     },
     {
-      key: "subtract-book",
-      title: "產品設計：減法的力量",
-      tagKey: "study",
-      createdOffset: -4,
-      html: `<p>讀完《<em>Subtract</em>》第 2 章，幾個重點：</p>
-<blockquote><p>人類天生傾向「加東西」來解決問題，但研究顯示主動「減東西」往往效果更好。</p></blockquote>
-<h3>對 Nudge 的啟發</h3>
+      key: "travel-checklist",
+      title: "出國確認清單",
+      tagKey: "checklist",
+      createdOffset: -2,
+      html: `<h2>出差／出國前確認</h2>
+<p>出發前一天再檢查一次：</p>
 <ul>
-<li>不要為了「完整性」加功能</li>
-<li><strong>YAGNI</strong> 不只是工程原則，也是產品原則</li>
-<li>每個功能都要問：刪掉會怎樣？</li>
+<li>✅ 護照效期 6 個月以上</li>
+<li>✅ 機票與登機證明</li>
+<li>◻️ 當地網路 / 漫遊</li>
+<li>◻️ 轉接頭與行動電源</li>
+<li>◻️ 住宿與交通訂單截圖</li>
 </ul>
-<h3>程式碼小技巧</h3>
-<p>用 <code>color-mix()</code> 可以用一個變數產生半透明版本，省下一組 token。</p>`,
-    },
-    {
-      key: "kyoto-trip",
-      title: "週末京都小旅行計畫",
-      tagKey: "life",
-      createdOffset: -7,
-      html: `<p>四天三夜。想去的地方：</p>
-<ul>
-<li>嵐山竹林</li>
-<li>伏見稻荷</li>
-<li>鴨川散步</li>
-</ul>
-<p>住宿想試試<strong>町家風格</strong>。交通用 ICOCA 比較方便。</p>`,
+<p>回來記得<strong>當天就報帳</strong>，別拖。</p>`,
     },
   ],
   notes: [
@@ -90,24 +85,8 @@ export const zhTW: OnboardingContent = {
       key: "note-today",
       dayOffset: 0,
       lines: [
-        "早上去跑了 5 公里。久沒動了，膝蓋提醒我要重新適應。",
-        "晚上吃得清淡一點，意外地比想像中舒服。",
-      ],
-    },
-    {
-      key: "note-yesterday",
-      dayOffset: -1,
-      lines: [
-        "會議很多，但意外談出了下季的方向。",
-        "重點不是開多少會，是有沒有留下可以行動的結論。",
-      ],
-    },
-    {
-      key: "note-2days",
-      dayOffset: -2,
-      lines: [
-        "讀了一篇關於「慢下來反而走得更遠」的文章。",
-        "很多時候我以為是生產力問題，其實是注意力問題。",
+        "把最卡的『送出報帳』先解決，剩下的就順了。",
+        "下午那場會改成非同步，省了一小時。",
       ],
     },
   ],

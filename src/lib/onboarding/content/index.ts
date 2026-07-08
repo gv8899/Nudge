@@ -4,7 +4,6 @@ import { en } from "./en";
 import { ja } from "./ja";
 
 export type { OnboardingContent } from "./types";
-export { ANCHOR_KEYS } from "./types";
 
 const BY_LOCALE: Record<string, OnboardingContent> = {
   "zh-TW": zhTW,

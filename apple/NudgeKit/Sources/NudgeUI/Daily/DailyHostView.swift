@@ -46,9 +46,10 @@ public struct DailyHostView: View {
     // 立即隱藏。onboardedAt 由 refreshOnboardingUser() 從 /api/me 補進
     // auth.currentUser（login 回應不帶）。
     @State private var welcomeDismissed = OnboardingGate.isSeen(.welcome)
-    // First-run 行內提示的本地已看過 flag（鏡像 web 的兩個結構性錨點提示）。
+    // First-run 行內提示的本地已看過 flag（鏡像 web）：complete 掛在第一個
+    // 未完成任務、overdue 掛在逾期區（教「沒做完自動留到今天」）。
     @State private var hintCompleteDismissed = OnboardingGate.isSeen(.hintComplete)
-    @State private var hintRecurringDismissed = OnboardingGate.isSeen(.hintRecurring)
+    @State private var hintOverdueDismissed = OnboardingGate.isSeen(.hintOverdue)
 
     // 30 秒 smart polling — server 多數時候回 304，只有真有變動才更新
     // 本地 cache + widget snapshot。scenePhase 切走時 cancel，回前景再啟。
@@ -216,39 +217,33 @@ public struct DailyHostView: View {
 
     // MARK: - First-run inline hints
 
-    /// 行內提示（鏡像 web daily-view 的結構性錨點）：
-    ///   - recurring 提示錨在第一個重複任務
-    ///   - complete 提示錨在第一個「非該重複錨點」的未完成任務
+    /// 是否近期 onboard（提示共用的前提）。
+    private var isRecentlyOnboarded: Bool {
+        OnboardingGate.isRecentlyOnboarded(auth.currentUser?.onboardedAt)
+    }
+
+    /// 任務清單的行內提示：complete 錨在第一個未完成任務。
     /// 條件：近期 onboard + 本地未看過 + 錨點仍在 + 正在看今天。
     private var onboardingHints: [TaskListInlineHint] {
-        guard isViewingToday,
-              OnboardingGate.isRecentlyOnboarded(auth.currentUser?.onboardedAt)
-        else { return [] }
-
+        guard isViewingToday, isRecentlyOnboarded, !hintCompleteDismissed else { return [] }
         let pending = (dailyData?.assignments ?? [])
             .filter { !$0.isCompleted }
             .sorted { $0.sortOrder < $1.sortOrder }
-        let recurringAnchor = pending.first(where: { $0.isRecurring })
-        let completeAnchor = pending.first(where: { $0.id != recurringAnchor?.id })
+        guard let anchor = pending.first else { return [] }
+        return [TaskListInlineHint(
+            id: "hint-complete",
+            anchorAssignmentId: anchor.id,
+            textKey: "onboarding.hint.complete",
+            onDismiss: dismissHintComplete
+        )]
+    }
 
-        var hints: [TaskListInlineHint] = []
-        if !hintCompleteDismissed, let a = completeAnchor {
-            hints.append(TaskListInlineHint(
-                id: "hint-complete",
-                anchorAssignmentId: a.id,
-                textKey: "onboarding.hint.complete",
-                onDismiss: dismissHintComplete
-            ))
-        }
-        if !hintRecurringDismissed, let a = recurringAnchor {
-            hints.append(TaskListInlineHint(
-                id: "hint-recurring",
-                anchorAssignmentId: a.id,
-                textKey: "onboarding.hint.recurring",
-                onDismiss: dismissHintRecurring
-            ))
-        }
-        return hints
+    /// 逾期區上方的「rollover」提示：近期 onboard + 未看過 + 有逾期 + 看今天。
+    private var showOverdueHint: Bool {
+        isViewingToday
+            && isRecentlyOnboarded
+            && !hintOverdueDismissed
+            && !(dailyData?.overdueTasks ?? []).isEmpty
     }
 
     private func dismissHintComplete() {
@@ -256,9 +251,9 @@ public struct DailyHostView: View {
         hintCompleteDismissed = true
     }
 
-    private func dismissHintRecurring() {
-        OnboardingGate.markSeen(.hintRecurring)
-        hintRecurringDismissed = true
+    private func dismissHintOverdue() {
+        OnboardingGate.markSeen(.hintOverdue)
+        hintOverdueDismissed = true
     }
 
     /// 啟動 30 秒 polling loop。Idempotent — 重複呼叫先 cancel 舊的。
@@ -339,6 +334,14 @@ public struct DailyHostView: View {
                     )
                     ScrollView {
                         VStack(spacing: 0) {
+                            if showOverdueHint {
+                                OnboardingHintBar(
+                                    textKey: "onboarding.hint.overdue",
+                                    onDismiss: dismissHintOverdue
+                                )
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 4)
+                            }
                             OverdueSectionView(
                                 overdueTasks: dailyData?.overdueTasks ?? [],
                                 currentDate: selectedDate,
@@ -887,6 +890,14 @@ public struct DailyHostView: View {
             )
             ScrollView {
                 VStack(spacing: 0) {
+                    if showOverdueHint {
+                        OnboardingHintBar(
+                            textKey: "onboarding.hint.overdue",
+                            onDismiss: dismissHintOverdue
+                        )
+                        .padding(.horizontal, 12)
+                        .padding(.bottom, 4)
+                    }
                     OverdueSectionView(
                         overdueTasks: dailyData?.overdueTasks ?? [],
                         currentDate: selectedDate,

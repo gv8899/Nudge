@@ -1,18 +1,20 @@
 // TODO(review): ja translations authored by Claude — please review wording.
-// 日本語のオンボーディング用サンプルコンテンツ。構造と key は zh-TW.ts と
-// 一致させること（content-parity テストが差異を検出する）。
+// 日本語のオンボーディング用サンプルコンテンツ。対象：オフィスワーカー。
+// 構造と key は zh-TW.ts と一致させること（content-parity テストが検出）。
 
 import type { OnboardingContent } from "./types";
 
 export const ja: OnboardingContent = {
   tags: [
-    { key: "work", name: "仕事", color: "chart-1" },
-    { key: "study", name: "勉強", color: "chart-2" },
-    { key: "exercise", name: "運動", color: "chart-3" },
-    { key: "life", name: "生活", color: "chart-4" },
+    { key: "meeting-notes", name: "議事録", color: "chart-1" },
+    { key: "knowledge", name: "ナレッジ", color: "chart-2" },
+    { key: "checklist", name: "チェックリスト", color: "chart-3" },
   ],
   tasks: [
-    { key: "morning-exercise", title: "朝の運動", dayOffset: 0, done: true },
+    // 今日
+    { key: "inbox-cleared", title: "朝のメール整理", dayOffset: 0, done: true },
+    { key: "reply-client", title: "顧客メールに返信", dayOffset: 0 },
+    { key: "weekly-sync-prep", title: "週次会議の資料準備", dayOffset: 0 },
     {
       key: "weekly-report",
       title: "週報を書く",
@@ -20,70 +22,61 @@ export const ja: OnboardingContent = {
       recurrence: "weekly_fri",
       remindAtTimeOfDay: "17:00",
     },
-    { key: "prep-slides", title: "スライドの準備", dayOffset: 0 },
-    { key: "read-chapter", title: "1章読む", dayOffset: 0 },
     { key: "standup", title: "朝のスタンドアップ", dayOffset: 0, recurrence: "weekdays" },
-    // 期限切れ（数日前のもの）
-    { key: "pay-bills", title: "光熱費を払う", dayOffset: -5 },
-    { key: "reply-client", title: "顧客メールに返信", dayOffset: -3 },
+    // 前の日にやり残し → 今日に自動で繰り越し（期限切れ）
+    { key: "expense-report", title: "先月分の経費精算を提出", dayOffset: -2 },
+    { key: "vendor-followup", title: "ベンダーの見積もりを催促", dayOffset: -1 },
   ],
   cards: [
     {
-      key: "okr",
-      title: "Q2 チーム OKR ミーティング",
-      tagKey: "work",
+      key: "nudge-guide",
+      title: "Nudge の使い方",
+      tagKey: "knowledge",
       createdOffset: -1,
-      html: `<h2>来四半期の方向性</h2>
-<p>今日の会議で、思いがけず来四半期の方向性が見えた。大事なのは会議の数ではなく、<strong>行動につながる結論</strong>が残せたかどうか。</p>
-<h3>3つの Key Result</h3>
+      html: `<h2>Nudge をはじめる</h2>
+<p>その日やることを入れて、終わったらチェック。<strong>やり残したものは、翌日の「今日」に自動で出てきます</strong>——消えないし、手で動かす必要もありません。</p>
+<h3>いくつかの良い習慣</h3>
 <ul>
-<li>新規ユーザーのアクティベーション率を 32% から 45% へ</li>
-<li>コアフローの P50 レイテンシを 200ms 未満に</li>
-<li>毎週プロダクトノートを1本出す</li>
+<li>朝いちばんに「今日」を見て、重要な3つを先頭に</li>
+<li>ふと思いついたことはカードに記録、あとで整理</li>
+<li>繰り返しの仕事は毎週／毎日の繰り返しに設定してリマインドに任せる</li>
 </ul>
-<blockquote><p>指標を大量に追うより、1つをやり切る。</p></blockquote>`,
+<blockquote><p>まず一日を空にする、きれいにするのはその次。</p></blockquote>`,
     },
     {
-      key: "running-notes",
-      title: "ランニング記録：最初の1か月",
-      tagKey: "exercise",
-      createdOffset: -3,
-      html: `<p>走り始めは膝が痛く、ペースもつかめなかった。3週間で体が慣れ、5K から息が上がらず 8K 走れるように。</p>
-<h3>学んだこと</h3>
+      key: "product-meeting",
+      title: "製品開発ミーティング議事録",
+      tagKey: "meeting-notes",
+      createdOffset: -1,
+      html: `<h2>製品開発 週次ミーティング</h2>
+<p><strong>日時：</strong>月 10:00　<strong>出席：</strong>PM・デザイン・エンジニア</p>
+<h3>決定事項</h3>
 <ul>
-<li>一気に飛ばすより、少しずつ増やす方が続く</li>
-<li>走る前の動的ストレッチで膝の負担がぐっと減る</li>
-<li>決まった時間に走るのが、習慣化の一番の近道</li>
+<li>次リリースは「新規オンボーディング」に注力、他の要望は後回し</li>
+<li>デザインは今週プロトタイプを2案、木曜レビュー</li>
+<li>エンジニアはまず API 契約を確定し手戻りを防ぐ</li>
+</ul>
+<h3>アクション</h3>
+<ul>
+<li>PM：要件の優先順位付け（水曜まで）</li>
+<li>デザイン：プロトA／B（木曜レビュー）</li>
 </ul>`,
     },
     {
-      key: "subtract-book",
-      title: "プロダクトデザイン：引き算の力",
-      tagKey: "study",
-      createdOffset: -4,
-      html: `<p>『<em>Subtract</em>』第2章を読了。いくつかの要点：</p>
-<blockquote><p>人は問題解決のために本能的に「足す」が、研究では意図的に「引く」方が効果的なことが多い。</p></blockquote>
-<h3>Nudge への示唆</h3>
+      key: "travel-checklist",
+      title: "出張チェックリスト",
+      tagKey: "checklist",
+      createdOffset: -2,
+      html: `<h2>出張・出国前の確認</h2>
+<p>出発の前日にもう一度チェック：</p>
 <ul>
-<li>「完全性」のために機能を足さない</li>
-<li><strong>YAGNI</strong> はエンジニアリングだけでなく、プロダクトの原則でもある</li>
-<li>どの機能にも問う：消したらどうなる？</li>
+<li>✅ パスポート残存6か月以上</li>
+<li>✅ 航空券と搭乗書類</li>
+<li>◻️ 現地の通信／ローミング</li>
+<li>◻️ 変換プラグとモバイルバッテリー</li>
+<li>◻️ 宿泊・交通予約のスクショ</li>
 </ul>
-<h3>コードの小技</h3>
-<p><code>color-mix()</code> を使えば1つの変数から半透明版を作れて、トークンを1組節約できる。</p>`,
-    },
-    {
-      key: "kyoto-trip",
-      title: "週末の京都小旅行プラン",
-      tagKey: "life",
-      createdOffset: -7,
-      html: `<p>3泊4日。行きたい場所：</p>
-<ul>
-<li>嵐山の竹林</li>
-<li>伏見稲荷</li>
-<li>鴨川さんぽ</li>
-</ul>
-<p>宿は<strong>町家スタイル</strong>を試したい。移動は ICOCA が便利。</p>`,
+<p>帰ったら<strong>その日のうちに経費精算</strong>、後回しにしない。</p>`,
     },
   ],
   notes: [
@@ -91,24 +84,8 @@ export const ja: OnboardingContent = {
       key: "note-today",
       dayOffset: 0,
       lines: [
-        "朝に5キロ走った。久しぶりで、膝が「慣らし直せ」と言ってくる。",
-        "夜は少しあっさりめに。思ったより心地よかった。",
-      ],
-    },
-    {
-      key: "note-yesterday",
-      dayOffset: -1,
-      lines: [
-        "会議は多かったが、思いがけず来四半期の方向性が見えた。",
-        "大事なのは会議の数ではなく、行動につながる結論が残るかどうか。",
-      ],
-    },
-    {
-      key: "note-2days",
-      dayOffset: -2,
-      lines: [
-        "「ゆっくりの方が遠くまで行ける」という記事を読んだ。",
-        "生産性の問題だと思っていたことの多くは、実は注意力の問題だった。",
+        "詰まっていた「経費精算の提出」を先に片づけたら、あとはスムーズだった。",
+        "午後の会議を非同期にして1時間浮いた。",
       ],
     },
   ],

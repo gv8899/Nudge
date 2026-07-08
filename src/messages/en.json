@@ -4,14 +4,14 @@
       "title": "Welcome to Nudge",
       "intro": "We've added a few examples so you can learn as you go:",
       "pointTasks": "Tasks: plan what to do each day — tap the circle to complete",
-      "pointCards": "Cards: really just \"tasks with content\" — great for longer notes",
-      "pointRecurring": "Repeats & reminders: things like \"weekly report\" appear every week and remind you",
+      "pointRollover": "Nothing slips: unfinished tasks roll over to the next day's \"Today\"",
+      "pointCards": "Cards: meeting notes, knowledge, checklists — anything longer lives here",
       "cta": "Get started",
       "viewCards": "See the example cards"
     },
     "hint": {
       "complete": "Tap the circle on the left to mark it done",
-      "recurring": "This one repeats automatically, and can remind you",
+      "overdue": "Unfinished tasks from earlier days roll over to today so nothing slips",
       "dismiss": "Got it"
     }
   },

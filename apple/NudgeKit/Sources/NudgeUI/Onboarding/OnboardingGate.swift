@@ -17,7 +17,7 @@ public enum OnboardingGate {
     public enum Item: String {
         case welcome = "welcome"
         case hintComplete = "hint-complete"
-        case hintRecurring = "hint-recurring"
+        case hintOverdue = "hint-overdue"
     }
 
     /// 近期 onboard 窗：7 天（對齊 web `RECENCY_MS`）。

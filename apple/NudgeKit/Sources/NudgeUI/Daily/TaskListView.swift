@@ -180,26 +180,8 @@ public struct TaskListView: View {
     }
 
     private func hintRow(_ hint: TaskListInlineHint) -> some View {
-        HStack(spacing: 10) {
-            Text(verbatim: "↳")
-                .nudgeFont(.rowMeta)
-                .foregroundStyle(Color.nudgeTextDim)
-            Text(hint.textKey, bundle: .module)
-                .nudgeFont(.rowMeta)
-                .foregroundStyle(Color.nudgeForeground)
-            Spacer(minLength: 8)
-            Button(action: hint.onDismiss) {
-                Text("onboarding.hint.dismiss", bundle: .module)
-                    .nudgeFont(.inlineButtonLabel)
-                    .foregroundStyle(Color.nudgeTextDim)
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Color.nudgeSelectedFill)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .padding(.bottom, 2)
+        OnboardingHintBar(textKey: hint.textKey, onDismiss: hint.onDismiss)
+            .padding(.bottom, 2)
     }
 
     private func row(_ assignment: DailyAssignmentDTO) -> some View {

@@ -1,89 +1,82 @@
 // TODO(review): en translations authored by Claude — please review wording.
-// English onboarding sample content. Structure & keys must match zh-TW.ts
-// (content-parity test enforces this).
+// English onboarding sample content. Audience: office workers. Structure &
+// keys must match zh-TW.ts (content-parity test enforces this).
 
 import type { OnboardingContent } from "./types";
 
 export const en: OnboardingContent = {
   tags: [
-    { key: "work", name: "Work", color: "chart-1" },
-    { key: "study", name: "Study", color: "chart-2" },
-    { key: "exercise", name: "Exercise", color: "chart-3" },
-    { key: "life", name: "Life", color: "chart-4" },
+    { key: "meeting-notes", name: "Meeting notes", color: "chart-1" },
+    { key: "knowledge", name: "Knowledge", color: "chart-2" },
+    { key: "checklist", name: "Checklist", color: "chart-3" },
   ],
   tasks: [
-    { key: "morning-exercise", title: "Morning workout", dayOffset: 0, done: true },
+    // Today
+    { key: "inbox-cleared", title: "Clear the morning inbox", dayOffset: 0, done: true },
+    { key: "reply-client", title: "Reply to client email", dayOffset: 0 },
+    { key: "weekly-sync-prep", title: "Prep the weekly sync deck", dayOffset: 0 },
     {
       key: "weekly-report",
-      title: "Write weekly report",
+      title: "Write the weekly report",
       dayOffset: 0,
       recurrence: "weekly_fri",
       remindAtTimeOfDay: "17:00",
     },
-    { key: "prep-slides", title: "Prep the deck", dayOffset: 0 },
-    { key: "read-chapter", title: "Read one chapter", dayOffset: 0 },
-    { key: "standup", title: "Morning stand-up", dayOffset: 0, recurrence: "weekdays" },
-    // Overdue (from earlier days)
-    { key: "pay-bills", title: "Pay the utility bills", dayOffset: -5 },
-    { key: "reply-client", title: "Reply to client email", dayOffset: -3 },
+    { key: "standup", title: "Daily stand-up", dayOffset: 0, recurrence: "weekdays" },
+    // Left unfinished on earlier days → rolled over to today as overdue
+    { key: "expense-report", title: "Submit last month's expenses", dayOffset: -2 },
+    { key: "vendor-followup", title: "Follow up on the vendor quote", dayOffset: -1 },
   ],
   cards: [
     {
-      key: "okr",
-      title: "Q2 team OKR discussion",
-      tagKey: "work",
+      key: "nudge-guide",
+      title: "How to use Nudge",
+      tagKey: "knowledge",
       createdOffset: -1,
-      html: `<h2>Direction for next quarter</h2>
-<p>Today's meeting unexpectedly surfaced our direction for next quarter. What matters isn't how many meetings we hold, but whether we walk away with an <strong>actionable conclusion</strong>.</p>
-<h3>Three key results</h3>
+      html: `<h2>Getting started with Nudge</h2>
+<p>Drop in what you need to do each day and check it off when it's done. <strong>Anything you don't finish shows up again on "Today" tomorrow</strong> — it never disappears, and you never have to move it by hand.</p>
+<h3>A few good habits</h3>
 <ul>
-<li>Lift new-user activation from 32% to 45%</li>
-<li>Bring the core flow's P50 latency under 200ms</li>
-<li>Ship one product note every week</li>
+<li>Look at "Today" first thing, and put your top three at the top</li>
+<li>Capture stray thoughts as cards, tidy them up later</li>
+<li>Set recurring work to repeat weekly / daily and let reminders carry it</li>
 </ul>
-<blockquote><p>Rather than track a pile of metrics, nail one of them.</p></blockquote>`,
+<blockquote><p>Clear the day first, polish it second.</p></blockquote>`,
     },
     {
-      key: "running-notes",
-      title: "Running notes: first month",
-      tagKey: "exercise",
-      createdOffset: -3,
-      html: `<p>At the start my knees ached and I couldn't hold a pace. After three weeks my body adapted — from 5K to running 8K without gasping.</p>
-<h3>What I learned</h3>
+      key: "product-meeting",
+      title: "Product dev meeting notes",
+      tagKey: "meeting-notes",
+      createdOffset: -1,
+      html: `<h2>Product weekly sync</h2>
+<p><strong>When:</strong> Mon 10:00　<strong>Present:</strong> PM, Design, Eng</p>
+<h3>Decisions</h3>
 <ul>
-<li>Adding distance slowly lasts longer than sprinting once</li>
-<li>A dynamic warm-up before running spares the knees a lot</li>
-<li>Running at a fixed time is the easiest way to build the habit</li>
+<li>Next release focuses on the new-user onboarding flow; other requests deferred</li>
+<li>Design delivers two prototypes this week, review Thursday</li>
+<li>Eng locks the API contract first to avoid rework</li>
+</ul>
+<h3>Action items</h3>
+<ul>
+<li>PM: prioritize the backlog (by Wed)</li>
+<li>Design: prototypes A / B (review Thursday)</li>
 </ul>`,
     },
     {
-      key: "subtract-book",
-      title: "Product design: the power of subtraction",
-      tagKey: "study",
-      createdOffset: -4,
-      html: `<p>Finished chapter 2 of <em>Subtract</em>. A few takeaways:</p>
-<blockquote><p>People instinctively "add" to solve problems, but research shows that deliberately "subtracting" often works better.</p></blockquote>
-<h3>What it means for Nudge</h3>
+      key: "travel-checklist",
+      title: "Trip checklist",
+      tagKey: "checklist",
+      createdOffset: -2,
+      html: `<h2>Before a work trip</h2>
+<p>Run through this the day before you leave:</p>
 <ul>
-<li>Don't add features for the sake of "completeness"</li>
-<li><strong>YAGNI</strong> isn't only an engineering principle — it's a product one</li>
-<li>For every feature, ask: what happens if we remove it?</li>
+<li>✅ Passport valid 6+ months</li>
+<li>✅ Flights and boarding docs</li>
+<li>◻️ Local data / roaming</li>
+<li>◻️ Adapter and power bank</li>
+<li>◻️ Screenshots of hotel and transit bookings</li>
 </ul>
-<h3>A little code trick</h3>
-<p>With <code>color-mix()</code> you can derive a translucent variant from a single variable, saving a whole extra token.</p>`,
-    },
-    {
-      key: "kyoto-trip",
-      title: "Weekend trip to Kyoto",
-      tagKey: "life",
-      createdOffset: -7,
-      html: `<p>Four days, three nights. Places I want to see:</p>
-<ul>
-<li>Arashiyama bamboo grove</li>
-<li>Fushimi Inari</li>
-<li>A walk along the Kamo River</li>
-</ul>
-<p>Want to try a <strong>machiya-style</strong> stay. An ICOCA card makes getting around easier.</p>`,
+<p>When you're back, <strong>file expenses the same day</strong> — don't let it slide.</p>`,
     },
   ],
   notes: [
@@ -91,24 +84,8 @@ export const en: OnboardingContent = {
       key: "note-today",
       dayOffset: 0,
       lines: [
-        "Ran 5K this morning. Been a while — my knees reminded me to ease back in.",
-        "Ate lighter tonight, and it felt surprisingly good.",
-      ],
-    },
-    {
-      key: "note-yesterday",
-      dayOffset: -1,
-      lines: [
-        "Lots of meetings, but one unexpectedly clarified next quarter's direction.",
-        "It's not about how many meetings — it's whether they leave an actionable conclusion.",
-      ],
-    },
-    {
-      key: "note-2days",
-      dayOffset: -2,
-      lines: [
-        "Read an article on how slowing down actually gets you further.",
-        "So often I think it's a productivity problem when it's really an attention problem.",
+        "Knocked out the stuck 'submit expenses' first — the rest flowed after that.",
+        "Turned the afternoon meeting async and saved an hour.",
       ],
     },
   ],

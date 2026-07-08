@@ -375,17 +375,16 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
   const incompleteAssignments = allAssignments.filter((a) => !a.isCompleted);
   const completedAssignments = allAssignments.filter((a) => a.isCompleted);
 
-  // Onboarding inline 提示的結構性錨點（不靠 stored key）：
-  //   - recurring 提示錨在第一個重複任務
-  //   - complete 提示錨在第一個「非該重複錨點」的未完成任務
-  // 只在今日檢視顯示（seed 的示範任務都排在今天）。
+  // Onboarding inline 提示的結構性錨點（不靠 stored key），只在今日檢視顯示：
+  //   - complete 提示錨在第一個未完成任務
+  //   - overdue 提示掛在逾期區上方（教「沒做完會自動留到今天」）
   const isTodayView = currentDate === isoToday();
-  const recurringAnchorId = isTodayView
-    ? incompleteAssignments.find((a) => a.isRecurring)?.id
-    : undefined;
   const completeAnchorId = isTodayView
-    ? incompleteAssignments.find((a) => a.id !== recurringAnchorId)?.id
+    ? incompleteAssignments[0]?.id
     : undefined;
+  const overdueTasks = data?.overdueTasks || [];
+  const showOverdueHint =
+    isTodayView && overdueTasks.length > 0 && hintVisible(ONBOARDING_IDS.hintOverdue);
 
   // Right-panel padding: only apply when panel is open AND we're on lg+
   // （+8 = 卡片式面板 right-2 的內縮）
@@ -494,6 +493,12 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
             {showWelcome && isTodayView && (
               <WelcomeCard onDismiss={() => dismiss(ONBOARDING_IDS.welcome)} />
             )}
+            {showOverdueHint && (
+              <OnboardingHint
+                text={tHint("overdue")}
+                onDismiss={() => dismiss(ONBOARDING_IDS.hintOverdue)}
+              />
+            )}
             <OverdueSection
               overdueTasks={data?.overdueTasks || []}
               currentDate={currentDate}
@@ -524,13 +529,6 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                         <OnboardingHint
                           text={tHint("complete")}
                           onDismiss={() => dismiss(ONBOARDING_IDS.hintComplete)}
-                        />
-                      )}
-                    {a.id === recurringAnchorId &&
-                      hintVisible(ONBOARDING_IDS.hintRecurring) && (
-                        <OnboardingHint
-                          text={tHint("recurring")}
-                          onDismiss={() => dismiss(ONBOARDING_IDS.hintRecurring)}
                         />
                       )}
                     <TaskCard

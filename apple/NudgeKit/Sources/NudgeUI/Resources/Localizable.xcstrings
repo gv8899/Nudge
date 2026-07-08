@@ -3933,28 +3933,6 @@
         }
       }
     },
-    "onboarding.hint.recurring": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This one repeats automatically, and can remind you"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "これは自動で繰り返し、リマインドもできます"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "這個會自動重複，還能設定提醒"
-          }
-        }
-      }
-    },
     "onboarding.welcome.cta": {
       "localizations": {
         "en": {
@@ -4001,44 +3979,22 @@
     },
     "onboarding.welcome.pointCards": {
       "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卡片：會議記錄、知識、清單，長內容都收進來"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cards: really just \"tasks with content\" — great for longer notes"
+            "value": "Cards: meeting notes, knowledge, checklists — anything longer lives here"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "カード：実は「内容のあるタスク」。長めのメモに便利"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "卡片：其實就是「有內容的任務」，可以寫長筆記"
-          }
-        }
-      }
-    },
-    "onboarding.welcome.pointRecurring": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Repeats & reminders: things like \"weekly report\" appear every week and remind you"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "繰り返しとリマインド：「週報」などは毎週自動で現れて知らせます"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重複與提醒：像「寫週報」會每週自動出現並提醒你"
+            "value": "カード：議事録・ナレッジ・チェックリストなど長い内容はここに"
           }
         }
       }
@@ -6349,6 +6305,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "今日"
+          }
+        }
+      }
+    },
+    "onboarding.welcome.pointRollover": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒做完不會不見：自動留到隔天的「今天」"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing slips: unfinished tasks roll over to the next day's \"Today\""
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "やり残しは消えない：翌日の「今日」に自動で繰り越し"
+          }
+        }
+      }
+    },
+    "onboarding.hint.overdue": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前幾天沒做完的，會自動留到今天，不會漏掉"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unfinished tasks from earlier days roll over to today so nothing slips"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前の日にやり残したものは今日に自動で繰り越し、抜け漏れなし"
           }
         }
       }

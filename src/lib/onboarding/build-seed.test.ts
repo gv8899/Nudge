@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildOnboardingSeed } from "./build-seed";
-import { contentForLocale, ANCHOR_KEYS } from "./content";
+import { contentForLocale } from "./content";
 import { zhTW } from "./content/zh-TW";
 import { en } from "./content/en";
 import { ja } from "./content/ja";
@@ -22,14 +22,11 @@ describe("buildOnboardingSeed", () => {
     expect(plan.notes).toHaveLength(zhTW.notes.length);
   });
 
-  it("overdue task (dayOffset -3) assigns to today-3", () => {
-    const t = plan.tasks.find((r) => r.key === "reply-client")!;
-    expect(t.assignment?.date).toBe("2026-07-04");
-  });
-
-  it("overdue task (dayOffset -5) assigns to today-5", () => {
-    const t = plan.tasks.find((r) => r.key === "pay-bills")!;
-    expect(t.assignment?.date).toBe("2026-07-02");
+  it("overdue tasks roll to their past dates (demonstrate rollover)", () => {
+    expect(plan.tasks.find((r) => r.key === "expense-report")!.assignment?.date)
+      .toBe("2026-07-05"); // dayOffset -2
+    expect(plan.tasks.find((r) => r.key === "vendor-followup")!.assignment?.date)
+      .toBe("2026-07-06"); // dayOffset -1
   });
 
   it("recurrence rules all start today", () => {
@@ -60,15 +57,16 @@ describe("buildOnboardingSeed", () => {
   });
 
   it("done task becomes done + completed assignment", () => {
-    const t = plan.tasks.find((r) => r.key === "morning-exercise")!;
+    const t = plan.tasks.find((r) => r.key === "inbox-cleared")!;
     expect(t.status).toBe("done");
     expect(t.assignment?.isCompleted).toBe(true);
   });
 
-  it("cards carry html description and no assignment", () => {
-    const card = plan.tasks.find((r) => r.key === ANCHOR_KEYS.card)!;
+  it("cards carry html description, a tag, and no assignment", () => {
+    const card = plan.tasks.find((r) => r.key === "nudge-guide")!;
     expect(card.description).toContain("<");
     expect(card.assignment).toBeNull();
+    expect(card.tagKey).toBe("knowledge");
   });
 });
 
@@ -97,7 +95,6 @@ describe("content parity across locales", () => {
   for (const [name, c] of Object.entries(locales)) {
     it(`${name} has identical keys/structure to zh-TW`, () => {
       expect(keysOf(c)).toEqual(base);
-      // recurrence / dayOffset / done 等結構性欄位也須一致（只有文字可不同）
       c.tasks.forEach((t, i) => {
         expect(t.dayOffset).toBe(zhTW.tasks[i].dayOffset);
         expect(t.recurrence).toBe(zhTW.tasks[i].recurrence);

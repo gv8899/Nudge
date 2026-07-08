@@ -25,8 +25,8 @@ struct OnboardingWelcomeView: View {
 
             VStack(alignment: .leading, spacing: 12) {
                 bullet(icon: "checkmark.circle", key: "onboarding.welcome.pointTasks")
+                bullet(icon: "arrow.uturn.forward", key: "onboarding.welcome.pointRollover")
                 bullet(icon: "doc.text", key: "onboarding.welcome.pointCards")
-                bullet(icon: "repeat", key: "onboarding.welcome.pointRecurring")
             }
             .padding(.vertical, 2)
 

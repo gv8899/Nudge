@@ -13,7 +13,7 @@ const RECENCY_MS = 7 * 24 * 60 * 60 * 1000; // 7 天內視為「近期 onboard�
 export const ONBOARDING_IDS = {
   welcome: "welcome",
   hintComplete: "hint-complete",
-  hintRecurring: "hint-recurring",
+  hintOverdue: "hint-overdue",
 } as const;
 
 const ALL_IDS = Object.values(ONBOARDING_IDS);

@@ -52,13 +52,3 @@ export type OnboardingContent = {
   cards: OnboardingCard[];
   notes: OnboardingNote[];
 };
-
-// 前端 inline 提示錨定的範例項目 key（三語共用，因為 key 不翻譯）。
-export const ANCHOR_KEYS = {
-  /** 「點圈圈完成它」錨定的今日任務。 */
-  completeTask: "prep-slides",
-  /** 「這是每天重複＋提醒」錨定的重複任務。 */
-  recurringTask: "weekly-report",
-  /** 「卡片＝有內容的任務」錨定的卡片。 */
-  card: "okr",
-} as const;
