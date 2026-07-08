@@ -25,11 +25,11 @@ public struct CalendarConnectPrompt: View {
                 .foregroundStyle(Color.nudgePrimary)
 
             Text("calendar.connectTitle", bundle: .module)
-                .font(.title3.weight(.semibold))
+                .nudgeFont(.columnTitle)
                 .foregroundStyle(Color.nudgeForeground)
 
             Text("calendar.connectDescription", bundle: .module)
-                .font(.subheadline)
+                .nudgeFont(.emptyStateBody)
                 .foregroundStyle(Color.nudgeTextDim)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 280)
@@ -40,6 +40,7 @@ public struct CalendarConnectPrompt: View {
                         ProgressView().controlSize(.small)
                     }
                     Text("calendar.connectTitle", bundle: .module)
+                        .nudgeFont(.rowTitleEmphasized)
                         .foregroundStyle(Color.nudgePrimaryForeground)
                 }
                 .padding(.horizontal, 24)
@@ -51,7 +52,7 @@ public struct CalendarConnectPrompt: View {
 
             if let error {
                 Text(error)
-                    .font(.footnote)
+                    .nudgeFont(.errorMeta)
                     .foregroundStyle(Color.nudgeDestructive)
             }
         }

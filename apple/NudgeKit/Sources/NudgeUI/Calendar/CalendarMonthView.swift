@@ -77,12 +77,12 @@ public struct CalendarMonthView: View {
             )
             Spacer()
             Text(verbatim: monthTitle)
-                .font(.title3.weight(.semibold))
+                .nudgeFont(.columnTitle)
                 .foregroundStyle(Color.nudgeForeground)
             Spacer()
             Button(action: onThisMonth) {
                 Text("calendar.today", bundle: .module)
-                    .font(.footnote)
+                    .nudgeFont(.inlineButtonLabel)
                     // Match SettingsView / WeekView "本週" — text buttons
                     // use foreground colour, not the brand accent, so the
                     // page only spends primary on selection markers.
@@ -115,7 +115,7 @@ public struct CalendarMonthView: View {
         return HStack(spacing: 0) {
             ForEach(0..<7, id: \.self) { i in
                 Text(keys[i], bundle: .module)
-                    .font(.footnote.weight(.medium))
+                    .nudgeFont(.weekdayLabel)
                     .foregroundStyle(Color.nudgeTextDim)
                     .frame(maxWidth: .infinity)
             }
@@ -161,7 +161,7 @@ public struct CalendarMonthView: View {
                         .frame(width: 24, height: 24)
                 }
                 Text(verbatim: "\(day)")
-                    .font(.subheadline.weight(isToday ? .semibold : .regular))
+                    .nudgeFont(isToday ? .rowTitleEmphasized : .rowTitle)
                     .foregroundStyle(dayColor(isToday: isToday, isPad: isPad))
             }
             .frame(height: 26)
@@ -173,7 +173,7 @@ public struct CalendarMonthView: View {
                 }
                 if dayEvents.count > maxBarsPerCell {
                     Text(verbatim: "+\(dayEvents.count - maxBarsPerCell)")
-                        .font(.caption2)
+                        .nudgeFont(.chipLabel)
                         .foregroundStyle(Color.nudgeTextDim)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.leading, 4)
@@ -209,7 +209,7 @@ public struct CalendarMonthView: View {
         let past = isPast(event.end)
         return Button { onEventTap(event) } label: {
             Text(verbatim: event.title)
-                .font(.caption2)
+                .nudgeFont(.rowMeta)
                 .foregroundStyle(past ? Color.nudgeTextDim : Color.nudgePrimaryForeground)
                 .lineLimit(1)
                 .truncationMode(.tail)
