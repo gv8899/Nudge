@@ -45,7 +45,7 @@ struct NudgeDropdown<Value: Hashable>: View {
         #if os(macOS)
         .whenHovered { triggerHovered = $0 }
         #endif
-        .popover(isPresented: $open, arrowEdge: .bottom) {
+        .nudgePopover(isPresented: $open, arrowEdge: .bottom) {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(options.enumerated()), id: \.offset) { _, opt in
                     DropdownItem(

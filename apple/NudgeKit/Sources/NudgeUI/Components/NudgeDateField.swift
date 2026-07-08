@@ -35,7 +35,7 @@ struct NudgeDateField: View {
         #endif
         // arrowEdge `.bottom` = arrow 在 anchor 下緣 → popover 在 anchor
         // 下方彈出（往下展開）。`.top` 反而會在上方，違反 calendar 慣例。
-        .popover(isPresented: $open, arrowEdge: .bottom) {
+        .nudgePopover(isPresented: $open, arrowEdge: .bottom) {
             NudgeCalendar(selectedDate: $date)
                 .padding(16)
                 .frame(width: 320)
