@@ -13,9 +13,6 @@ public struct OnboardingHintBar: View {
 
     public var body: some View {
         HStack(spacing: 10) {
-            Text(verbatim: "↳")
-                .nudgeFont(.rowMeta)
-                .foregroundStyle(Color.nudgeTextDim)
             Text(textKey, bundle: .module)
                 .nudgeFont(.rowMeta)
                 .foregroundStyle(Color.nudgeForeground)

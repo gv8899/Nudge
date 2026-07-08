@@ -16,7 +16,6 @@ export function OnboardingHint({
   const t = useTranslations("onboarding.hint");
   return (
     <div className="mx-6 mb-1 flex items-center gap-3 rounded-lg bg-primary/10 px-3 py-1.5 text-xs text-foreground">
-      <span aria-hidden>↳</span>
       <span className="flex-1">{text}</span>
       <button
         type="button"
