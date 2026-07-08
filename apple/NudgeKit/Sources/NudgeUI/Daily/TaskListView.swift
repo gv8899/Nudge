@@ -1,6 +1,29 @@
 import SwiftUI
 import NudgeCore
 
+/// First-run onboarding 的行內提示，錨在某個「未完成」任務列上方（鏡像 web
+/// `OnboardingHint`）。`id` 穩定且與任務列的 `row-<id>` 不同命名空間 → 插進
+/// 清單不會擾動任務列的 SwiftUI identity（不會重現「勾選後 checkmark 消失」）。
+public struct TaskListInlineHint: Identifiable {
+    public let id: String
+    /// 錨定的 assignment id（提示顯示在這列上方）。
+    public let anchorAssignmentId: String
+    public let textKey: LocalizedStringKey
+    public let onDismiss: () -> Void
+
+    public init(
+        id: String,
+        anchorAssignmentId: String,
+        textKey: LocalizedStringKey,
+        onDismiss: @escaping () -> Void
+    ) {
+        self.id = id
+        self.anchorAssignmentId = anchorAssignmentId
+        self.textKey = textKey
+        self.onDismiss = onDismiss
+    }
+}
+
 public struct TaskListView: View {
     public let assignments: [DailyAssignmentDTO]
     public let isLoading: Bool
@@ -14,6 +37,8 @@ public struct TaskListView: View {
     public let onSkipThisOccurrence: (DailyAssignmentDTO) -> Void
     public let onSetRecurrence: (DailyAssignmentDTO) -> Void
     public let onSetReminder: (DailyAssignmentDTO) -> Void
+    /// First-run 行內提示（預設空）。錨在對應 assignment 列上方。
+    public let inlineHints: [TaskListInlineHint]
 
     @Environment(\.locale) private var locale
     // 預設展開 — user 要求「已完成」section 不要預設收合。
@@ -31,7 +56,8 @@ public struct TaskListView: View {
         onMoveToToday: @escaping (DailyAssignmentDTO) -> Void,
         onSkipThisOccurrence: @escaping (DailyAssignmentDTO) -> Void,
         onSetRecurrence: @escaping (DailyAssignmentDTO) -> Void,
-        onSetReminder: @escaping (DailyAssignmentDTO) -> Void
+        onSetReminder: @escaping (DailyAssignmentDTO) -> Void,
+        inlineHints: [TaskListInlineHint] = []
     ) {
         self.assignments = assignments
         self.isLoading = isLoading
@@ -45,6 +71,7 @@ public struct TaskListView: View {
         self.onSkipThisOccurrence = onSkipThisOccurrence
         self.onSetRecurrence = onSetRecurrence
         self.onSetReminder = onSetReminder
+        self.inlineHints = inlineHints
     }
 
     /// Single combined list of items so SwiftUI tracks identity across
@@ -57,11 +84,13 @@ public struct TaskListView: View {
     private enum Item: Identifiable {
         case row(DailyAssignmentDTO)
         case completedHeader(count: Int)
+        case hint(TaskListInlineHint)
 
         var id: String {
             switch self {
             case .row(let a): return "row-\(a.id)"
             case .completedHeader: return "header-completed"
+            case .hint(let h): return "hint-\(h.id)"
             }
         }
     }
@@ -74,7 +103,15 @@ public struct TaskListView: View {
             .filter { $0.isCompleted }
             .sorted { $0.sortOrder < $1.sortOrder }
 
-        var result: [Item] = pending.map { .row($0) }
+        // 每個 pending 列前，若有錨定它的 onboarding 提示就先插入提示 item
+        // （提示自帶穩定 id，不影響任務列 identity）。
+        var result: [Item] = []
+        for a in pending {
+            if let hint = inlineHints.first(where: { $0.anchorAssignmentId == a.id }) {
+                result.append(.hint(hint))
+            }
+            result.append(.row(a))
+        }
         if !completed.isEmpty {
             result.append(.completedHeader(count: completed.count))
             if isCompletedExpanded {
@@ -117,6 +154,8 @@ public struct TaskListView: View {
                     row(assignment)
                 case .completedHeader(let count):
                     completedHeader(count: count)
+                case .hint(let hint):
+                    hintRow(hint)
                 }
             }
         }
@@ -138,6 +177,29 @@ public struct TaskListView: View {
         #else
         return 16
         #endif
+    }
+
+    private func hintRow(_ hint: TaskListInlineHint) -> some View {
+        HStack(spacing: 10) {
+            Text(verbatim: "↳")
+                .nudgeFont(.rowMeta)
+                .foregroundStyle(Color.nudgeTextDim)
+            Text(hint.textKey, bundle: .module)
+                .nudgeFont(.rowMeta)
+                .foregroundStyle(Color.nudgeForeground)
+            Spacer(minLength: 8)
+            Button(action: hint.onDismiss) {
+                Text("onboarding.hint.dismiss", bundle: .module)
+                    .nudgeFont(.inlineButtonLabel)
+                    .foregroundStyle(Color.nudgeTextDim)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color.nudgeSelectedFill)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .padding(.bottom, 2)
     }
 
     private func row(_ assignment: DailyAssignmentDTO) -> some View {

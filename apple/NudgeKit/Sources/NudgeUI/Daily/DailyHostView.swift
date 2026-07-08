@@ -46,6 +46,9 @@ public struct DailyHostView: View {
     // 立即隱藏。onboardedAt 由 refreshOnboardingUser() 從 /api/me 補進
     // auth.currentUser（login 回應不帶）。
     @State private var welcomeDismissed = OnboardingGate.isSeen(.welcome)
+    // First-run 行內提示的本地已看過 flag（鏡像 web 的兩個結構性錨點提示）。
+    @State private var hintCompleteDismissed = OnboardingGate.isSeen(.hintComplete)
+    @State private var hintRecurringDismissed = OnboardingGate.isSeen(.hintRecurring)
 
     // 30 秒 smart polling — server 多數時候回 304，只有真有變動才更新
     // 本地 cache + widget snapshot。scenePhase 切走時 cancel，回前景再啟。
@@ -211,6 +214,53 @@ public struct DailyHostView: View {
         welcomeDismissed = true
     }
 
+    // MARK: - First-run inline hints
+
+    /// 行內提示（鏡像 web daily-view 的結構性錨點）：
+    ///   - recurring 提示錨在第一個重複任務
+    ///   - complete 提示錨在第一個「非該重複錨點」的未完成任務
+    /// 條件：近期 onboard + 本地未看過 + 錨點仍在 + 正在看今天。
+    private var onboardingHints: [TaskListInlineHint] {
+        guard isViewingToday,
+              OnboardingGate.isRecentlyOnboarded(auth.currentUser?.onboardedAt)
+        else { return [] }
+
+        let pending = (dailyData?.assignments ?? [])
+            .filter { !$0.isCompleted }
+            .sorted { $0.sortOrder < $1.sortOrder }
+        let recurringAnchor = pending.first(where: { $0.isRecurring })
+        let completeAnchor = pending.first(where: { $0.id != recurringAnchor?.id })
+
+        var hints: [TaskListInlineHint] = []
+        if !hintCompleteDismissed, let a = completeAnchor {
+            hints.append(TaskListInlineHint(
+                id: "hint-complete",
+                anchorAssignmentId: a.id,
+                textKey: "onboarding.hint.complete",
+                onDismiss: dismissHintComplete
+            ))
+        }
+        if !hintRecurringDismissed, let a = recurringAnchor {
+            hints.append(TaskListInlineHint(
+                id: "hint-recurring",
+                anchorAssignmentId: a.id,
+                textKey: "onboarding.hint.recurring",
+                onDismiss: dismissHintRecurring
+            ))
+        }
+        return hints
+    }
+
+    private func dismissHintComplete() {
+        OnboardingGate.markSeen(.hintComplete)
+        hintCompleteDismissed = true
+    }
+
+    private func dismissHintRecurring() {
+        OnboardingGate.markSeen(.hintRecurring)
+        hintRecurringDismissed = true
+    }
+
     /// 啟動 30 秒 polling loop。Idempotent — 重複呼叫先 cancel 舊的。
     /// scenePhase != active、view disappear、selectedDate 換都會被外層
     /// cancel 掉，loop 自然結束。
@@ -321,7 +371,8 @@ public struct DailyHostView: View {
                                 onMoveToToday: { moveAssignment($0, to: DateFormatters.isoDate(Date())) },
                                 onSkipThisOccurrence: { skipOccurrence($0) },
                                 onSetRecurrence: { openScheduleSheet(for: $0) },
-                                onSetReminder: { openScheduleSheet(for: $0) }
+                                onSetReminder: { openScheduleSheet(for: $0) },
+                                inlineHints: onboardingHints
                             )
                         }
                     }
@@ -869,7 +920,8 @@ public struct DailyHostView: View {
                         onMoveToToday: { moveAssignment($0, to: DateFormatters.isoDate(Date())) },
                         onSkipThisOccurrence: { skipOccurrence($0) },
                         onSetRecurrence: { openScheduleSheet(for: $0) },
-                        onSetReminder: { openScheduleSheet(for: $0) }
+                        onSetReminder: { openScheduleSheet(for: $0) },
+                        inlineHints: onboardingHints
                     )
                     // alignment: .top — frame minHeight 300 是給 drop
                     // zone 用的，但沒指定 alignment 預設置中，內容變
