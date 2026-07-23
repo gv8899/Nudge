@@ -494,6 +494,34 @@
         "exhausted": "このコードは上限に達しました",
         "already_redeemed": "このコードはすでに利用済みです"
       }
+    },
+    "upgrade": "アップグレード",
+    "manage": "サブスクリプションを管理",
+    "paywall": {
+      "title": "Nudge のすべてを解放",
+      "subtitle": "Web・Mac・iOS 横断のデイリープランニング",
+      "point1": "タスク・カード・メモを全デバイスに即時同期",
+      "point2": "Google カレンダー連携と週ビュー",
+      "point3": "繰り返しとリマインドはシステムにお任せ",
+      "annual": "年払い",
+      "monthly": "月払い",
+      "perMonth": "{price}/月",
+      "savePct": "{pct}% お得",
+      "ctaTrial": "7日間の無料トライアルを開始",
+      "ctaBuy": "Nudge を購読",
+      "trialNote": "カード登録が必要。トライアル終了後に自動課金、いつでも解約可",
+      "havePromo": "プロモコードをお持ちですか？",
+      "alreadySubscribed": "すでに購読中です",
+      "goSettings": "設定へ",
+      "notConfigured": "決済は準備中です。しばらくしてからお試しください",
+      "checkoutExpired": "リンクの有効期限が切れました。アプリからやり直してください",
+      "logout": "ログアウト",
+      "success": {
+        "title": "購読が完了しました 🎉",
+        "subtitle": "ご支援ありがとうございます。全機能が解放されました",
+        "processing": "決済処理中です。まもなく有効になります",
+        "back": "Nudge に戻る"
+      }
     }
   },
   "offline": {

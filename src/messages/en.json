@@ -494,6 +494,34 @@
         "exhausted": "This code is fully redeemed",
         "already_redeemed": "You already redeemed this code"
       }
+    },
+    "upgrade": "Upgrade",
+    "manage": "Manage subscription",
+    "paywall": {
+      "title": "Unlock all of Nudge",
+      "subtitle": "Daily planning across Web, Mac, and iOS",
+      "point1": "Tasks, cards, and notes sync instantly across devices",
+      "point2": "Google Calendar integration with weekly view",
+      "point3": "Repeats and reminders — let the system remember",
+      "annual": "Yearly",
+      "monthly": "Monthly",
+      "perMonth": "{price}/mo",
+      "savePct": "Save {pct}%",
+      "ctaTrial": "Start 7-day free trial",
+      "ctaBuy": "Subscribe to Nudge",
+      "trialNote": "Card required; auto-charges when the trial ends, cancel anytime",
+      "havePromo": "Have a promo code?",
+      "alreadySubscribed": "You're subscribed to Nudge",
+      "goSettings": "Go to settings",
+      "notConfigured": "Billing isn't available yet — please try again later",
+      "checkoutExpired": "Checkout link expired — please retry from the app",
+      "logout": "Sign out",
+      "success": {
+        "title": "You're subscribed 🎉",
+        "subtitle": "Thanks for the support — everything is unlocked",
+        "processing": "Payment processing — access activates shortly",
+        "back": "Back to Nudge"
+      }
     }
   },
   "offline": {
