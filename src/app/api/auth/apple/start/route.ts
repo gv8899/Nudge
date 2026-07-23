@@ -18,6 +18,11 @@ const COOKIE_OPTS = {
 export async function GET(request: NextRequest) {
   const clientId = process.env.AUTH_APPLE_ID;
   if (!clientId || !process.env.AUTH_APPLE_SECRET) {
+    // mac 流程：redirect 回 scheme 讓 ASWebAuthenticationSession 自動收窗、
+    // app 端顯示錯誤（不然視窗會停在 raw JSON 要手動關）。
+    if (request.nextUrl.searchParams.get("source") === "mac") {
+      return NextResponse.redirect("nudge://auth/apple#error=not_configured", 303);
+    }
     return NextResponse.json({ error: "not configured" }, { status: 404 });
   }
 
