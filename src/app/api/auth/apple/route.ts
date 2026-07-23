@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRemoteJWKSet, jwtVerify } from "jose";
 import { signJWT } from "@/lib/jwt";
 import { localeFromAcceptLanguage } from "@/lib/onboarding/provision-user";
 import { resolveAppleUser, dbAppleAccountDeps } from "@/lib/auth/apple-account";
-
-// Apple 的公鑰集 —— 驗 identityToken 簽章用。createRemoteJWKSet 內建快取
-// （依 Cache-Control），不會每次 request 都打 Apple。
-const APPLE_JWKS = createRemoteJWKSet(
-  new URL("https://appleid.apple.com/auth/keys"),
-);
+import { verifyAppleIdToken } from "@/lib/auth/apple-jwt";
 
 // 原生 app 的 bundle id = Apple identityToken 的 aud（iOS / macOS 各一）。
 const ALLOWED_AUDIENCES = ["tw.nudge.app", "tw.nudge.mac"];
@@ -36,18 +30,11 @@ export async function POST(request: NextRequest) {
   let sub: string;
   let tokenEmail: string | undefined;
   try {
-    const { payload } = await jwtVerify(identityToken, APPLE_JWKS, {
-      issuer: "https://appleid.apple.com",
-      audience: ALLOWED_AUDIENCES,
-    });
-    sub = payload.sub as string;
-    tokenEmail = typeof payload.email === "string" ? payload.email : undefined;
+    const verified = await verifyAppleIdToken(identityToken, ALLOWED_AUDIENCES);
+    sub = verified.sub;
+    tokenEmail = verified.email;
   } catch {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-  }
-
-  if (!sub) {
-    return NextResponse.json({ error: "No subject in token" }, { status: 401 });
   }
 
   // email 只有「首次授權」才一定有（token 內或 app 帶上）；之後可能都沒有。
