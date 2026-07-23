@@ -12,13 +12,18 @@ public struct LoginView: View {
     /// Sign in with Apple：LoginView 取出 credential，把 identityToken（+ 首次
     /// 的名字/email）交給平台殼層換 token。
     public var onAppleLogin: (_ identityToken: String, _ fullName: String?, _ email: String?) async -> Result<Void, Error>
+    /// macOS 的 web 中繼 Apple 登入 — 殼層完成整個流程（開瀏覽器→拿 app
+    /// JWT→寫 auth state），View 只觸發。nil = 不顯示按鈕（iOS 用不到）。
+    public var onAppleWebLogin: (() async -> Result<Void, Error>)?
 
     public init(
         onLoginTapped: @escaping () async -> Result<Void, Error>,
-        onAppleLogin: @escaping (_ identityToken: String, _ fullName: String?, _ email: String?) async -> Result<Void, Error>
+        onAppleLogin: @escaping (_ identityToken: String, _ fullName: String?, _ email: String?) async -> Result<Void, Error>,
+        onAppleWebLogin: (() async -> Result<Void, Error>)? = nil
     ) {
         self.onLoginTapped = onLoginTapped
         self.onAppleLogin = onAppleLogin
+        self.onAppleWebLogin = onAppleWebLogin
     }
 
     public var body: some View {
@@ -59,12 +64,16 @@ public struct LoginView: View {
             // (扣 32pt padding)。
             VStack(spacing: 12) {
                 googleButton
-                // Sign in with Apple 只在 iOS（App Store 4.8 要求）。macOS 走
-                // Developer ID 分發、不受 App Store 審查、且 applesignin 是
-                // restricted entitlement（要嵌 provisioning profile，否則 AMFI
-                // launch SIGKILL）→ macOS 先不放，維持 Google 登入。
+                // iOS：原生 SignInWithAppleButton（App Store 4.8）。
+                // macOS：web 中繼流程的自訂按鈕（原生 SIWA 是 restricted
+                // entitlement，Developer ID 分發會 AMFI SIGKILL → 改開瀏覽器
+                // 走伺服器中繼，見 AppleSignInService+macOS）。
                 #if os(iOS)
                 appleButton
+                #else
+                if onAppleWebLogin != nil {
+                    macAppleButton
+                }
                 #endif
 
                 if let errorMessage {
@@ -148,6 +157,42 @@ public struct LoginView: View {
                 }
             }
         }
+    }
+    #endif
+
+    #if os(macOS)
+    private var macAppleButton: some View {
+        Button {
+            guard let onAppleWebLogin else { return }
+            Task {
+                isLoading = true
+                errorMessage = nil
+                let result = await onAppleWebLogin()
+                isLoading = false
+                if case .failure(let error) = result {
+                    errorMessage = (error as? LocalizedError)?.errorDescription
+                        ?? error.localizedDescription
+                }
+            }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "apple.logo")
+                    .nudgeFont(.rowTitleEmphasized)
+                Text("login.signInWithApple", bundle: .module)
+                    .nudgeFont(.rowTitleEmphasized)
+            }
+            // Apple HIG 官方樣式：淺色模式黑底白字、深色模式白底黑字。
+            // 品牌按鈕例外，不走 token。
+            .foregroundStyle(colorScheme == .dark ? Color.black : Color.white) // nudge:allow-color
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .contentShape(Capsule())
+            .background(
+                Capsule().fill(colorScheme == .dark ? Color.white : Color.black) // nudge:allow-color
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(isLoading)
     }
     #endif
 
