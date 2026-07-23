@@ -4,14 +4,18 @@ import { getTranslations } from "next-intl/server";
 
 export default async function LoginPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ checkout?: string }>;
 }) {
   const { locale } = await params;
   const session = await auth();
   if (session?.user) redirect({ href: "/", locale });
 
   const t = await getTranslations({ locale, namespace: "login" });
+  const { checkout } = await searchParams;
+  const tPaywall = await getTranslations({ locale, namespace: "billing.paywall" });
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -20,6 +24,11 @@ export default async function LoginPage({
           <h1 className="text-4xl font-bold text-foreground">Nudge</h1>
           <p className="text-text-dim">{t("tagline")}</p>
         </div>
+
+        {/* Mac OTT 兌換失敗（過期/重放）的引導 */}
+        {checkout === "expired" && (
+          <p className="text-sm text-chart-2">{tPaywall("checkoutExpired")}</p>
+        )}
 
         <form
           action={async () => {

@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import useSWR from "swr";
 import { useTranslations } from "next-intl";
 import { format, parseISO } from "date-fns";
 import { fetcher } from "@/lib/fetcher";
+import { Link } from "@/i18n/routing";
 import { SettingsRow } from "./settings-primitives";
 
 interface Entitlement {
@@ -61,23 +63,62 @@ export function SubscriptionSection() {
     }
   }
 
+  // CTA：無權或需注意 → 升級（/paywall）；paddle 付費中 → 管理訂閱（portal）。
+  const showUpgrade = !!ent && (!ent.isActive || ATTENTION_STATUSES.includes(ent.status));
+  const showManage = !!ent && ent.isActive && ent.source === "paddle";
+  const [portalBusy, setPortalBusy] = useState(false);
+
+  async function openPortal() {
+    if (portalBusy) return;
+    setPortalBusy(true);
+    try {
+      const res = await fetch("/api/billing/portal", { method: "POST" });
+      if (res.ok) {
+        const { url } = await res.json();
+        window.open(url, "_blank", "noopener");
+      }
+    } finally {
+      setPortalBusy(false);
+    }
+  }
+
   return (
     <SettingsRow>
-      {ent ? (
-        <span
-          className={
-            ent.isActive && ATTENTION_STATUSES.includes(ent.status)
-              ? "text-chart-2"
-              : ent.isActive
-                ? "text-primary"
-                : "text-text-dim"
-          }
-        >
-          {statusLine()}
-        </span>
-      ) : (
-        <span className="text-text-dim">…</span>
-      )}
+      <div className="flex items-center justify-between gap-3 w-full">
+        {ent ? (
+          <span
+            className={
+              ent.isActive && ATTENTION_STATUSES.includes(ent.status)
+                ? "text-chart-2"
+                : ent.isActive
+                  ? "text-primary"
+                  : "text-text-dim"
+            }
+          >
+            {statusLine()}
+          </span>
+        ) : (
+          <span className="text-text-dim">…</span>
+        )}
+        {showUpgrade && (
+          <Link
+            href="/paywall"
+            className="shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90 transition-opacity"
+          >
+            {t("upgrade")}
+          </Link>
+        )}
+        {!showUpgrade && showManage && (
+          <button
+            type="button"
+            onClick={openPortal}
+            disabled={portalBusy}
+            className="shrink-0 rounded-full border border-border px-4 py-1.5 text-xs text-foreground hover:bg-surface-hover transition-colors disabled:opacity-50"
+          >
+            {t("manage")}
+          </button>
+        )}
+      </div>
     </SettingsRow>
   );
 }
