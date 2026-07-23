@@ -244,6 +244,16 @@ export const promoCodes = pgTable("promo_codes", {
   createdAt: text("created_at").notNull(),
 });
 
+// Paddle webhook 冪等去重 — 一 event 一列（event_id 為 Paddle 全域唯一）。
+// insert onConflictDoNothing 失敗 = 已處理過 → skip。occurred_at 供亂序判斷
+// （舊事件不覆蓋新狀態）。
+export const webhookEvents = pgTable("webhook_events", {
+  eventId: text("event_id").primaryKey(),
+  eventType: text("event_type").notNull(),
+  occurredAt: text("occurred_at").notNull(),
+  processedAt: text("processed_at").notNull(),
+});
+
 // 兌換紀錄 — 擋重複 + 計次（per-user limit / 總次數）。
 export const promoRedemptions = pgTable("promo_redemptions", {
   id: text("id").primaryKey(),
