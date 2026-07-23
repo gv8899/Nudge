@@ -158,7 +158,11 @@ public struct LoginView: View {
                     ProgressView()
                         .scaleEffect(0.8)
                 } else {
-                    GoogleGMark()
+                    // 官方 Google G（xcassets 向量轉出的 1x/2x/3x），
+                    // 與 web 登入頁同一份 SVG 來源。
+                    Image("GoogleLogo", bundle: .module)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
                         .frame(width: 18, height: 18)
                 }
                 Text(isLoading ? "login.signingIn" : "login.signInWithGoogle", bundle: .module)
@@ -190,52 +194,3 @@ public struct LoginView: View {
     }
 }
 
-/// Google G mark — 4 色弧 + 中央橫條。SwiftUI Canvas 拼出來，
-/// 不靠 SF Symbol 也不需要額外圖檔。色值維持 Google brand guideline →
-/// 加 `nudge:allow-color` 跳過 token lint。
-private struct GoogleGMark: View {
-    // SwiftUI Angle: 0° = 東、90° = 南（順時針）。
-    private let blue   = Color(red:  66 / 255, green: 133 / 255, blue: 244 / 255) // nudge:allow-color
-    private let red    = Color(red: 234 / 255, green:  67 / 255, blue:  53 / 255) // nudge:allow-color
-    private let yellow = Color(red: 251 / 255, green: 188 / 255, blue:   4 / 255) // nudge:allow-color
-    private let green  = Color(red:  52 / 255, green: 168 / 255, blue:  83 / 255) // nudge:allow-color
-
-    var body: some View {
-        Canvas { ctx, size in
-            let w = size.width
-            let h = size.height
-            let strokeW = w * 0.22
-            let center = CGPoint(x: w / 2, y: h / 2)
-            let radius = (w - strokeW) / 2
-
-            let segments: [(start: Angle, end: Angle, color: Color)] = [
-                (.degrees(-20),  .degrees(90),  green),
-                (.degrees(90),   .degrees(200), yellow),
-                (.degrees(200),  .degrees(310), red),
-                (.degrees(310),  .degrees(360), blue)
-            ]
-
-            for seg in segments {
-                var path = Path()
-                path.addArc(
-                    center: center,
-                    radius: radius,
-                    startAngle: seg.start,
-                    endAngle: seg.end,
-                    clockwise: false
-                )
-                ctx.stroke(path, with: .color(seg.color), style: StrokeStyle(lineWidth: strokeW, lineCap: .butt))
-            }
-
-            // 中央橫條（藍）— 從圓心往右接到弧內緣。
-            let barHeight = strokeW * 0.95
-            let barRect = CGRect(
-                x: w / 2,
-                y: h / 2 - barHeight / 2,
-                width: w / 2 - strokeW / 2 + 0.5,
-                height: barHeight
-            )
-            ctx.fill(Path(barRect), with: .color(blue))
-        }
-    }
-}
