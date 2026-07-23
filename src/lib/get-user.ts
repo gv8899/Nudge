@@ -1,5 +1,6 @@
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { auth } from "@/lib/auth";
+import { CHECKOUT_COOKIE, verifyCheckoutCookieJWT } from "@/lib/checkout-session";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -28,7 +29,22 @@ export async function getUser() {
 
   // 2. Fallback 到 NextAuth session（Web）
   const session = await auth();
-  if (!session?.user?.email) return null;
+  if (!session?.user?.email) {
+    // 3. 最後 fallback：checkout cookie（Mac OTT 手遞設下的 30 分鐘短效
+    //    session，purpose 隔離 — 只可能由 /api/billing/checkout/redeem 寫入）。
+    //    讓 Apple 登入的 Mac 用戶免 web 帳號即可完成 /paywall 結帳。
+    const cookieStore = await cookies();
+    const checkoutJWT = cookieStore.get(CHECKOUT_COOKIE)?.value;
+    if (!checkoutJWT) return null;
+    const checkoutUserId = await verifyCheckoutCookieJWT(checkoutJWT);
+    if (!checkoutUserId) return null;
+    const [cookieUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, checkoutUserId))
+      .limit(1);
+    return cookieUser || null;
+  }
 
   let [user] = await db
     .select()
