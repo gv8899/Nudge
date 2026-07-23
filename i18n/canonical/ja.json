@@ -112,6 +112,7 @@
   "login": {
     "tagline": "毎日のタスクをそっと後押し",
     "signInWithGoogle": "Google でサインイン",
+    "signInWithApple": "Appleでサインイン",
     "loginFailed": "サインインに失敗しました。もう一度お試しください。",
     "appleFailed": "Appleサインインに失敗しました。もう一度お試しください"
   },
