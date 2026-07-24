@@ -14,6 +14,9 @@
    | Monthly (no trial) | $12.99 USD | monthly | 無 |
    | Annual (no trial) | $99.00 USD | yearly | 無 |
 4. **Developer tools → Authentication**：建 API key（server）+ Client-side token。
+5. ⚠️ **Checkout → Checkout settings → Default payment link**：填 `http://localhost:3000`
+   （sandbox 允許 localhost）。**這步沒有 API、只能 Dashboard 手動**——沒設的話
+   overlay 一開就「Something went wrong」（2026-07-24 實測血淚）。
 5. **Developer tools → Notifications**：建 webhook destination 指向 dev tunnel（見步驟 2），勾 `subscription.created / subscription.updated / subscription.canceled / transaction.completed / transaction.payment_failed`，拿 **webhook secret**。
 
 ## 步驟 1：env（`.env.local` 補）
@@ -86,6 +89,8 @@ psql "$DATABASE_URL" -f drizzle/0010_webhook_events.sql
 ## Sandbox → Live 切換清單（Paddle 帳號過審後）
 
 1. live Dashboard 重建 Product + 4 Prices（可同時設 PPP 在地價：TW NT$1,990/249、JP ¥14,800/1,500）
+   ——Product/Prices/client token 可用 API 建（參考 sandbox 這輪的 curl），**但
+   Default payment link（→ https://nudge.tw）一定要 Dashboard 手設**
 2. env：`PADDLE_ENV=production` + live API key / client token / webhook secret / 4 個 live price id
 3. Paddle Notifications webhook URL → `https://nudge.tw/api/webhooks/paddle`
 4. `NEXT_PUBLIC_APP_URL=https://nudge.tw`
