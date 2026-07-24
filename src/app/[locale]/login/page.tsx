@@ -21,6 +21,7 @@ export default async function LoginPage({
           <p className="text-text-dim">{t("tagline")}</p>
         </div>
 
+        <div className="flex flex-col items-center gap-3">
         <form
           action={async () => {
             "use server";
@@ -52,6 +53,27 @@ export default async function LoginPage({
             {t("signInWithGoogle")}
           </button>
         </form>
+
+        {/* Apple 按鈕 — 憑證未設時整顆不渲染（feature flag），現況不變 */}
+        {process.env.AUTH_APPLE_ID && process.env.AUTH_APPLE_SECRET && (
+          <form
+            action={async () => {
+              "use server";
+              await signIn("apple", { redirectTo: "/" });
+            }}
+          >
+            <button
+              type="submit"
+              className="inline-flex items-center gap-3 rounded-lg bg-black px-6 py-3 text-sm font-medium text-white shadow hover:bg-gray-900 transition-colors"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M17.05 12.54c-.03-2.94 2.4-4.35 2.51-4.42-1.37-2-3.5-2.28-4.25-2.31-1.8-.18-3.53 1.06-4.44 1.06-.92 0-2.34-1.04-3.85-1.01-1.98.03-3.81 1.15-4.83 2.92-2.06 3.58-.53 8.87 1.48 11.77.98 1.42 2.15 3.01 3.68 2.95 1.48-.06 2.04-.95 3.83-.95 1.78 0 2.29.95 3.85.92 1.59-.03 2.6-1.44 3.57-2.87 1.13-1.64 1.59-3.23 1.61-3.31-.03-.02-3.09-1.19-3.16-4.75zM14.13 3.9c.82-.99 1.37-2.37 1.22-3.74-1.18.05-2.6.78-3.45 1.77-.76.88-1.42 2.28-1.24 3.63 1.31.1 2.65-.67 3.47-1.66z"/>
+              </svg>
+              {t("signInWithApple")}
+            </button>
+          </form>
+        )}
+        </div>
       </div>
     </div>
   );

@@ -81,6 +81,7 @@
     "nav.calendar": "6180b5e1ceec8c6203e900b8a9e0e6be2f32129a1210728366dfa918d674d7c4",
     "login.tagline": "4ae25fb217ef1417148d677d2f636c024d138f47ee8743fd9068d9061e55f699",
     "login.signInWithGoogle": "f2a23af75b5aa47b8a42aa7fc56731e1fe7d94260e39e466378f2bac7c96a48c",
+    "login.signInWithApple": "9aaf7b91fc609c1baac5173309f5e288b321e1887c3f021b59025b1452ae8f4f",
     "login.loginFailed": "fb38b0c811e19557cd5510ec427615d7c027bcb780d6e63b830b25642c0e5aa9",
     "login.appleFailed": "6ea3d60f5f14ec36fde7f478d82def5cba1a34645f72c93a6d64e9956a6b6b78",
     "task.dragReorder": "f2da453abf67212656f86d6f6171f972f705a7530a096faa5d018aba08b53e00",

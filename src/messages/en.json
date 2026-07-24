@@ -112,6 +112,7 @@
   "login": {
     "tagline": "A lightweight nudge for your daily tasks",
     "signInWithGoogle": "Sign in with Google",
+    "signInWithApple": "Sign in with Apple",
     "loginFailed": "Sign-in failed. Please try again.",
     "appleFailed": "Apple sign-in failed, please try again"
   },

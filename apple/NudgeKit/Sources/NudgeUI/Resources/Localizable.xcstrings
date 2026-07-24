@@ -3383,6 +3383,28 @@
         }
       }
     },
+    "login.signInWithApple": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with Apple"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appleでサインイン"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 Apple 帳號登入"
+          }
+        }
+      }
+    },
     "login.signInWithGoogle": {
       "localizations": {
         "en": {

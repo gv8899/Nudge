@@ -1,17 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createRemoteJWKSet, jwtVerify } from "jose";
-import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
-import { nanoid } from "nanoid";
 import { signJWT } from "@/lib/jwt";
-import { provisionNewUser, localeFromAcceptLanguage } from "@/lib/onboarding/provision-user";
-
-// Apple 的公鑰集 —— 驗 identityToken 簽章用。createRemoteJWKSet 內建快取
-// （依 Cache-Control），不會每次 request 都打 Apple。
-const APPLE_JWKS = createRemoteJWKSet(
-  new URL("https://appleid.apple.com/auth/keys"),
-);
+import { localeFromAcceptLanguage } from "@/lib/onboarding/provision-user";
+import { resolveAppleUser, dbAppleAccountDeps } from "@/lib/auth/apple-account";
+import { verifyAppleIdToken } from "@/lib/auth/apple-jwt";
 
 // 原生 app 的 bundle id = Apple identityToken 的 aud（iOS / macOS 各一）。
 const ALLOWED_AUDIENCES = ["tw.nudge.app", "tw.nudge.mac"];
@@ -39,72 +30,24 @@ export async function POST(request: NextRequest) {
   let sub: string;
   let tokenEmail: string | undefined;
   try {
-    const { payload } = await jwtVerify(identityToken, APPLE_JWKS, {
-      issuer: "https://appleid.apple.com",
-      audience: ALLOWED_AUDIENCES,
-    });
-    sub = payload.sub as string;
-    tokenEmail = typeof payload.email === "string" ? payload.email : undefined;
+    const verified = await verifyAppleIdToken(identityToken, ALLOWED_AUDIENCES);
+    sub = verified.sub;
+    tokenEmail = verified.email;
   } catch {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-  }
-
-  if (!sub) {
-    return NextResponse.json({ error: "No subject in token" }, { status: 401 });
   }
 
   // email 只有「首次授權」才一定有（token 內或 app 帶上）；之後可能都沒有。
   const email = tokenEmail ?? (typeof bodyEmail === "string" ? bodyEmail : undefined);
 
-  // ① apple_sub 命中
-  let [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.appleSub, sub))
-    .limit(1);
-
-  // ② 沒命中但 email 對得上既有帳號 → 併號（補 apple_sub）
-  if (!user && email) {
-    const [existing] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
-    if (existing) {
-      await db
-        .update(users)
-        .set({ appleSub: sub })
-        .where(eq(users.id, existing.id));
-      user = { ...existing, appleSub: sub };
-    }
-  }
-
-  // ③ 建新帳號
-  if (!user) {
-    const now = new Date().toISOString();
-    const newUser = {
-      id: nanoid(),
-      // relay 信箱也照存；真的沒 email（罕見）就給個穩定 placeholder 滿足
-      // NOT NULL/unique，使用者之後仍能用 Apple 登入（靠 apple_sub）。
-      email: email ?? `${sub}@appleid.nudge.local`,
-      name: typeof fullName === "string" && fullName.trim() ? fullName.trim() : null,
-      avatarUrl: null,
-      locale: null,
-      appleSub: sub,
-      createdAt: now,
-      trialStartedAt: null,
-      onboardedAt: null,
-      googleCalendarAccessToken: null,
-      googleCalendarRefreshToken: null,
-      googleCalendarTokenExpires: null,
-      googleCalendarSelectedIds: null,
-    };
-    await db.insert(users).values(newUser);
-    await provisionNewUser(newUser.id, {
-      locale: bodyLocale ?? localeFromAcceptLanguage(request.headers.get("accept-language")),
-    });
-    user = newUser;
-  }
+  // 三段併號（① sub 命中 → ② email 併號 → ③ 建新帳號）抽到共用核心，
+  // 與 web NextAuth / Mac 中繼 callback 共用同一份邏輯。
+  const user = await resolveAppleUser(dbAppleAccountDeps, {
+    sub,
+    email,
+    name: typeof fullName === "string" ? fullName : null,
+    locale: bodyLocale ?? localeFromAcceptLanguage(request.headers.get("accept-language")),
+  });
 
   const token = await signJWT({ userId: user.id, email: user.email });
 

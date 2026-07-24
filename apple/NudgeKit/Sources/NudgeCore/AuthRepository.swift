@@ -70,6 +70,23 @@ public final class AuthRepository {
         return response.user
     }
 
+    /// Mac web 中繼 Apple 登入：後端已完成併號並簽好 app JWT，這裡只
+    /// 存 keychain → 打 /api/me 取 user（tokenProvider 會從 keychain 帶
+    /// Bearer）。失敗回滾 token 避免殘留壞憑證。
+    @discardableResult
+    public func loginWithAppleToken(_ token: String) async throws -> UserDTO {
+        try keychain.set(token, for: tokenKey)
+        do {
+            let user: UserDTO = try await client.get("/api/me")
+            entitlement = user.entitlement
+            status = .authenticated(user)
+            return user
+        } catch {
+            try? keychain.remove(for: tokenKey)
+            throw error
+        }
+    }
+
     public func logout() async {
         try? keychain.remove(for: tokenKey)
         status = .unauthenticated
