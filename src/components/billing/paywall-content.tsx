@@ -101,9 +101,9 @@ export function PaywallContent({ fromMac = false }: { fromMac?: boolean }) {
       customer: info.email ? { email: info.email } : undefined,
       settings: {
         successUrl: `${window.location.origin}/${locale}/checkout/success${fromMac ? "?from=mac" : ""}`,
-        // Paddle 結帳 UI 語言：無繁中（僅簡中）→ zh-TW 刻意給英文而非簡中；
-        // 日文介面給日文；其餘一律英文。
-        locale: locale === "ja" ? "ja" : "en",
+        // Paddle 結帳 UI 語言跟著介面語言：zh-TW（正體）/ ja 直接支援，
+        // 其餘一律英文。
+        locale: locale === "zh-TW" ? "zh-TW" : locale === "ja" ? "ja" : "en",
       },
     });
   }, [paddle, info, cycle, locale, fromMac]);
