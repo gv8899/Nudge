@@ -272,6 +272,7 @@
       "aria": "メインナビゲーション",
       "features": "機能",
       "philosophy": "理念",
+      "pricing": "料金",
       "download": "ダウンロード"
     },
     "download": {
@@ -281,19 +282,40 @@
     "trial": "7日間無料トライアル",
     "downloadPage": {
       "title": "Nudge をはじめる",
-      "subtitle": "ダウンロードして7日間無料でお試し。クレジットカード不要。",
+      "subtitle": "ダウンロードして7日間の無料トライアルを開始。",
       "mac": {
         "name": "Nudge for Mac",
         "desc": "本命。タスク管理、カレンダー、ナレッジカードがすべて一画面に。",
-        "requirement": "macOS 13 以降",
+        "requirement": "macOS 15 以降",
         "cta": "Mac版をダウンロード（.dmg）"
       },
       "ios": {
         "name": "Nudge for iPhone・iPad",
         "desc": "どこでも同期。ホームとロック画面のウィジェットで今日のリストをひと目で。",
-        "requirement": "iOS 16 以降",
+        "requirement": "iOS 18 以降",
         "cta": "App Store でダウンロード"
       },
+      "back": "← ホームに戻る"
+    },
+    "pricing": {
+      "eyebrow": "料金",
+      "title": "プランは一つ。すべて込み。",
+      "subtitle": "7日間無料トライアル。自動更新、いつでも解約できます。",
+      "annual": "年払い",
+      "monthly": "月払い",
+      "save": "{percent} お得",
+      "planName": "Nudge Premium",
+      "perYear": "／年",
+      "perMonth": "／月",
+      "annualEquiv": "月あたり約 {monthly}、年払い",
+      "monthlyEquiv": "いつでも解約可、契約縛りなし",
+      "localizedNote": "地域に応じた現地価格と税は、決済時に計算されます（Paddle 経由）。",
+      "featuresTitle": "すべてのプランに含まれるもの",
+      "featureCrossPlatform": "iOS・macOS・Web 全プラットフォームで同期",
+      "featureDaily": "日々のタスク計画と繰り返しタスク",
+      "featureCalendar": "カレンダー連携 — その日の会議をひと目で",
+      "featureCards": "ナレッジカードとノート",
+      "featureSync": "リアルタイムのクラウド同期",
       "back": "← ホームに戻る"
     },
     "hero": {

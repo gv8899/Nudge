@@ -272,6 +272,7 @@
       "aria": "主導覽",
       "features": "功能",
       "philosophy": "理念",
+      "pricing": "定價",
       "download": "下載"
     },
     "download": {
@@ -281,19 +282,40 @@
     "trial": "免費試用 7 天",
     "downloadPage": {
       "title": "開始使用 Nudge",
-      "subtitle": "下載即可免費試用 7 天，免信用卡。",
+      "subtitle": "下載即可開始 7 天免費試用。",
       "mac": {
         "name": "Nudge for Mac",
         "desc": "主力之選。任務安排、行事曆、知識卡片，一個畫面全包。",
-        "requirement": "macOS 13 或以上",
+        "requirement": "macOS 15 或以上",
         "cta": "下載 Mac 版（.dmg）"
       },
       "ios": {
         "name": "Nudge for iPhone・iPad",
         "desc": "隨身同步。桌面與鎖屏 widget 一眼看今日清單。",
-        "requirement": "iOS 16 或以上",
+        "requirement": "iOS 18 或以上",
         "cta": "App Store 下載"
       },
+      "back": "← 回首頁"
+    },
+    "pricing": {
+      "eyebrow": "定價",
+      "title": "一個方案，功能全給",
+      "subtitle": "7 天免費試用，到期自動續訂，隨時可取消。",
+      "annual": "年繳",
+      "monthly": "月繳",
+      "save": "省 {percent}",
+      "planName": "Nudge Premium",
+      "perYear": "／年",
+      "perMonth": "／月",
+      "annualEquiv": "約 {monthly}／月，年繳",
+      "monthlyEquiv": "隨時取消，不綁約",
+      "localizedNote": "結帳時依你所在地區在地化計價、含稅（透過 Paddle）。",
+      "featuresTitle": "所有方案都包含",
+      "featureCrossPlatform": "iOS、macOS、網頁全平台同步",
+      "featureDaily": "每日任務規劃與重複任務",
+      "featureCalendar": "行事曆整合，當天會議一眼看",
+      "featureCards": "知識卡片與筆記",
+      "featureSync": "雲端即時同步",
       "back": "← 回首頁"
     },
     "hero": {
