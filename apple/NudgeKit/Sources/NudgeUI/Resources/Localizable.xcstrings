@@ -6352,6 +6352,248 @@
           }
         }
       }
+    },
+    "billing.paywall.title": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解鎖 Nudge 完整功能"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock all of Nudge"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nudge のすべてを解放"
+          }
+        }
+      }
+    },
+    "billing.paywall.subtitle": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跨 Web、Mac、iOS 的每日規劃工具"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily planning across Web, Mac, and iOS"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Web・Mac・iOS 横断のデイリープランニング"
+          }
+        }
+      }
+    },
+    "billing.paywall.point1": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任務、卡片、日誌跨裝置即時同步"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasks, cards, and notes sync instantly across devices"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "タスク・カード・メモを全デバイスに即時同期"
+          }
+        }
+      }
+    },
+    "billing.paywall.point2": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google 行事曆整合與每週檢視"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google Calendar integration with weekly view"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google カレンダー連携と週ビュー"
+          }
+        }
+      }
+    },
+    "billing.paywall.point3": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重複任務與提醒，交給系統記得"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repeats and reminders — let the system remember"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "繰り返しとリマインドはシステムにお任せ"
+          }
+        }
+      }
+    },
+    "billing.paywall.ctaBuy": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "訂閱 Nudge"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscribe to Nudge"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nudge を購読"
+          }
+        }
+      }
+    },
+    "billing.paywall.trialNote": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未用過試用可於結帳頁開始 7 天免費試用；先綁卡、隨時取消"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a 7-day free trial at checkout if you haven't used one; card required, cancel anytime"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トライアル未使用なら決済ページで7日間無料トライアルを開始できます。カード登録必須、いつでも解約可"
+          }
+        }
+      }
+    },
+    "billing.paywall.paidDone": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已完成付款"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I've completed payment"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支払いを完了しました"
+          }
+        }
+      }
+    },
+    "billing.paywall.notConfigured": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金流尚未開通，請稍後再試"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Billing isn't available yet — please try again later"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "決済は準備中です。しばらくしてからお試しください"
+          }
+        }
+      }
+    },
+    "billing.upgrade": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "升級"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upgrade"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップグレード"
+          }
+        }
+      }
+    },
+    "billing.manage": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理訂閱"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage subscription"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サブスクリプションを管理"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

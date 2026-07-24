@@ -44,6 +44,20 @@ public struct EntitlementDTO: Codable, Equatable, Sendable {
     }
 }
 
+/// per-platform 付費牆 enforce 旗標（/api/me 的 paywall；server env 控制）。
+/// true = 該平台開硬牆。舊後端沒這個欄位 → UserDTO.paywall = nil（不落牆）。
+public struct PaywallFlagsDTO: Codable, Equatable, Sendable {
+    public let ios: Bool
+    public let web: Bool
+    public let mac: Bool
+
+    public init(ios: Bool, web: Bool, mac: Bool) {
+        self.ios = ios
+        self.web = web
+        self.mac = mac
+    }
+}
+
 public struct UserDTO: Codable, Equatable, Sendable {
     public let id: String
     public let email: String
@@ -56,6 +70,8 @@ public struct UserDTO: Codable, Equatable, Sendable {
     /// NULL = 尚未 onboard。僅 /api/me 帶；login 回應沒有 → optional。
     /// first-run welcome 導覽用「近期 onboard」判斷是否顯示。
     public let onboardedAt: String?
+    /// per-platform 付費牆旗標。僅 /api/me 帶；舊後端 / login 回應沒有 → nil。
+    public let paywall: PaywallFlagsDTO?
 
     public init(
         id: String,
@@ -64,7 +80,8 @@ public struct UserDTO: Codable, Equatable, Sendable {
         avatarUrl: String?,
         locale: String?,
         entitlement: EntitlementDTO? = nil,
-        onboardedAt: String? = nil
+        onboardedAt: String? = nil,
+        paywall: PaywallFlagsDTO? = nil
     ) {
         self.id = id
         self.email = email
@@ -73,5 +90,6 @@ public struct UserDTO: Codable, Equatable, Sendable {
         self.locale = locale
         self.entitlement = entitlement
         self.onboardedAt = onboardedAt
+        self.paywall = paywall
     }
 }

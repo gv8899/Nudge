@@ -17,6 +17,66 @@ public final class AuthRepository {
     /// 付費 entitlement（來自 /api/me）。restoreSession / refreshEntitlement 更新。
     public private(set) var entitlement: EntitlementDTO?
 
+    /// per-platform 付費牆旗標（/api/me 的 paywall；server env 控制，翻 flag
+    /// 不用發版）。與 entitlement 一起快取供離線判斷。
+    public private(set) var paywallFlags: PaywallFlagsDTO?
+
+    /// 最後一次成功打到 /api/me 的時間（離線寬限計算用）。
+    public private(set) var lastValidatedAt: Date?
+
+    // ── 離線快取（UserDefaults）──────────────────────────────────────────
+    private struct BillingCache: Codable {
+        let entitlement: EntitlementDTO?
+        let paywallFlags: PaywallFlagsDTO?
+        let lastValidatedAt: Date
+    }
+    private static let billingCacheKey = "nudge.billing.cache"
+
+    private func persistBillingCache() {
+        let cache = BillingCache(
+            entitlement: entitlement,
+            paywallFlags: paywallFlags,
+            lastValidatedAt: Date()
+        )
+        lastValidatedAt = cache.lastValidatedAt
+        if let data = try? JSONEncoder().encode(cache) {
+            UserDefaults.standard.set(data, forKey: Self.billingCacheKey)
+        }
+    }
+
+    private func loadBillingCache() {
+        guard let data = UserDefaults.standard.data(forKey: Self.billingCacheKey),
+              let cache = try? JSONDecoder().decode(BillingCache.self, from: data)
+        else { return }
+        entitlement = cache.entitlement
+        paywallFlags = cache.paywallFlags
+        lastValidatedAt = cache.lastValidatedAt
+    }
+
+    /// /api/me 成功回來時統一更新 billing 狀態 + 落快取。
+    private func applyBillingState(from user: UserDTO) {
+        entitlement = user.entitlement
+        paywallFlags = user.paywall
+        persistBillingCache()
+    }
+
+    /// Mac 硬付費牆判斷（spec：+14 天離線寬限）：
+    ///   - flags.mac 未開 → 不落牆（soft mode）
+    ///   - 已知無權（最後一次成功驗證說 inactive）→ 落牆
+    ///   - 已知有權且驗證未超過 14 天 → 放行
+    ///   - 已知有權但超過 14 天沒驗證成功 → 寬限用盡，落牆
+    ///   - 完全沒資料（首登離線）→ 放行（fail-open，不鎖死新用戶）
+    public var shouldShowMacPaywall: Bool {
+        guard paywallFlags?.mac == true else { return false }
+        guard let ent = entitlement else { return false }
+        if !ent.isActive { return true }
+        if let last = lastValidatedAt,
+           Date().timeIntervalSince(last) > 14 * 24 * 3600 {
+            return true
+        }
+        return false
+    }
+
     public var currentUser: UserDTO? {
         if case .authenticated(let user) = status { return user }
         return nil
@@ -34,6 +94,7 @@ public final class AuthRepository {
     public init(client: APIClient, keychain: KeychainStorage) {
         self.client = client
         self.keychain = keychain
+        loadBillingCache()
     }
 
     @discardableResult
@@ -95,7 +156,7 @@ public final class AuthRepository {
 
         do {
             let user: UserDTO = try await client.get("/api/me")
-            entitlement = user.entitlement
+            applyBillingState(from: user)
             status = .authenticated(user)
             return true
         } catch APIError.unauthorized {
@@ -127,7 +188,7 @@ public final class AuthRepository {
     public func refreshEntitlement() async {
         do {
             let user: UserDTO = try await client.get("/api/me")
-            entitlement = user.entitlement
+            applyBillingState(from: user)
         } catch {
             if !APIError.isCancellation(error) {
                 print("[AuthRepository] refreshEntitlement failed: \(error)")
@@ -141,13 +202,32 @@ public final class AuthRepository {
     public func refreshCurrentUser() async {
         do {
             let user: UserDTO = try await client.get("/api/me")
-            entitlement = user.entitlement
+            applyBillingState(from: user)
             status = .authenticated(user)
         } catch {
             if !APIError.isCancellation(error) {
                 print("[AuthRepository] refreshCurrentUser failed: \(error)")
             }
         }
+    }
+
+    /// Mac→web 結帳的 OTT 手遞：向後端要一次性結帳 URL（60 秒、單次用途），
+    /// 呼叫端用預設瀏覽器開啟。web 端免登入即落 /paywall（checkout cookie）。
+    public func requestCheckoutURL() async throws -> URL {
+        struct Empty: Codable {}
+        struct Response: Codable { let url: String }
+        let response: Response = try await client.post("/api/billing/checkout-session", body: Empty())
+        guard let url = URL(string: response.url) else { throw APIError.invalidResponse }
+        return url
+    }
+
+    /// Paddle customer portal（管理/取消/換卡）URL —— source=paddle 才有效。
+    public func requestPortalURL() async throws -> URL {
+        struct Empty: Codable {}
+        struct Response: Codable { let url: String }
+        let response: Response = try await client.post("/api/billing/portal", body: Empty())
+        guard let url = URL(string: response.url) else { throw APIError.invalidResponse }
+        return url
     }
 
     /// 兌換 promo code → 更新 entitlement、回獲得天數。失敗 throw（server 回

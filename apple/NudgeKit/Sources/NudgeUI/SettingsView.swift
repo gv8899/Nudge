@@ -170,17 +170,64 @@ public struct SettingsView: View {
 
     // MARK: - Groups
 
-    // 訂閱狀態 + 兌換碼（讀 /api/me 的 entitlement；soft 模式、不擋功能）。
+    // 訂閱狀態 + CTA（讀 /api/me 的 entitlement）。
     private var subscriptionGroup: some View {
         SettingsGroup(header: "billing.section", icon: "creditcard") {
             SettingsRow {
                 Text(verbatim: subscriptionStatusText)
                     .foregroundStyle(subscriptionStatusColor)
             } trailing: {
-                EmptyView()
+                subscriptionCTA
             }
         }
     }
+
+    /// 訂閱 CTA（macOS only；iOS 此輪無結帳入口 — IAP 是 Phase 2）：
+    ///   無權/需注意 → 升級（OTT 開瀏覽器結帳）；paddle 有權 → 管理訂閱（portal）。
+    @ViewBuilder
+    private var subscriptionCTA: some View {
+        #if os(macOS)
+        if let e = auth.entitlement {
+            if !e.isActive || Self.attentionStatuses.contains(e.status) {
+                Button {
+                    openBillingURL { try await auth.requestCheckoutURL() }
+                } label: {
+                    Text("billing.upgrade", bundle: .module)
+                        .nudgeFont(.inlineButtonLabel)
+                        .foregroundStyle(Color.nudgePrimaryForeground)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 5)
+                        .background(Capsule().fill(Color.nudgePrimary))
+                }
+                .buttonStyle(.plain)
+            } else if e.source == "paddle" {
+                Button {
+                    openBillingURL { try await auth.requestPortalURL() }
+                } label: {
+                    Text("billing.manage", bundle: .module)
+                        .nudgeFont(.inlineButtonLabel)
+                        .foregroundStyle(Color.nudgeForeground)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 5)
+                        .background(Capsule().stroke(Color.nudgeBorder))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        #else
+        EmptyView()
+        #endif
+    }
+
+    #if os(macOS)
+    private func openBillingURL(_ fetch: @escaping () async throws -> URL) {
+        Task {
+            if let url = try? await fetch() {
+                NSWorkspace.shared.open(url)
+            }
+        }
+    }
+    #endif
 
     // 曾付費過的來源（決定 expired 措辭：訂閱已結束 vs 試用已結束）。
     private static let paidSources = ["apple", "paddle", "newebpay"]

@@ -176,6 +176,23 @@ struct MacSidebarRoot: View {
     @State private var moveToDateAssignment: DailyAssignmentDTO?
 
     var body: some View {
+        // 硬付費牆：flags.mac 開 + 無權（含 14 天離線寬限）→ 全視窗取代內容。
+        // 回前景時刷新 entitlement（Mac 從 web 結帳回來靠這個解鎖）。
+        Group {
+            if auth.shouldShowMacPaywall {
+                PaywallView(auth: auth)
+            } else {
+                mainContent
+            }
+        }
+        .onReceive(
+            NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)
+        ) { _ in
+            Task { await auth.refreshEntitlement() }
+        }
+    }
+
+    private var mainContent: some View {
         // 2 欄 NavigationSplitView。content view 自己負責 NavigationStack
         // 與 push detail (Cards/Daily 在 detail 內 push 卡片頁)。
         // 之前是 3 欄但 detail 永遠顯示「選擇項目」placeholder，被
