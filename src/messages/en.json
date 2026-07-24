@@ -255,6 +255,7 @@
       "aria": "Main navigation",
       "features": "Features",
       "philosophy": "Philosophy",
+      "pricing": "Pricing",
       "download": "Download"
     },
     "download": {
@@ -264,19 +265,40 @@
     "trial": "Free 7-day trial",
     "downloadPage": {
       "title": "Get started with Nudge",
-      "subtitle": "Download and try free for 7 days — no credit card.",
+      "subtitle": "Download and start your 7-day free trial.",
       "mac": {
         "name": "Nudge for Mac",
         "desc": "The main event. Tasks, calendar and knowledge cards — all on one screen.",
-        "requirement": "macOS 13 or later",
+        "requirement": "macOS 15 or later",
         "cta": "Download for Mac (.dmg)"
       },
       "ios": {
         "name": "Nudge for iPhone & iPad",
         "desc": "Synced on the go. Home and lock-screen widgets show today's list at a glance.",
-        "requirement": "iOS 16 or later",
+        "requirement": "iOS 18 or later",
         "cta": "Download on the App Store"
       },
+      "back": "← Back to home"
+    },
+    "pricing": {
+      "eyebrow": "Pricing",
+      "title": "One plan. Everything included.",
+      "subtitle": "7-day free trial. Renews automatically, cancel anytime.",
+      "annual": "Annual",
+      "monthly": "Monthly",
+      "save": "Save {percent}",
+      "planName": "Nudge Premium",
+      "perYear": "/yr",
+      "perMonth": "/mo",
+      "annualEquiv": "About {monthly}/mo, billed annually",
+      "monthlyEquiv": "Cancel anytime, no commitment",
+      "localizedNote": "Localized pricing and applicable taxes are calculated at checkout for your region (via Paddle).",
+      "featuresTitle": "Every plan includes",
+      "featureCrossPlatform": "Sync across iOS, macOS and web",
+      "featureDaily": "Daily task planning and recurring tasks",
+      "featureCalendar": "Calendar integration — see today's meetings at a glance",
+      "featureCards": "Knowledge cards and notes",
+      "featureSync": "Real-time cloud sync",
       "back": "← Back to home"
     },
     "hero": {
