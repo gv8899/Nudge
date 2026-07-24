@@ -520,7 +520,8 @@
         "title": "You're subscribed 🎉",
         "subtitle": "Thanks for the support — everything is unlocked",
         "processing": "Payment processing — access activates shortly",
-        "back": "Back to Nudge"
+        "back": "Back to Nudge",
+        "backToMac": "Back to the Mac app"
       }
     }
   },

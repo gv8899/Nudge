@@ -29,7 +29,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${base}/login?checkout=expired`);
   }
 
-  const res = NextResponse.redirect(`${base}/paywall`);
+  // from=mac 一路傳到 success 頁 → 付款生效後 deep link 跳回 Mac app。
+  const res = NextResponse.redirect(`${base}/paywall?from=mac`);
   res.cookies.set(CHECKOUT_COOKIE, await issueCheckoutCookieJWT(userId), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -37,6 +38,13 @@ export async function GET(request: NextRequest) {
     path: "/",
     maxAge: 30 * 60,
   });
+  // OTT 兌換 = 使用者明確宣告「我是 app 遞過來的這個帳號」。瀏覽器若殘留
+  // 別的 NextAuth session，getUser 的優先序（NextAuth > checkout cookie）會
+  // 讓舊 web 帳號蓋過手遞身分 → /paywall 顯示錯帳號、付款掛錯人。這裡直接
+  // 清掉 web session（等同登出瀏覽器帳號），確保結帳期間身分唯一。
+  for (const name of ["authjs.session-token", "__Secure-authjs.session-token"]) {
+    res.cookies.set(name, "", { path: "/", maxAge: 0 });
+  }
   if (user.locale) {
     res.cookies.set("NEXT_LOCALE", user.locale, {
       httpOnly: false,

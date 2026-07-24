@@ -382,6 +382,7 @@
     "billing.paywall.success.subtitle": "6cbcb313c412db27f09dc84eb5640e030f4be40375d89056e3ca96a3a0a8a611",
     "billing.paywall.success.processing": "911dcd7d846ccfe00a784ddabd5614eeb5cd5350f82341837586c8d89e0c1bc7",
     "billing.paywall.success.back": "03391c887c7bdc8010f10e1b192960d2c7520cc7486fce6e80cab27bdab750e3",
+    "billing.paywall.success.backToMac": "b9c01fb1443627205b865bea09a1dc35c049b87d121b5f0f7949705250775143",
     "offline.banner": "31bc6bcd8ec98760957db9d0a3d3902e83645c8211ae06b7c840d1172f8391b1",
     "offline.bannerNoTime": "6ccd381724b30cda8055334179cc2317598fa10bf4e200d7a0f8522e07b616fe",
     "error.unknown": "393f0d9836269e50d2b5d3588fcf2f00bdbfd03affe9f8f6e3400ee908d9c67a"

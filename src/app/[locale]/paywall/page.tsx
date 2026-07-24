@@ -10,8 +10,10 @@ import { PaywallContent } from "@/components/billing/paywall-content";
 
 export default async function PaywallPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { locale } = await params;
   const user = await getUser();
@@ -19,6 +21,7 @@ export default async function PaywallPage({
 
   const t = await getTranslations({ locale, namespace: "billing.paywall" });
   const session = await auth();
+  const { from } = await searchParams;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
@@ -28,7 +31,7 @@ export default async function PaywallPage({
           <p className="text-text-dim">{t("subtitle")}</p>
         </div>
 
-        <PaywallContent />
+        <PaywallContent fromMac={from === "mac"} />
 
         {/* 硬牆下 settings 不可達 → 登出出口放這（僅 web session 顯示） */}
         {session?.user && (

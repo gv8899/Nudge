@@ -3,10 +3,15 @@
 
 import { CheckoutSuccess } from "@/components/billing/checkout-success";
 
-export default function CheckoutSuccessPage() {
+export default async function CheckoutSuccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string }>;
+}) {
+  const { from } = await searchParams;
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <CheckoutSuccess />
+      <CheckoutSuccess fromMac={from === "mac"} />
     </div>
   );
 }

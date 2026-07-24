@@ -25,7 +25,7 @@ const SAVE_PCT = 37;
 
 type Cycle = "annual" | "monthly";
 
-export function PaywallContent() {
+export function PaywallContent({ fromMac = false }: { fromMac?: boolean }) {
   const t = useTranslations("billing.paywall");
   const tRedeem = useTranslations("billing.redeem");
   const locale = useLocale();
@@ -100,10 +100,10 @@ export function PaywallContent() {
       customData: info.customData,
       customer: info.email ? { email: info.email } : undefined,
       settings: {
-        successUrl: `${window.location.origin}/${locale}/checkout/success`,
+        successUrl: `${window.location.origin}/${locale}/checkout/success${fromMac ? "?from=mac" : ""}`,
       },
     });
-  }, [paddle, info, cycle, locale]);
+  }, [paddle, info, cycle, locale, fromMac]);
 
   const redeem = useCallback(async () => {
     if (!promoCode.trim() || promoState === "busy") return;

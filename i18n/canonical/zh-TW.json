@@ -520,7 +520,8 @@
         "title": "訂閱完成 🎉",
         "subtitle": "感謝支持，所有功能已解鎖",
         "processing": "付款處理中，稍後自動生效",
-        "back": "回到 Nudge"
+        "back": "回到 Nudge",
+        "backToMac": "回到 Mac App"
       }
     }
   },

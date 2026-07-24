@@ -10,10 +10,24 @@ import { Link } from "@/i18n/routing";
 
 type MeEntitlement = { entitlement?: { isActive?: boolean } };
 
-export function CheckoutSuccess() {
+// Mac 手遞流程（from=mac）：付款生效後 deep link 喚回 Mac app。app 被喚到
+// 前景即觸發 didBecomeActive → 刷新 entitlement → 付費牆消失，不需要 app 端
+// 解析 URL 內容。
+const MAC_DEEP_LINK = "nudge://checkout/done";
+
+export function CheckoutSuccess({ fromMac = false }: { fromMac?: boolean }) {
   const t = useTranslations("billing.paywall.success");
   const [state, setState] = useState<"waiting" | "active" | "timeout">("waiting");
   const tries = useRef(0);
+
+  // 付款生效 + 來自 Mac → 自動嘗試跳回 app（瀏覽器會問一次「開啟 Nudge?」）。
+  useEffect(() => {
+    if (state !== "active" || !fromMac) return;
+    const timer = setTimeout(() => {
+      window.location.href = MAC_DEEP_LINK;
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [state, fromMac]);
 
   useEffect(() => {
     if (state !== "waiting") return;
@@ -48,13 +62,22 @@ export function CheckoutSuccess() {
         </>
       )}
       {state === "timeout" && <p className="text-text-dim">{t("processing")}</p>}
-      <div>
-        <Link
-          href="/"
-          className="inline-block rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity"
-        >
-          {t("back")}
-        </Link>
+      <div className="space-x-4">
+        {fromMac ? (
+          <a
+            href={MAC_DEEP_LINK}
+            className="inline-block rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity"
+          >
+            {t("backToMac")}
+          </a>
+        ) : (
+          <Link
+            href="/"
+            className="inline-block rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity"
+          >
+            {t("back")}
+          </Link>
+        )}
       </div>
     </div>
   );
