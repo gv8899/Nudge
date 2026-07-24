@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/routing";
 import { Reveal } from "@/components/landing/reveal";
 import { PricingPlans } from "@/components/landing/pricing-plans";
 
@@ -18,7 +17,6 @@ export default async function PricingPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("landing.pricing");
-  const tf = await getTranslations("landing.footer");
 
   return (
     <>
@@ -43,29 +41,6 @@ export default async function PricingPage({
           <PricingPlans locale={locale} />
         </Reveal>
       </section>
-
-      {/* Footer：政策連結（Paddle 審核需可導覽點到） */}
-      <footer className="border-t border-border px-6 py-10 text-xs text-muted-foreground flex items-center justify-center gap-4">
-        <span>© 2026 Nudge</span>
-        <span aria-hidden="true">·</span>
-        <Link
-          href="/privacy"
-          className="hover:text-foreground transition-colors"
-        >
-          {tf("privacy")}
-        </Link>
-        <span aria-hidden="true">·</span>
-        <Link href="/terms" className="hover:text-foreground transition-colors">
-          {tf("terms")}
-        </Link>
-        <span aria-hidden="true">·</span>
-        <Link
-          href="/refund"
-          className="hover:text-foreground transition-colors"
-        >
-          {tf("refund")}
-        </Link>
-      </footer>
     </>
   );
 }

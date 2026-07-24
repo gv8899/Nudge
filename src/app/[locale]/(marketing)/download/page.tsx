@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Laptop, Smartphone, ArrowDownToLine } from "lucide-react";
-import { Link } from "@/i18n/routing";
 import { DOWNLOAD_LINKS } from "@/lib/landing-links";
 import { Reveal } from "@/components/landing/reveal";
 
@@ -18,7 +17,6 @@ export default async function DownloadPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("landing.downloadPage");
-  const tf = await getTranslations("landing.footer");
 
   return (
     <>
@@ -61,25 +59,6 @@ export default async function DownloadPage({
           </Reveal>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border px-6 py-10 text-xs text-muted-foreground flex items-center justify-center gap-4">
-        <span>© 2026 Nudge</span>
-        <span aria-hidden="true">·</span>
-        <Link
-          href="/privacy"
-          className="hover:text-foreground transition-colors"
-        >
-          {tf("privacy")}
-        </Link>
-        <span aria-hidden="true">·</span>
-        <Link
-          href="/terms"
-          className="hover:text-foreground transition-colors"
-        >
-          {tf("terms")}
-        </Link>
-      </footer>
     </>
   );
 }
