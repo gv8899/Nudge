@@ -6594,6 +6594,28 @@
           }
         }
       }
+    },
+    "billing.paywall.havePromo": {
+      "localizations": {
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有兌換碼？"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Have a promo code?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロモコードをお持ちですか？"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
