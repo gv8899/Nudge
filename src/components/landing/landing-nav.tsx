@@ -2,11 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/routing";
+import { Link, usePathname } from "@/i18n/routing";
 import { LanguageSwitcher } from "./language-switcher";
 
+/**
+ * 三頁共用 header（首頁 / 定價 / 下載）。
+ * 「功能 / 理念」是首頁區塊錨點：在首頁用原生 `#hash`（平滑捲動、不導頁），
+ * 在子頁改用 next-intl Link 導回首頁對應區塊（`/#hash`，自動帶 locale）。
+ */
 export function LandingNav() {
   const t = useTranslations("landing");
+  const pathname = usePathname();
+  const onHome = pathname === "/";
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -15,6 +22,9 @@ export function LandingNav() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const sectionLinkClass =
+    "hidden md:inline hover:text-foreground transition-colors";
 
   return (
     <nav
@@ -26,25 +36,34 @@ export function LandingNav() {
       }`}
     >
       <div className="mx-auto max-w-6xl h-full px-6 md:px-8 flex items-center justify-between">
-        <a
-          href="#top"
-          className="text-lg font-semibold text-foreground tracking-tight"
-        >
-          Nudge
-        </a>
+        {onHome ? (
+          <a
+            href="#top"
+            className="text-lg font-semibold text-foreground tracking-tight"
+          >
+            Nudge
+          </a>
+        ) : (
+          <Link
+            href="/"
+            className="text-lg font-semibold text-foreground tracking-tight"
+          >
+            Nudge
+          </Link>
+        )}
         <div className="flex items-center gap-7 text-sm text-muted-foreground">
-          <a
-            href="#features"
-            className="hidden md:inline hover:text-foreground transition-colors"
-          >
-            {t("nav.features")}
-          </a>
-          <a
-            href="#philosophy"
-            className="hidden md:inline hover:text-foreground transition-colors"
-          >
-            {t("nav.philosophy")}
-          </a>
+          {onHome ? (
+            <a href="#features" className={sectionLinkClass}>
+              {t("nav.features")}
+            </a>
+          ) : (
+            <Link href="/#features" className={sectionLinkClass}>
+              {t("nav.features")}
+            </Link>
+          )}
+          <Link href="/pricing" className="hover:text-foreground transition-colors">
+            {t("nav.pricing")}
+          </Link>
           <Link
             href="/download"
             className="hover:text-foreground transition-colors"
