@@ -19,8 +19,16 @@ import {
   PaddleConfigError,
 } from "@/lib/paddle/config";
 import { mapPaddleEvent, type PaddleEventInput } from "@/lib/paddle/map-event";
+import { checkPaddleSourceIp } from "@/lib/paddle/allowlist";
 
 export async function POST(request: NextRequest) {
+  // ⓪ 來源 IP 白名單（驗簽之外的第二道防線；env 對應端點抓 IP 清單、快取；
+  //    抓不到清單或判斷不出來源 IP 時 fail-open，交給驗簽）
+  if ((await checkPaddleSourceIp(request.headers.get("x-forwarded-for"))) === "denied") {
+    console.warn("[paddle-webhook] rejected non-Paddle source IP");
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
   // ① 驗簽（要 raw body）
   let event;
   try {
