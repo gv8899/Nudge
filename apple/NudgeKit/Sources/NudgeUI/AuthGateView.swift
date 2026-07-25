@@ -9,16 +9,20 @@ public struct AuthGateView<Content: View>: View {
     /// Sign in with Apple：LoginView 取出 credential 後把 identityToken（+ 首次
     /// 的名字/email）交給平台殼層換 token。
     let onAppleLoginRequested: (_ identityToken: String, _ fullName: String?, _ email: String?) async -> Result<Void, Error>
+    /// macOS web 中繼 Apple 登入（見 LoginView.onAppleWebLogin）。iOS 傳 nil。
+    let onAppleWebLoginRequested: (() async -> Result<Void, Error>)?
 
     public init(
         auth: AuthRepository,
         onLoginRequested: @escaping () async -> Result<Void, Error>,
         onAppleLoginRequested: @escaping (_ identityToken: String, _ fullName: String?, _ email: String?) async -> Result<Void, Error>,
+        onAppleWebLoginRequested: (() async -> Result<Void, Error>)? = nil,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.auth = auth
         self.onLoginRequested = onLoginRequested
         self.onAppleLoginRequested = onAppleLoginRequested
+        self.onAppleWebLoginRequested = onAppleWebLoginRequested
         self.content = content
     }
 
@@ -32,7 +36,8 @@ public struct AuthGateView<Content: View>: View {
         case .unauthenticated:
             LoginView(
                 onLoginTapped: onLoginRequested,
-                onAppleLogin: onAppleLoginRequested
+                onAppleLogin: onAppleLoginRequested,
+                onAppleWebLogin: onAppleWebLoginRequested
             )
         }
     }

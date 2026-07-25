@@ -31,6 +31,7 @@ struct NudgeMacApp: App {
     @AppStorage("nudgeFontScale") private var fontScale: Double = 1.0
     private let container: ModelContainer
     private let googleSignIn: GoogleSignInServiceMacOS
+    private let appleSignIn = AppleSignInServiceMacOS(baseURL: APIConfiguration.default.baseURL)
 
     init() {
         NudgeAppearance.configure()
@@ -87,7 +88,8 @@ struct NudgeMacApp: App {
                 AuthGateView(
                     auth: auth,
                     onLoginRequested: performLogin,
-                    onAppleLoginRequested: performAppleLogin
+                    onAppleLoginRequested: performAppleLogin,
+                    onAppleWebLoginRequested: performAppleWebLogin
                 ) {
                     PlatformRootView(auth: auth)
                         .environment(taskRepo)
@@ -207,6 +209,19 @@ struct NudgeMacApp: App {
         do {
             let idToken = try await googleSignIn.signIn()
             _ = try await auth.login(idToken: idToken, locale: NudgeLanguage.currentUITag())
+            return .success(())
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    private func performAppleWebLogin() async -> Result<Void, Error> {
+        do {
+            let token = try await appleSignIn.signIn(locale: NudgeLanguage.currentUITag())
+            _ = try await auth.loginWithAppleToken(token)
+            return .success(())
+        } catch AppleSignInServiceMacOS.AppleWebSignInError.canceled {
+            // 使用者自己取消：靜默（對齊 iOS 原生行為）
             return .success(())
         } catch {
             return .failure(error)

@@ -12,13 +12,18 @@ public struct LoginView: View {
     /// Sign in with Apple：LoginView 取出 credential，把 identityToken（+ 首次
     /// 的名字/email）交給平台殼層換 token。
     public var onAppleLogin: (_ identityToken: String, _ fullName: String?, _ email: String?) async -> Result<Void, Error>
+    /// macOS 的 web 中繼 Apple 登入 — 殼層完成整個流程（開瀏覽器→拿 app
+    /// JWT→寫 auth state），View 只觸發。nil = 不顯示按鈕（iOS 用不到）。
+    public var onAppleWebLogin: (() async -> Result<Void, Error>)?
 
     public init(
         onLoginTapped: @escaping () async -> Result<Void, Error>,
-        onAppleLogin: @escaping (_ identityToken: String, _ fullName: String?, _ email: String?) async -> Result<Void, Error>
+        onAppleLogin: @escaping (_ identityToken: String, _ fullName: String?, _ email: String?) async -> Result<Void, Error>,
+        onAppleWebLogin: (() async -> Result<Void, Error>)? = nil
     ) {
         self.onLoginTapped = onLoginTapped
         self.onAppleLogin = onAppleLogin
+        self.onAppleWebLogin = onAppleWebLogin
     }
 
     public var body: some View {
@@ -59,12 +64,16 @@ public struct LoginView: View {
             // (扣 32pt padding)。
             VStack(spacing: 12) {
                 googleButton
-                // Sign in with Apple 只在 iOS（App Store 4.8 要求）。macOS 走
-                // Developer ID 分發、不受 App Store 審查、且 applesignin 是
-                // restricted entitlement（要嵌 provisioning profile，否則 AMFI
-                // launch SIGKILL）→ macOS 先不放，維持 Google 登入。
+                // iOS：原生 SignInWithAppleButton（App Store 4.8）。
+                // macOS：web 中繼流程的自訂按鈕（原生 SIWA 是 restricted
+                // entitlement，Developer ID 分發會 AMFI SIGKILL → 改開瀏覽器
+                // 走伺服器中繼，見 AppleSignInService+macOS）。
                 #if os(iOS)
                 appleButton
+                #else
+                if onAppleWebLogin != nil {
+                    macAppleButton
+                }
                 #endif
 
                 if let errorMessage {
@@ -151,6 +160,42 @@ public struct LoginView: View {
     }
     #endif
 
+    #if os(macOS)
+    private var macAppleButton: some View {
+        Button {
+            guard let onAppleWebLogin else { return }
+            Task {
+                isLoading = true
+                errorMessage = nil
+                let result = await onAppleWebLogin()
+                isLoading = false
+                if case .failure(let error) = result {
+                    errorMessage = (error as? LocalizedError)?.errorDescription
+                        ?? error.localizedDescription
+                }
+            }
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "apple.logo")
+                    .nudgeFont(.rowTitleEmphasized)
+                Text("login.signInWithApple", bundle: .module)
+                    .nudgeFont(.rowTitleEmphasized)
+            }
+            // Apple HIG 官方樣式：淺色模式黑底白字、深色模式白底黑字。
+            // 品牌按鈕例外，不走 token。
+            .foregroundStyle(colorScheme == .dark ? Color.black : Color.white) // nudge:allow-color
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .contentShape(Capsule())
+            .background(
+                Capsule().fill(colorScheme == .dark ? Color.white : Color.black) // nudge:allow-color
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(isLoading)
+    }
+    #endif
+
     private var googleButton: some View {
         Button(action: handleTap) {
             HStack(spacing: 10) {
@@ -158,7 +203,11 @@ public struct LoginView: View {
                     ProgressView()
                         .scaleEffect(0.8)
                 } else {
-                    GoogleGMark()
+                    // 官方 Google G（xcassets 向量轉出的 1x/2x/3x），
+                    // 與 web 登入頁同一份 SVG 來源。
+                    Image("GoogleLogo", bundle: .module)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
                         .frame(width: 18, height: 18)
                 }
                 Text(isLoading ? "login.signingIn" : "login.signInWithGoogle", bundle: .module)
@@ -190,52 +239,3 @@ public struct LoginView: View {
     }
 }
 
-/// Google G mark — 4 色弧 + 中央橫條。SwiftUI Canvas 拼出來，
-/// 不靠 SF Symbol 也不需要額外圖檔。色值維持 Google brand guideline →
-/// 加 `nudge:allow-color` 跳過 token lint。
-private struct GoogleGMark: View {
-    // SwiftUI Angle: 0° = 東、90° = 南（順時針）。
-    private let blue   = Color(red:  66 / 255, green: 133 / 255, blue: 244 / 255) // nudge:allow-color
-    private let red    = Color(red: 234 / 255, green:  67 / 255, blue:  53 / 255) // nudge:allow-color
-    private let yellow = Color(red: 251 / 255, green: 188 / 255, blue:   4 / 255) // nudge:allow-color
-    private let green  = Color(red:  52 / 255, green: 168 / 255, blue:  83 / 255) // nudge:allow-color
-
-    var body: some View {
-        Canvas { ctx, size in
-            let w = size.width
-            let h = size.height
-            let strokeW = w * 0.22
-            let center = CGPoint(x: w / 2, y: h / 2)
-            let radius = (w - strokeW) / 2
-
-            let segments: [(start: Angle, end: Angle, color: Color)] = [
-                (.degrees(-20),  .degrees(90),  green),
-                (.degrees(90),   .degrees(200), yellow),
-                (.degrees(200),  .degrees(310), red),
-                (.degrees(310),  .degrees(360), blue)
-            ]
-
-            for seg in segments {
-                var path = Path()
-                path.addArc(
-                    center: center,
-                    radius: radius,
-                    startAngle: seg.start,
-                    endAngle: seg.end,
-                    clockwise: false
-                )
-                ctx.stroke(path, with: .color(seg.color), style: StrokeStyle(lineWidth: strokeW, lineCap: .butt))
-            }
-
-            // 中央橫條（藍）— 從圓心往右接到弧內緣。
-            let barHeight = strokeW * 0.95
-            let barRect = CGRect(
-                x: w / 2,
-                y: h / 2 - barHeight / 2,
-                width: w / 2 - strokeW / 2 + 0.5,
-                height: barHeight
-            )
-            ctx.fill(Path(barRect), with: .color(blue))
-        }
-    }
-}

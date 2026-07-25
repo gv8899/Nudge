@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import NextLink from "next/link";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Laptop, Smartphone, ArrowDownToLine } from "lucide-react";
-import { Link } from "@/i18n/routing";
 import { DOWNLOAD_LINKS } from "@/lib/landing-links";
-import { LanguageSwitcher } from "@/components/landing/language-switcher";
 import { Reveal } from "@/components/landing/reveal";
 
 export const metadata: Metadata = {
@@ -20,26 +17,9 @@ export default async function DownloadPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("landing.downloadPage");
-  const tf = await getTranslations("landing.footer");
 
   return (
-    <div
-      data-landing
-      className="min-h-screen flex flex-col bg-background text-foreground"
-    >
-      {/* 頂部列：回首頁 + 語言切換 */}
-      <header className="fixed top-0 inset-x-0 z-50 h-14 bg-background/80 backdrop-blur-xl border-b border-border">
-        <div className="mx-auto max-w-6xl h-full px-6 md:px-8 flex items-center justify-between">
-          <Link
-            href="/"
-            className="text-lg font-semibold tracking-tight text-foreground"
-          >
-            Nudge
-          </Link>
-          <LanguageSwitcher />
-        </div>
-      </header>
-
+    <>
       {/* Hero band：暖色光暈 stage，與首頁 hero 呼應 */}
       <section className="landing-stage px-6 pt-36 md:pt-44 pb-28 md:pb-36 text-center">
         <Reveal className="max-w-2xl mx-auto">
@@ -79,26 +59,7 @@ export default async function DownloadPage({
           </Reveal>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border px-6 py-10 text-xs text-muted-foreground flex items-center justify-center gap-4">
-        <span>© 2026 Nudge</span>
-        <span aria-hidden="true">·</span>
-        <NextLink
-          href="/privacy"
-          className="hover:text-foreground transition-colors"
-        >
-          {tf("privacy")}
-        </NextLink>
-        <span aria-hidden="true">·</span>
-        <NextLink
-          href="/terms"
-          className="hover:text-foreground transition-colors"
-        >
-          {tf("terms")}
-        </NextLink>
-      </footer>
-    </div>
+    </>
   );
 }
 
