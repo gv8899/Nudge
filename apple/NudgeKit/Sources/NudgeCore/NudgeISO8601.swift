@@ -13,22 +13,47 @@ import Foundation
 /// codebase 其他多處（calendar / schedule / notification）早就各自手刻
 /// `[.withInternetDateTime, .withFractionalSeconds]`；這裡集中成一處，所有
 /// 走 API/JSON 的 `JSONDecoder` 統一用它。
+/// 兩個 `ISO8601DateFormatter`（帶/不帶小數秒）的共用快取。
+///
+/// 原本各呼叫點都就地新建 formatter，理由是「decode 一次網路回應才跑、
+/// 非熱迴圈」。但 `date(from:)` 後來被拉進 render 熱路徑 —— 日曆各檢視的
+/// `isPast(_:)` 每個事件 bar 呼叫一次，月檢視一次 render 最多 126 次 ——
+/// 建立成本（ICU 初始化）就變成 CPU 與記憶體的實際來源。
+///
+/// 當初避開共用 static 是顧慮 Swift 6 的 data race；這裡改用鎖正面解決：
+/// formatter 不交出臨界區，解析在鎖內完成。
+private final class ISO8601Cache: @unchecked Sendable {
+    static let shared = ISO8601Cache()
+
+    private let lock = NSLock()
+    private let withFractional: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
+    private let plain: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime]
+        return f
+    }()
+
+    /// 先試帶小數秒、再試不帶。
+    func date(from s: String) -> Date? {
+        lock.lock()
+        defer { lock.unlock() }
+        if let date = withFractional.date(from: s) { return date }
+        return plain.date(from: s)
+    }
+}
+
 public enum NudgeISO8601 {
     /// 給 `decoder.dateDecodingStrategy = .custom(NudgeISO8601.decodeDate)` 用。
-    /// 先試帶小數秒、再試不帶；兩者都失敗才 throw。formatter 就地建（decode
-    /// 一次網路回應才跑、非熱迴圈），避免共用 static 在 Swift 6 Sendable 下的
-    /// data-race 顧慮。
+    /// 先試帶小數秒、再試不帶；兩者都失敗才 throw。
     public static func decodeDate(_ decoder: Decoder) throws -> Date {
         let container = try decoder.singleValueContainer()
         let s = try container.decode(String.self)
 
-        let withFractional = ISO8601DateFormatter()
-        withFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = withFractional.date(from: s) { return date }
-
-        let plain = ISO8601DateFormatter()
-        plain.formatOptions = [.withInternetDateTime]
-        if let date = plain.date(from: s) { return date }
+        if let date = ISO8601Cache.shared.date(from: s) { return date }
 
         throw DecodingError.dataCorrupted(
             DecodingError.Context(
@@ -39,14 +64,9 @@ public enum NudgeISO8601 {
     }
 
     /// 直接把 ISO8601 字串轉 Date（有/無小數秒都吃）。給非 decode 場景用
-    /// （例：entitlement 的 accessUntil 算剩餘天數）。
+    /// （例：entitlement 的 accessUntil 算剩餘天數、日曆判斷事件是否已過）。
     public static func date(from s: String) -> Date? {
-        let withFractional = ISO8601DateFormatter()
-        withFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = withFractional.date(from: s) { return date }
-        let plain = ISO8601DateFormatter()
-        plain.formatOptions = [.withInternetDateTime]
-        return plain.date(from: s)
+        ISO8601Cache.shared.date(from: s)
     }
 
     /// 預設 decoder —— dateDecodingStrategy 已套上「有/無小數秒都吃」。
