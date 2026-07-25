@@ -368,10 +368,6 @@ struct CalendarWeekGridView: View {
 
     /// 同 CalendarWeekView.isPast。
     private func isPast(_ endIso: String) -> Bool {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = f.date(from: endIso) { return d < Date() }
-        f.formatOptions = [.withInternetDateTime]
-        return f.date(from: endIso).map { $0 < Date() } ?? false
+        NudgeISO8601.date(from: endIso).map { $0 < Date() } ?? false
     }
 }
