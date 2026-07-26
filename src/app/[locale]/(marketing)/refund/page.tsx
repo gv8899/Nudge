@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
-import { Link } from "@/i18n/routing";
 
 export const metadata: Metadata = {
   title: "Refund & Cancellation Policy — Nudge",
@@ -12,9 +11,9 @@ const CONTACT_EMAIL = "mike@nudge.tw";
 const ADDRESS =
   "5F., No. 47, Qingfeng Rd. Sec. 1, Zhongli Dist., Taoyuan City 320, Taiwan";
 const ADDRESS_ZH = "320 桃園市中壢區青峰路一段 47 號 5 樓";
-const LAST_UPDATED_EN = "June 20, 2026";
-const LAST_UPDATED_ZH = "2026 年 6 月 20 日";
-const LAST_UPDATED_JA = "2026年6月20日";
+const LAST_UPDATED_EN = "July 26, 2026";
+const LAST_UPDATED_ZH = "2026 年 7 月 26 日";
+const LAST_UPDATED_JA = "2026年7月26日";
 
 const mailLink = (
   <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary underline">
@@ -30,6 +29,17 @@ const paddleNet = (
     className="text-primary underline"
   >
     paddle.net
+  </a>
+);
+
+const paddleRefundLink = (text: string) => (
+  <a
+    href="https://www.paddle.com/legal/refund-policy"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="text-primary underline"
+  >
+    {text}
   </a>
 );
 
@@ -50,7 +60,8 @@ const CONTENT: Record<string, React.ReactNode> = {
           &quot;us&quot;). International orders are processed by our online
           reseller <strong>Paddle.com</strong>, which is the{" "}
           <strong>Merchant of Record</strong> for those orders and provides the
-          related customer service and returns. Payments made in Taiwan are
+          related customer service and returns in accordance with{" "}
+          {paddleRefundLink("Paddle’s Refund Policy")}. Payments made in Taiwan are
           processed by <strong>NewebPay (藍新金流)</strong>; for those orders,{" "}
           Quantum Leap Co., Ltd is the seller of record and issues the invoice.
         </p>
@@ -115,13 +126,10 @@ const CONTENT: Record<string, React.ReactNode> = {
           <li>
             <strong>Monthly plan:</strong> cancellation stops the next monthly
             charge. You keep access until the end of the current paid month.
-            Past months are non-refundable except under the 14-day window above.
           </li>
           <li>
             <strong>Annual plan:</strong> cancellation stops the next annual
             renewal. You keep access until the end of the current paid year.
-            After the 14-day window, the remaining annual period is
-            non-refundable unless required by applicable law.
           </li>
         </ul>
         <p>
@@ -131,16 +139,7 @@ const CONTENT: Record<string, React.ReactNode> = {
       </section>
 
       <section className="space-y-4 mb-12">
-        <h2 className={h2}>Exceptions</h2>
-        <p>
-          Refund requests are reviewed on a case-by-case basis. We may decline
-          refunds in cases of suspected fraud, abuse of this policy (e.g.
-          repeated refund requests), or violation of our{" "}
-          <Link href="/terms" className="text-primary underline">
-            Terms of Service
-          </Link>
-          . If a refund is issued, your access to Nudge ends.
-        </p>
+        <h2 className={h2}>Your Statutory Rights</h2>
         <p>
           This policy does not affect any statutory rights you may have as a
           consumer under the laws of your country.
@@ -171,7 +170,7 @@ const CONTENT: Record<string, React.ReactNode> = {
           （以下稱「我們」）營運之 Nudge 訂閱購買。國際訂單由線上經銷商{" "}
           <strong>Paddle.com</strong> 處理，
           <strong>Paddle.com 為該等訂單的登記商家（Merchant of Record）</strong>
-          ，並負責相關客服與退款事宜。於台灣付款者由{" "}
+          ，並依 {paddleRefundLink("Paddle 退款政策")} 負責相關客服與退款事宜。於台灣付款者由{" "}
           <strong>藍新金流（NewebPay）</strong> 處理，此類訂單由 量子躍遷有限公司{" "}
           為賣方並開立統一發票。
         </p>
@@ -230,13 +229,11 @@ const CONTENT: Record<string, React.ReactNode> = {
         <ul className="list-disc pl-6 space-y-2">
           <li>
             <strong>月方案：</strong>
-            取消後不再收取下一期月費，並可使用至當期已付月份結束。已扣款月份除符合上述
-            14 天退款期外，恕不退款。
+            取消後不再收取下一期月費，並可使用至當期已付月份結束。
           </li>
           <li>
             <strong>年方案：</strong>
-            取消後不再收取下一年度續訂，並可使用至當期已付年度結束。超過 14
-            天後，剩餘年度期間除法律另有規定外，恕不退款。
+            取消後不再收取下一年度續訂，並可使用至當期已付年度結束。
           </li>
         </ul>
         <p>
@@ -245,15 +242,8 @@ const CONTENT: Record<string, React.ReactNode> = {
       </section>
 
       <section className="space-y-4 mb-12">
-        <h2 className={h2}>例外</h2>
-        <p>
-          所有退款申請將逐案審核。若涉及疑似詐欺、濫用本政策（例如重複申請退款）或違反{" "}
-          <Link href="/terms" className="text-primary underline">
-            服務條款
-          </Link>
-          ，我們保留拒絕退款之權利。若退款核准，您對 Nudge{" "}
-          的存取權將隨之終止。本政策不影響您依所在國家消費者法律所享有的法定權利。
-        </p>
+        <h2 className={h2}>您的法定權利</h2>
+        <p>本政策不影響您依所在國家消費者法律所享有的法定權利。</p>
       </section>
 
       <section className="space-y-4 mb-12">
@@ -281,7 +271,7 @@ const CONTENT: Record<string, React.ReactNode> = {
           のサブスクリプション購入すべてに適用されます。海外からの注文はオンライン再販業者{" "}
           <strong>Paddle.com</strong> が処理し、
           <strong>Paddle.com がそれらの注文の記録上の販売者（Merchant of Record）</strong>
-          として、関連するカスタマーサポートおよび返金対応を行います。台湾でのお支払いは{" "}
+          として、{paddleRefundLink("Paddle の返金ポリシー")}に従い、関連するカスタマーサポートおよび返金対応を行います。台湾でのお支払いは{" "}
           <strong>藍新金流（NewebPay）</strong> が処理し、それらの注文については{" "}
           量子躍遷有限公司 が販売者として請求書（統一発票）を発行します。
         </p>
@@ -340,12 +330,11 @@ const CONTENT: Record<string, React.ReactNode> = {
         <ul className="list-disc pl-6 space-y-2">
           <li>
             <strong>月額プラン：</strong>
-            解約すると次回の月額課金が停止します。当期の支払い済み期間の終了までご利用いただけます。過去の月分は、上記の
-            14日間の返金期間に該当する場合を除き、返金されません。
+            解約すると次回の月額課金が停止します。当期の支払い済み期間の終了までご利用いただけます。
           </li>
           <li>
             <strong>年額プラン：</strong>
-            解約すると次回の年間更新が停止します。当期の支払い済み年度の終了までご利用いただけます。14日間を過ぎた後は、残りの年間期間は法律で義務付けられる場合を除き返金されません。
+            解約すると次回の年間更新が停止します。当期の支払い済み年度の終了までご利用いただけます。
           </li>
         </ul>
         <p>
@@ -355,14 +344,9 @@ const CONTENT: Record<string, React.ReactNode> = {
       </section>
 
       <section className="space-y-4 mb-12">
-        <h2 className={h2}>例外</h2>
+        <h2 className={h2}>お客様の法定権利</h2>
         <p>
-          すべての返金請求は個別に審査します。詐欺の疑い、本ポリシーの濫用（例：繰り返しの返金請求）、または当社の{" "}
-          <Link href="/terms" className="text-primary underline">
-            利用規約
-          </Link>
-          {" "}違反がある場合、返金をお断りすることがあります。返金が行われた場合、Nudge{" "}
-          へのアクセス権は終了します。本ポリシーは、お住まいの国の消費者法に基づきお客様が有する法定の権利に影響を与えるものではありません。
+          本ポリシーは、お住まいの国の消費者法に基づきお客様が有する法定の権利に影響を与えるものではありません。
         </p>
       </section>
 
