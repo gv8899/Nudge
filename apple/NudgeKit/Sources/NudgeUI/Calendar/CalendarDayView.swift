@@ -229,11 +229,9 @@ public struct CalendarDayView: View {
         return String(iso[afterT...].prefix(5))
     }
 
+    /// 解析走 NudgeISO8601 的快取 formatter —— 這是 render 路徑，
+    /// 每個事件呼叫一次，就地新建 ISO8601DateFormatter 的成本會累積。
     private func isPast(_ endIso: String) -> Bool {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = f.date(from: endIso) { return d < Date() }
-        f.formatOptions = [.withInternetDateTime]
-        return f.date(from: endIso).map { $0 < Date() } ?? false
+        NudgeISO8601.date(from: endIso).map { $0 < Date() } ?? false
     }
 }

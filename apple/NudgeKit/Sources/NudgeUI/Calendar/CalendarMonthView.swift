@@ -51,10 +51,12 @@ public struct CalendarMonthView: View {
     private var todayIso: String { DateFormatters.isoDate(Date()) }
     private var monthComponent: Int { calendar.component(.month, from: monthAnchor) }
 
-    /// Pre-compute events grouped by ISO date so each of the 42 cells
-    /// does an O(1) dict lookup instead of an O(N) linear scan. Without
-    /// this, a month with 30 events meant ~1260 string-prefix checks
-    /// per render, which spiked CPU on month flip.
+    /// Events grouped by ISO date so each of the 42 cells does an O(1)
+    /// dict lookup instead of an O(N) linear scan.
+    ///
+    /// **注意這是 computed property** —— 每次存取都會重建整個字典。務必在
+    /// `gridView` 讀一次後往下傳，不要在 `cell()` 裡直接讀，否則 42 格會各
+    /// 重建一次（30 個事件 = 1260 次 prefix 運算），正好等於它想省掉的成本。
     private var eventsByDate: [String: [CalendarEventDTO]] {
         Dictionary(grouping: events, by: { String($0.start.prefix(10)) })
     }
@@ -101,10 +103,11 @@ public struct CalendarMonthView: View {
         .padding(.horizontal, 8)
     }
 
+    // FIXME(i18n): pattern 硬編中文「年 / 月」，英日文介面下也會顯示中文字。
+    // 修法要走 canonical → i18n:sync → xcstrings 三邊鏡像，不在這次效能修正的
+    // 範圍內，先只把每次 render 新建 formatter 的成本拿掉。
     private var monthTitle: String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy 年 M 月"
-        return fmt.string(from: monthAnchor)
+        DateFormatters.string(monthAnchor, pattern: "yyyy 年 M 月")
     }
 
     private var weekdayHeader: some View {
@@ -124,11 +127,25 @@ public struct CalendarMonthView: View {
     }
 
     private var gridView: some View {
-        VStack(spacing: 0) {
-            ForEach(0..<grid.count, id: \.self) { row in
+        // grid / eventsByDate / todayIso / monthComponent 都是 computed
+        // property：在 ForEach 或 cell() 裡直接讀，42 個格子就會各重算一次
+        // （grid 重算整個月網格、eventsByDate 重建整個字典）。這裡各讀一次
+        // 再往下傳，一次 render 只算一遍。
+        let rows = grid
+        let byDate = eventsByDate
+        let today = todayIso
+        let month = monthComponent
+
+        return VStack(spacing: 0) {
+            ForEach(0..<rows.count, id: \.self) { row in
                 HStack(spacing: 0) {
-                    ForEach(0..<grid[row].count, id: \.self) { col in
-                        cell(date: grid[row][col])
+                    ForEach(0..<rows[row].count, id: \.self) { col in
+                        cell(
+                            date: rows[row][col],
+                            eventsByDate: byDate,
+                            todayIso: today,
+                            monthComponent: month
+                        )
                     }
                 }
                 // 每週列等高分配剩餘高度 — 格子才夠高放事件 bar
@@ -143,7 +160,14 @@ public struct CalendarMonthView: View {
     /// 一格最多顯示幾條事件 bar，超過用「+N」收尾（TimeTree 月檢視風格）。
     private let maxBarsPerCell = 3
 
-    private func cell(date: Date) -> some View {
+    /// 每格所需的「整月共用」資料一律由 `gridView` 算好傳入 —— 不在這裡讀
+    /// computed property（見 `eventsByDate` 的註解）。
+    private func cell(
+        date: Date,
+        eventsByDate: [String: [CalendarEventDTO]],
+        todayIso: String,
+        monthComponent: Int
+    ) -> some View {
         let iso = DateFormatters.isoDate(date)
         let day = calendar.component(.day, from: date)
         let isSelected = iso == selectedDate
@@ -243,12 +267,9 @@ public struct CalendarMonthView: View {
         return .nudgeForeground
     }
 
-    /// 跟 CalendarDayView / WeekView 共用的判斷邏輯。
+    /// 跟 CalendarDayView / WeekView 共用的判斷邏輯（解析走 NudgeISO8601 的
+    /// 快取 formatter —— 這裡每個事件 bar 呼叫一次，一次 render 最多 126 次）。
     private func isPast(_ endIso: String) -> Bool {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = f.date(from: endIso) { return d < Date() }
-        f.formatOptions = [.withInternetDateTime]
-        return f.date(from: endIso).map { $0 < Date() } ?? false
+        NudgeISO8601.date(from: endIso).map { $0 < Date() } ?? false
     }
 }

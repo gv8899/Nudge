@@ -169,13 +169,9 @@ public struct CalendarWeekView: View {
         return String(iso[afterT...].prefix(5))
     }
 
-    /// 跟 CalendarDayView 共用的判斷邏輯 — 只小到不值得抽 file。
-    /// 若日後 Day / Week / Month 共用更多 helper 再抽到 CalendarDateUtils。
+    /// 跟 CalendarDayView / MonthView 共用的判斷邏輯 —— 解析已收斂到
+    /// NudgeCore 的 `NudgeISO8601`（快取 formatter，四處不再各自手刻）。
     private func isPast(_ endIso: String) -> Bool {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = f.date(from: endIso) { return d < Date() }
-        f.formatOptions = [.withInternetDateTime]
-        return f.date(from: endIso).map { $0 < Date() } ?? false
+        NudgeISO8601.date(from: endIso).map { $0 < Date() } ?? false
     }
 }

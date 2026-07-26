@@ -74,7 +74,24 @@ echo "▸ 產生 appcast.xml（generate_appcast）…"
 "$GEN_APPCAST" --download-url-prefix "$BUCKET/" "$STAGE"
 [[ -f "$STAGE/appcast.xml" ]] || { echo "✗ generate_appcast 沒產出 appcast.xml。" >&2; exit 1; }
 
-# --- 6. 上傳 appcast.xml ---
+# --- 6. 上傳 delta（增量更新包）---
+#     generate_appcast 會在 $STAGE 產出 NudgeNNN-MMM.delta 並寫進 appcast 的
+#     <sparkle:deltas>。這些檔案以前沒上傳，appcast 指過去一律 404（實測
+#     Nudge127-125.delta / Nudge127-124.delta 皆 404）。Sparkle 會自動退回下載
+#     完整 DMG，所以更新不會壞 —— 但 127→128 的 delta 只有 903 KB、完整 DMG
+#     是 6.1 MB，等於每個自動更新的使用者白下載 7 倍流量。
+#     必須在 appcast.xml 之前上傳：否則 Sparkle 讀到新 appcast 時 delta 還沒到位。
+shopt -s nullglob
+DELTAS=("$STAGE"/*.delta)
+shopt -u nullglob
+if [[ ${#DELTAS[@]} -gt 0 ]]; then
+  echo "▸ 上傳 ${#DELTAS[@]} 個 delta…"
+  gh release upload "$TAG" "${DELTAS[@]}" -R "$REPO" --clobber
+else
+  echo "▸ 沒有 delta 可上傳（首次發版或只有單一版本）"
+fi
+
+# --- 7. 上傳 appcast.xml ---
 gh release upload "$TAG" "$STAGE/appcast.xml" -R "$REPO" --clobber
 
 echo ""
