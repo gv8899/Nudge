@@ -296,30 +296,27 @@ public struct CardDetailView: View {
     #endif
 
     #if os(macOS)
-    @FocusState private var titleFocused: Bool
-
     /// 內容頂端 header（對齊 web modal）：大標題「原地可編輯」+ modal 的
     /// 展開/關閉玻璃鈕。tags / 重複入口在全頁時改放 window toolbar（返回那排）。
     @ViewBuilder
     private var macHeader: some View {
         HStack(spacing: 8) {
-            TextField(
-                "",
+            // AppKit NSTextField（見 MacTitleTextField）：caret / IME 底線吃主色，
+            // 且 modal/popover 開啟時自動聚焦、游標置尾不全選（SwiftUI TextField
+            // 的 .tint 不影響 macOS caret、.focused 聚焦會全選）。autoFocus 只在
+            // 有 onClose = quick modal / 任務彈窗情境；全頁編輯不強搶焦點。
+            MacTitleTextField(
                 text: $title,
-                prompt: Text("cardDetail.untitled", bundle: .module)
+                placeholder: nudgeLocalized("cardDetail.untitled", locale: locale),
+                autoFocus: onClose != nil,
+                onSubmit: {}
             )
-            .textFieldStyle(.plain)
-            .font(.system(size: 26, weight: .bold))
-            .foregroundStyle(Color.nudgeForeground)
-            .tint(Color.nudgePrimary) // caret / 選取吃主色
-            .focused($titleFocused)
-            .lineLimit(1)
+            .frame(maxWidth: .infinity)
             .onChange(of: title) { _, v in
                 if suppressEditDetection { return }
                 hasEditedTitle = true
                 debouncedSaveTitle(v)
             }
-            .onSubmit { titleFocused = false }
 
             Spacer(minLength: 12)
 

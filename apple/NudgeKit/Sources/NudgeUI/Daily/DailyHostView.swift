@@ -1054,6 +1054,10 @@ public struct DailyHostView: View {
             onUpdateDescription: { updateTaskDescription(taskId: card.id, description: $0) },
             onBack: { dashboardCardDetailCard = nil }
         )
+        // 切換卡片時強制重 mount，讓內部 @State（title / descriptionHTML，init
+        // 只灌一次）跟著換新卡；否則右側面板會停在舊卡（對齊 CardsHostView 的
+        // fullPage detail `.id(card.id)` pattern）。
+        .id(card.id)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
