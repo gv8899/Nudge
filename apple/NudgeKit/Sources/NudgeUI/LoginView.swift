@@ -2,10 +2,18 @@ import SwiftUI
 import AuthenticationServices
 import NudgeCore
 
+#if os(iOS)
+import UIKit
+#endif
+
 public struct LoginView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var isLoading = false
     @State private var errorMessage: String?
+    #if os(iOS)
+    // 自繪 Apple 按鈕手動起 ASAuthorizationController 的橋接（見 appleButton）。
+    @State private var appleCoordinator = AppleSignInCoordinator()
+    #endif
 
     /// Closure form 讓 platform target 注入自己的 Google SDK + AuthRepository。
     public var onLoginTapped: () async -> Result<Void, Error>
@@ -109,19 +117,38 @@ public struct LoginView: View {
     // MARK: - Buttons
 
     #if os(iOS)
+    // 自繪 Apple 按鈕（非原生 SignInWithAppleButton）——原生是系統/UIKit 元件、
+    // 不讀 SwiftUI environment，故不吃 in-app 注入的 `\.locale`（LocaleOverride
+    // 只作用 SwiftUI view tree），換語言時文案不跟著變。改自繪、用
+    // Text(.module) 才吃 i18n（與 Google 按鈕、macOS macAppleButton 一致）；
+    // 點擊手動起 ASAuthorizationController 走 iOS 原生登入，credential 交回既有
+    // handleAppleResult。樣式依 Apple HIG：淺色黑底白字、深色白底黑字、Capsule。
     private var appleButton: some View {
-        // 官方 SignInWithAppleButton（AuthenticationServices）— 樣式符合 Apple
-        // HIG（黑/白依 colorScheme）。onRequest 要 .fullName/.email（只有首次
-        // 授權會真的回），onCompletion 取 identityToken 交給平台殼層換 token。
-        SignInWithAppleButton(.signIn) { request in
-            request.requestedScopes = [.fullName, .email]
-        } onCompletion: { result in
+        Button(action: startAppleSignIn) {
+            HStack(spacing: 10) {
+                Image(systemName: "apple.logo")
+                    .font(.system(size: 18, weight: .medium))
+                Text("login.signInWithApple", bundle: .module)
+                    .font(.body.weight(.medium))
+            }
+            // Apple HIG 品牌按鈕例外，不走 token。
+            .foregroundStyle(colorScheme == .dark ? Color.black : Color.white) // nudge:allow-color
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .contentShape(Capsule())
+            .background(
+                Capsule().fill(colorScheme == .dark ? Color.white : Color.black) // nudge:allow-color
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(isLoading)
+    }
+
+    private func startAppleSignIn() {
+        appleCoordinator.onResult = { result in
             handleAppleResult(result)
         }
-        .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
-        .frame(height: 50)
-        .clipShape(Capsule())
-        .allowsHitTesting(!isLoading)
+        appleCoordinator.performRequest()
     }
 
     private func handleAppleResult(_ result: Result<ASAuthorization, any Error>) {
@@ -238,4 +265,45 @@ public struct LoginView: View {
         }
     }
 }
+
+#if os(iOS)
+/// 自繪 Apple 按鈕改走的 iOS 原生 SIWA 流程橋接：起 ASAuthorizationController、
+/// 把 delegate callback 轉成 Result 交回 View 的 handleAppleResult。
+/// （原生 SignInWithAppleButton 不吃 in-app `\.locale`，故 LoginView 改自繪。）
+final class AppleSignInCoordinator: NSObject, ASAuthorizationControllerDelegate,
+    ASAuthorizationControllerPresentationContextProviding {
+    var onResult: ((Result<ASAuthorization, any Error>) -> Void)?
+
+    func performRequest() {
+        let request = ASAuthorizationAppleIDProvider().createRequest()
+        request.requestedScopes = [.fullName, .email]
+        let controller = ASAuthorizationController(authorizationRequests: [request])
+        controller.delegate = self
+        controller.presentationContextProvider = self
+        controller.performRequests()
+    }
+
+    func authorizationController(
+        controller: ASAuthorizationController,
+        didCompleteWithAuthorization authorization: ASAuthorization
+    ) {
+        onResult?(.success(authorization))
+    }
+
+    func authorizationController(
+        controller: ASAuthorizationController,
+        didCompleteWithError error: any Error
+    ) {
+        onResult?(.failure(error))
+    }
+
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        let keyWindow = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }
+        return keyWindow ?? ASPresentationAnchor()
+    }
+}
+#endif
 
