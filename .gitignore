@@ -72,3 +72,6 @@ apple/*.provisionprofile
 # 止每次 sync 完 git status 出現 untracked 噪音。
 /mobile/
 *.p8
+
+# Apple 本地 build（xcodebuild derivedDataPath）
+apple/.dd-*/

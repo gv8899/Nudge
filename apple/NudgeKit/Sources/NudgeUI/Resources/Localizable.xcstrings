@@ -3372,35 +3372,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apple でサインイン"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "用 Apple 登入"
-          }
-        }
-      }
-    },
-    "login.signInWithApple": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in with Apple"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
             "value": "Appleでサインイン"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用 Apple 帳號登入"
+            "value": "用 Apple 登入"
           }
         }
       }
