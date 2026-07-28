@@ -13,6 +13,13 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Zeabur 在 build 階段注入 git SHA（build-only 預定義變數）。多階段 build 要在
+# 用到它的階段用 ARG 宣告才吃得到 → 這裡曝成 env 給 next build，烤進 deploymentId
+# 做 version-skew 保護（舊分頁對不上就強制 reload，見 next.config.ts）。
+# 若該變數不存在（本機 build），值為空 → deploymentId=undefined → 等同不啟用，安全。
+ARG ZEABUR_GIT_COMMIT_SHA
+ENV ZEABUR_GIT_COMMIT_SHA=$ZEABUR_GIT_COMMIT_SHA
+
 # Build 時用臨時 db，避免 SQLITE_BUSY
 ENV DB_PATH=/tmp/build.db
 RUN npx drizzle-kit generate
