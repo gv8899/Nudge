@@ -25,7 +25,9 @@ const appleEnabled = !!(process.env.AUTH_APPLE_ID && process.env.AUTH_APPLE_SECR
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
-    Google,
+    // 每次登入強制跳 Google 帳號選擇器 —— 沒帶這個時，瀏覽器只剩單一 Google
+    // session 會被自動選定、不跳選擇器，多帳號的人容易誤登錯帳號。
+    Google({ authorization: { params: { prompt: "select_account" } } }),
     ...(appleEnabled
       ? [
           Apple({
