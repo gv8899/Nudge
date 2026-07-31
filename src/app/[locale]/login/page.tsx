@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { signIn, auth } from "@/lib/auth";
 import { redirect } from "@/i18n/routing";
 import { getTranslations } from "next-intl/server";
@@ -18,9 +19,29 @@ export default async function LoginPage({
   const tPaywall = await getTranslations({ locale, namespace: "billing.paywall" });
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div
+      className="min-h-screen bg-background flex items-center justify-center px-4"
+      // 登入頁固定淺色主題（品牌入口，不受使用者 dark 偏好影響）——把設計 token
+      // override 成 globals.css :root 的淺色值。
+      style={
+        {
+          "--background": "#efe9d4",
+          "--foreground": "#1c1b18",
+          "--text-dim": "#6e6855",
+          "--chart-2": "#a87a45",
+        } as React.CSSProperties
+      }
+    >
       <div className="text-center space-y-8">
-        <div className="space-y-2">
+        <div className="space-y-3">
+          <Image
+            src="/nudge-icon.png"
+            alt="Nudge"
+            width={76}
+            height={76}
+            priority
+            className="mx-auto rounded-2xl shadow-md"
+          />
           <h1 className="text-4xl font-bold text-foreground">Nudge</h1>
           <p className="text-text-dim">{t("tagline")}</p>
         </div>
