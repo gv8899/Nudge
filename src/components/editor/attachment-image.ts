@@ -116,6 +116,16 @@ export const AttachmentImage = Image.extend<AttachmentImageOptions>({
     return ["img", HTMLAttributes];
   },
 
+  // 父類別有 Markdown `![alt](url)` input rule，會直接插外站 src 的圖（洩漏 IP、
+  // 存檔後下次載入又被 parseHTML 丟掉）。內文圖片只能走上傳流程。
+  addInputRules() {
+    return [];
+  },
+
+  addPasteRules() {
+    return [];
+  },
+
   addCommands() {
     return {
       insertUploadingImage:

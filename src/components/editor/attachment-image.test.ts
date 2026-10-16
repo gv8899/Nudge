@@ -2,6 +2,7 @@
 import { describe, it, expect } from "vitest";
 import { generateHTML, generateJSON } from "@tiptap/html";
 import StarterKit from "@tiptap/starter-kit";
+import Image from "@tiptap/extension-image";
 import { AttachmentImage } from "./attachment-image";
 
 const exts = [StarterKit, AttachmentImage];
@@ -45,5 +46,23 @@ describe("AttachmentImage parse / render", () => {
   it("不解析 data: / blob: src", () => {
     expect(roundtrip('<img src="data:image/png;base64,AAAA">')).toBe("<p></p>");
     expect(roundtrip('<img src="blob:http://localhost/1">')).toBe("<p></p>");
+  });
+});
+
+describe("AttachmentImage input / paste rules", () => {
+  // node env 沒 DOM，無法實例化 Editor 去打字；改在 extension config 層斷言。
+  it("父類別確實有 Markdown ![alt](url) input rule（所以需要覆寫）", () => {
+    expect(typeof Image.config.addInputRules).toBe("function");
+  });
+
+  it("關閉繼承的 input rule：打 ![x](https://host/a.png) 不會插外站圖", () => {
+    const fn = AttachmentImage.config.addInputRules;
+    expect(typeof fn).toBe("function");
+    expect(fn?.call({} as never)).toEqual([]);
+  });
+
+  it("沒有 paste rule", () => {
+    const fn = AttachmentImage.config.addPasteRules;
+    expect(fn ? fn.call({} as never) : []).toEqual([]);
   });
 });
