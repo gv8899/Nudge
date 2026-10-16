@@ -20,6 +20,8 @@ import {
   type SlashCommandItem,
 } from "@web-editor/slash-command-defs";
 import { SplitTaskList } from "@web-editor/split-task-list";
+import { AttachmentImage } from "@web-editor/attachment-image";
+import { toNativeAttachmentURLs, toServerAttachmentURLs } from "@web-editor/attachment-url";
 import { postToNative, type ActiveMarks } from "./bridge";
 import { mountSlashMenu, type SlashMenuHandle } from "./slash-menu";
 import "./theme.css";
@@ -39,7 +41,8 @@ let labels: LabelDict = {};
 let currentPlaceholder = "";
 
 function buildSlashItems(): SlashCommandItem[] {
-  return SLASH_COMMAND_DEFS.map((def) => {
+  // 批次 1 Apple 不給上傳 → 把 image 項藏掉（批次 2 接 bridge 後拿掉這行）
+  return SLASH_COMMAND_DEFS.filter((def) => def.id !== "image").map((def) => {
     const entry = labels[def.id] ?? { label: def.id, description: "", keywords: "" };
     return {
       ...def,
@@ -156,6 +159,8 @@ function createEditor() {
         autolink: true,
         HTMLAttributes: { class: "nudge-link" },
       }),
+      // 卡片圖片。批次 1：只顯示。onPickFiles 不設 → requestImagePick 回 false。
+      AttachmentImage,
       // SplitTaskList — disabled alongside slash-command while isolating
       // the "typed character disappears" bug on iOS WKWebView. Its
       // appendTransaction walks the doc on every transaction; theoretical
@@ -168,7 +173,7 @@ function createEditor() {
       attributes: { class: "ProseMirror" },
     },
     onUpdate: ({ editor: ed }) => {
-      postToNative({ kind: "change", html: ed.getHTML() });
+      postToNative({ kind: "change", html: toServerAttachmentURLs(ed.getHTML()) });
       postToNative({ kind: "selection", active: computeActive() });
     },
     onSelectionUpdate: () => {
@@ -211,6 +216,15 @@ function createEditor() {
   // land nowhere) or forced the selection to doc-end, overriding tap
   // position. Trust ProseMirror's built-in handling.
 
+  // 檔案拖進 WKWebView 預設會「導航到該檔案」把編輯器換掉。批次 1 不上傳，
+  // 一律吃掉；批次 2 改成走 bridge 上傳。
+  for (const type of ["dragover", "drop"] as const) {
+    document.addEventListener(type, (e) => {
+      const dt = (e as DragEvent).dataTransfer;
+      if (dt && Array.from(dt.types).includes("Files")) e.preventDefault();
+    });
+  }
+
   // Measure the editor container (not the body). Using body.scrollHeight +
   // min-height:100vh creates a feedback loop: body grows → viewport grows →
   // 100vh grows → body grows. Dedupe to avoid tight-loop postMessage spam.
@@ -238,10 +252,10 @@ interface NudgeEditorAPI {
 const api: NudgeEditorAPI = {
   load(html: string) {
     if (!editor) return;
-    editor.commands.setContent(html || "", { emitUpdate: false });
+    editor.commands.setContent(toNativeAttachmentURLs(html || ""), { emitUpdate: false });
   },
   getHTML() {
-    return editor?.getHTML() ?? "";
+    return toServerAttachmentURLs(editor?.getHTML() ?? "");
   },
   exec(command: string, args?: Record<string, unknown>) {
     if (!editor) return;
