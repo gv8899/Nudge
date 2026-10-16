@@ -24,3 +24,16 @@ export function stripHtml(html: string, maxLength?: number): string {
   }
   return text;
 }
+
+/**
+ * 卡片「有沒有內容」的唯一判準：去 tag 後有字，或含至少一張已上傳的圖片。
+ * 列表過濾（/api/cards）與存檔前 isEmpty（card-detail / task-detail-modal）
+ * 都走這裡，兩邊才不會對「純圖卡片」意見不一。
+ */
+export function hasVisibleContent(html: string | null | undefined): boolean {
+  if (!html) return false;
+  if (stripHtml(html).length > 0) return true;
+  // <img ...> 但排除上傳中 placeholder（無 src、帶 data-upload-pending）
+  const imgTags = html.match(/<img\b[^>]*>/g) ?? [];
+  return imgTags.some((tag) => !/data-upload-pending=/.test(tag));
+}
