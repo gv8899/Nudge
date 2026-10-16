@@ -168,7 +168,15 @@
     "slashCodeKeywords": "code|block|程式|程式碼",
     "slashDividerLabel": "分隔線",
     "slashDividerDescription": "插入水平分隔線",
-    "slashDividerKeywords": "hr|divider|separator|分隔|分隔線"
+    "slashDividerKeywords": "hr|divider|separator|分隔|分隔線",
+    "slashImageLabel": "圖片",
+    "slashImageDescription": "上傳一張圖片",
+    "slashImageKeywords": "image|img|picture|photo|圖片|圖|照片",
+    "imageUploadingAria": "圖片上傳中",
+    "imageUploadFailed": "圖片上傳失敗，請再試一次",
+    "imageTooLarge": "圖片超過 5MB，請先縮小",
+    "imageUnsupported": "只支援 JPEG、PNG、WebP、GIF",
+    "imageSelectedAria": "已選取圖片，按 Delete 可移除"
   },
   "daily": {
     "emptyToday": "今天還沒有任務",
