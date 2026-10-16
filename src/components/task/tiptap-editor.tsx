@@ -82,7 +82,36 @@ export const TiptapEditor = forwardRef<{ focus: () => void }, TiptapEditorProps>
     });
 
     const showError = useCallback((code: ImageUploadErrorCode) => setUploadError(code), []);
-    const uploadFiles = useImageUpload(editor, attachmentTaskId, showError);
+
+    // 上傳中關分頁 / 重新整理 → JS 直接死掉，伺服器端補寫也跑不到；有上傳中的圖就讓
+    // 瀏覽器跳「確定離開？」。（SPA 內關卡片不會觸發，那條路由 use-image-upload 補寫。）
+    const pendingUploadsRef = useRef(0);
+    const beforeUnloadRef = useRef<((e: BeforeUnloadEvent) => void) | null>(null);
+    const handlePendingChange = useCallback((delta: 1 | -1) => {
+      pendingUploadsRef.current = Math.max(0, pendingUploadsRef.current + delta);
+      if (pendingUploadsRef.current > 0 && !beforeUnloadRef.current) {
+        const handler = (e: BeforeUnloadEvent) => {
+          e.preventDefault();
+          e.returnValue = "";
+        };
+        beforeUnloadRef.current = handler;
+        window.addEventListener("beforeunload", handler);
+      } else if (pendingUploadsRef.current === 0 && beforeUnloadRef.current) {
+        window.removeEventListener("beforeunload", beforeUnloadRef.current);
+        beforeUnloadRef.current = null;
+      }
+    }, []);
+    useEffect(
+      () => () => {
+        if (beforeUnloadRef.current) {
+          window.removeEventListener("beforeunload", beforeUnloadRef.current);
+          beforeUnloadRef.current = null;
+        }
+      },
+      [],
+    );
+
+    const uploadFiles = useImageUpload(editor, attachmentTaskId, showError, handlePendingChange);
     useEffect(() => {
       showErrorRef.current = showError;
       uploadFilesRef.current = uploadFiles;

@@ -5,7 +5,7 @@
 //
 // 內文形態：<img src="/api/attachments/<id>" data-attachment-id="<id>" width height alt="">
 // 上傳中：attrs.uploadId 有值、src 是 blob: 預覽；序列化時不輸出 src（避免把
-// blob: 存進 DB），改輸出 data-upload-pending，重新 parse 會被丟掉。
+// blob: 存進 DB），改輸出 data-upload-pending + data-upload-id，重新 parse 會被丟掉。
 import Image from "@tiptap/extension-image";
 import type { Node as PMNode } from "@tiptap/pm/model";
 import { attachmentApiUrl, isAllowedImageSrc } from "./attachment-url";
@@ -108,10 +108,14 @@ export const AttachmentImage = Image.extend<AttachmentImageOptions>({
 
   renderHTML({ node, HTMLAttributes }) {
     if (node.attrs.uploadId) {
-      // 上傳中：不要把 blob: 存出去。
+      // 上傳中：不要把 blob: 存出去。帶 data-upload-id，卡片在上傳途中被關掉時
+      // use-image-upload 可以在伺服器端把這格補寫成最終圖片（見 replacePendingImage）。
       const { src: _src, ...rest } = HTMLAttributes;
       void _src;
-      return ["img", { "data-upload-pending": "true", ...rest }];
+      return [
+        "img",
+        { "data-upload-pending": "true", "data-upload-id": node.attrs.uploadId, ...rest },
+      ];
     }
     return ["img", HTMLAttributes];
   },

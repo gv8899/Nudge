@@ -33,3 +33,29 @@ export function toNativeAttachmentURLs(html: string): string {
 export function toServerAttachmentURLs(html: string): string {
   return html.replace(SRC_SCHEME_RE, `src="${ATTACHMENT_API_PREFIX}$1"`);
 }
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * 卡片在上傳途中被關掉時，DB 裡存的是 placeholder
+ * `<img data-upload-pending="true" data-upload-id="<uploadId>" alt="">`。
+ * 上傳完成後把它整個換成最終 tag（屬性順序同 AttachmentImage 序列化：
+ * src, alt, data-attachment-id, width, height；null 的寬高省略）。
+ * placeholder 已不在（被後續存檔丟掉）或 id 不合法 → null。
+ */
+export function replacePendingImage(
+  html: string,
+  uploadId: string,
+  result: { id: string; width: number | null; height: number | null },
+): string | null {
+  if (!ID_RE.test(result.id)) return null;
+  const re = new RegExp(`<img\\b[^>]*\\bdata-upload-id="${escapeRegExp(uploadId)}"[^>]*>`);
+  if (!re.test(html)) return null;
+  let tag = `<img src="${attachmentApiUrl(result.id)}" alt="" data-attachment-id="${result.id}"`;
+  if (result.width != null) tag += ` width="${result.width}"`;
+  if (result.height != null) tag += ` height="${result.height}"`;
+  tag += ">";
+  return html.replace(re, () => tag);
+}

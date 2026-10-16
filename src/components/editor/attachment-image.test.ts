@@ -38,7 +38,7 @@ describe("AttachmentImage parse / render", () => {
       ],
     };
     const html = generateHTML(json, exts);
-    expect(html).toBe('<img data-upload-pending="true" alt="">');
+    expect(html).toBe('<img data-upload-pending="true" data-upload-id="u1" alt="">');
     // 再 parse 回來會被丟掉（沒有合法 src）
     expect(roundtrip(html)).toBe("<p></p>");
   });
