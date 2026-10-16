@@ -266,6 +266,7 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
           onChange={handleDescChange}
           placeholder={t("editorPlaceholder")}
           editable={true}
+          attachmentTaskId={id}
         />
       </div>
     </div>

@@ -71,6 +71,14 @@ export const SLASH_COMMAND_DEFS: SlashCommandDef[] = [
     },
   },
   {
+    id: "image",
+    requiredExtension: "image",
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run();
+      editor.commands.requestImagePick();
+    },
+  },
+  {
     id: "divider",
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setHorizontalRule().run();

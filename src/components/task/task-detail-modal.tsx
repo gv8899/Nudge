@@ -265,6 +265,7 @@ export function TaskDetailModal({
             placeholder={tCardDetail("editorPlaceholder")}
             editable={true}
             autoFocus={false}
+            attachmentTaskId={task.id}
           />
         </div>
       </div>
