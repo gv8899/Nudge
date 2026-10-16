@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isFileDrag, pickImageFiles } from "./file-drag";
+import { isFileDrag, pickImageFiles, splitImageFiles } from "./file-drag";
 
 describe("isFileDrag", () => {
   it("types 含 Files → true", () => {
@@ -21,5 +21,17 @@ describe("pickImageFiles", () => {
   });
   it("null → []", () => {
     expect(pickImageFiles(null)).toEqual([]);
+  });
+});
+
+describe("splitImageFiles", () => {
+  const f = (type: string) => ({ type }) as File;
+  it("分出圖片與被拒絕的檔案", () => {
+    const r = splitImageFiles([f("image/png"), f("application/pdf"), f("image/heic")]);
+    expect(r.images.map((x) => x.type)).toEqual(["image/png"]);
+    expect(r.rejected.map((x) => x.type)).toEqual(["application/pdf", "image/heic"]);
+  });
+  it("null → 都空", () => {
+    expect(splitImageFiles(null)).toEqual({ images: [], rejected: [] });
   });
 });

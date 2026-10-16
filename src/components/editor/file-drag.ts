@@ -10,3 +10,16 @@ export function pickImageFiles(list: FileList | File[] | null | undefined): File
   if (!list) return [];
   return Array.from(list as ArrayLike<File>).filter(isSupportedImageFile);
 }
+
+/** 分成支援的圖片與被濾掉的檔案（用來回報 imageUnsupported）。 */
+export function splitImageFiles(list: FileList | File[] | null | undefined): {
+  images: File[];
+  rejected: File[];
+} {
+  if (!list) return { images: [], rejected: [] };
+  const all = Array.from(list as ArrayLike<File>);
+  return {
+    images: all.filter(isSupportedImageFile),
+    rejected: all.filter((f) => !isSupportedImageFile(f)),
+  };
+}
