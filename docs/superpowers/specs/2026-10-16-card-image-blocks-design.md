@@ -24,7 +24,7 @@
 
 | 欄位 | 型別 | 說明 |
 |---|---|---|
-| `id` | uuid PK | 內文裡引用的編號 |
+| `id` | text PK（nanoid，與全 repo 一致） | 內文裡引用的編號 |
 | `user_id` | FK users | 擁有者；取圖時檢查 |
 | `task_id` | FK tasks, nullable, on delete set null | 上傳時就知道是哪張卡；null = 尚未綁定或卡片已刪 |
 | `mime` | text | 只允許 `image/jpeg` `image/png` `image/webp` `image/gif` |
@@ -59,7 +59,7 @@ Migration 純新增、不動舊欄位 → dev/prod 共用 DB 可直接跑，不�
 
 - **客戶端縮圖**（§2.2）後才上傳；伺服器硬上限 5MB/張。
 - `description` 加上限 **1MB**，超過回 413。這是防呆，不是功能。
-- **孤兒清理**：`task_attachments` 中「沒有任何 `tasks.description` 含該 id、且 `created_at` 超過 24 小時」的 row 刪除。實作成一支 `scripts/reap-orphan-attachments.ts`（可由 cron 或手動跑），**不**在 PATCH 路徑上做（避免拖慢存檔、避免 409 重試時誤刪）。24 小時緩衝涵蓋「上傳了還沒存檔」與「undo 把圖片拉回來」。
+- **孤兒清理**：`task_attachments` 中「沒有任何 `tasks.description` 含該 id、且 `created_at` 超過 24 小時」的 row 刪除。實作成一支 `scripts/reap-orphan-attachments.mjs`（純 SQL：`NOT EXISTS (… position(a.id in t.description) > 0)`，不用 LIKE 因為 nanoid 含 `_`；有 `--dry-run`；可由 cron 或手動跑），**不**在 PATCH 路徑上做（避免拖慢存檔、避免 409 重試時誤刪）。24 小時緩衝涵蓋「上傳了還沒存檔」與「undo 把圖片拉回來」。
 - 刪卡片：`task_id` 設 null，交給清理程序。
 
 ---
@@ -118,7 +118,7 @@ File → 驗 mime（只收 jpeg/png/webp/gif）
 ### 3.1 顯示（Mac + iOS 共同，與 Web 同批上線 — 見 §5 風險）
 
 - bundle 加同版本 `@tiptap/extension-image`，同樣屬性。
-- **取圖身分**：WKWebView 的 `<img>` 不會帶 Bearer。在 `NudgeKit` 加 `WKURLSchemeHandler`，scheme `nudge-attachment://<id>`，由原生用 `APIClient` 帶 token 下載 `GET /api/attachments/<id>`，回給 webview；原生層做記憶體 + 磁碟快取。
+- **取圖身分**：WKWebView 的 `<img>` 不會帶 Bearer。在 `NudgeKit` 加 `WKURLSchemeHandler`，scheme `nudge-attachment://<id>`，由原生用 `APIClient` 帶 token 下載 `GET /api/attachments/<id>`，回給 webview；原生層做記憶體快取（NSCache），磁碟層靠 URLSession 預設 URLCache（server 回 `Cache-Control: private, max-age=31536000, immutable`，private cache 可存）。
 - bundle `load(html)` 時把 `src="/api/attachments/X"` 改寫成 `nudge-attachment://X`；`getHTML()` 與 `change` 訊息前改回相對路徑。這段改寫是純字串函式，放 `apple/NudgeEditor/src/attachment-url.ts`，加 vitest。
 - iOS 的 node view：只顯示，不出上傳 UI。
 
