@@ -29,6 +29,9 @@ final class AttachmentSchemeHandler: NSObject, WKURLSchemeHandler {
         }
         Task { @MainActor [weak self] in
             guard let self else { return }
+            // 不論哪條路徑結束都清 key —— 否則已 stop 的 task 早退留下的
+            // ObjectIdentifier 可能被之後新 task 重用，誤判成已 stop、圖永遠不載。
+            defer { self.stopped.remove(key) }
             do {
                 let (data, mime) = try await self.repository.imageData(id: id)
                 guard !self.stopped.contains(key) else { return }
@@ -42,7 +45,6 @@ final class AttachmentSchemeHandler: NSObject, WKURLSchemeHandler {
                 guard !self.stopped.contains(key) else { return }
                 urlSchemeTask.didFailWithError(error)
             }
-            self.stopped.remove(key)
         }
     }
 
