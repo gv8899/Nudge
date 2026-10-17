@@ -89,7 +89,7 @@ export async function PATCH(
   await db.update(tasks).set(updates).where(eq(tasks.id, id));
 
   const [updated] = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
-  notifyUserDevices(user.id);
+  notifyUserDevices(user.id, { kind: "task", id, updatedAt: updated.updatedAt });
   return NextResponse.json(updated);
 }
 

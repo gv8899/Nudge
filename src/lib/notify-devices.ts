@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { deviceTokens } from "@/lib/db/schema";
 import { and, eq, isNull, lt, ne, or } from "drizzle-orm";
 import { sendSilentPush } from "@/lib/apns";
+import { publishSyncEvent, type SyncChange } from "@/lib/sync-bus";
 
 // 同一 user 5 秒內多次變動只推一次（打字自動存檔會連發 PATCH，不能每發
 // 都喚醒別台裝置）。手機收到 push 是「整包重抓」，漏掉中間幾發不影響
@@ -23,7 +24,7 @@ const THROTTLE_MS = 5_000;
 /// - 410 / BadDeviceToken 順手清掉死 token。
 ///
 /// 在 mutation route 寫入成功後呼叫：`notifyUserDevices(user.id)`。
-export function notifyUserDevices(userId: string): void {
+export function notifyUserDevices(userId: string, change?: SyncChange): void {
   // headers() 在 request scope 讀（同步啟動、非同步取值），把 promise 帶進
   // after()。after() 本身跑在回應之後，這樣才穩拿到發起裝置的識別。
   const originTokenPromise = headers()
@@ -31,6 +32,9 @@ export function notifyUserDevices(userId: string): void {
     .catch(() => null);
 
   after(async () => {
+    // SSE：不節流、不排除發起裝置（回音由 client 以版本比對略過）。
+    await publishSyncEvent(userId, change ?? { kind: "any" });
+
     try {
       const originToken = await originTokenPromise;
       const now = new Date();
