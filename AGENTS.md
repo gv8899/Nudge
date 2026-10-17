@@ -83,6 +83,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Apple 端 `load()` 把 src 改成 `nudge-attachment://attachment/<id>`，`getHTML()` 改回；`AttachmentSchemeHandler` 帶 Bearer 代抓。
 - 孤兒回收：`node scripts/reap-orphan-attachments.mjs --dry-run`（24h grace）。
 
+## 卡片即時同步 = SSE + Postgres NOTIFY
+
+- `GET /api/sync/events`（SSE）每個登入 client 一條；server 寫入成功後 `notifyUserDevices(userId, change)` → `pg_notify('nudge_sync', …)`；每個 process 一個專用 pg.Client LISTEN（`src/lib/sync-bus.ts`），收到就推給該 user 的本機訂閱者。payload 只有 `{kind, id, updatedAt}`，不含內容。Apple 串流 client 自己讀 raw bytes 並以 `\n` 切行，因為 `URLSession.AsyncBytes.lines` 會丟掉空行（SSE 事件結束符）。
+- 客戶端規則一份兩鏡像：`src/lib/live-sync-rules.ts` ↔ `NudgeCore/RemoteChangeDecision.swift`。**本機有未存檔修改時不抓、不 seed、不重載**（Web 的「未存檔」含 debounce saver 與在途的 `PATCH`〔`isCardSaveInFlight`〕；Apple `CardRepository.get` 預設會 seed 基準，閘門內用 `seedVersion: false`）。改規則兩邊測試都要過。
+- 回音判斷：事件 updatedAt 與本機基準**同一秒** → 略過（與 409 判斷同精度）。
+- dev / prod 共用 Postgres，NOTIFY 互相聽得到，無害。
+- 行動頁仍是 30 秒輪詢（未接即時）。對外公布前要補每 user 連線上限。
+
 # 完成定義 (Definition of Done)
 
 **不能僅依靠 `next build` 成功就宣稱任務完成**。Build 只證明語法正確，不證明邏輯可用。對於任何互動功能，必須**完整走過使用者流程**後才能回報完成。

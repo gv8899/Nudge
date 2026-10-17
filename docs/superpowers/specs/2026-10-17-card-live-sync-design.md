@@ -90,6 +90,7 @@ export function notifyUserDevices(
 - 新元件 `src/components/live-sync-provider.tsx`（client component，無 UI），掛在 `src/app/[locale]/(app)/layout.tsx` 的 `SidebarLayout` 旁，整個登入區只掛一次。
 - `card-detail.tsx`：`useEffect` 訂閱；依 §2 判斷；pending 判斷新增 `DebouncedSaver.isPending()`（新增 getter，回 `pending !== null`）；套用 = `await mutate()` 後 `setReloadToken(n => n + 1)`（SWR 回來的 `data.updatedAt` 會經既有 effect seed）。
 - `task-detail-modal.tsx`：本身不抓資料。訂閱後符合 §2 第 4 步時呼叫新 prop `onRemoteChange?: () => void`；parent（daily 頁）負責 refetch + `editorReloadToken++`。pending 判斷用 modal 自己的 saver。
+- `task-detail-modal` 只在卡片快速彈窗（`cards-feed.tsx`）接 `onRemoteChange`；行動頁的任務彈窗隨行動頁即時化另案。
 - 不改 `/api/cards` 的 SWR 設定。
 
 ## 4. Mac + iOS（共用 NudgeKit）
