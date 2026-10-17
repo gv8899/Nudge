@@ -13,7 +13,7 @@ import { TaskDetailModal } from "@/components/task/task-detail-modal";
 import { fetcher } from "@/lib/fetcher";
 import { seedCardVersion, patchCardField } from "@/lib/card-version";
 import { subscribeLiveSync } from "@/lib/live-sync";
-import { shouldRemountAfterFetch, cardContentOf, type CardContent } from "@/lib/live-sync-rules";
+import { decideOnDataChange, cardContentOf, type CardContent } from "@/lib/live-sync-rules";
 import type { Task } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
 
@@ -41,23 +41,38 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
   // TaskDetailModal 掛上的「本機是否有未存 / 在途修改」查詢（與它的即時同步閘門同一個）。
   const pendingProbeRef = useRef<(() => boolean) | null>(null);
 
-  // seed 樂觀並行基準：server 回的 updatedAt = 目前畫面內容所基於的版本。
-  // 編輯中不 seed：重抓途中使用者開始打字，基準若跳到遠端新版，下一次存檔會
-  // 通過版本檢查、默默覆蓋別台 → 留舊基準讓 409 接手。
-  useEffect(() => {
-    if (data?.updatedAt && !pendingProbeRef.current?.()) seedCardVersion(cardId, data.updatedAt);
-  }, [cardId, data?.updatedAt]);
-
   // 編輯器實際 mount 的內容（重抓後是否重 mount 的比對基準；不能用 SWR data，
   // data 可能被其他重抓更新而編輯器仍是舊內容）。標題由 TaskDetailModal 從 task.title 同步，同一批時機追蹤。
   const mountedContentRef = useRef<CardContent>({ title: "", description: "" });
   const mountedForIdRef = useRef<string | null>(null);
+
+  // data 變動（任何來源：即時同步重抓、warm cache 的 mount 重抓、存檔後的 mutate）
+  // → 比對編輯器實際掛載的內容，再 seed 樂觀並行基準。
+  // 不變式：基準只在編輯器顯示該版本時推進。TiptapEditor 不會重讀 content prop，
+  // 所以內容不同就重 mount；本機編輯中則不 seed 也不重 mount，留舊基準讓 409 接手。
+  // （自己存完 / 409 時已先更新 mountedContentRef，這裡會看到「相同」只 seed。）
   useEffect(() => {
-    // 首次拿到這張卡的資料（含換 id）= 編輯器以這份 data mount。
-    if (data && mountedForIdRef.current !== cardId) {
+    if (!data) return;
+    const latest = cardContentOf(data);
+    const first = mountedForIdRef.current !== cardId;
+    if (first) {
+      // 首次拿到這張卡的資料（含換 id）= 編輯器以這份 data mount。
       mountedForIdRef.current = cardId;
-      mountedContentRef.current = cardContentOf(data);
+      mountedContentRef.current = latest;
     }
+    const decision = decideOnDataChange({
+      first,
+      pending: pendingProbeRef.current?.() ?? false,
+      mounted: mountedContentRef.current,
+      latest,
+    });
+    if (decision === "skip") return;
+    if (decision === "remount-and-seed") {
+      mountedContentRef.current = latest;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 刻意：外部資料（SWR）變動後重 mount 不受控的編輯器，只在內容不同時觸發一次
+      setEditorReloadToken((n) => n + 1);
+    }
+    seedCardVersion(cardId, data.updatedAt);
   }, [cardId, data]);
 
   const patch = useCallback(
@@ -67,9 +82,9 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
         // 別台先存、這次被擋 → 採用 server 最新（方案二），丟棄本機這次編輯，
         // 重 mount 編輯器；標題由 TaskDetailModal 從 task.title 自動同步。
         const latest = result.latest as unknown as CardWithTags;
-        await mutate(latest, { revalidate: false });
         mountedContentRef.current = cardContentOf(latest);
         setEditorReloadToken((n) => n + 1);
+        await mutate(latest, { revalidate: false });
       } else {
         // 自己存成功：編輯器顯示的就是剛存的內容。
         if (updates.title !== undefined) mountedContentRef.current.title = updates.title;
@@ -87,16 +102,11 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
     [cardId, mutate]
   );
 
-  // 即時同步：TaskDetailModal 判定「別處改了且本機沒在打字」→ 先重抓再重 mount 編輯器。
-  // 重抓期間使用者若開始打字（stillIdle() = false）就不重 mount，讓 pending 存檔勝出。
-  // 內容跟編輯器實際 mount 的一樣（自己存檔的回音、別處只改提醒）不重 mount（會丟游標 / 捲動）。
-  const handleRemoteChange = useCallback(async (stillIdle: () => boolean) => {
-    const latest = await mutate();
-    const next = latest ? cardContentOf(latest) : undefined;
-    if (next && shouldRemountAfterFetch({ mounted: mountedContentRef.current, latest: next, stillIdle: stillIdle() })) {
-      mountedContentRef.current = next;
-      setEditorReloadToken((n) => n + 1);
-    }
+  // 即時同步：TaskDetailModal 判定「別處改了且本機沒在打字」→ 只重抓；
+  // data 變動後由上面的 data effect 比對掛載內容 → 重 mount / 確認相同 → seed。
+  // 重抓期間使用者若開始打字，effect 會看到 pending 而跳過，讓 pending 存檔勝出。
+  const handleRemoteChange = useCallback(async () => {
+    await mutate();
     globalMutate(
       (key) => typeof key === "string" && key.startsWith("/api/cards"),
       undefined,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { decideRemoteChange, sameSecond, shouldRemountAfterFetch } from "./live-sync-rules";
+import { decideRemoteChange, decideOnDataChange, sameSecond, shouldRemountAfterFetch } from "./live-sync-rules";
 
 const base = "2026-10-17T10:00:00.000Z";
 const newer = "2026-10-17T10:00:05.000Z";
@@ -50,5 +50,22 @@ describe("shouldRemountAfterFetch", () => {
   it("內容與掛載的不同 → true（即使 SWR cache 早已是新內容）", () => {
     expect(shouldRemountAfterFetch({ mounted, latest: { title: "T", description: "<p>new</p>" }, stillIdle: true })).toBe(true);
     expect(shouldRemountAfterFetch({ mounted, latest: { title: "T2", description: "<p>old</p>" }, stillIdle: true })).toBe(true);
+  });
+});
+
+describe("decideOnDataChange", () => {
+  const mounted = { title: "T", description: "<p>old</p>" };
+  it("本機 pending → skip（不 seed、不重 mount；即使是第一次或內容不同）", () => {
+    expect(decideOnDataChange({ first: false, pending: true, mounted, latest: { title: "T", description: "<p>new</p>" } })).toBe("skip");
+    expect(decideOnDataChange({ first: true, pending: true, mounted, latest: mounted })).toBe("skip");
+  });
+  it("第一次拿到這張卡 → seed-first", () => {
+    expect(decideOnDataChange({ first: true, pending: false, mounted: { title: "", description: "" }, latest: mounted })).toBe("seed-first");
+  });
+  it("idle、內容與掛載的不同 → remount-and-seed", () => {
+    expect(decideOnDataChange({ first: false, pending: false, mounted, latest: { title: "T", description: "<p>new</p>" } })).toBe("remount-and-seed");
+  });
+  it("idle、內容與掛載的相同 → seed", () => {
+    expect(decideOnDataChange({ first: false, pending: false, mounted, latest: { title: "T", description: "<p>old</p>" } })).toBe("seed");
   });
 });
