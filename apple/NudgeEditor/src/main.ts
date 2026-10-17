@@ -244,7 +244,7 @@ function createEditor() {
   const editorEl = document.getElementById("editor")!;
 
   // macOS：頂層 block 拖曳把手（對齊 Web 的 use-block-drag）。iOS 不掛。
-  // 把手拖曳只帶 text/plain、不帶 Files → 不會撞到下面的檔案拖放 guard。
+  // 把手拖曳只帶自訂 MIME application/x-nudge-block、不帶 Files → 不會撞到下面的檔案拖放 guard。
   if (platform === "macos") mountBlockDrag(editor, editorEl);
 
   const ed = editor;

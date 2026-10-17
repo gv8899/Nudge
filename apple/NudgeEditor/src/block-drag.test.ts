@@ -108,13 +108,14 @@ describe("mountBlockDrag", () => {
     expect(handle.style.top).toBe(top);
   });
 
-  it("dragstart → 只帶 text/plain（無 Files）並立刻顯示指示線；drop → 搬移 block 並清狀態", () => {
+  it("dragstart → 只帶自訂 MIME（無 Files、無 text/plain）並立刻顯示指示線；drop → 搬移 block 並清狀態", () => {
     const { editor, container, handle, indicator, ps } = setup();
     hover(container, ps[0], 10); // hovered = <p>a</p>
     const dt = fakeDataTransfer();
     handle.dispatchEvent(dragEvent("dragstart", { clientY: 10, dataTransfer: dt }));
-    expect(dt.types).toEqual(["text/plain"]);
-    expect(dt.getData("text/plain")).toBe("nudge-block");
+    expect(dt.types).toEqual(["application/x-nudge-block"]);
+    expect(dt.getData("application/x-nudge-block")).toBe("");
+    expect(dt.getData("text/plain")).toBe("");
     expect(dt.effectAllowed).toBe("move");
     // slots: 0 → y0, 3 → y25（20 與 30 中點）, 6 → y50；cursor 10 → slot y0
     expect(indicator.style.display).toBe("block");
@@ -126,12 +127,11 @@ describe("mountBlockDrag", () => {
     expect(indicator.style.top).toBe("49px");
 
     // drop 打在 ProseMirror 內：capture phase 先 preventDefault，PM 不得把
-    // "nudge-block" 當文字插入。
+    // 任何東西插入文件。
     const drop = dragEvent("drop", { clientY: 48, dataTransfer: dt });
     ps[1].dispatchEvent(drop);
     expect(drop.defaultPrevented).toBe(true);
     expect(editor.getHTML()).toBe("<p>b</p><p>a</p>");
-    expect(editor.getHTML()).not.toContain("nudge-block");
     expect(indicator.style.display).toBe("none");
     expect(handle.style.display).toBe("none");
   });

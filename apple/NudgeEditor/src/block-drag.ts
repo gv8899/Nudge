@@ -5,14 +5,15 @@
 //
 // 與檔案拖放（main.ts 的 document Files guard + ProseMirror handleDrop →
 // handleFileDrop）互不搶事件：
-// - 把手拖曳只 setData("text/plain")，沒有 "Files" type → isFileDrag 為 false，
+// - 把手拖曳只 setData("application/x-nudge-block", "")（自訂 MIME、空值：拖出 WKWebView
+//   到原生標題欄 / 其他 app 也不會插入任何文字），沒有 "Files" type → isFileDrag 為 false，
 //   document guard / handleFileDrop 都不理它。
 // - 這裡的 dragover / drop 在 draggingFrom === null（例如外部拖檔進來）時什麼都不做，
 //   事件照常流到 Files 流程。
 // - dragover / drop 掛在 container 的 capture phase：區塊拖曳時先於 ProseMirror
 //   preventDefault + stopPropagation。ProseMirror 的 eventBelongsToView 遇到
-//   defaultPrevented 直接略過，否則它的預設 drop 會把 text/plain 的 "nudge-block"
-//   當文字插進文件；stopPropagation 則擋住 prosemirror-dropcursor（直接掛在
+//   defaultPrevented 直接略過，否則它的預設 drop 會跑 PM 的貼上/拖放解析（若帶了
+//   text/plain 就會被當文字插進文件）；stopPropagation 則擋住 prosemirror-dropcursor（直接掛在
 //   view.dom 的原生 listener，不看 defaultPrevented），避免和我們的指示線同時出現兩條。
 //   document 層的 Files guard 收不到這兩個事件也無妨（非 Files 它本來就不處理）。
 import type { Editor } from "@tiptap/core";
@@ -108,7 +109,8 @@ export function mountBlockDrag(
     draggingFrom = hovered.pos;
     e.dataTransfer.effectAllowed = "move";
     // 沒有 "Files" type → isFileDrag false，檔案 drop 流程不會攔到
-    e.dataTransfer.setData("text/plain", "nudge-block");
+    // 自訂 MIME + 空值：不是 Files（檔案流程不攔），也不會在拖出視窗時把文字灌進原生欄位
+    e.dataTransfer.setData("application/x-nudge-block", "");
     e.dataTransfer.setDragImage(EMPTY_IMG, 0, 0);
     slots = computeDropSlots(editor.view, rect());
     const s = nearestSlot(slots, e.clientY - rect().top);
