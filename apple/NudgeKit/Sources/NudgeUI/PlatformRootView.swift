@@ -17,14 +17,19 @@ public struct PlatformRootView: View {
 
     public var body: some View {
         content
-            // Mac：視窗開著就連著（inactive 只是不在前景）。iOS：只有 active 才連，
-            // 退背景斷線、回前景重連（背景仍靠 APNs）。登出時 AuthGateView 會移除
-            // 本 view → onDisappear 斷線。start() 為 idempotent。
+            // Mac：視窗開著就連著（inactive 只是不在前景）。iOS：active 才連、
+            // background 才斷（背景仍靠 APNs）；inactive（下拉通知中心、App
+            // Switcher 過場、系統 alert）不動，避免短暫過場就斷線重連。登出時
+            // AuthGateView 會移除本 view → onDisappear 斷線。start() 為 idempotent。
             .task(id: scenePhase) {
                 #if os(macOS)
                 syncStream?.start()
                 #else
-                if scenePhase == .active { syncStream?.start() } else { syncStream?.stop() }
+                switch scenePhase {
+                case .active: syncStream?.start()
+                case .background: syncStream?.stop()
+                default: break
+                }
                 #endif
             }
             .onDisappear { syncStream?.stop() }

@@ -277,8 +277,15 @@ public struct CardDetailView: View {
         DispatchQueue.main.async { suppressEditDetection = false }
     }
 
+    /// 即時同步閘門：「存檔排程中（debounce 還沒觸發）或存檔在途」。
+    /// 刻意不含 sticky 的 hasEdited* —— 那兩個旗標一旦改過字就永遠 true（給
+    /// 離開時 flush 與 409 handler 用），放進閘門會讓這張卡打過一個字後再也
+    /// 收不到即時同步。work item 觸發時會把自己設回 nil；在途由
+    /// CardVersionStore 的計數涵蓋，存檔完成後閘門自然解除。
     private var hasPendingLocalEdits: Bool {
-        hasEditedTitle || hasEditedDescription || titleSaveWorkItem != nil || descriptionSaveWorkItem != nil
+        titleSaveWorkItem != nil
+            || descriptionSaveWorkItem != nil
+            || CardVersionStore.isSaveInFlight(cardId: initialCard.id)
     }
 
     /// 抓最新並套用。閘門在呼叫端（有未存檔修改就不進來）；這裡用
@@ -289,7 +296,11 @@ public struct CardDetailView: View {
         do {
             let latest = try await cardRepo.get(cardId: initialCard.id, seedVersion: false)
             if hasPendingLocalEdits { return }
-            applyRemote(title: latest.title, description: latest.description)
+            // 內容跟畫面一樣（例如只是自己存檔的回音、或別處只改了提醒）→ 只推進
+            // 基準、不重 mount 編輯器（重 mount 會丟游標 / 捲動位置）。
+            if latest.title != title || latest.description != descriptionHTML {
+                applyRemote(title: latest.title, description: latest.description)
+            }
             CardVersionStore.seed(cardId: initialCard.id, updatedAt: latest.updatedAt)
         } catch {
             if APIError.isCancellation(error) { return }
@@ -418,14 +429,21 @@ public struct CardDetailView: View {
 
     private func debouncedSaveTitle(_ newValue: String) {
         titleSaveWorkItem?.cancel()
-        let work = DispatchWorkItem { onUpdateTitle(newValue) }
+        // 觸發時先把自己設回 nil（閘門 = 「排程中」只到這一刻；之後由在途計數接手）。
+        let work = DispatchWorkItem {
+            titleSaveWorkItem = nil
+            onUpdateTitle(newValue)
+        }
         titleSaveWorkItem = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
     }
 
     private func debouncedSaveDescription(_ newValue: String) {
         descriptionSaveWorkItem?.cancel()
-        let work = DispatchWorkItem { onUpdateDescription(newValue) }
+        let work = DispatchWorkItem {
+            descriptionSaveWorkItem = nil
+            onUpdateDescription(newValue)
+        }
         descriptionSaveWorkItem = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
     }
