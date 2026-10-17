@@ -114,7 +114,7 @@ public struct RichTextEditor: View {
     }
 
     private static func labelsDict() -> [String: [String: String]] {
-        let ids = ["text", "h1", "h2", "h3", "bullet", "ordered", "todo", "quote", "code", "divider"]
+        let ids = ["text", "h1", "h2", "h3", "bullet", "ordered", "todo", "quote", "code", "divider", "image"]
         var result: [String: [String: String]] = [:]
         for id in ids {
             result[id] = [

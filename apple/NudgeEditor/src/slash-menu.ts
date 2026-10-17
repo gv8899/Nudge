@@ -83,8 +83,12 @@ export function mountSlashMenu(props: SlashMenuProps, labels: Record<string, { l
     const roomBelow = viewportBottom - rect.bottom;
     const placeAbove = roomBelow < menuHeight + 8;
     const top = placeAbove ? rect.top - menuHeight - 4 : rect.bottom + 4;
-    container.style.top = `${Math.max(8, top)}px`;
-    container.style.left = `${rect.left}px`;
+    // clientRect 是 viewport 座標，container 是 position:absolute（文件座標）。
+    // macOS 的 WKWebView 會在內部捲動（scrollY 可達數千 px），不加上捲動量選單
+    // 會被放到可視區外（歷史 bug：長卡片打 `/` 什麼都看不到）。iOS 由外層
+    // UIScrollView 捲動、scrollY 恆為 0，行為不變。
+    container.style.top = `${Math.max(8, top) + window.scrollY}px`;
+    container.style.left = `${rect.left + window.scrollX}px`;
   }
 
   render();
