@@ -49,3 +49,25 @@ export function shouldRemountAfterFetch(args: {
 export function cardContentOf(card: { title: string; description: string | null }): CardContent {
   return { title: card.title, description: card.description || "" };
 }
+
+export type DataChangeDecision = "seed-first" | "skip" | "remount-and-seed" | "seed";
+
+/**
+ * 卡片資料（SWR data）變動時的處置。不變式：**版本基準只在編輯器顯示該版本時推進**
+ * —— TiptapEditor 不會重讀 content prop，所以 idle 時的 data 變動若內容不同必須重 mount，
+ * 否則基準推進、編輯器仍是舊內容，下一次存檔就以舊內容通過版本檢查、覆蓋遠端。
+ * - first：這張卡第一次拿到資料（編輯器正以這份 data mount）→ 記下內容並 seed。
+ * - pending：本機有未存 / 在途修改 → 不 seed、不重 mount，交給存檔的 409 路徑。
+ * - 內容與掛載的不同 → 重 mount 並 seed；相同 → 只 seed。
+ */
+export function decideOnDataChange(args: {
+  first: boolean;
+  pending: boolean;
+  mounted: CardContent;
+  latest: CardContent;
+}): DataChangeDecision {
+  const { first, pending, mounted, latest } = args;
+  if (pending) return "skip";
+  if (first) return "seed-first";
+  return shouldRemountAfterFetch({ mounted, latest, stillIdle: true }) ? "remount-and-seed" : "seed";
+}
