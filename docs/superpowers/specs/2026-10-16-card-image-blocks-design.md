@@ -133,6 +133,13 @@ File → 驗 mime（只收 jpeg/png/webp/gif）
 - `/` 選單的「圖片」項在 Mac 的 DOM 選單直接吃 `SLASH_COMMAND_DEFS`，但開檔案選擇視窗要走 bridge → 原生 `NSOpenPanel`（webview 內的 `<input type=file>` 在 WKWebView 可用，但原生 panel 體驗一致，二擇一，spike 時決定）。
 - iOS：`upload` 訊息原生端直接回 `ok:false`；bundle 在 `NUDGE_PLATFORM === "ios"` 時不註冊三個入口。
 
+**實作決策（2026-10-17）：**
+
+- 不做獨立 spike：批次 1 手動測試 A4 已證明 Finder 拖檔的 drop 會到達 JS。
+- 檔案選擇用 bundle 內 `<input type=file>` + macOS `WKUIDelegate.runOpenPanel`，不走 bridge 驅動的 `NSOpenPanel`。
+- Mac 上傳中顯示變淡的 placeholder 方塊，不做 blob 預覽（bundle 沒有 React node view）。
+- 補救（回寫進已存 description）只在 webview 已不在時做；webview 還活著就一律交給 JS 收尾。
+
 ### 3.3 Mac 拖曳把手
 
 - 把 `use-block-drag.ts` 改寫成不依賴 React 的 `apple/NudgeEditor/src/block-drag.ts`（ProseMirror plugin + 純 DOM 把手）。`posAtCoords`、slot 計算、`tr.delete + insert` 邏輯逐行搬，**不重寫演算法**。
@@ -154,7 +161,7 @@ File → 驗 mime（只收 jpeg/png/webp/gif）
 | 批次 | 內容 | 驗收 |
 |---|---|---|
 | **1** | migration + 三支 API + Web 三入口 + Web node view + **Apple bundle 認得 Image + scheme handler（顯示）** | Web 完整流程；Mac / iOS 開含圖卡片看得到圖；**iOS 編輯含圖卡片存檔後圖片仍在** |
-| **2** | Mac 上傳三入口（bridge）+ Mac 拖曳把手 | Mac 實機完整流程 + 把手 DoD 清單 |
+| **2**（已實作 2026-10-17） | Mac 上傳三入口（bridge）+ Mac 拖曳把手 | Mac 實機完整流程 + 把手 DoD 清單 |
 | **3** | 孤兒清理 script + `description` 1MB 上限 + `/api/cards` 純圖卡片過濾修正 | 單測 + 手動跑 script |
 
 **資料遺失風險（本案最重要的一條）：** TipTap 載入時會丟掉不認得的 node。若 Web 先上線插圖，而 App 的 bundle 還沒有 Image node，使用者在 iPhone / Mac 打開該卡片改一個字 → 存檔就把圖片從內文刪掉。**所以批次 1 必須包含 App bundle 更新。** 目前產品只有開發者一人使用、尚未對外公布（2026-10-16 使用者決定），因此**不加 feature flag**；Web 上線後、App 新版裝上前，開發者自己避免在舊版 App 編輯含圖卡片即可。對外公布後若要再做類似「新 node 型別」的改動，需重新評估是否加開關。

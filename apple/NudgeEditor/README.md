@@ -14,8 +14,15 @@
 
 - `editor-extensions.ts`（StarterKit + TaskList + SplitTaskList 等）
 - `slash-command-defs.ts`（slash items 純資料，Task 1 從 `slash-command-items.tsx` 抽出來）
+- `image-prepare.ts`（圖片縮圖 / 編碼；`src/lib/image-upload.ts` re-export 它並保留 Web 的 `uploadAttachment` fetch）
+- `image-entry-points.ts`（drop / paste / 選檔的判斷邏輯）
+- `block-drag-core.ts`（區塊拖曳的 hover / slot / move 演算法）
 
 這些檔 iOS 和 web 共用。Web 改動會影響 iOS，**記得 rebuild bundle**（見下）。
+
+### Mac 上傳 / 把手
+
+bundle 內三個 Mac 專用檔（`src/`）：`image-upload.ts`（placeholder → prepare → bridge `upload` → `uploadResult` finalize/fail；`requestId` 即 placeholder 的 `uploadId`）、`banner.ts`（4 秒 DOM 錯誤橫幅）、`block-drag.ts`（純 DOM 把手；`dragover`/`drop` 在 `#editor` 上走 capture phase，payload 為自訂 MIME `application/x-nudge-block`）。全部只在 `NUDGE_PLATFORM === "macos"` 啟用；上傳另需 `attachmentTaskId` 非 null（Swift 以 `NudgeEditor.setAttachmentTaskId` 注入）。原生端：`ImageUploadCoordinator` 處理 `upload` 訊息、macOS `WKUIDelegate.runOpenPanel` 負責 `<input type=file>`。
 
 不共用的：
 
