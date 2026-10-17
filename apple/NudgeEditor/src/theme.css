@@ -159,6 +159,16 @@ html, body {
     outline: 2px solid var(--nudge-primary);
     outline-offset: 2px;
 }
+/* 上傳中 placeholder。AttachmentImage.renderHTML 對 pending node 輸出
+   <img data-upload-pending="true" data-upload-id="…">、不帶 src（bundle 沒有
+   React node view，看不到 blob 預覽）→ 畫成半透明佔位框，上傳完成換成正式圖。 */
+.ProseMirror img[data-upload-pending] {
+    width: 100%;
+    min-height: 80px;
+    background: var(--nudge-border-light);
+    opacity: 0.6;
+    border-radius: 6px;
+}
 
 .ProseMirror .is-editor-empty:first-child::before {
     content: attr(data-placeholder);
@@ -205,4 +215,28 @@ html, body {
 .nudge-slash-menu-item-desc {
     font-size: 12px;
     color: var(--nudge-text-dim);
+}
+
+/* 錯誤橫幅（banner.ts）：上傳失敗 / 格式不支援等，4 秒後淡出。 */
+.nudge-editor-banner {
+    position: fixed;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: calc(100% - 32px);
+    box-sizing: border-box;
+    background: var(--nudge-background);
+    color: var(--nudge-foreground);
+    border: 1px solid var(--nudge-border-light);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    z-index: 1001;
+}
+.nudge-editor-banner.is-visible {
+    opacity: 1;
 }
