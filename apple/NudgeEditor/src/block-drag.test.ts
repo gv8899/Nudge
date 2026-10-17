@@ -114,7 +114,7 @@ describe("mountBlockDrag", () => {
     const dt = fakeDataTransfer();
     handle.dispatchEvent(dragEvent("dragstart", { clientY: 10, dataTransfer: dt }));
     expect(dt.types).toEqual(["application/x-nudge-block"]);
-    expect(dt.getData("application/x-nudge-block")).toBe("");
+    expect(dt.getData("application/x-nudge-block")).toBe("1");
     expect(dt.getData("text/plain")).toBe("");
     expect(dt.effectAllowed).toBe("move");
     // slots: 0 → y0, 3 → y25（20 與 30 中點）, 6 → y50；cursor 10 → slot y0

@@ -5,7 +5,7 @@
 //
 // 與檔案拖放（main.ts 的 document Files guard + ProseMirror handleDrop →
 // handleFileDrop）互不搶事件：
-// - 把手拖曳只 setData("application/x-nudge-block", "")（自訂 MIME、空值：拖出 WKWebView
+// - 把手拖曳只 setData("application/x-nudge-block", "1")（自訂 MIME、非文字：拖出 WKWebView
 //   到原生標題欄 / 其他 app 也不會插入任何文字），沒有 "Files" type → isFileDrag 為 false，
 //   document guard / handleFileDrop 都不理它。
 // - 這裡的 dragover / drop 在 draggingFrom === null（例如外部拖檔進來）時什麼都不做，
@@ -109,8 +109,8 @@ export function mountBlockDrag(
     draggingFrom = hovered.pos;
     e.dataTransfer.effectAllowed = "move";
     // 沒有 "Files" type → isFileDrag false，檔案 drop 流程不會攔到
-    // 自訂 MIME + 空值：不是 Files（檔案流程不攔），也不會在拖出視窗時把文字灌進原生欄位
-    e.dataTransfer.setData("application/x-nudge-block", "");
+    // 自訂 MIME（非空值，WebKit 起拖保險）：不是 Files（檔案流程不攔），也不會在拖出視窗時把文字灌進原生欄位
+    e.dataTransfer.setData("application/x-nudge-block", "1");
     e.dataTransfer.setDragImage(EMPTY_IMG, 0, 0);
     slots = computeDropSlots(editor.view, rect());
     const s = nearestSlot(slots, e.clientY - rect().top);
