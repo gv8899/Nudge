@@ -18,6 +18,10 @@ public struct CardsHostView: View {
     private let onFullPageChange: ((Bool) -> Void)?
 
     @State private var cards: [CardDTO] = []
+    /// SSE change / 重連 / cardsChanged 通知觸發的列表重抓走這個合併器：一次存檔或
+    /// 上傳圖片會在 ~2 秒內連發 3–5 個事件，每個都直接 firstPage() 會同時打出多個
+    /// 重查詢 `/api/cards`、把圖片 GET 卡在後面。初次載入與使用者觸發的重抓仍直接呼叫。
+    @State private var listRefresher: CoalescedRefresher?
     @State private var nextCursor: String?
     @State private var isLoading = false
     @State private var isLoadingMore = false
@@ -58,10 +62,11 @@ public struct CardsHostView: View {
         // 的 @State / path 值、不由列表派生，CardDetailView 以 .id(card.id) 綁定，
         // 所以重抓列表不會重建編輯器。開著那張卡的內容由 CardDetailView 自己決定套用。
         .onReceive(NotificationCenter.default.publisher(for: NudgeSync.changeNotification)) { _ in
-            Task { await firstPage() }
+            // 本機自己存檔的回音（sameSecond 版本）也照樣重抓：列表預覽可能要顯示新內文，合併已足夠。
+            requestListRefresh()
         }
         .onReceive(NotificationCenter.default.publisher(for: NudgeSync.reconnectedNotification)) { _ in
-            Task { await firstPage() }
+            requestListRefresh()
         }
     }
 
@@ -205,7 +210,7 @@ public struct CardsHostView: View {
         // 即時：別處（行動頁 task popup 等）替任務加內容存檔後即時重抓，
         // 人在 Cards 分頁也馬上看到新卡片。
         .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.cardsChangedNotification)) { _ in
-            Task { await firstPage() }
+            requestListRefresh()
         }
 
         // embedded = 嵌在 DailyHostView 右側面板用，不能掛 toolbar /
@@ -546,6 +551,13 @@ public struct CardsHostView: View {
         #else
         navigationPath.append(card)
         #endif
+    }
+
+    /// 合併式列表重抓（見 listRefresher）。第一次呼叫時才建立合併器。
+    private func requestListRefresh() {
+        let refresher = listRefresher ?? CoalescedRefresher { await firstPage() }
+        if listRefresher == nil { listRefresher = refresher }
+        refresher.request()
     }
 
     private func firstPage() async {
