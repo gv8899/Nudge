@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { decideRemoteChange, sameSecond } from "./live-sync-rules";
+import { decideRemoteChange, sameSecond, shouldRemountAfterFetch } from "./live-sync-rules";
 
 const base = "2026-10-17T10:00:00.000Z";
 const newer = "2026-10-17T10:00:05.000Z";
@@ -33,5 +33,22 @@ describe("sameSecond", () => {
   it("秒精度", () => {
     expect(sameSecond(base, sameSecLater)).toBe(true);
     expect(sameSecond(base, newer)).toBe(false);
+  });
+});
+
+describe("shouldRemountAfterFetch", () => {
+  const mounted = { title: "T", description: "<p>old</p>" };
+  it("latest undefined → false", () => {
+    expect(shouldRemountAfterFetch({ mounted, latest: undefined, stillIdle: true })).toBe(false);
+  });
+  it("不再閒置 → false", () => {
+    expect(shouldRemountAfterFetch({ mounted, latest: { title: "T", description: "<p>new</p>" }, stillIdle: false })).toBe(false);
+  });
+  it("內容與掛載的相同 → false", () => {
+    expect(shouldRemountAfterFetch({ mounted, latest: { title: "T", description: "<p>old</p>" }, stillIdle: true })).toBe(false);
+  });
+  it("內容與掛載的不同 → true（即使 SWR cache 早已是新內容）", () => {
+    expect(shouldRemountAfterFetch({ mounted, latest: { title: "T", description: "<p>new</p>" }, stillIdle: true })).toBe(true);
+    expect(shouldRemountAfterFetch({ mounted, latest: { title: "T2", description: "<p>old</p>" }, stillIdle: true })).toBe(true);
   });
 });

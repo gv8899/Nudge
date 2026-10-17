@@ -25,3 +25,27 @@ export function decideRemoteChange(args: {
   if (hasPending) return "ignore";
   return "apply";
 }
+
+export interface CardContent {
+  title: string;
+  description: string;
+}
+
+/**
+ * 重抓回來後要不要重 mount 編輯器：比對的基準是「編輯器實際 mount 的內容」，
+ * 不是 SWR cache（cache 可能已被其他重抓更新、編輯器卻還是舊內容）。
+ */
+export function shouldRemountAfterFetch(args: {
+  mounted: CardContent;
+  latest: CardContent | undefined;
+  stillIdle: boolean;
+}): boolean {
+  const { mounted, latest, stillIdle } = args;
+  if (!latest || !stillIdle) return false;
+  return latest.title !== mounted.title || latest.description !== mounted.description;
+}
+
+/** 與編輯器 `content={description || ""}` 同一個正規化。 */
+export function cardContentOf(card: { title: string; description: string | null }): CardContent {
+  return { title: card.title, description: card.description || "" };
+}

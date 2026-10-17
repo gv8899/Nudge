@@ -12,7 +12,7 @@ import { DebouncedSaver } from "@/lib/debounced-saver";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
 import { seedCardVersion, patchCardField, getCardVersion, isCardSaveInFlight } from "@/lib/card-version";
 import { subscribeLiveSync } from "@/lib/live-sync";
-import { decideRemoteChange } from "@/lib/live-sync-rules";
+import { decideRemoteChange, shouldRemountAfterFetch, cardContentOf, type CardContent } from "@/lib/live-sync-rules";
 import { TagPicker } from "@/components/tags/tag-picker";
 import { useTags } from "@/hooks/use-tags";
 import { shouldPersistDescription } from "@/lib/strip-html";
@@ -47,7 +47,9 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   const tCommon = useTranslations("common");
   const { data, error, isLoading, mutate } = useSWR<CardData>(
     `/api/tasks/${id}`,
-    fetcher
+    fetcher,
+    // 即時同步（事件 + reconnected 補抓）已涵蓋這兩種情況；focus 重抓會在編輯器已 mount 時默默換掉 data。
+    { revalidateOnFocus: false, revalidateOnReconnect: false }
   );
 
   // 標題 — 永遠可編輯的 input（對齊 Mac CardDetailView macHeader），不強制
@@ -57,6 +59,17 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   const isTitleFocusedRef = useRef(false);
   // 409 衝突時 ++ 換掉編輯器 key 強制重 mount，載入 server 最新內文。
   const [reloadToken, setReloadToken] = useState(0);
+  // 編輯器實際 mount 的內容（重抓後是否重 mount 的比對基準；不能用 SWR data，
+  // data 可能被其他重抓更新而編輯器仍是舊內容）。
+  const mountedContentRef = useRef<CardContent>({ title: "", description: "" });
+  const mountedForIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    // 首次拿到這張卡的資料（含換 id）= 編輯器以這份 data mount。
+    if (data && mountedForIdRef.current !== id) {
+      mountedForIdRef.current = id;
+      mountedContentRef.current = cardContentOf(data);
+    }
+  }, [id, data]);
   const [cardTags, setCardTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
   const { tags: allTags } = useTags();
 
@@ -79,10 +92,14 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
         const latest = result.latest as unknown as CardData;
         setTitleDraft(latest.title);
         await mutate(latest, { revalidate: false });
+        mountedContentRef.current = cardContentOf(latest);
         setReloadToken((n) => n + 1);
         invalidateCardsCache();
         return;
       }
+      // 自己存成功：編輯器顯示的就是剛存的內容。
+      if (updates.title !== undefined) mountedContentRef.current.title = updates.title;
+      if (updates.description !== undefined) mountedContentRef.current.description = updates.description;
       mutate();
       invalidateCardsCache();
     },
@@ -133,24 +150,20 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
     if (data?.updatedAt && !isLocallyPending()) seedCardVersion(id, data.updatedAt);
   }, [id, data?.updatedAt, isLocallyPending]); // isLocallyPending 只隨 id 變（saver 穩定）
 
-  // 重抓比對用：目前編輯器內容所 mount 的來源（閘門保證閒置時 畫面 == data）。
-  const dataRef = useRef(data);
-  useEffect(() => {
-    dataRef.current = data;
-  });
-
   // 即時同步：別處改了這張卡 → 純檢視時換最新；正在打字（saver pending）
   // 時不動，交給存檔的 409 路徑。reconnected → 無條件補抓一次（斷線期間可能漏事件）。
   useEffect(() => {
     // 重抓回來後再查一次：使用者可能在 round trip 期間開始打字，此時重 mount
     // 會吃掉輸入、之後存檔又以新基準覆蓋遠端 → 跳過重載，讓 pending 存檔勝出。
-    // 內容跟畫面一樣（自己存檔的回音、別處只改提醒）也不重 mount（會丟游標 / 捲動）。
+    // 內容跟編輯器實際 mount 的一樣（自己存檔的回音、別處只改提醒）也不重 mount（會丟游標 / 捲動）。
     const refetchAndReload = () => {
-      const prevTitle = dataRef.current?.title;
-      const prevDescription = dataRef.current?.description;
       void mutate().then((latest) => {
-        if (!latest || isLocallyPending()) return;
-        if (latest.title !== prevTitle || latest.description !== prevDescription) {
+        const next = latest ? cardContentOf(latest) : undefined;
+        if (
+          next &&
+          shouldRemountAfterFetch({ mounted: mountedContentRef.current, latest: next, stillIdle: !isLocallyPending() })
+        ) {
+          mountedContentRef.current = next;
           setReloadToken((n) => n + 1);
         }
       });

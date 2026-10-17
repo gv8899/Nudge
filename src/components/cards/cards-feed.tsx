@@ -13,6 +13,7 @@ import { TaskDetailModal } from "@/components/task/task-detail-modal";
 import { fetcher } from "@/lib/fetcher";
 import { seedCardVersion, patchCardField } from "@/lib/card-version";
 import { subscribeLiveSync } from "@/lib/live-sync";
+import { shouldRemountAfterFetch, cardContentOf, type CardContent } from "@/lib/live-sync-rules";
 import type { Task } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
 
@@ -30,7 +31,9 @@ interface CardWithTags extends Task {
 function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
   const { data, mutate } = useSWR<CardWithTags>(
     `/api/tasks/${cardId}`,
-    fetcher
+    fetcher,
+    // 即時同步（事件 + reconnected 補抓）已涵蓋這兩種情況；focus 重抓會在編輯器已 mount 時默默換掉 data。
+    { revalidateOnFocus: false, revalidateOnReconnect: false }
   );
   // 409 衝突時 ++ 強制內文編輯器重 mount 載入 server 最新內容。
   const [editorReloadToken, setEditorReloadToken] = useState(0);
@@ -45,11 +48,17 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
     if (data?.updatedAt && !pendingProbeRef.current?.()) seedCardVersion(cardId, data.updatedAt);
   }, [cardId, data?.updatedAt]);
 
-  // 重抓比對用：編輯器目前內容所 mount 的來源（閘門保證閒置時 畫面 == data）。
-  const dataRef = useRef(data);
+  // 編輯器實際 mount 的內容（重抓後是否重 mount 的比對基準；不能用 SWR data，
+  // data 可能被其他重抓更新而編輯器仍是舊內容）。標題由 TaskDetailModal 從 task.title 同步，同一批時機追蹤。
+  const mountedContentRef = useRef<CardContent>({ title: "", description: "" });
+  const mountedForIdRef = useRef<string | null>(null);
   useEffect(() => {
-    dataRef.current = data;
-  });
+    // 首次拿到這張卡的資料（含換 id）= 編輯器以這份 data mount。
+    if (data && mountedForIdRef.current !== cardId) {
+      mountedForIdRef.current = cardId;
+      mountedContentRef.current = cardContentOf(data);
+    }
+  }, [cardId, data]);
 
   const patch = useCallback(
     async (updates: Partial<{ title: string; description: string }>) => {
@@ -57,9 +66,14 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
       if (result.status === "conflict") {
         // 別台先存、這次被擋 → 採用 server 最新（方案二），丟棄本機這次編輯，
         // 重 mount 編輯器；標題由 TaskDetailModal 從 task.title 自動同步。
-        await mutate(result.latest as unknown as CardWithTags, { revalidate: false });
+        const latest = result.latest as unknown as CardWithTags;
+        await mutate(latest, { revalidate: false });
+        mountedContentRef.current = cardContentOf(latest);
         setEditorReloadToken((n) => n + 1);
       } else {
+        // 自己存成功：編輯器顯示的就是剛存的內容。
+        if (updates.title !== undefined) mountedContentRef.current.title = updates.title;
+        if (updates.description !== undefined) mountedContentRef.current.description = updates.description;
         // Refresh the modal data
         mutate();
       }
@@ -75,16 +89,12 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
 
   // 即時同步：TaskDetailModal 判定「別處改了且本機沒在打字」→ 先重抓再重 mount 編輯器。
   // 重抓期間使用者若開始打字（stillIdle() = false）就不重 mount，讓 pending 存檔勝出。
-  // 內容跟畫面一樣（自己存檔的回音、別處只改提醒）不重 mount（會丟游標 / 捲動）。
+  // 內容跟編輯器實際 mount 的一樣（自己存檔的回音、別處只改提醒）不重 mount（會丟游標 / 捲動）。
   const handleRemoteChange = useCallback(async (stillIdle: () => boolean) => {
-    const prevTitle = dataRef.current?.title;
-    const prevDescription = dataRef.current?.description;
     const latest = await mutate();
-    if (
-      latest &&
-      stillIdle() &&
-      (latest.title !== prevTitle || latest.description !== prevDescription)
-    ) {
+    const next = latest ? cardContentOf(latest) : undefined;
+    if (next && shouldRemountAfterFetch({ mounted: mountedContentRef.current, latest: next, stillIdle: stillIdle() })) {
+      mountedContentRef.current = next;
       setEditorReloadToken((n) => n + 1);
     }
     globalMutate(
