@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, type RefObject } from "react";
 import { useTranslations } from "next-intl";
 import { DebouncedSaver } from "@/lib/debounced-saver";
 import { TiptapEditor } from "./tiptap-editor";
@@ -32,6 +32,11 @@ interface TaskDetailModalProps {
    * `stillIdle()` 在呼叫當下重算本機 pending —— parent 重抓完、重 mount 編輯器前要再查一次。
    */
   onRemoteChange?: (stillIdle: () => boolean) => void;
+  /**
+   * 選填：modal 把「本機是否有未存 / 在途修改」的查詢函式掛到這個 ref，讓 parent
+   * 在 seed 版本基準前先查（編輯中不 seed，見 cards-feed CardModal）。
+   */
+  pendingProbeRef?: RefObject<(() => boolean) | null>;
 }
 
 export function TaskDetailModal({
@@ -47,6 +52,7 @@ export function TaskDetailModal({
   wide = false,
   editorReloadToken = 0,
   onRemoteChange,
+  pendingProbeRef,
 }: TaskDetailModalProps) {
   const t = useTranslations("task");
   const tCommon = useTranslations("common");
@@ -92,14 +98,26 @@ export function TaskDetailModal({
   );
   useEffect(() => () => titleSaver.flush(), [titleSaver]);
 
-  // 即時同步（parent 決定要不要重抓；這裡只負責「正在打字就別吵」的閘門）
-  useEffect(() => {
-    if (!open || !onRemoteChange) return;
-    const isLocallyPending = () =>
+  // 本機有未存 / 在途修改（即時同步閘門與 parent 的 seed 共用）。
+  const isLocallyPending = useCallback(
+    () =>
       descSaver.isPending() ||
       titleSaver.isPending() ||
       isTitleFocusedRef.current ||
-      isCardSaveInFlight(task.id);
+      isCardSaveInFlight(task.id),
+    [task.id, descSaver, titleSaver]
+  );
+  useEffect(() => {
+    if (!pendingProbeRef) return;
+    pendingProbeRef.current = isLocallyPending;
+    return () => {
+      if (pendingProbeRef.current === isLocallyPending) pendingProbeRef.current = null;
+    };
+  }, [pendingProbeRef, isLocallyPending]);
+
+  // 即時同步（parent 決定要不要重抓；這裡只負責「正在打字就別吵」的閘門）
+  useEffect(() => {
+    if (!open || !onRemoteChange) return;
     const stillIdle = () => !isLocallyPending();
     return subscribeLiveSync((m) => {
       const hasPending = isLocallyPending();
@@ -115,7 +133,7 @@ export function TaskDetailModal({
       });
       if (d === "apply") onRemoteChange(stillIdle);
     });
-  }, [open, onRemoteChange, task.id, descSaver, titleSaver]);
+  }, [open, onRemoteChange, task.id, isLocallyPending]);
 
   const handleClose = useCallback(() => {
     descSaver.flush();

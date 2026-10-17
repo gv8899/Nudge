@@ -65,11 +65,6 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
     if (data?.title !== undefined) setTitleDraft(data.title);
   }, [data?.title]);
 
-  // seed 樂觀並行基準：server 回的 updatedAt = 目前畫面內容所基於的版本。
-  useEffect(() => {
-    if (data?.updatedAt) seedCardVersion(id, data.updatedAt);
-  }, [id, data?.updatedAt]);
-
   useEffect(() => {
     if (data?.tags) setCardTags(data.tags);
   }, [data]);
@@ -119,21 +114,47 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   );
   useEffect(() => () => titleSaver.flush(), [titleSaver]);
 
-  // 即時同步：別處改了這張卡 → 純檢視時換最新；正在打字（saver pending）
-  // 時不動，交給存檔的 409 路徑。reconnected → 無條件補抓一次（斷線期間可能漏事件）。
-  useEffect(() => {
-    // 本機有未存 / 在途的修改（存檔在途：基準還沒推進，自己的回音不能當遠端變更）。
-    const isLocallyPending = () =>
+  // 本機有未存 / 在途的修改（存檔在途：基準還沒推進，自己的回音不能當遠端變更）。
+  // seed 與即時同步閘門共用同一個判斷。
+  const isLocallyPending = useCallback(
+    () =>
       descSaver.isPending() ||
       titleSaver.isPending() ||
       isTitleFocusedRef.current ||
-      isCardSaveInFlight(id);
+      isCardSaveInFlight(id),
+    [id, descSaver, titleSaver]
+  );
+
+  // seed 樂觀並行基準：server 回的 updatedAt = 目前畫面內容所基於的版本。
+  // 編輯中不 seed：重抓途中使用者開始打字時，編輯器仍是舊內文 + 新輸入，若基準
+  // 跳到遠端新版，下一次存檔會通過版本檢查、默默覆蓋別台 → 留舊基準讓 409 接手。
+  // （自己存完時 patchCardField 已推進基準，之後 mutate 的 seed 只是同值。）
+  useEffect(() => {
+    if (data?.updatedAt && !isLocallyPending()) seedCardVersion(id, data.updatedAt);
+  }, [id, data?.updatedAt, isLocallyPending]); // isLocallyPending 只隨 id 變（saver 穩定）
+
+  // 重抓比對用：目前編輯器內容所 mount 的來源（閘門保證閒置時 畫面 == data）。
+  const dataRef = useRef(data);
+  useEffect(() => {
+    dataRef.current = data;
+  });
+
+  // 即時同步：別處改了這張卡 → 純檢視時換最新；正在打字（saver pending）
+  // 時不動，交給存檔的 409 路徑。reconnected → 無條件補抓一次（斷線期間可能漏事件）。
+  useEffect(() => {
     // 重抓回來後再查一次：使用者可能在 round trip 期間開始打字，此時重 mount
     // 會吃掉輸入、之後存檔又以新基準覆蓋遠端 → 跳過重載，讓 pending 存檔勝出。
-    const refetchAndReload = () =>
-      void mutate().then(() => {
-        if (!isLocallyPending()) setReloadToken((n) => n + 1);
+    // 內容跟畫面一樣（自己存檔的回音、別處只改提醒）也不重 mount（會丟游標 / 捲動）。
+    const refetchAndReload = () => {
+      const prevTitle = dataRef.current?.title;
+      const prevDescription = dataRef.current?.description;
+      void mutate().then((latest) => {
+        if (!latest || isLocallyPending()) return;
+        if (latest.title !== prevTitle || latest.description !== prevDescription) {
+          setReloadToken((n) => n + 1);
+        }
       });
+    };
     return subscribeLiveSync((m) => {
       const hasPending = isLocallyPending();
       if (m.type === "reconnected") {
@@ -153,7 +174,7 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
       refetchAndReload();
       invalidateCardsCache();
     });
-  }, [id, mutate, descSaver, titleSaver]);
+  }, [id, mutate, isLocallyPending]);
 
   const handleTagsChange = async (tagIds: string[]) => {
     // 樂觀更新：立即顯示 tag badge

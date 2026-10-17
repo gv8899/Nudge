@@ -12,6 +12,7 @@ import { CardGridItem } from "./card-grid-item";
 import { TaskDetailModal } from "@/components/task/task-detail-modal";
 import { fetcher } from "@/lib/fetcher";
 import { seedCardVersion, patchCardField } from "@/lib/card-version";
+import { subscribeLiveSync } from "@/lib/live-sync";
 import type { Task } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
 
@@ -34,10 +35,21 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
   // 409 衝突時 ++ 強制內文編輯器重 mount 載入 server 最新內容。
   const [editorReloadToken, setEditorReloadToken] = useState(0);
 
+  // TaskDetailModal 掛上的「本機是否有未存 / 在途修改」查詢（與它的即時同步閘門同一個）。
+  const pendingProbeRef = useRef<(() => boolean) | null>(null);
+
   // seed 樂觀並行基準：server 回的 updatedAt = 目前畫面內容所基於的版本。
+  // 編輯中不 seed：重抓途中使用者開始打字，基準若跳到遠端新版，下一次存檔會
+  // 通過版本檢查、默默覆蓋別台 → 留舊基準讓 409 接手。
   useEffect(() => {
-    if (data?.updatedAt) seedCardVersion(cardId, data.updatedAt);
+    if (data?.updatedAt && !pendingProbeRef.current?.()) seedCardVersion(cardId, data.updatedAt);
   }, [cardId, data?.updatedAt]);
+
+  // 重抓比對用：編輯器目前內容所 mount 的來源（閘門保證閒置時 畫面 == data）。
+  const dataRef = useRef(data);
+  useEffect(() => {
+    dataRef.current = data;
+  });
 
   const patch = useCallback(
     async (updates: Partial<{ title: string; description: string }>) => {
@@ -63,9 +75,18 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
 
   // 即時同步：TaskDetailModal 判定「別處改了且本機沒在打字」→ 先重抓再重 mount 編輯器。
   // 重抓期間使用者若開始打字（stillIdle() = false）就不重 mount，讓 pending 存檔勝出。
+  // 內容跟畫面一樣（自己存檔的回音、別處只改提醒）不重 mount（會丟游標 / 捲動）。
   const handleRemoteChange = useCallback(async (stillIdle: () => boolean) => {
-    await mutate();
-    if (stillIdle()) setEditorReloadToken((n) => n + 1);
+    const prevTitle = dataRef.current?.title;
+    const prevDescription = dataRef.current?.description;
+    const latest = await mutate();
+    if (
+      latest &&
+      stillIdle() &&
+      (latest.title !== prevTitle || latest.description !== prevDescription)
+    ) {
+      setEditorReloadToken((n) => n + 1);
+    }
     globalMutate(
       (key) => typeof key === "string" && key.startsWith("/api/cards"),
       undefined,
@@ -88,6 +109,7 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
       wide
       editorReloadToken={editorReloadToken}
       onRemoteChange={handleRemoteChange}
+      pendingProbeRef={pendingProbeRef}
       onExpand={() => onExpand(cardId)}
     />
   );
@@ -150,6 +172,19 @@ export function CardsFeed() {
   }, [isLoadingMore, hasMore, loadMore]);
 
   const sentinelRef = useIntersectionObserver(handleLoadMore, hasMore);
+
+  // 即時同步（列表層）：沒開卡片 modal 時，任何事件 / 重連都刷新卡片格；
+  // 開著 modal 時由 CardModal 處理（它重抓後也會失效 /api/cards*）。
+  useEffect(() => {
+    if (modalCardId) return;
+    return subscribeLiveSync(() => {
+      globalMutate(
+        (key) => typeof key === "string" && key.startsWith("/api/cards"),
+        undefined,
+        { revalidate: true }
+      );
+    });
+  }, [modalCardId]);
 
   // Filtering mode: any active query or tag selection → search results, no pagination footer
   const isFiltering = debouncedQuery.length > 0 || selectedTagIds.length > 0;
