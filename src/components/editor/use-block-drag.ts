@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import type { Editor } from "@tiptap/core";
+import { topLevelBlockPos } from "./block-pos";
 
 // 預先載好 1px 透明圖，避免 dragStart 時圖片還沒 load 導致瀏覽器顯示預設 icon
 const emptyDragImage = typeof window !== "undefined" ? (() => {
@@ -71,10 +72,11 @@ export function useBlockDrag(editor: Editor | null) {
       // 在曖昧情況（座標打不到任何 node）保留既有 state，避免 handle 閃消
       if (!coords) return;
 
-      const $pos = editor.state.doc.resolve(coords.pos);
-      if ($pos.depth < 1) return;
+      // 圖片這類 atom block 沒有內文，pos 會落在 block 之間（depth 0），
+      // 要靠 coords.inside 才找得到 —— 見 block-pos.ts。
+      const topLevelPos = topLevelBlockPos(editor.state.doc, coords);
+      if (topLevelPos === null) return;
 
-      const topLevelPos = $pos.before(1);
       const dom = editor.view.nodeDOM(topLevelPos);
       if (!dom || !(dom instanceof HTMLElement)) return;
 
