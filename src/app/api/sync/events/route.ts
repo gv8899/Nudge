@@ -19,6 +19,9 @@ export async function GET(request: NextRequest) {
   ensureListener();
   const encoder = new TextEncoder();
 
+  // start / cancel / heartbeat / abort 都可能走到清理，故 idempotent
+  let cleanup: () => void = () => {};
+
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
       const write = (s: string) => controller.enqueue(encoder.encode(s));
@@ -27,15 +30,19 @@ export async function GET(request: NextRequest) {
       // 開場：讓 proxy / 瀏覽器立刻看到 body 開始（也驗證連線成功）
       write(`: connected\n\n`);
       const unsubscribe = getRegistry().subscribe(user.id, send);
+      let done = false;
       const heartbeat = setInterval(() => {
         try {
           write(`: ping\n\n`);
         } catch {
-          /* controller 已關，由 abort 清理 */
+          // controller 已死：自我清理，不留 interval / 訂閱
+          cleanup();
         }
       }, HEARTBEAT_MS);
 
-      const cleanup = () => {
+      cleanup = () => {
+        if (done) return;
+        done = true;
         clearInterval(heartbeat);
         unsubscribe();
         try {
@@ -44,7 +51,12 @@ export async function GET(request: NextRequest) {
           /* already closed */
         }
       };
-      request.signal.addEventListener("abort", cleanup, { once: true });
+      request.signal.addEventListener("abort", () => cleanup(), { once: true });
+      // getUser() 期間 client 可能已斷線，abort 事件不會再觸發
+      if (request.signal.aborted) cleanup();
+    },
+    cancel() {
+      cleanup();
     },
   });
 
