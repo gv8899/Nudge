@@ -6,7 +6,8 @@ public enum SyncEvent: Equatable, Sendable {
     case any
 }
 
-/// 最小 SSE 解析器：逐行餵（`URLSession.AsyncBytes.lines` 已去掉換行），
+/// 最小 SSE 解析器：呼叫端把原始位元組按 `\n` 切行（去掉結尾 `\r`），每一行
+/// 都要餵進來 —— 包含空行（`AsyncBytes.lines` 會丟空行，所以不能用它），
 /// 空行代表一個事件結束。只認 `event: change`；`:` 開頭是心跳 / 註解。
 public struct SSEParser: Sendable {
     private var eventName: String?

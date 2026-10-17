@@ -24,6 +24,7 @@ import Foundation
             event: change
             data: {"kind":"any"}
 
+
             """
             let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil,
                                            headerFields: ["Content-Type": "text/event-stream"])!
@@ -57,5 +58,33 @@ import Foundation
         try await Task.sleep(nanoseconds: 300_000_000)
         #expect(sync.state == .stopped(reason: "unauthorized"))
         sync.stop()
+    }
+
+    @MainActor @Test func reconnectedPostedOnRestartAfterStop() async throws {
+        MockURLProtocol.handler = { request in
+            let body = ": connected\n\n"
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil,
+                                           headerFields: ["Content-Type": "text/event-stream"])!
+            return (body.data(using: .utf8)!, response)
+        }
+        let api = APIClient(configuration: APIConfiguration(baseURL: URL(string: "https://test.local")!),
+                            session: .mocked(), tokenProvider: { "t" })
+        let sync = SyncStreamClient(client: api, minBackoff: 60, maxBackoff: 60) // run 內不重連
+
+        var reconnects = 0
+        let token = NotificationCenter.default.addObserver(forName: NudgeSync.reconnectedNotification, object: nil, queue: .main) { _ in
+            reconnects += 1
+        }
+        defer { NotificationCenter.default.removeObserver(token) }
+
+        sync.start()                                   // 第一次連線：不發 reconnected
+        try await Task.sleep(nanoseconds: 300_000_000)
+        #expect(reconnects == 0)
+        sync.stop()                                    // 模擬退背景
+        sync.start()                                   // 回前景：新 run 的第一次連線要發 reconnected
+        try await Task.sleep(nanoseconds: 300_000_000)
+        sync.stop()
+
+        #expect(reconnects == 1)
     }
 }

@@ -32,6 +32,8 @@ public final class SyncStreamClient {
     private let minBackoff: Double
     private let maxBackoff: Double
     private var task: Task<Void, Never>?
+    /// 以物件（process）生命週期計數，start() 不歸零：前景回來的第一次連線
+    /// 也要發 reconnected，讓開著的卡片補抓背景期間的變更。
     private var successfulConnections = 0
 
     public init(client: APIClient, path: String = "/api/sync/events", minBackoff: Double = 1, maxBackoff: Double = 30) {
@@ -48,7 +50,6 @@ public final class SyncStreamClient {
 
     public func start() {
         guard task == nil else { return }
-        successfulConnections = 0
         task = Task { [weak self] in await self?.run() }
     }
 
@@ -93,17 +94,12 @@ public final class SyncStreamClient {
                         buffer.append(byte)
                     }
                 }
-                if Task.isCancelled { return }
-                // EOF：最後一個事件若沒有結尾空行也送出（事件只是「去補抓」的提示，
-                // 多送一次無害；JSON 被截斷的話 parser 本來就會丟掉）。
-                if !buffer.isEmpty, let event = parser.feed(line: String(decoding: buffer, as: UTF8.self)) {
-                    Self.post(event)
-                }
-                if let event = parser.feed(line: "") { Self.post(event) }
                 // 串流正常結束（server 重啟等）→ 走退避重連
             } catch is CancellationError {
                 return
             } catch let e as APIError where e.isUnauthorized {
+                // 已被 stop()（可能接著又 start() 了新 run）→ 不可覆寫新 run 的 state / task。
+                if Task.isCancelled { return }
                 state = .stopped(reason: "unauthorized")
                 task = nil
                 return
