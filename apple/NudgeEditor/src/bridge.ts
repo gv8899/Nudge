@@ -7,7 +7,21 @@ export type NativeMessage =
   | { kind: "selection"; active: ActiveMarks }
   | { kind: "height"; value: number }
   | { kind: "focus"; focused: boolean }
-  | { kind: "openURL"; url: string };
+  | { kind: "openURL"; url: string }
+  | {
+      kind: "upload";
+      requestId: string;
+      taskId: string;
+      mime: string;
+      base64: string;
+      width: number;
+      height: number;
+    };
+
+/** Native → JS：上傳結果（`NudgeEditor.uploadResult` 的參數）。 */
+export type UploadResultPayload =
+  | { requestId: string; ok: true; id: string; width: number | null; height: number | null }
+  | { requestId: string; ok: false; error: string };
 
 export interface ActiveMarks {
   heading: 1 | 2 | 3 | null;

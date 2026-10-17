@@ -82,6 +82,28 @@ public final class APIClient: Sendable {
         let _: Empty = try await perform(request)
     }
 
+    /// multipart/form-data POST（附件上傳用）。狀態碼處理沿用 perform
+    /// （401 → unauthorizedHandler + `.unauthorized`；其他非 2xx → `.server`）。
+    public func postMultipart<Response: Decodable>(
+        _ path: String,
+        fields: [String: String],
+        file: MultipartFile
+    ) async throws -> Response {
+        var request = try buildRequest(method: "POST", path: path, body: Optional<Empty>.none)
+        let boundary = "NudgeBoundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        var body = Data()
+        func append(_ s: String) { body.append(Data(s.utf8)) }
+        for (key, value) in fields.sorted(by: { $0.key < $1.key }) {
+            append("--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n\(value)\r\n")
+        }
+        append("--\(boundary)\r\nContent-Disposition: form-data; name=\"\(file.fieldName)\"; filename=\"\(file.filename)\"\r\nContent-Type: \(file.mime)\r\n\r\n")
+        body.append(file.data)
+        append("\r\n--\(boundary)--\r\n")
+        request.httpBody = body
+        return try await perform(request)
+    }
+
     public func patch<Body: Encodable, Response: Decodable>(
         _ path: String,
         body: Body
@@ -314,6 +336,21 @@ public final class APIClient: Sendable {
     }
 
     struct Empty: Codable {}
+}
+
+/// `APIClient.postMultipart` 的檔案部分。
+public struct MultipartFile: Sendable {
+    public let fieldName: String
+    public let filename: String
+    public let mime: String
+    public let data: Data
+
+    public init(fieldName: String, filename: String, mime: String, data: Data) {
+        self.fieldName = fieldName
+        self.filename = filename
+        self.mime = mime
+        self.data = data
+    }
 }
 
 /// 樂觀並行存檔結果：`.ok` = 存成功（帶 server 回的最新版）；`.conflict` =

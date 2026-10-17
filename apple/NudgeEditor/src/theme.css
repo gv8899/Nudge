@@ -23,7 +23,47 @@ html, body {
 }
 
 #editor {
+    position: relative;
     padding: 16px;
+}
+
+/* macOS 頂層 block 拖曳把手（block-drag.ts，只在 macOS 加 .nudge-has-drag）。
+   左側留 40px 把手帶；iOS 維持 16px。 */
+#editor.nudge-has-drag {
+    padding-left: 40px;
+}
+#editor.nudge-has-drag .nudge-drag-handle {
+    position: absolute;
+    left: 8px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--nudge-text-dim);
+    cursor: grab;
+    z-index: 10;
+}
+#editor.nudge-has-drag .nudge-drag-handle:hover {
+    color: var(--nudge-foreground);
+    background: var(--nudge-border-light);
+}
+#editor.nudge-has-drag .nudge-drag-handle:active {
+    cursor: grabbing;
+}
+#editor .nudge-drop-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--nudge-primary);
+    pointer-events: none;
+    z-index: 20;
+    display: none;
 }
 
 .ProseMirror {
@@ -159,6 +199,16 @@ html, body {
     outline: 2px solid var(--nudge-primary);
     outline-offset: 2px;
 }
+/* 上傳中 placeholder。AttachmentImage.renderHTML 對 pending node 輸出
+   <img data-upload-pending="true" data-upload-id="…">、不帶 src（bundle 沒有
+   React node view，看不到 blob 預覽）→ 畫成半透明佔位框，上傳完成換成正式圖。 */
+.ProseMirror img[data-upload-pending] {
+    width: 100%;
+    min-height: 80px;
+    background: var(--nudge-border-light);
+    opacity: 0.6;
+    border-radius: 6px;
+}
 
 .ProseMirror .is-editor-empty:first-child::before {
     content: attr(data-placeholder);
@@ -205,4 +255,28 @@ html, body {
 .nudge-slash-menu-item-desc {
     font-size: 12px;
     color: var(--nudge-text-dim);
+}
+
+/* 錯誤橫幅（banner.ts）：上傳失敗 / 格式不支援等，4 秒後淡出。 */
+.nudge-editor-banner {
+    position: fixed;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: calc(100% - 32px);
+    box-sizing: border-box;
+    background: var(--nudge-background);
+    color: var(--nudge-foreground);
+    border: 1px solid var(--nudge-border-light);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    z-index: 1001;
+}
+.nudge-editor-banner.is-visible {
+    opacity: 1;
 }

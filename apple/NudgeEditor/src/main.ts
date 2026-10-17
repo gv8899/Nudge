@@ -21,9 +21,24 @@ import {
 } from "@web-editor/slash-command-defs";
 import { SplitTaskList } from "@web-editor/split-task-list";
 import { AttachmentImage } from "@web-editor/attachment-image";
-import { toNativeAttachmentURLs, toServerAttachmentURLs } from "@web-editor/attachment-url";
-import { postToNative, type ActiveMarks } from "./bridge";
+import {
+  ATTACHMENT_SCHEME_PREFIX,
+  toNativeAttachmentURLs,
+  toServerAttachmentURLs,
+} from "@web-editor/attachment-url";
+import {
+  handleFileDrop,
+  handleFilePaste,
+  handlePickedFiles,
+  type EntryPointSink,
+} from "@web-editor/image-entry-points";
+import { prepareImageForUpload } from "@web-editor/image-prepare";
+import { isFileDrag } from "@web-editor/file-drag";
+import { postToNative, type ActiveMarks, type UploadResultPayload } from "./bridge";
 import { mountSlashMenu, type SlashMenuHandle } from "./slash-menu";
+import { createUploader, type Uploader } from "./image-upload";
+import { showBanner } from "./banner";
+import { mountBlockDrag } from "./block-drag";
 import "./theme.css";
 
 interface LabelDict {
@@ -40,9 +55,22 @@ let labels: LabelDict = {};
 // plugin's `this` closes over.
 let currentPlaceholder = "";
 
+// Swift 在 EditorBridge 用 WKUserScript atDocumentStart 注入 NUDGE_PLATFORM。
+const platform = (window as unknown as { NUDGE_PLATFORM?: string }).NUDGE_PLATFORM;
+
+// 卡片圖片上傳（批次 2：僅 macOS）。Swift 在 ready 後呼叫
+// setAttachmentTaskId(id|null)；沒有 taskId（新卡片尚未建立）就不給上傳。
+let attachmentTaskId: string | null = null;
+let uploader: Uploader | null = null;
+
+function enableUpload(): boolean {
+  return platform === "macos" && !!attachmentTaskId;
+}
+
 function buildSlashItems(): SlashCommandItem[] {
-  // 批次 1 Apple 不給上傳 → 把 image 項藏掉（批次 2 接 bridge 後拿掉這行）
-  return SLASH_COMMAND_DEFS.filter((def) => def.id !== "image").map((def) => {
+  // image 項只在 Mac 有 taskId 時出現；iOS 不給上傳。
+  const allowImage = enableUpload();
+  return SLASH_COMMAND_DEFS.filter((def) => allowImage || def.id !== "image").map((def) => {
     const entry = labels[def.id] ?? { label: def.id, description: "", keywords: "" };
     return {
       ...def,
@@ -137,8 +165,29 @@ function createEditor() {
   // 吞掉輸入事件 (歷史 bug)。mac WKWebView 沒這問題、用 web 一樣的
   // `/` slash menu 取代以前掛在 view 上方的 EditorToolbar。Swift 端
   // 在 EditorBridge 用 WKUserScript atDocumentStart 注入 NUDGE_PLATFORM。
-  const platform = (window as unknown as { NUDGE_PLATFORM?: string }).NUDGE_PLATFORM;
   const enableSlashMenu = platform === "macos";
+
+  // 三入口共用的 sink：拖檔 / 貼上 / 檔案選擇 → uploader。
+  const sink: EntryPointSink = {
+    uploadFiles: (files, pos) => {
+      void uploader?.uploadFiles(files, pos);
+    },
+    onRejected: () => showBanner(labels.imageUnsupported?.label ?? "imageUnsupported"),
+  };
+
+  // 隱藏的檔案選擇器（/ 選單「圖片」→ requestImagePick → onPickFiles → click）。
+  // 只在 macOS 建；iOS 不設 onPickFiles → requestImagePick 回 false。
+  let fileInput: HTMLInputElement | null = null;
+  if (platform === "macos") {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.id = "nudge-file-input";
+    input.accept = "image/jpeg,image/png,image/webp,image/gif";
+    input.multiple = true;
+    input.hidden = true;
+    document.body.appendChild(input);
+    fileInput = input;
+  }
 
   editor = new Editor({
     element: document.getElementById("editor") as HTMLElement,
@@ -159,8 +208,21 @@ function createEditor() {
         autolink: true,
         HTMLAttributes: { class: "nudge-link" },
       }),
-      // 卡片圖片。批次 1：只顯示。onPickFiles 不設 → requestImagePick 回 false。
-      AttachmentImage,
+      // 卡片圖片。macOS：onPickFiles 開隱藏檔案選擇器；iOS 不設 →
+      // requestImagePick 回 false（只顯示、不上傳）。
+      // srcForAttachment：頁面是 loadFileURL 載入，finalize 若放 /api/attachments/<id>
+      // 會解成 file:///api/… 破圖 → 用 nudge-attachment scheme（getHTML / change
+      // 送出前 toServerAttachmentURLs 改回 server form）。
+      AttachmentImage.configure({
+        srcForAttachment: (id: string) => ATTACHMENT_SCHEME_PREFIX + id,
+        ...(fileInput
+          ? {
+              onPickFiles: () => {
+                if (enableUpload()) fileInput?.click();
+              },
+            }
+          : {}),
+      }),
       // SplitTaskList — disabled alongside slash-command while isolating
       // the "typed character disappears" bug on iOS WKWebView. Its
       // appendTransaction walks the doc on every transaction; theoretical
@@ -171,6 +233,12 @@ function createEditor() {
     content: "",
     editorProps: {
       attributes: { class: "ProseMirror" },
+      // 有上傳能力才接手；handleFileDrop 對 Files 拖放一律 preventDefault
+      // （非圖片也不會讓 WKWebView 導航走）。
+      handleDrop: (view, event) =>
+        enableUpload() ? handleFileDrop(view, event as DragEvent, sink) : false,
+      handlePaste: (view, event) =>
+        enableUpload() ? handleFilePaste(view, event, sink) : false,
     },
     onUpdate: ({ editor: ed }) => {
       postToNative({ kind: "change", html: toServerAttachmentURLs(ed.getHTML()) });
@@ -184,6 +252,27 @@ function createEditor() {
   });
 
   const editorEl = document.getElementById("editor")!;
+
+  // macOS：頂層 block 拖曳把手（對齊 Web 的 use-block-drag）。iOS 不掛。
+  // 把手拖曳只帶自訂 MIME application/x-nudge-block、不帶 Files → 不會撞到下面的檔案拖放 guard。
+  if (platform === "macos") mountBlockDrag(editor, editorEl);
+
+  const ed = editor;
+  uploader = createUploader({
+    editor: ed,
+    getTaskId: () => attachmentTaskId,
+    post: (msg) => postToNative(msg),
+    prepare: prepareImageForUpload,
+    onError: (code) => showBanner(labels[code]?.label ?? code),
+  });
+
+  if (fileInput) {
+    const input = fileInput;
+    input.addEventListener("change", () => {
+      if (enableUpload()) handlePickedFiles(ed.view, input.files, sink);
+      input.value = "";
+    });
+  }
 
   // Delegate click on anchors → native. contenteditable 下 <a> 直接
   // click 預設不會 navigate（只移 caret），我們攔在 capture phase
@@ -216,14 +305,24 @@ function createEditor() {
   // land nowhere) or forced the selection to doc-end, overriding tap
   // position. Trust ProseMirror's built-in handling.
 
-  // 檔案拖進 WKWebView 預設會「導航到該檔案」把編輯器換掉。批次 1 不上傳，
-  // 一律吃掉；批次 2 改成走 bridge 上傳。
-  for (const type of ["dragover", "drop"] as const) {
-    document.addEventListener(type, (e) => {
-      const dt = (e as DragEvent).dataTransfer;
-      if (dt && Array.from(dt.types).includes("Files")) e.preventDefault();
-    });
-  }
+  // 檔案拖進 WKWebView 預設會「導航到該檔案」把編輯器換掉。
+  // - dragover：Files 一律 preventDefault（游標顯示可放）。
+  // - drop：落在 .ProseMirror 內 → ProseMirror handleDrop（handleFileDrop 自己會
+  //   preventDefault）。有上傳能力但落在編輯區外（.ProseMirror 下方空白等）→
+  //   這裡補呼叫 handleFileDrop（posAtCoords 回 null → 插到文末）。沒上傳能力
+  //   （iOS / 無 taskId）→ 只吃掉，不讓 WKWebView 導航。
+  //   document 層的 bubble listener 在 ProseMirror 之後跑，用 defaultPrevented 判斷。
+  document.addEventListener("dragover", (e) => {
+    if (isFileDrag(e.dataTransfer?.types)) e.preventDefault();
+  });
+  document.addEventListener("drop", (e) => {
+    if (!isFileDrag(e.dataTransfer?.types)) return;
+    if (!enableUpload()) {
+      e.preventDefault();
+      return;
+    }
+    if (!e.defaultPrevented) handleFileDrop(ed.view, e, sink);
+  });
 
   // Measure the editor container (not the body). Using body.scrollHeight +
   // min-height:100vh creates a feedback loop: body grows → viewport grows →
@@ -247,6 +346,9 @@ interface NudgeEditorAPI {
   setTheme(tokens: Record<string, string>): void;
   setLabels(dict: LabelDict): void;
   setPlaceholder(text: string): void;
+  setAttachmentTaskId(id: string | null): void;
+  /** 一律回真 boolean（WKWebView 把 undefined 當 evaluation error）。 */
+  uploadResult(r: UploadResultPayload): boolean;
 }
 
 const api: NudgeEditorAPI = {
@@ -315,6 +417,12 @@ const api: NudgeEditorAPI = {
     if (editor) {
       editor.view.updateState(editor.state);
     }
+  },
+  setAttachmentTaskId(id: string | null) {
+    attachmentTaskId = typeof id === "string" && id ? id : null;
+  },
+  uploadResult(r: UploadResultPayload) {
+    return uploader ? uploader.uploadResult(r) : false;
   },
 };
 

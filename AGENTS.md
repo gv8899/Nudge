@@ -82,6 +82,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Image node 是純 ProseMirror（`src/components/editor/attachment-image.ts`），Web 與 Apple bundle 共用；**不認得的 node 會在 setContent 時被丟掉**，所以任何新 node 型別必須 Web + Apple bundle 同批上線，否則 App 一存檔就把它刪了。
 - Apple 端 `load()` 把 src 改成 `nudge-attachment://attachment/<id>`，`getHTML()` 改回；`AttachmentSchemeHandler` 帶 Bearer 代抓。
 - 孤兒回收：`node scripts/reap-orphan-attachments.mjs --dry-run`（24h grace）。
+- Mac 上傳走 bridge：bundle `upload` → Swift `ImageUploadCoordinator`（App 層）→ `NudgeEditor.uploadResult`。只有 webview 已不在時才把結果回寫進已存的 description 補救；webview 還在就交給 JS 收尾（即使 placeholder 已不見）。
+- 三個入口與拖曳把手的邏輯是 Web / Apple bundle 共用的純模組，都在 `src/components/editor/`：`image-prepare.ts`（縮圖/編碼）、`image-entry-points.ts`（drop/paste/選檔判斷）、`block-drag-core.ts`（hover/slot/move 演算法）。**改任何一個都要 rebuild bundle**（`apple/NudgeEditor`），Web 與 Mac 才會一致。
+- Mac 把手（`apple/NudgeEditor/src/block-drag.ts`）的 `dragover` / `drop` 監聽**刻意用 capture phase** 掛在 `#editor`，讓 ProseMirror 看不到、不會把拖曳 payload（自訂 MIME `application/x-nudge-block`）當內容插入。別改成 bubble。
 
 ## 卡片即時同步 = SSE + Postgres NOTIFY
 

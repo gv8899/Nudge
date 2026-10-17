@@ -70,13 +70,16 @@ public struct CardVersionShim: Decodable, Sendable {
 /// CardRepository（Cards 路徑）與 TaskRepository（Daily 路徑）共用，兩條路徑
 /// 存同一張卡都走相同的版本檢查 + 衝突廣播。title / description 只送有值的那個
 /// （nil 會被 Encodable 省略 → server 不動該欄位）。
+/// 回傳 server 的結果（200 → `.ok(saved)`、409 → `.conflict(latest)`，409 已在這裡
+/// 廣播過）；一般存檔呼叫端可忽略，圖片補寫需要它判斷要不要重試 + 拿 updatedAt。
 @MainActor
+@discardableResult
 public func saveCardFieldWithVersionCheck(
     client: APIClient,
     cardId: String,
     title: String? = nil,
     description: String? = nil
-) async throws {
+) async throws -> SaveOutcome<CardVersionShim> {
     struct Body: Encodable {
         let title: String?
         let description: String?
@@ -107,4 +110,5 @@ public func saveCardFieldWithVersionCheck(
             ]
         )
     }
+    return outcome
 }

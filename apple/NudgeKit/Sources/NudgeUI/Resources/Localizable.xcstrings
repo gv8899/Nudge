@@ -2399,6 +2399,75 @@
         }
       }
     },
+    "editor.imageTooLarge": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image is larger than 5MB. Please shrink it first."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画像が 5MB を超えています。先に縮小してください。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圖片超過 5MB，請先縮小"
+          }
+        }
+      }
+    },
+    "editor.imageUnsupported": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only JPEG, PNG, WebP and GIF are supported"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JPEG、PNG、WebP、GIF のみ対応しています"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只支援 JPEG、PNG、WebP、GIF"
+          }
+        }
+      }
+    },
+    "editor.imageUploadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image upload failed. Please try again."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画像のアップロードに失敗しました。もう一度お試しください。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圖片上傳失敗，請再試一次"
+          }
+        }
+      }
+    },
     "editor.slashBulletDescription": {
       "extractionState": "manual",
       "localizations": {
