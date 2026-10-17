@@ -2,7 +2,8 @@
 
 import { useCallback, useRef, useState } from "react";
 import type { Editor } from "@tiptap/core";
-import { topLevelBlockPos } from "./block-pos";
+import { hoveredBlockAt, computeDropSlots, nearestSlot, moveBlock } from "./block-drag-core";
+import type { DropSlot } from "./block-drag-core";
 
 // 預先載好 1px 透明圖，避免 dragStart 時圖片還沒 load 導致瀏覽器顯示預設 icon
 const emptyDragImage = typeof window !== "undefined" ? (() => {
@@ -33,13 +34,6 @@ export interface BlockInfo {
  * );
  * ```
  */
-interface DropSlot {
-  /** 插入用的 ProseMirror doc position */
-  pos: number;
-  /** 指示線相對 container 的 y */
-  y: number;
-}
-
 export function useBlockDrag(editor: Editor | null) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hoveredBlock, setHoveredBlock] = useState<BlockInfo | null>(null);
@@ -57,35 +51,9 @@ export function useBlockDrag(editor: Editor | null) {
 
       const containerRect = containerRef.current.getBoundingClientRect();
 
-      // 若滑鼠位於編輯器內容左側的 padding 區（drag handle 所在帶狀區），
-      // 使用編輯器內容的左邊緣 x 座標來查 pos，避免因為在空白區而清掉 hoveredBlock
-      const editorDom = editor.view.dom as HTMLElement;
-      const editorRect = editorDom.getBoundingClientRect();
-      const probeX =
-        e.clientX < editorRect.left ? editorRect.left + 1 : e.clientX;
-
-      const coords = editor.view.posAtCoords({
-        left: probeX,
-        top: e.clientY,
-      });
-
-      // 在曖昧情況（座標打不到任何 node）保留既有 state，避免 handle 閃消
-      if (!coords) return;
-
-      // 圖片這類 atom block 沒有內文，pos 會落在 block 之間（depth 0），
-      // 要靠 coords.inside 才找得到 —— 見 block-pos.ts。
-      const topLevelPos = topLevelBlockPos(editor.state.doc, coords);
-      if (topLevelPos === null) return;
-
-      const dom = editor.view.nodeDOM(topLevelPos);
-      if (!dom || !(dom instanceof HTMLElement)) return;
-
-      const rect = dom.getBoundingClientRect();
-      setHoveredBlock({
-        pos: topLevelPos,
-        top: rect.top - containerRect.top,
-        height: rect.height,
-      });
+      const hb = hoveredBlockAt(editor.view, e.clientX, e.clientY, containerRect);
+      // 曖昧情況（打不到任何頂層 block）回 null，保留既有 state，避免 handle 閃消
+      if (hb) setHoveredBlock(hb);
     },
     [editor, draggingFromPos]
   );
@@ -94,50 +62,8 @@ export function useBlockDrag(editor: Editor | null) {
   const computeSlots = useCallback(
     (sourcePos: number): DropSlot[] => {
       if (!editor || !containerRef.current) return [];
-      const doc = editor.state.doc;
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const sourceNode = doc.nodeAt(sourcePos);
-      if (!sourceNode) return [];
-
-      const slots: DropSlot[] = [];
-      let pos = 0;
-      const childCount = doc.content.childCount;
-
-      for (let i = 0; i <= childCount; i++) {
-        // 算 y：取前後相鄰 block 的邊界做中點
-        let y: number;
-        if (i === 0) {
-          // 第一個 block 上方
-          const dom = editor.view.nodeDOM(0);
-          y = dom instanceof HTMLElement
-            ? dom.getBoundingClientRect().top - containerRect.top
-            : 0;
-        } else if (i === childCount) {
-          // 最後一個 block 下方
-          const prevStart = pos - doc.content.child(i - 1).nodeSize;
-          const dom = editor.view.nodeDOM(prevStart);
-          y = dom instanceof HTMLElement
-            ? dom.getBoundingClientRect().bottom - containerRect.top
-            : 0;
-        } else {
-          // 兩個 block 之間：取上方 block 的 bottom 和下方 block 的 top 的中點
-          const prevStart = pos - doc.content.child(i - 1).nodeSize;
-          const prevDom = editor.view.nodeDOM(prevStart);
-          const nextDom = editor.view.nodeDOM(pos);
-          if (prevDom instanceof HTMLElement && nextDom instanceof HTMLElement) {
-            const above = prevDom.getBoundingClientRect().bottom;
-            const below = nextDom.getBoundingClientRect().top;
-            y = (above + below) / 2 - containerRect.top;
-          } else {
-            y = 0;
-          }
-        }
-
-        slots.push({ pos, y });
-        if (i < childCount) pos += doc.content.child(i).nodeSize;
-      }
-
-      return slots;
+      if (!editor.state.doc.nodeAt(sourcePos)) return [];
+      return computeDropSlots(editor.view, containerRef.current.getBoundingClientRect());
     },
     [editor]
   );
@@ -156,10 +82,8 @@ export function useBlockDrag(editor: Editor | null) {
       if (slots.length > 0 && containerRef.current) {
         const containerRect = containerRef.current.getBoundingClientRect();
         const cursorY = e.clientY - containerRect.top;
-        const nearest = slots.reduce((a, b) =>
-          Math.abs(a.y - cursorY) <= Math.abs(b.y - cursorY) ? a : b
-        );
-        setDropIndicatorTop(nearest.y);
+        const nearest = nearestSlot(slots, cursorY);
+        if (nearest) setDropIndicatorTop(nearest.y);
       }
     },
     [computeSlots]
@@ -172,9 +96,7 @@ export function useBlockDrag(editor: Editor | null) {
       if (!slots.length || !containerRef.current) return null;
       const containerRect = containerRef.current.getBoundingClientRect();
       const cursorY = clientY - containerRect.top;
-      return slots.reduce((a, b) =>
-        Math.abs(a.y - cursorY) <= Math.abs(b.y - cursorY) ? a : b
-      );
+      return nearestSlot(slots, cursorY);
     },
     []
   );
@@ -209,22 +131,7 @@ export function useBlockDrag(editor: Editor | null) {
         return;
       }
 
-      const { state } = editor;
-      const sourceNode = state.doc.nodeAt(draggingFromPos);
-      if (!sourceNode) {
-        cleanup();
-        return;
-      }
-
-      const sourceEnd = draggingFromPos + sourceNode.nodeSize;
-      const tr = state.tr;
-      tr.delete(draggingFromPos, sourceEnd);
-
-      const adjustedTarget =
-        slot.pos > draggingFromPos ? slot.pos - sourceNode.nodeSize : slot.pos;
-
-      tr.insert(adjustedTarget, sourceNode);
-      editor.view.dispatch(tr);
+      moveBlock(editor.view, draggingFromPos, slot.pos);
 
       cleanup();
     },
