@@ -97,4 +97,18 @@ describe("createUploader", () => {
     expect(html.indexOf('data-upload-id="m1"')).toBeLessThan(html.indexOf('data-upload-id="m2"'));
     expect(up.pendingCount()).toBe(2);
   });
+  it("ok 但 id 不是字串 → 當失敗收掉 placeholder", async () => {
+    const editor = makeEditor();
+    const onError = vi.fn();
+    const up = createUploader({
+      editor, getTaskId: () => "t1", post: vi.fn(), onError, newId: () => "r6",
+      prepare: async () => ({ blob: new Blob([new Uint8Array([1])]), mime: "image/webp", width: 1, height: 1 }),
+    });
+    await up.uploadFiles([png()], 3);
+    expect(up.uploadResult({ requestId: "r6", ok: true, id: 42 as unknown as string, width: 1, height: 1 })).toBe(true);
+    expect(editor.getHTML()).not.toContain("data-upload-pending");
+    expect(editor.getHTML()).not.toContain("undefined");
+    expect(onError).toHaveBeenCalledWith("imageUploadFailed");
+    expect(up.pendingCount()).toBe(0);
+  });
 });

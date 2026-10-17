@@ -21,7 +21,11 @@ import {
 } from "@web-editor/slash-command-defs";
 import { SplitTaskList } from "@web-editor/split-task-list";
 import { AttachmentImage } from "@web-editor/attachment-image";
-import { toNativeAttachmentURLs, toServerAttachmentURLs } from "@web-editor/attachment-url";
+import {
+  ATTACHMENT_SCHEME_PREFIX,
+  toNativeAttachmentURLs,
+  toServerAttachmentURLs,
+} from "@web-editor/attachment-url";
 import {
   handleFileDrop,
   handleFilePaste,
@@ -206,13 +210,19 @@ function createEditor() {
       }),
       // 卡片圖片。macOS：onPickFiles 開隱藏檔案選擇器；iOS 不設 →
       // requestImagePick 回 false（只顯示、不上傳）。
-      fileInput
-        ? AttachmentImage.configure({
-            onPickFiles: () => {
-              if (enableUpload()) fileInput?.click();
-            },
-          })
-        : AttachmentImage,
+      // srcForAttachment：頁面是 loadFileURL 載入，finalize 若放 /api/attachments/<id>
+      // 會解成 file:///api/… 破圖 → 用 nudge-attachment scheme（getHTML / change
+      // 送出前 toServerAttachmentURLs 改回 server form）。
+      AttachmentImage.configure({
+        srcForAttachment: (id: string) => ATTACHMENT_SCHEME_PREFIX + id,
+        ...(fileInput
+          ? {
+              onPickFiles: () => {
+                if (enableUpload()) fileInput?.click();
+              },
+            }
+          : {}),
+      }),
       // SplitTaskList — disabled alongside slash-command while isolating
       // the "typed character disappears" bug on iOS WKWebView. Its
       // appendTransaction walks the doc on every transaction; theoretical
@@ -297,15 +307,21 @@ function createEditor() {
 
   // 檔案拖進 WKWebView 預設會「導航到該檔案」把編輯器換掉。
   // - dragover：Files 一律 preventDefault（游標顯示可放）。
-  // - drop：有上傳能力時交給 ProseMirror handleDrop（handleFileDrop 自己會
-  //   preventDefault）；沒上傳能力（iOS / 無 taskId）或落在編輯區外則在這裡吃掉。
+  // - drop：落在 .ProseMirror 內 → ProseMirror handleDrop（handleFileDrop 自己會
+  //   preventDefault）。有上傳能力但落在編輯區外（.ProseMirror 下方空白等）→
+  //   這裡補呼叫 handleFileDrop（posAtCoords 回 null → 插到文末）。沒上傳能力
+  //   （iOS / 無 taskId）→ 只吃掉，不讓 WKWebView 導航。
   //   document 層的 bubble listener 在 ProseMirror 之後跑，用 defaultPrevented 判斷。
   document.addEventListener("dragover", (e) => {
     if (isFileDrag(e.dataTransfer?.types)) e.preventDefault();
   });
   document.addEventListener("drop", (e) => {
     if (!isFileDrag(e.dataTransfer?.types)) return;
-    if (!enableUpload() || !e.defaultPrevented) e.preventDefault();
+    if (!enableUpload()) {
+      e.preventDefault();
+      return;
+    }
+    if (!e.defaultPrevented) handleFileDrop(ed.view, e, sink);
   });
 
   // Measure the editor container (not the body). Using body.scrollHeight +

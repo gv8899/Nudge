@@ -129,6 +129,8 @@ export function createUploader(deps: UploaderDeps): Uploader {
     uploadResult(r) {
       if (!r || typeof r.requestId !== "string" || !pending.has(r.requestId)) return false;
       if (r.ok) {
+        // id 型別不對（native 端 bug）→ 當失敗收掉 placeholder，別把 undefined 寫進 src。
+        if (typeof r.id !== "string") return Boolean(fail(r.requestId, "imageUploadFailed"));
         const done = safeCommand(editor, () =>
           editor.commands.finalizeImageUpload(r.requestId, {
             id: r.id,
