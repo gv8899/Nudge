@@ -23,7 +23,47 @@ html, body {
 }
 
 #editor {
+    position: relative;
     padding: 16px;
+}
+
+/* macOS 頂層 block 拖曳把手（block-drag.ts，只在 macOS 加 .nudge-has-drag）。
+   左側留 40px 把手帶；iOS 維持 16px。 */
+#editor.nudge-has-drag {
+    padding-left: 40px;
+}
+#editor.nudge-has-drag .nudge-drag-handle {
+    position: absolute;
+    left: 8px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--nudge-text-dim);
+    cursor: grab;
+    z-index: 10;
+}
+#editor.nudge-has-drag .nudge-drag-handle:hover {
+    color: var(--nudge-foreground);
+    background: var(--nudge-border-light);
+}
+#editor.nudge-has-drag .nudge-drag-handle:active {
+    cursor: grabbing;
+}
+#editor .nudge-drop-indicator {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--nudge-primary);
+    pointer-events: none;
+    z-index: 20;
+    display: none;
 }
 
 .ProseMirror {

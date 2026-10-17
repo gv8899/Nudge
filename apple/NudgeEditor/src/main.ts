@@ -34,6 +34,7 @@ import { postToNative, type ActiveMarks, type UploadResultPayload } from "./brid
 import { mountSlashMenu, type SlashMenuHandle } from "./slash-menu";
 import { createUploader, type Uploader } from "./image-upload";
 import { showBanner } from "./banner";
+import { mountBlockDrag } from "./block-drag";
 import "./theme.css";
 
 interface LabelDict {
@@ -241,6 +242,10 @@ function createEditor() {
   });
 
   const editorEl = document.getElementById("editor")!;
+
+  // macOS：頂層 block 拖曳把手（對齊 Web 的 use-block-drag）。iOS 不掛。
+  // 把手拖曳只帶 text/plain、不帶 Files → 不會撞到下面的檔案拖放 guard。
+  if (platform === "macos") mountBlockDrag(editor, editorEl);
 
   const ed = editor;
   uploader = createUploader({
