@@ -8,6 +8,7 @@ import { TagPicker } from "@/components/tags/tag-picker";
 import { Maximize2, X } from "lucide-react";
 import type { Task } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
+import { shouldPersistDescription } from "@/lib/strip-html";
 
 interface TaskDetailModalProps {
   task: Task;
@@ -61,11 +62,7 @@ export function TaskDetailModal({
     // eslint-disable-next-line react-hooks/refs -- ref 只在 callback 內讀取（callback 從不在 render 時執行），非 render 期讀 ref
     () =>
       new DebouncedSaver<string>((html) => {
-        const isEmpty =
-          !html ||
-          html === "<p></p>" ||
-          html.replace(/<[^>]*>/g, "").trim() === "";
-        onDescChangeRef.current(isEmpty ? "" : html);
+        onDescChangeRef.current(shouldPersistDescription(html) ? html : "");
       }, 800)
   );
   // unmount 時 flush（對齊 Mac onDisappear）
@@ -268,6 +265,7 @@ export function TaskDetailModal({
             placeholder={tCardDetail("editorPlaceholder")}
             editable={true}
             autoFocus={false}
+            attachmentTaskId={task.id}
           />
         </div>
       </div>

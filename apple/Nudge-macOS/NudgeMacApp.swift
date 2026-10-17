@@ -14,6 +14,7 @@ struct NudgeMacApp: App {
     @State private var tagRepo: TagRepository
     @State private var calendarRepo: CalendarRepository
     @State private var cardRepo: CardRepository
+    @State private var attachmentRepo: AttachmentRepository
     @State private var noteRepo: NoteRepository
     @State private var recurrenceRepo: RecurrenceRepository
     @State private var notificationPrefsRepo: NotificationPreferencesRepository
@@ -58,6 +59,7 @@ struct NudgeMacApp: App {
         let tagRepo = TagRepository(client: client)
         let calRepo = CalendarRepository(client: client)
         let cardRepo = CardRepository(client: client)
+        let attachmentRepo = AttachmentRepository(client: client)
         let noteRepo = NoteRepository(client: client)
         let recurrenceRepo = RecurrenceRepository(client: client)
         let notificationPrefsRepo = NotificationPreferencesRepository(client: client)
@@ -72,6 +74,7 @@ struct NudgeMacApp: App {
         self._tagRepo = State(initialValue: tagRepo)
         self._calendarRepo = State(initialValue: calRepo)
         self._cardRepo = State(initialValue: cardRepo)
+        self._attachmentRepo = State(initialValue: attachmentRepo)
         self._noteRepo = State(initialValue: noteRepo)
         self._recurrenceRepo = State(initialValue: recurrenceRepo)
         self._notificationPrefsRepo = State(initialValue: notificationPrefsRepo)
@@ -96,6 +99,7 @@ struct NudgeMacApp: App {
                         .environment(tagRepo)
                         .environment(calendarRepo)
                         .environment(cardRepo)
+                        .environment(attachmentRepo)
                         .environment(noteRepo)
                         .environment(recurrenceRepo)
                         .environment(notificationPrefsRepo)
@@ -177,6 +181,7 @@ struct NudgeMacApp: App {
                     .environment(tagRepo)
                     .environment(calendarRepo)
                     .environment(cardRepo)
+                    .environment(attachmentRepo)
                     .environment(noteRepo)
                     .environment(recurrenceRepo)
                     .environment(notificationPrefsRepo)

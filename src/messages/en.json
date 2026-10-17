@@ -168,7 +168,15 @@
     "slashCodeKeywords": "code|block|pre|syntax",
     "slashDividerLabel": "Divider",
     "slashDividerDescription": "Horizontal divider line",
-    "slashDividerKeywords": "hr|divider|separator|line"
+    "slashDividerKeywords": "hr|divider|separator|line",
+    "slashImageLabel": "Image",
+    "slashImageDescription": "Upload an image",
+    "slashImageKeywords": "image|img|picture|photo",
+    "imageUploadingAria": "Uploading image",
+    "imageUploadFailed": "Image upload failed. Please try again.",
+    "imageTooLarge": "Image is larger than 5MB. Please shrink it first.",
+    "imageUnsupported": "Only JPEG, PNG, WebP and GIF are supported",
+    "imageSelectedAria": "Image selected. Press Delete to remove."
   },
   "daily": {
     "emptyToday": "No tasks for today",

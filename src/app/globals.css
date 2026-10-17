@@ -528,6 +528,21 @@
   margin: 0.75rem 0;
 }
 
+.tiptap-container .tiptap .nudge-image-block img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+}
+
+.tiptap-container .tiptap .nudge-image-block.is-selected img {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.tiptap-container .tiptap .nudge-image-block[data-uploading="true"] img {
+  opacity: 0.6;
+}
+
 .tiptap-container .tiptap p.is-editor-empty:first-child::before {
   color: var(--text-faint);
   content: attr(data-placeholder);

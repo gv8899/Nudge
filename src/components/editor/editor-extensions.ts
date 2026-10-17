@@ -8,6 +8,8 @@ import { lowlight } from "./lowlight-instance";
 import { slashCommandExtension } from "./slash-command-extension";
 import { CodeBlockNodeView } from "./code-block-node-view";
 import { SplitTaskList } from "./split-task-list";
+import { AttachmentImage } from "./attachment-image";
+import { AttachmentImageNodeView } from "./attachment-image-node-view";
 import type { SlashCommandItem } from "./slash-command-items";
 
 interface CreateEditorExtensionsOptions {
@@ -15,6 +17,8 @@ interface CreateEditorExtensionsOptions {
   slashItems: SlashCommandItem[];
   taskList?: boolean;
   codeBlock?: boolean;
+  /** 給了才掛圖片 node（卡片 / 任務描述）。notes canvas 不給。 */
+  image?: { onPickFiles?: () => void };
 }
 
 export function createEditorExtensions({
@@ -22,6 +26,7 @@ export function createEditorExtensions({
   slashItems,
   taskList = true,
   codeBlock = true,
+  image,
 }: CreateEditorExtensionsOptions) {
   const extensions = [
     StarterKit.configure({
@@ -50,6 +55,16 @@ export function createEditorExtensions({
         lowlight,
         defaultLanguage: "plaintext",
       }) as any,
+    );
+  }
+
+  if (image) {
+    extensions.push(
+      AttachmentImage.extend({
+        addNodeView() {
+          return ReactNodeViewRenderer(AttachmentImageNodeView);
+        },
+      }).configure({ onPickFiles: image.onPickFiles }) as any,
     );
   }
 

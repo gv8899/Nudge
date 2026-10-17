@@ -60,6 +60,12 @@ npm test
 
 目前 `bridge.test.ts` 兩個 test 跑 vitest + jsdom env。
 
+## 卡片圖片（批次 1：只顯示）
+
+- 卡片內文用 `/api/attachments/<id>` 引用圖片；bundle 在 `load()` 把它改寫成 `nudge-attachment://attachment/<id>`（由 Swift 的 `AttachmentSchemeHandler` 帶 Bearer 代抓），`getHTML()` 再改回 `/api/attachments/<id>`，存回去的內文與 Web 一致。
+- 批次 1 只顯示圖片，**不上傳**：拖檔 / 貼上檔案會被攔下，`buildSlashItems` 把 `image` slash 項 filter 掉。
+- `@tiptap/extension-image` 版本要 pin 成與 Web 完全一致（同上「TipTap 版本漂移」），否則兩邊 schema 對不上、存檔時會丟 node。
+
 ## CI
 
 `.github/workflows/editor-bundle.yml` 在 push / PR 觸及 `apple/NudgeEditor/` 或 `src/components/editor/` 時跑 `npm ci + npm run build + npm test`，確保 bundle 隨時建得起來。

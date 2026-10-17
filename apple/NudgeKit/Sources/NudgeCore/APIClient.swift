@@ -43,6 +43,29 @@ public final class APIClient: Sendable {
         return try await perform(request)
     }
 
+    /// Raw GET：回 bytes + Content-Type，不走 JSON decode。給附件圖片用。
+    /// 404 / 401 等沿用 perform 的狀態碼處理（401 會觸發 unauthorizedHandler）。
+    public func getData(_ path: String) async throws -> (Data, String?) {
+        var request = try buildRequest(method: "GET", path: path, body: nil as Empty?)
+        request.setValue("*/*", forHTTPHeaderField: "Accept")
+        let (data, urlResponse): (Data, URLResponse)
+        do {
+            (data, urlResponse) = try await session.data(for: request)
+        } catch {
+            throw APIError.network(underlying: error)
+        }
+        guard let http = urlResponse as? HTTPURLResponse else { throw APIError.invalidResponse }
+        switch http.statusCode {
+        case 200...299:
+            return (data, http.value(forHTTPHeaderField: "Content-Type"))
+        case 401:
+            if let handler = currentUnauthorizedHandler() { await handler() }
+            throw APIError.unauthorized
+        default:
+            throw APIError.server(statusCode: http.statusCode, message: nil)
+        }
+    }
+
     public func post<Body: Encodable, Response: Decodable>(
         _ path: String,
         body: Body

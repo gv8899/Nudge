@@ -1,6 +1,6 @@
 import {
   Type, Heading1, Heading2, Heading3, List, ListOrdered, ListTodo,
-  Quote, Code, Minus, type LucideIcon,
+  Quote, Code, Minus, Image as ImageIcon, type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
@@ -14,7 +14,7 @@ export { filterSlashItems } from "./slash-command-defs";
 const ID_TO_ICON: Record<string, LucideIcon> = {
   text: Type, h1: Heading1, h2: Heading2, h3: Heading3,
   bullet: List, ordered: ListOrdered, todo: ListTodo,
-  quote: Quote, code: Code, divider: Minus,
+  quote: Quote, code: Code, divider: Minus, image: ImageIcon,
 };
 
 const ID_TO_KEY: Record<string, { label: string; description: string; keywords: string }> = {
@@ -27,6 +27,7 @@ const ID_TO_KEY: Record<string, { label: string; description: string; keywords: 
   todo: { label: "slashTodoLabel", description: "slashTodoDescription", keywords: "slashTodoKeywords" },
   quote: { label: "slashQuoteLabel", description: "slashQuoteDescription", keywords: "slashQuoteKeywords" },
   code: { label: "slashCodeLabel", description: "slashCodeDescription", keywords: "slashCodeKeywords" },
+  image: { label: "slashImageLabel", description: "slashImageDescription", keywords: "slashImageKeywords" },
   divider: { label: "slashDividerLabel", description: "slashDividerDescription", keywords: "slashDividerKeywords" },
 };
 

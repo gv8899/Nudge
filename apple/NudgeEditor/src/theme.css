@@ -148,6 +148,18 @@ html, body {
     margin: 1em 0;
 }
 
+.ProseMirror img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    margin: 0.75em 0;
+}
+.ProseMirror img.ProseMirror-selectednode {
+    outline: 2px solid var(--nudge-primary);
+    outline-offset: 2px;
+}
+
 .ProseMirror .is-editor-empty:first-child::before {
     content: attr(data-placeholder);
     color: var(--nudge-text-dim);

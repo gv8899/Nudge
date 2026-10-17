@@ -8,6 +8,11 @@ export default defineConfig({
     alias: {
       "@web-editor": resolve(__dirname, "../../src/components/editor"),
     },
+    // 共用模組（@web-editor）位於 repo 根目錄之下，Node 解析會往上找到根目錄的
+    // node_modules；CI 只在 apple/NudgeEditor `npm ci`，根目錄沒有套件 → 解析失敗。
+    // dedupe 強制這些套件一律從本子專案的 node_modules 解析（同時保證 @tiptap/core
+    // 只有一份，README「版本必須完全一致」的前提）。
+    dedupe: ["@tiptap/core", "@tiptap/pm", "@tiptap/extension-image", "@tiptap/extension-link", "@tiptap/starter-kit", "@tiptap/suggestion"],
   },
   // Vite walks up the directory tree looking for postcss.config.* and would
   // find the Next.js web app's config at the repo root, which requires

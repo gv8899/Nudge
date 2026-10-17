@@ -168,7 +168,15 @@
     "slashCodeKeywords": "code|block|コード",
     "slashDividerLabel": "区切り線",
     "slashDividerDescription": "水平区切り線を挿入",
-    "slashDividerKeywords": "hr|divider|separator|区切り"
+    "slashDividerKeywords": "hr|divider|separator|区切り",
+    "slashImageLabel": "画像",
+    "slashImageDescription": "画像をアップロード",
+    "slashImageKeywords": "image|img|picture|photo|画像|写真",
+    "imageUploadingAria": "画像をアップロード中",
+    "imageUploadFailed": "画像のアップロードに失敗しました。もう一度お試しください。",
+    "imageTooLarge": "画像が 5MB を超えています。先に縮小してください。",
+    "imageUnsupported": "JPEG、PNG、WebP、GIF のみ対応しています",
+    "imageSelectedAria": "画像を選択中。Delete で削除できます。"
   },
   "daily": {
     "emptyToday": "今日のタスクはまだありません",

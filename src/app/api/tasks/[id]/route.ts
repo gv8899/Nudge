@@ -4,6 +4,7 @@ import { tasks, tags, taskTags } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
 import { notifyUserDevices } from "@/lib/notify-devices";
+import { MAX_DESCRIPTION_BYTES } from "@/lib/attachments/constants";
 
 export async function GET(
   _request: NextRequest,
@@ -70,6 +71,13 @@ export async function PATCH(
         { status: 409 },
       );
     }
+  }
+
+  if (
+    typeof body.description === "string" &&
+    Buffer.byteLength(body.description, "utf8") > MAX_DESCRIPTION_BYTES
+  ) {
+    return NextResponse.json({ error: "description_too_large" }, { status: 413 });
   }
 
   const updates: Record<string, unknown> = { updatedAt: now };

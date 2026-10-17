@@ -1,5 +1,6 @@
 import SwiftUI
 import WebKit
+import NudgeCore
 
 #if os(iOS)
 import UIKit
@@ -25,6 +26,9 @@ public struct RichTextEditor: View {
     let onBlurSave: ((String) -> Void)?
 
     @Environment(\.colorScheme) private var colorScheme
+    /// 卡片內文圖片代抓（nudge-attachment scheme）。沒注入（preview 等）就不掛
+    /// scheme handler —— 圖片載不到但編輯器照常運作。
+    @Environment(AttachmentRepository.self) private var attachmentRepo: AttachmentRepository?
     #if os(macOS)
     @Environment(\.nudgeMacDetailActive) private var macDetailActive
     #endif
@@ -80,7 +84,8 @@ public struct RichTextEditor: View {
             onActiveMarks: { marks in activeMarks?.wrappedValue = marks },
             onHeight: { _ in },
             commandBus: commandBus,
-            onBlurSave: onBlurSave
+            onBlurSave: onBlurSave,
+            attachmentRepo: attachmentRepo
         )
         #else
         AppKitEditor(
@@ -92,7 +97,8 @@ public struct RichTextEditor: View {
             onHeight: { _ in },
             commandBus: commandBus,
             onBlurSave: onBlurSave,
-            isDetailActive: macDetailActive
+            isDetailActive: macDetailActive,
+            attachmentRepo: attachmentRepo
         )
         #endif
     }
@@ -142,6 +148,7 @@ private struct UIKitEditor: UIViewRepresentable {
     let onHeight: (CGFloat) -> Void
     let commandBus: EditorCommandBus?
     let onBlurSave: ((String) -> Void)?
+    let attachmentRepo: AttachmentRepository?
 
     func makeCoordinator() -> EditorCoordinator {
         EditorCoordinator(
@@ -158,6 +165,12 @@ private struct UIKitEditor: UIViewRepresentable {
         config.defaultWebpagePreferences.allowsContentJavaScript = true
         config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
         config.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
+        if let attachmentRepo {
+            config.setURLSchemeHandler(
+                AttachmentSchemeHandler(repository: attachmentRepo),
+                forURLScheme: AttachmentSchemeHandler.scheme
+            )
+        }
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.isOpaque = false
         webView.backgroundColor = .clear
@@ -215,6 +228,7 @@ private struct AppKitEditor: NSViewRepresentable {
     /// 藏不掉 NSView 的 tracking area，WebKit 會持續把游標搶回箭頭，弄壞
     /// 其他分頁（Daily）分隔線的 resize 游標。
     let isDetailActive: Bool
+    let attachmentRepo: AttachmentRepository?
 
     func makeCoordinator() -> EditorCoordinator {
         EditorCoordinator(
@@ -231,6 +245,12 @@ private struct AppKitEditor: NSViewRepresentable {
         config.defaultWebpagePreferences.allowsContentJavaScript = true
         config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
         config.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
+        if let attachmentRepo {
+            config.setURLSchemeHandler(
+                AttachmentSchemeHandler(repository: attachmentRepo),
+                forURLScheme: AttachmentSchemeHandler.scheme
+            )
+        }
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.setValue(false, forKey: "drawsBackground")
         webView.isInspectable = true

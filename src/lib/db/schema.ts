@@ -1,4 +1,11 @@
-import { pgTable, text, integer, boolean, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean, uniqueIndex, customType } from "drizzle-orm/pg-core";
+
+// drizzle 沒內建 bytea；node-postgres 來回都是 Buffer。
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType() {
+    return "bytea";
+  },
+});
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -42,6 +49,24 @@ export const tasks = pgTable("tasks", {
   completedAt: text("completed_at"),
   remindAt: text("remind_at"),
   sortOrder: integer("sort_order").notNull().default(0),
+});
+
+// 卡片內文圖片。內文只存 `<img src="/api/attachments/<id>">`，圖檔本體在這。
+// 先存 Postgres（使用者決定）；之後搬物件儲存只要改 /api/attachments 路由，
+// 內文零改動。task_id 可為 null：上傳時綁定、卡片刪除後 set null，交給
+// scripts/reap-orphan-attachments.mjs 回收「沒被任何 description 引用」的 row。
+export const taskAttachments = pgTable("task_attachments", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  taskId: text("task_id").references(() => tasks.id, { onDelete: "set null" }),
+  mime: text("mime").notNull(),
+  bytes: bytea("bytes").notNull(),
+  size: integer("size").notNull(),
+  width: integer("width"),
+  height: integer("height"),
+  createdAt: text("created_at").notNull(),
 });
 
 export const tags = pgTable("tags", {

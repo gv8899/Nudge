@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { tasks, tags, taskTags } from "@/lib/db/schema";
 import { and, eq, ne, lt, desc, inArray } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
-import { stripHtml } from "@/lib/strip-html";
+import { stripHtml, hasVisibleContent } from "@/lib/strip-html";
 
 export async function GET(request: NextRequest) {
   const user = await getUser();
@@ -64,10 +64,9 @@ export async function GET(request: NextRequest) {
 
   const lq = q.toLowerCase();
   const filtered = rows.filter((r) => {
-    if (!r.description) return false;
-    const plain = stripHtml(r.description);
-    if (plain.length === 0) return false;
+    if (!hasVisibleContent(r.description)) return false;
     if (!q) return true;
+    const plain = stripHtml(r.description!);
     return (
       r.title.toLowerCase().includes(lq) || plain.toLowerCase().includes(lq)
     );

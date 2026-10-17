@@ -76,6 +76,13 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **孤兒雷（這條最常炸）**：`daily_task_assignments` 沒有欄位區分「規則自動展開」vs「使用者手動排的」。所以把規則改窄 / 刪規則時，舊規則展開、現在落在窗外的未來 row 會變孤兒（永遠卡 overdue，或日期=今天時誤現在「今天」清單）。`PUT` / `DELETE /api/tasks/[id]/recurrence` 必須用 `assignmentsToReap()` 對帳回收 —— 只回收 `date > today && !isCompleted && !isSkipped && 落在新規則窗外`；過去 / 今天 / 已完成 / 已跳過一律保留。**動這條 API 時別把對帳邏輯拿掉。**
 - `/api/daily` 走 ETag 條件式 GET；ETag 計算要把 `task_recurrences` 一起算進去，否則改規則後會 304 假陽性（見 commit `0bd4f98`）。
 
+## 卡片圖片 = 附件表 + 網址引用
+
+- 圖檔在 `task_attachments`（bytea），內文只存 `<img src="/api/attachments/<id>" data-attachment-id=…>`。**改儲存後端只改 `/api/attachments` 路由，內文不動。**
+- Image node 是純 ProseMirror（`src/components/editor/attachment-image.ts`），Web 與 Apple bundle 共用；**不認得的 node 會在 setContent 時被丟掉**，所以任何新 node 型別必須 Web + Apple bundle 同批上線，否則 App 一存檔就把它刪了。
+- Apple 端 `load()` 把 src 改成 `nudge-attachment://attachment/<id>`，`getHTML()` 改回；`AttachmentSchemeHandler` 帶 Bearer 代抓。
+- 孤兒回收：`node scripts/reap-orphan-attachments.mjs --dry-run`（24h grace）。
+
 # 完成定義 (Definition of Done)
 
 **不能僅依靠 `next build` 成功就宣稱任務完成**。Build 只證明語法正確，不證明邏輯可用。對於任何互動功能，必須**完整走過使用者流程**後才能回報完成。
