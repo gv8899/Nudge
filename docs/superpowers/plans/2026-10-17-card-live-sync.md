@@ -1562,7 +1562,7 @@ git commit -m "feat(apple-sync): 前景長連線 + 卡片頁 / 列表套用即�
 |---|---|---|
 | A1 | Web 改一張卡內文、停筆 1 秒 | Mac 打開中的同卡 2 秒內換內容；iOS 前景同卡 2 秒內換 |
 | A2 | Mac 改字 | Web 同卡 2 秒內換 |
-| A3 | Mac 正在打字時 Web 改同卡 | Mac 不跳動；Mac 停筆存檔 → 409 → Mac 換成 Web 版 |
+| A3 | Mac 正在打字時 Web 改同卡 | Mac 不跳動；Mac 停筆存檔 → 409 → Mac 保留自己的內容、推進基準，下一次存檔勝出（覆蓋 Web 版）；Mac 存檔完成後 Web 再改 → Mac 2 秒內換成 Web 版 |
 | A4 | Mac 連續打字 10 秒 | 不被自己重載、游標不跳 |
 | A5 | iOS 退到背景 → Web 改卡 → iOS 回前景 | 回前景 2 秒內內容最新（reconnected 補抓） |
 | A6 | 關 dev server 5 秒再開 | Mac / iOS 自動重連（Console 無崩潰）；之後同步照常 |
