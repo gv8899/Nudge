@@ -64,7 +64,7 @@ export function DailyRightPanel({
       <div className="flex-1 overflow-hidden h-full">
         {kind === "detail" && detailId ? (
           <div className="h-full overflow-y-auto">
-            <CardDetail id={detailId} embedded onBack={onBackFromDetail} />
+            <CardDetail key={detailId} id={detailId} embedded onBack={onBackFromDetail} />
           </div>
         ) : kind === "calendar" ? (
           <CalendarContent date={date} />
