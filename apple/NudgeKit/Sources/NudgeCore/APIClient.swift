@@ -202,6 +202,26 @@ public final class APIClient: Sendable {
         return request
     }
 
+    /// 長連線（SSE）：回傳位元組串流與回應。Accept 改為 text/event-stream，
+    /// 不帶 If-None-Match（不是資源 GET）。401 丟 `.unauthorized`（並通知 handler），
+    /// 其他非 2xx 丟 `.server(statusCode:message:)`。
+    public func eventStream(_ path: String) async throws -> (URLSession.AsyncBytes, HTTPURLResponse) {
+        var request = try buildRequest(method: "GET", path: path, body: Optional<Empty>.none)
+        request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+        request.setValue(nil, forHTTPHeaderField: "If-None-Match")
+        request.timeoutInterval = 60 * 60 * 24
+        let (bytes, response) = try await session.bytes(for: request)
+        guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+        if http.statusCode == 401 {
+            if let handler = currentUnauthorizedHandler() { await handler() }
+            throw APIError.unauthorized
+        }
+        guard (200...299).contains(http.statusCode) else {
+            throw APIError.server(statusCode: http.statusCode, message: nil)
+        }
+        return (bytes, http)
+    }
+
     private func perform<Response: Decodable>(_ request: URLRequest) async throws -> Response {
         let urlString = request.url?.absoluteString ?? "<nil>"
         let (data, urlResponse): (Data, URLResponse)

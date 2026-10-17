@@ -25,6 +25,11 @@ public enum APIError: Error, Sendable, LocalizedError {
         }
     }
 
+    public var isUnauthorized: Bool {
+        if case .unauthorized = self { return true }
+        return false
+    }
+
     public var isCancellation: Bool {
         switch self {
         case .network(let underlying):
