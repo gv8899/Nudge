@@ -7,6 +7,14 @@
 // 自己連續存不會誤判成衝突。對應原生的 CardVersionStore。
 
 const baseByCardId = new Map<string, string>();
+// 存檔在途計數：PATCH 發出到回應處理完之間，基準還沒推進；這段期間收到自己
+// 寫入的 SSE 回音會被誤判成「別處改了」。live sync 把在途視為 pending。
+const inFlightByCardId = new Map<string, number>();
+
+/** 這張卡是否有 PATCH 尚未完成（live sync 的 pending 閘門用）。 */
+export function isCardSaveInFlight(id: string): boolean {
+  return (inFlightByCardId.get(id) ?? 0) > 0;
+}
 
 /** 編輯器顯示某張卡時呼叫 —— 記錄「目前畫面內容所基於的版本」。 */
 export function seedCardVersion(id: string, updatedAt?: string | null) {
@@ -25,6 +33,20 @@ export type CardPatchResult =
  * - 其他非 2xx → 回 `{ status: "ok", task: null }`（沿用舊行為，不擋使用者）。
  */
 export async function patchCardField(
+  id: string,
+  updates: { title?: string; description?: string }
+): Promise<CardPatchResult> {
+  inFlightByCardId.set(id, (inFlightByCardId.get(id) ?? 0) + 1);
+  try {
+    return await doPatchCardField(id, updates);
+  } finally {
+    const n = (inFlightByCardId.get(id) ?? 1) - 1;
+    if (n <= 0) inFlightByCardId.delete(id);
+    else inFlightByCardId.set(id, n);
+  }
+}
+
+async function doPatchCardField(
   id: string,
   updates: { title?: string; description?: string }
 ): Promise<CardPatchResult> {

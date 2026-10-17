@@ -10,7 +10,7 @@ import { useSidebarCollapsed } from "@/components/sidebar/sidebar-layout";
 import { fetcher } from "@/lib/fetcher";
 import { DebouncedSaver } from "@/lib/debounced-saver";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
-import { seedCardVersion, patchCardField, getCardVersion } from "@/lib/card-version";
+import { seedCardVersion, patchCardField, getCardVersion, isCardSaveInFlight } from "@/lib/card-version";
 import { subscribeLiveSync } from "@/lib/live-sync";
 import { decideRemoteChange } from "@/lib/live-sync-rules";
 import { TagPicker } from "@/components/tags/tag-picker";
@@ -122,10 +122,22 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   // 即時同步：別處改了這張卡 → 純檢視時換最新；正在打字（saver pending）
   // 時不動，交給存檔的 409 路徑。reconnected → 無條件補抓一次（斷線期間可能漏事件）。
   useEffect(() => {
+    // 本機有未存 / 在途的修改（存檔在途：基準還沒推進，自己的回音不能當遠端變更）。
+    const isLocallyPending = () =>
+      descSaver.isPending() ||
+      titleSaver.isPending() ||
+      isTitleFocusedRef.current ||
+      isCardSaveInFlight(id);
+    // 重抓回來後再查一次：使用者可能在 round trip 期間開始打字，此時重 mount
+    // 會吃掉輸入、之後存檔又以新基準覆蓋遠端 → 跳過重載，讓 pending 存檔勝出。
+    const refetchAndReload = () =>
+      void mutate().then(() => {
+        if (!isLocallyPending()) setReloadToken((n) => n + 1);
+      });
     return subscribeLiveSync((m) => {
-      const hasPending = descSaver.isPending() || titleSaver.isPending() || isTitleFocusedRef.current;
+      const hasPending = isLocallyPending();
       if (m.type === "reconnected") {
-        if (!hasPending) void mutate().then(() => setReloadToken((n) => n + 1));
+        if (!hasPending) refetchAndReload();
         return;
       }
       const decision = decideRemoteChange({
@@ -137,8 +149,8 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
       if (decision === "list-only") { invalidateCardsCache(); return; }
       if (decision === "ignore") return;
       // apply：SWR 重抓 → data.updatedAt 變 → 既有 effect 會 seed 新基準；
-      // 編輯器以 reloadToken 重 mount 載入新內文（先等 mutate 回來再 ++）。
-      void mutate().then(() => setReloadToken((n) => n + 1));
+      // 編輯器以 reloadToken 重 mount 載入新內文（先等 mutate 回來、再確認仍閒置才 ++）。
+      refetchAndReload();
       invalidateCardsCache();
     });
   }, [id, mutate, descSaver, titleSaver]);

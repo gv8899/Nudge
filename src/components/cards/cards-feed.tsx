@@ -62,9 +62,10 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
   );
 
   // 即時同步：TaskDetailModal 判定「別處改了且本機沒在打字」→ 先重抓再重 mount 編輯器。
-  const handleRemoteChange = useCallback(async () => {
+  // 重抓期間使用者若開始打字（stillIdle() = false）就不重 mount，讓 pending 存檔勝出。
+  const handleRemoteChange = useCallback(async (stillIdle: () => boolean) => {
     await mutate();
-    setEditorReloadToken((n) => n + 1);
+    if (stillIdle()) setEditorReloadToken((n) => n + 1);
     globalMutate(
       (key) => typeof key === "string" && key.startsWith("/api/cards"),
       undefined,
