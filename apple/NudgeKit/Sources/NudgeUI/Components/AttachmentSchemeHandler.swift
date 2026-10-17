@@ -42,6 +42,7 @@ final class AttachmentSchemeHandler: NSObject, WKURLSchemeHandler {
                 urlSchemeTask.didReceive(data)
                 urlSchemeTask.didFinish()
             } catch {
+                print("[AttachmentScheme] \(id) FAILED: \(error)")
                 guard !self.stopped.contains(key) else { return }
                 urlSchemeTask.didFailWithError(error)
             }

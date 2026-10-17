@@ -47,6 +47,7 @@ public final class APIClient: Sendable {
     /// 404 / 401 等沿用 perform 的狀態碼處理（401 會觸發 unauthorizedHandler）。
     public func getData(_ path: String) async throws -> (Data, String?) {
         var request = try buildRequest(method: "GET", path: path, body: nil as Empty?)
+        let t0 = Date()
         request.setValue("*/*", forHTTPHeaderField: "Accept")
         let (data, urlResponse): (Data, URLResponse)
         do {
@@ -57,6 +58,7 @@ public final class APIClient: Sendable {
         guard let http = urlResponse as? HTTPURLResponse else { throw APIError.invalidResponse }
         switch http.statusCode {
         case 200...299:
+            print("[APIClient] GET \(request.url?.absoluteString ?? path) -> \(http.statusCode) (\(data.count) bytes, \(Int(Date().timeIntervalSince(t0) * 1000)) ms)")
             return (data, http.value(forHTTPHeaderField: "Content-Type"))
         case 401:
             if let handler = currentUnauthorizedHandler() { await handler() }
@@ -245,6 +247,7 @@ public final class APIClient: Sendable {
     }
 
     private func perform<Response: Decodable>(_ request: URLRequest) async throws -> Response {
+        let t0 = Date()
         let urlString = request.url?.absoluteString ?? "<nil>"
         let (data, urlResponse): (Data, URLResponse)
         do {
@@ -259,7 +262,7 @@ public final class APIClient: Sendable {
             throw APIError.invalidResponse
         }
 
-        print("[APIClient] \(request.httpMethod ?? "?") \(urlString) -> \(httpResponse.statusCode) (\(data.count) bytes)")
+        print("[APIClient] \(request.httpMethod ?? "?") \(urlString) -> \(httpResponse.statusCode) (\(data.count) bytes, \(Int(Date().timeIntervalSince(t0) * 1000)) ms)")
 
         switch httpResponse.statusCode {
         case 304:
