@@ -43,4 +43,17 @@ describe("DebouncedSaver", () => {
     saver.flush();
     expect(save).not.toHaveBeenCalled();
   });
+
+  it("isPending 反映 schedule / flush / cancel", () => {
+    const saved: string[] = [];
+    const s = new DebouncedSaver<string>((v) => saved.push(v), 100);
+    expect(s.isPending()).toBe(false);
+    s.schedule("a");
+    expect(s.isPending()).toBe(true);
+    s.flush();
+    expect(s.isPending()).toBe(false);
+    s.schedule("b");
+    s.cancel();
+    expect(s.isPending()).toBe(false);
+  });
 });

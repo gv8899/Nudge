@@ -29,6 +29,11 @@ export class DebouncedSaver<T> {
     }
   }
 
+  /** 有排程中、尚未送出的值。 */
+  isPending(): boolean {
+    return this.pending !== null;
+  }
+
   cancel(): void {
     if (this.timer) {
       clearTimeout(this.timer);
