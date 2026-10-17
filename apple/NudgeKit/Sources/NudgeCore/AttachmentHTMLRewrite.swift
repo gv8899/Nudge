@@ -3,7 +3,7 @@ import Foundation
 /// 鏡像 `src/components/editor/attachment-url.ts` 的 `replacePendingImage`，
 /// 輸出必須與 Web 字元級一致。
 public enum AttachmentHTMLRewrite {
-    private static let idPattern = try! NSRegularExpression(pattern: "^[A-Za-z0-9_-]{1,64}$")
+    private static let idPattern = try! NSRegularExpression(pattern: #"\A[A-Za-z0-9_-]{1,64}\z"#)  // \z：ICU 的 $ 會吃結尾 \n，JS 不會
 
     /// 把第一個帶 `data-upload-id="<uploadId>"` 的 `<img …>` placeholder 換成最終 tag
     /// （屬性順序 src, alt, data-attachment-id, width, height；nil 寬高省略）。

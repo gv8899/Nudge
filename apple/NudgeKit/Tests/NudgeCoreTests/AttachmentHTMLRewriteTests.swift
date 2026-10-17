@@ -28,6 +28,17 @@ import Testing
         #expect(AttachmentHTMLRewrite.replacePendingImage(html: html, uploadId: "u1", result: bad) == nil)
         #expect(AttachmentHTMLRewrite.replacePendingImage(html: html, uploadId: "u1", result: AttachmentUploadResult(id: "", width: nil, height: nil)) == nil)
     }
+    @Test func rejectsIdWithTrailingNewline() {
+        let html = #"<img data-upload-pending="true" data-upload-id="u1" alt="">"#
+        #expect(AttachmentHTMLRewrite.replacePendingImage(html: html, uploadId: "u1", result: AttachmentUploadResult(id: "a1\n", width: nil, height: nil)) == nil)
+    }
+    @Test func rejectsIdLongerThan64() {
+        let html = #"<img data-upload-pending="true" data-upload-id="u1" alt="">"#
+        let long = String(repeating: "a", count: 65)
+        #expect(AttachmentHTMLRewrite.replacePendingImage(html: html, uploadId: "u1", result: AttachmentUploadResult(id: long, width: nil, height: nil)) == nil)
+        let max = String(repeating: "a", count: 64)
+        #expect(AttachmentHTMLRewrite.replacePendingImage(html: html, uploadId: "u1", result: AttachmentUploadResult(id: max, width: nil, height: nil)) != nil)
+    }
     @Test func replacesFirstMatchOnly() {
         let html = #"<img data-upload-id="u1"><img data-upload-id="u1">"#
         let out = AttachmentHTMLRewrite.replacePendingImage(html: html, uploadId: "u1", result: result)
