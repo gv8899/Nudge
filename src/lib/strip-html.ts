@@ -37,3 +37,16 @@ export function hasVisibleContent(html: string | null | undefined): boolean {
   const imgTags = html.match(/<img\b[^>]*>/g) ?? [];
   return imgTags.some((tag) => !/data-upload-pending=/.test(tag));
 }
+
+/**
+ * 存檔前要不要把內文當空白存成 ""。
+ * 與 hasVisibleContent 的差別：**上傳中的 placeholder 也要保留**。否則「新卡片
+ * 只貼一張圖、上傳完成前就關掉」會存成 ""，背景補寫（use-image-upload 的
+ * server-side recovery）就找不到 placeholder 可以換，圖片無聲消失。
+ * 列表過濾（/api/cards）仍用 hasVisibleContent，純 placeholder 卡片不會出現在列表，
+ * 等補寫把正式 <img> 寫進去才會出現。
+ */
+export function shouldPersistDescription(html: string | null | undefined): boolean {
+  if (!html) return false;
+  return hasVisibleContent(html) || /<img\b[^>]*data-upload-pending=/.test(html);
+}

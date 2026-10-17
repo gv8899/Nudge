@@ -13,7 +13,7 @@ import { TiptapEditor } from "@/components/task/tiptap-editor";
 import { seedCardVersion, patchCardField } from "@/lib/card-version";
 import { TagPicker } from "@/components/tags/tag-picker";
 import { useTags } from "@/hooks/use-tags";
-import { hasVisibleContent } from "@/lib/strip-html";
+import { shouldPersistDescription } from "@/lib/strip-html";
 
 interface CardDetailProps {
   id: string;
@@ -100,7 +100,7 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
     // eslint-disable-next-line react-hooks/refs -- ref 只在 callback 內讀取（callback 從不在 render 時執行），非 render 期讀 ref
     () =>
       new DebouncedSaver<string>((html) => {
-        patchTaskRef.current({ description: hasVisibleContent(html) ? html : "" });
+        patchTaskRef.current({ description: shouldPersistDescription(html) ? html : "" });
       }, 800)
   );
   useEffect(() => () => descSaver.flush(), [descSaver]);
