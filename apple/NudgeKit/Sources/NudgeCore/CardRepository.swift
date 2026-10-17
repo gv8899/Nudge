@@ -70,11 +70,16 @@ public final class CardRepository {
     /// Fetches one card (task) by id, including its tags. Backs the shared
     /// detail view when called from entry points that only have a task id
     /// (e.g. Daily page rows, which carry a TaskDTO with no tags).
-    public func get(cardId: String) async throws -> CardDTO {
+    /// - Parameter seedVersion: 預設 true —— 抓完即把 server updatedAt seed 成版本
+    ///   基準。即時同步路徑傳 false：抓的期間使用者可能開始打字，此時不能 seed
+    ///   （否則接下來的本機存檔會通過版本檢查、覆蓋別台）；由呼叫端確認套用後再 seed。
+    public func get(cardId: String, seedVersion: Bool = true) async throws -> CardDTO {
         let card: CardDTO = try await client.get("/api/tasks/\(cardId)")
         // seed 樂觀並行基準 —— 拿到 server 最新 updatedAt 當「目前畫面內容
         // 所基於的版本」，之後這張卡的存檔會帶這個 base 做版本檢查。
-        CardVersionStore.seed(cardId: cardId, updatedAt: card.updatedAt)
+        if seedVersion {
+            CardVersionStore.seed(cardId: cardId, updatedAt: card.updatedAt)
+        }
         return card
     }
 

@@ -7,12 +7,35 @@ import NudgeCore
 /// placeholder，徒然佔螢幕——拿掉後 content 欄全寬呈現功能 view。
 public struct PlatformRootView: View {
     @Bindable var auth: AuthRepository
+    /// Optional：preview / 測試沒注入也不 crash（同 RichTextEditor 的 attachmentRepo）。
+    @Environment(SyncStreamClient.self) private var syncStream: SyncStreamClient?
+    @Environment(\.scenePhase) private var scenePhase
 
     public init(auth: AuthRepository) {
         self.auth = auth
     }
 
     public var body: some View {
+        content
+            // Mac：視窗開著就連著（inactive 只是不在前景）。iOS：active 才連、
+            // background 才斷（背景仍靠 APNs）；inactive（下拉通知中心、App
+            // Switcher 過場、系統 alert）不動，避免短暫過場就斷線重連。登出時
+            // AuthGateView 會移除本 view → onDisappear 斷線。start() 為 idempotent。
+            .task(id: scenePhase) {
+                #if os(macOS)
+                syncStream?.start()
+                #else
+                switch scenePhase {
+                case .active: syncStream?.start()
+                case .background: syncStream?.stop()
+                default: break
+                }
+                #endif
+            }
+            .onDisappear { syncStream?.stop() }
+    }
+
+    @ViewBuilder private var content: some View {
         #if os(iOS)
         IOSTabRoot(auth: auth)
             .tint(Color.nudgePrimary)

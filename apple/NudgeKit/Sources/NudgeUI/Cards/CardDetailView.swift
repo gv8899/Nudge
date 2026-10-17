@@ -131,18 +131,27 @@ public struct CardDetailView: View {
             // base 已由 repo advance，接下來的存檔會用新 base 重送而勝出。
             // 只有「純檢視、沒編輯過」時才採用 server 最新（真正的跨裝置同步）。
             if hasEditedTitle || hasEditedDescription { return }
-            // 取消還在排隊的本機存檔，別用舊內容回頭覆蓋剛採用的 server 最新。
-            titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
-            descriptionSaveWorkItem?.cancel(); descriptionSaveWorkItem = nil
-            suppressEditDetection = true
-            if let t = info[CardVersionStore.conflictTitleKey] as? String { title = t }
-            if let d = info[CardVersionStore.conflictDescriptionKey] as? String { descriptionHTML = d }
-            hasEditedTitle = false
-            hasEditedDescription = false
-            reloadToken += 1
-            // onChange 在這輪 state 變更後同步觸發、會看到 suppress=true 而跳過；
-            // 下一個 runloop 再解除，之後使用者真打字才重新被視為編輯。
-            DispatchQueue.main.async { suppressEditDetection = false }
+            // 缺的欄位維持畫面現值（與抽出前「有才套」語意一致）。
+            applyRemote(
+                title: info[CardVersionStore.conflictTitleKey] as? String ?? title,
+                description: info[CardVersionStore.conflictDescriptionKey] as? String ?? descriptionHTML
+            )
+        }
+        // 即時同步：別台改了這張卡 → 純檢視時抓最新套用；打字中不打擾。
+        .onReceive(NotificationCenter.default.publisher(for: NudgeSync.changeNotification)) { note in
+            guard let box = note.userInfo?[NudgeSync.eventKey] as? SyncEventBox else { return }
+            let decision = RemoteChangeDecision.decide(
+                event: box.event, cardId: initialCard.id,
+                base: CardVersionStore.base(cardId: initialCard.id),
+                hasPending: hasPendingLocalEdits
+            )
+            guard decision == .apply else { return }   // listOnly 由 CardsHostView 處理
+            Task { await pullLatest() }
+        }
+        // 重連（含 iOS 回前景）期間可能漏事件 → 閒置時補抓一次。
+        .onReceive(NotificationCenter.default.publisher(for: NudgeSync.reconnectedNotification)) { _ in
+            if hasPendingLocalEdits { return }
+            Task { await pullLatest() }
         }
         .onDisappear {
             // 離開（回上一頁 / 關 modal / 切換卡片）前 flush pending 存檔。
@@ -249,6 +258,54 @@ public struct CardDetailView: View {
 
     private var untitledLabel: String {
         nudgeLocalized("cardDetail.untitled", locale: locale)
+    }
+
+    /// 用 server 最新內容替換畫面（409 衝突與即時同步共用）。呼叫前由呼叫端保證
+    /// 「本機沒有未存檔修改」。
+    private func applyRemote(title newTitle: String, description newDescription: String) {
+        // 取消還在排隊的本機存檔，別用舊內容回頭覆蓋剛採用的 server 最新。
+        titleSaveWorkItem?.cancel(); titleSaveWorkItem = nil
+        descriptionSaveWorkItem?.cancel(); descriptionSaveWorkItem = nil
+        suppressEditDetection = true
+        title = newTitle
+        descriptionHTML = newDescription
+        hasEditedTitle = false
+        hasEditedDescription = false
+        reloadToken += 1
+        // onChange 在這輪 state 變更後同步觸發、會看到 suppress=true 而跳過；
+        // 下一個 runloop 再解除，之後使用者真打字才重新被視為編輯。
+        DispatchQueue.main.async { suppressEditDetection = false }
+    }
+
+    /// 即時同步閘門：「存檔排程中（debounce 還沒觸發）或存檔在途」。
+    /// 刻意不含 sticky 的 hasEdited* —— 那兩個旗標一旦改過字就永遠 true（給
+    /// 離開時 flush 與 409 handler 用），放進閘門會讓這張卡打過一個字後再也
+    /// 收不到即時同步。work item 觸發時會把自己設回 nil；在途由
+    /// CardVersionStore 的計數涵蓋，存檔完成後閘門自然解除。
+    private var hasPendingLocalEdits: Bool {
+        titleSaveWorkItem != nil
+            || descriptionSaveWorkItem != nil
+            || CardVersionStore.isSaveInFlight(cardId: initialCard.id)
+    }
+
+    /// 抓最新並套用。閘門在呼叫端（有未存檔修改就不進來）；這裡用
+    /// seedVersion: false 抓，抓完再查一次 —— 抓的期間使用者開始打字就丟掉
+    /// 結果、不 seed（否則接下來的本機存檔會通過版本檢查、覆蓋別台）。
+    /// 確定套用後才把版本基準 seed 到最新。
+    private func pullLatest() async {
+        do {
+            let latest = try await cardRepo.get(cardId: initialCard.id, seedVersion: false)
+            if hasPendingLocalEdits { return }
+            // 內容跟畫面一樣（例如只是自己存檔的回音、或別處只改了提醒）→ 只推進
+            // 基準、不重 mount 編輯器（重 mount 會丟游標 / 捲動位置）。
+            if latest.title != title || latest.description != descriptionHTML {
+                applyRemote(title: latest.title, description: latest.description)
+            }
+            CardVersionStore.seed(cardId: initialCard.id, updatedAt: latest.updatedAt)
+        } catch {
+            if APIError.isCancellation(error) { return }
+            // 失敗就等下一個事件 / 重連
+        }
     }
 
     #if os(iOS)
@@ -372,14 +429,21 @@ public struct CardDetailView: View {
 
     private func debouncedSaveTitle(_ newValue: String) {
         titleSaveWorkItem?.cancel()
-        let work = DispatchWorkItem { onUpdateTitle(newValue) }
+        // 觸發時先把自己設回 nil（閘門 = 「排程中」只到這一刻；之後由在途計數接手）。
+        let work = DispatchWorkItem {
+            titleSaveWorkItem = nil
+            onUpdateTitle(newValue)
+        }
         titleSaveWorkItem = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
     }
 
     private func debouncedSaveDescription(_ newValue: String) {
         descriptionSaveWorkItem?.cancel()
-        let work = DispatchWorkItem { onUpdateDescription(newValue) }
+        let work = DispatchWorkItem {
+            descriptionSaveWorkItem = nil
+            onUpdateDescription(newValue)
+        }
         descriptionSaveWorkItem = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
     }

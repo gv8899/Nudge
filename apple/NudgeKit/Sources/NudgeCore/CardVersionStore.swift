@@ -14,6 +14,10 @@ import Foundation
 @MainActor
 public enum CardVersionStore {
     private static var baseByCardId: [String: Date] = [:]
+    /// 存檔在途計數（對應 Web 的 isCardSaveInFlight）：PATCH 發出到回應處理完
+    /// 之間基準還沒推進，這段期間收到自己寫入的 SSE 回音會被誤判成「別處改了」。
+    /// 即時同步閘門把在途視為 pending。
+    private static var inFlightByCardId: [String: Int] = [:]
 
     /// 編輯器顯示某張卡時呼叫 —— 記錄「目前畫面內容所基於的版本」。
     public static func seed(cardId: String, updatedAt: Date) {
@@ -28,6 +32,22 @@ public enum CardVersionStore {
     /// 存檔成功 / 衝突解決後，推進基準到 server 回的最新 updatedAt。
     public static func advance(cardId: String, to updatedAt: Date) {
         baseByCardId[cardId] = updatedAt
+    }
+
+    /// 存檔開始（`saveCardFieldWithVersionCheck` 呼叫；與 `endSave` 成對）。
+    public static func beginSave(cardId: String) {
+        inFlightByCardId[cardId, default: 0] += 1
+    }
+
+    /// 存檔結束（成功 / 409 / 丟錯都要呼叫）。
+    public static func endSave(cardId: String) {
+        let n = (inFlightByCardId[cardId] ?? 1) - 1
+        if n <= 0 { inFlightByCardId[cardId] = nil } else { inFlightByCardId[cardId] = n }
+    }
+
+    /// 這張卡是否有存檔尚未完成（即時同步 pending 閘門用）。
+    public static func isSaveInFlight(cardId: String) -> Bool {
+        (inFlightByCardId[cardId] ?? 0) > 0
     }
 
     /// 409 衝突解決廣播：object = cardId，userInfo 帶 server 最新 title /
@@ -62,6 +82,8 @@ public func saveCardFieldWithVersionCheck(
         let description: String?
         let baseUpdatedAt: Date?
     }
+    CardVersionStore.beginSave(cardId: cardId)
+    defer { CardVersionStore.endSave(cardId: cardId) }
     let body = Body(
         title: title,
         description: description,

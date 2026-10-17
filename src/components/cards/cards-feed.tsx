@@ -12,6 +12,8 @@ import { CardGridItem } from "./card-grid-item";
 import { TaskDetailModal } from "@/components/task/task-detail-modal";
 import { fetcher } from "@/lib/fetcher";
 import { seedCardVersion, patchCardField } from "@/lib/card-version";
+import { subscribeLiveSync } from "@/lib/live-sync";
+import { decideOnDataChange, cardContentOf, type CardContent } from "@/lib/live-sync-rules";
 import type { Task } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
 
@@ -29,15 +31,49 @@ interface CardWithTags extends Task {
 function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
   const { data, mutate } = useSWR<CardWithTags>(
     `/api/tasks/${cardId}`,
-    fetcher
+    fetcher,
+    // 即時同步（事件 + reconnected 補抓）已涵蓋這兩種情況；focus 重抓會在編輯器已 mount 時默默換掉 data。
+    { revalidateOnFocus: false, revalidateOnReconnect: false }
   );
   // 409 衝突時 ++ 強制內文編輯器重 mount 載入 server 最新內容。
   const [editorReloadToken, setEditorReloadToken] = useState(0);
 
-  // seed 樂觀並行基準：server 回的 updatedAt = 目前畫面內容所基於的版本。
+  // TaskDetailModal 掛上的「本機是否有未存 / 在途修改」查詢（與它的即時同步閘門同一個）。
+  const pendingProbeRef = useRef<(() => boolean) | null>(null);
+
+  // 編輯器實際 mount 的內容（重抓後是否重 mount 的比對基準；不能用 SWR data，
+  // data 可能被其他重抓更新而編輯器仍是舊內容）。標題由 TaskDetailModal 從 task.title 同步，同一批時機追蹤。
+  const mountedContentRef = useRef<CardContent>({ title: "", description: "" });
+  const mountedForIdRef = useRef<string | null>(null);
+
+  // data 變動（任何來源：即時同步重抓、warm cache 的 mount 重抓、存檔後的 mutate）
+  // → 比對編輯器實際掛載的內容，再 seed 樂觀並行基準。
+  // 不變式：基準只在編輯器顯示該版本時推進。TiptapEditor 不會重讀 content prop，
+  // 所以內容不同就重 mount；本機編輯中則不 seed 也不重 mount，留舊基準讓 409 接手。
+  // （自己存完 / 409 時已先更新 mountedContentRef，這裡會看到「相同」只 seed。）
   useEffect(() => {
-    if (data?.updatedAt) seedCardVersion(cardId, data.updatedAt);
-  }, [cardId, data?.updatedAt]);
+    if (!data) return;
+    const latest = cardContentOf(data);
+    const first = mountedForIdRef.current !== cardId;
+    if (first) {
+      // 首次拿到這張卡的資料（含換 id）= 編輯器以這份 data mount。
+      mountedForIdRef.current = cardId;
+      mountedContentRef.current = latest;
+    }
+    const decision = decideOnDataChange({
+      first,
+      pending: pendingProbeRef.current?.() ?? false,
+      mounted: mountedContentRef.current,
+      latest,
+    });
+    if (decision === "skip") return;
+    if (decision === "remount-and-seed") {
+      mountedContentRef.current = latest;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- 刻意：外部資料（SWR）變動後重 mount 不受控的編輯器，只在內容不同時觸發一次
+      setEditorReloadToken((n) => n + 1);
+    }
+    seedCardVersion(cardId, data.updatedAt);
+  }, [cardId, data]);
 
   const patch = useCallback(
     async (updates: Partial<{ title: string; description: string }>) => {
@@ -45,9 +81,14 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
       if (result.status === "conflict") {
         // 別台先存、這次被擋 → 採用 server 最新（方案二），丟棄本機這次編輯，
         // 重 mount 編輯器；標題由 TaskDetailModal 從 task.title 自動同步。
-        await mutate(result.latest as unknown as CardWithTags, { revalidate: false });
+        const latest = result.latest as unknown as CardWithTags;
+        mountedContentRef.current = cardContentOf(latest);
         setEditorReloadToken((n) => n + 1);
+        await mutate(latest, { revalidate: false });
       } else {
+        // 自己存成功：編輯器顯示的就是剛存的內容。
+        if (updates.title !== undefined) mountedContentRef.current.title = updates.title;
+        if (updates.description !== undefined) mountedContentRef.current.description = updates.description;
         // Refresh the modal data
         mutate();
       }
@@ -60,6 +101,18 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
     },
     [cardId, mutate]
   );
+
+  // 即時同步：TaskDetailModal 判定「別處改了且本機沒在打字」→ 只重抓；
+  // data 變動後由上面的 data effect 比對掛載內容 → 重 mount / 確認相同 → seed。
+  // 重抓期間使用者若開始打字，effect 會看到 pending 而跳過，讓 pending 存檔勝出。
+  const handleRemoteChange = useCallback(async () => {
+    await mutate();
+    globalMutate(
+      (key) => typeof key === "string" && key.startsWith("/api/cards"),
+      undefined,
+      { revalidate: true }
+    );
+  }, [mutate]);
 
   if (!data) return null;
 
@@ -75,6 +128,8 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
       }}
       wide
       editorReloadToken={editorReloadToken}
+      onRemoteChange={handleRemoteChange}
+      pendingProbeRef={pendingProbeRef}
       onExpand={() => onExpand(cardId)}
     />
   );
@@ -137,6 +192,19 @@ export function CardsFeed() {
   }, [isLoadingMore, hasMore, loadMore]);
 
   const sentinelRef = useIntersectionObserver(handleLoadMore, hasMore);
+
+  // 即時同步（列表層）：沒開卡片 modal 時，任何事件 / 重連都刷新卡片格；
+  // 開著 modal 時由 CardModal 處理（它重抓後也會失效 /api/cards*）。
+  useEffect(() => {
+    if (modalCardId) return;
+    return subscribeLiveSync(() => {
+      globalMutate(
+        (key) => typeof key === "string" && key.startsWith("/api/cards"),
+        undefined,
+        { revalidate: true }
+      );
+    });
+  }, [modalCardId]);
 
   // Filtering mode: any active query or tag selection → search results, no pagination footer
   const isFiltering = debouncedQuery.length > 0 || selectedTagIds.length > 0;

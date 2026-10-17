@@ -89,7 +89,13 @@ export async function PATCH(
   await db.update(tasks).set(updates).where(eq(tasks.id, id));
 
   const [updated] = await db.select().from(tasks).where(eq(tasks.id, id)).limit(1);
-  notifyUserDevices(user.id);
+  // 只有內容（title/description）改了才送 kind:"task"（開著該卡的編輯器會重抓 /
+  // 重載）；提醒、排序等操作型 PATCH 只送 kind:"any"（列表刷新即可）。
+  if (editsRichField && updated?.updatedAt) {
+    notifyUserDevices(user.id, { kind: "task", id, updatedAt: updated.updatedAt });
+  } else {
+    notifyUserDevices(user.id);
+  }
   return NextResponse.json(updated);
 }
 

@@ -75,8 +75,8 @@ export function notifyUserDevices(
 
 1. `e.kind === "task" && e.id !== C.id` → 忽略（只刷卡片列表，見 5）。
 2. `e.kind === "task" && e.updatedAt <= base`（秒精度比較，同 server 409 判斷）→ 自己剛存的回音，忽略。
-3. **本機有未存檔修改**（Web：`DebouncedSaver` 有 pending；Apple：`hasEditedTitle || hasEditedDescription` 或 `titleSaveWorkItem / descriptionSaveWorkItem` 非 nil）→ **不做任何事、不抓最新、不 seed**。理由：抓最新會把 base 推到新版，接下來的本機存檔就會通過版本檢查、覆蓋別台的修改（Apple `CardRepository.get` 會 seed，所以連 get 都不能呼叫）。待本機存檔 → server 409 → 現有衝突路徑換最新。
-4. 否則 → `GET /api/tasks/[id]` 抓最新 → 套用 title / description → 推進 base 到最新 updatedAt → 編輯器重 mount（`reloadToken++`，與 409 路徑相同）。
+3. **本機有未存檔修改**（Web：`DebouncedSaver` 有 pending、標題聚焦中、或該卡 `PATCH` 在途〔`isCardSaveInFlight`〕；Apple：`titleSaveWorkItem / descriptionSaveWorkItem` 非 nil〔work item 觸發時自設 nil〕或該卡存檔在途〔`CardVersionStore.isSaveInFlight`〕——sticky 的 `hasEdited*` 不進閘門）→ **不做任何事、不抓最新、不 seed**。理由：抓最新會把 base 推到新版，接下來的本機存檔就會通過版本檢查、覆蓋別台的修改（Apple `CardRepository.get` 會 seed，所以閘門內用 `seedVersion: false`；Web 的 seed effect 編輯中也不 seed）。待本機存檔 → server 409 → 現有衝突路徑處理：Apple：若本機已編輯，409 時保留本機內容並推進基準，下一次存檔會覆蓋對方；本機存檔完成後遠端變更重新開始套用。Web：換成伺服器版本。
+4. 否則 → `GET /api/tasks/[id]` 抓最新 → 抓完再查一次閘門（期間開始打字就丟掉結果）→ 若 title / description 與畫面相同只推進 base，不重 mount；否則套用 title / description → 推進 base 到最新 updatedAt → 編輯器重 mount（`reloadToken++`，與 409 路徑相同）。
 5. 任一事件 → 卡片列表重新抓（Web `invalidateCardsCache()`；Apple post `cardsChangedNotification`）。
 6. `kind === "any"` → 只做 5。
 
@@ -90,6 +90,7 @@ export function notifyUserDevices(
 - 新元件 `src/components/live-sync-provider.tsx`（client component，無 UI），掛在 `src/app/[locale]/(app)/layout.tsx` 的 `SidebarLayout` 旁，整個登入區只掛一次。
 - `card-detail.tsx`：`useEffect` 訂閱；依 §2 判斷；pending 判斷新增 `DebouncedSaver.isPending()`（新增 getter，回 `pending !== null`）；套用 = `await mutate()` 後 `setReloadToken(n => n + 1)`（SWR 回來的 `data.updatedAt` 會經既有 effect seed）。
 - `task-detail-modal.tsx`：本身不抓資料。訂閱後符合 §2 第 4 步時呼叫新 prop `onRemoteChange?: () => void`；parent（daily 頁）負責 refetch + `editorReloadToken++`。pending 判斷用 modal 自己的 saver。
+- `task-detail-modal` 只在卡片快速彈窗（`cards-feed.tsx`）接 `onRemoteChange`；行動頁的任務彈窗隨行動頁即時化另案。
 - 不改 `/api/cards` 的 SWR 設定。
 
 ## 4. Mac + iOS（共用 NudgeKit）
@@ -133,7 +134,7 @@ export function notifyUserDevices(
   1. Web A 改字 → Web B（同卡，純檢視）2 秒內換內容。
   2. Web 改字 → Mac 同卡 2 秒內換；Mac 改字 → Web 2 秒內換。
   3. Web 改字 → iOS 模擬器前景同卡 2 秒內換；iOS 退背景再回前景 → 內容最新（重連後列表 + 卡片）。
-  4. Mac 正在打字時 Web 改同卡 → Mac 不跳動；Mac 停筆存檔 → 被 409 擋 → Mac 換成 Web 版（現有行為）。
+  4. Mac 正在打字時 Web 改同卡 → Mac 不跳動；Mac 停筆存檔 → 被 409 擋 → Mac 保留本機內容並推進基準，下一次存檔覆蓋 Web 版（Apple 本機優先，現有行為）；Mac 存檔完成後 Web 再改 → Mac 2 秒內換成 Web 版。
   5. 自己存檔不觸發自己重載（回音略過）：連續打字 10 秒，游標不跳。
   6. 關 dev server 再開 → 三邊自動重連，不用重啟 app。
   7. 部署 Zeabur 後重跑 1、2（驗 §1.4 緩衝風險）。

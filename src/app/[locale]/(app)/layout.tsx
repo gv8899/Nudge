@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "@/i18n/routing";
 import { SidebarLayout } from "@/components/sidebar/sidebar-layout";
+import { LiveSyncProvider } from "@/components/live-sync-provider";
 import { getUser } from "@/lib/get-user";
 import { hasActiveEntitlement } from "@/lib/entitlement";
 import { isPaywallEnforced } from "@/lib/paywall";
@@ -25,5 +26,10 @@ export default async function AppLayout({
     }
   }
 
-  return <SidebarLayout>{children}</SidebarLayout>;
+  return (
+    <SidebarLayout>
+      <LiveSyncProvider />
+      {children}
+    </SidebarLayout>
+  );
 }

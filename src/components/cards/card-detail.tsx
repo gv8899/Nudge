@@ -10,7 +10,9 @@ import { useSidebarCollapsed } from "@/components/sidebar/sidebar-layout";
 import { fetcher } from "@/lib/fetcher";
 import { DebouncedSaver } from "@/lib/debounced-saver";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
-import { seedCardVersion, patchCardField } from "@/lib/card-version";
+import { seedCardVersion, patchCardField, getCardVersion, isCardSaveInFlight } from "@/lib/card-version";
+import { subscribeLiveSync } from "@/lib/live-sync";
+import { decideRemoteChange, decideOnDataChange, cardContentOf, type CardContent } from "@/lib/live-sync-rules";
 import { TagPicker } from "@/components/tags/tag-picker";
 import { useTags } from "@/hooks/use-tags";
 import { shouldPersistDescription } from "@/lib/strip-html";
@@ -45,7 +47,9 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   const tCommon = useTranslations("common");
   const { data, error, isLoading, mutate } = useSWR<CardData>(
     `/api/tasks/${id}`,
-    fetcher
+    fetcher,
+    // 即時同步（事件 + reconnected 補抓）已涵蓋這兩種情況；focus 重抓會在編輯器已 mount 時默默換掉 data。
+    { revalidateOnFocus: false, revalidateOnReconnect: false }
   );
 
   // 標題 — 永遠可編輯的 input（對齊 Mac CardDetailView macHeader），不強制
@@ -55,6 +59,10 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
   const isTitleFocusedRef = useRef(false);
   // 409 衝突時 ++ 換掉編輯器 key 強制重 mount，載入 server 最新內文。
   const [reloadToken, setReloadToken] = useState(0);
+  // 編輯器實際 mount 的內容（重抓後是否重 mount 的比對基準；不能用 SWR data，
+  // data 可能被其他重抓更新而編輯器仍是舊內容）。
+  const mountedContentRef = useRef<CardContent>({ title: "", description: "" });
+  const mountedForIdRef = useRef<string | null>(null);
   const [cardTags, setCardTags] = useState<Array<{ id: string; name: string; color: string }>>([]);
   const { tags: allTags } = useTags();
 
@@ -62,11 +70,6 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
     if (isTitleFocusedRef.current) return;
     if (data?.title !== undefined) setTitleDraft(data.title);
   }, [data?.title]);
-
-  // seed 樂觀並行基準：server 回的 updatedAt = 目前畫面內容所基於的版本。
-  useEffect(() => {
-    if (data?.updatedAt) seedCardVersion(id, data.updatedAt);
-  }, [id, data?.updatedAt]);
 
   useEffect(() => {
     if (data?.tags) setCardTags(data.tags);
@@ -81,11 +84,15 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
         // 丟棄本機這次衝突的編輯，重 mount 編輯器載入最新內文。
         const latest = result.latest as unknown as CardData;
         setTitleDraft(latest.title);
-        await mutate(latest, { revalidate: false });
+        mountedContentRef.current = cardContentOf(latest);
         setReloadToken((n) => n + 1);
+        await mutate(latest, { revalidate: false });
         invalidateCardsCache();
         return;
       }
+      // 自己存成功：編輯器顯示的就是剛存的內容。
+      if (updates.title !== undefined) mountedContentRef.current.title = updates.title;
+      if (updates.description !== undefined) mountedContentRef.current.description = updates.description;
       mutate();
       invalidateCardsCache();
     },
@@ -116,6 +123,73 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
       }, 500)
   );
   useEffect(() => () => titleSaver.flush(), [titleSaver]);
+
+  // 本機有未存 / 在途的修改（存檔在途：基準還沒推進，自己的回音不能當遠端變更）。
+  // seed 與即時同步閘門共用同一個判斷。
+  const isLocallyPending = useCallback(
+    () =>
+      descSaver.isPending() ||
+      titleSaver.isPending() ||
+      isTitleFocusedRef.current ||
+      isCardSaveInFlight(id),
+    [id, descSaver, titleSaver]
+  );
+
+  // data 變動（任何來源：即時同步重抓、warm cache 的 mount 重抓、tags / 存檔後的 mutate）
+  // → 比對編輯器實際掛載的內容，再 seed 樂觀並行基準。
+  // 不變式：基準只在編輯器顯示該版本時推進。TiptapEditor 不會重讀 content prop，
+  // 所以內容不同就重 mount；本機編輯中則不 seed 也不重 mount，留舊基準讓 409 接手。
+  // （自己存完 / 409 時已先更新 mountedContentRef，這裡會看到「相同」只 seed。）
+  useEffect(() => {
+    if (!data) return;
+    const latest = cardContentOf(data);
+    const first = mountedForIdRef.current !== id;
+    if (first) {
+      // 首次拿到這張卡的資料（含換 id）= 編輯器以這份 data mount。
+      mountedForIdRef.current = id;
+      mountedContentRef.current = latest;
+    }
+    const decision = decideOnDataChange({
+      first,
+      pending: isLocallyPending(),
+      mounted: mountedContentRef.current,
+      latest,
+    });
+    if (decision === "skip") return;
+    if (decision === "remount-and-seed") {
+      mountedContentRef.current = latest;
+      setReloadToken((n) => n + 1);
+    }
+    seedCardVersion(id, data.updatedAt);
+  }, [id, data, isLocallyPending]); // isLocallyPending 只隨 id 變（saver 穩定）
+
+  // 即時同步：別處改了這張卡 → 純檢視時換最新；正在打字（saver pending）
+  // 時不動，交給存檔的 409 路徑。reconnected → 無條件補抓一次（斷線期間可能漏事件）。
+  useEffect(() => {
+    // 只重抓：data 變動後由上面的 data effect 比對掛載內容 → 重 mount / 確認相同 → seed。
+    // 重抓途中使用者若開始打字，effect 會看到 pending 而跳過（讓 pending 存檔勝出）。
+    const refetchAndReload = () => {
+      void mutate();
+    };
+    return subscribeLiveSync((m) => {
+      const hasPending = isLocallyPending();
+      if (m.type === "reconnected") {
+        if (!hasPending) refetchAndReload();
+        return;
+      }
+      const decision = decideRemoteChange({
+        event: m.event,
+        cardId: id,
+        baseUpdatedAt: getCardVersion(id),
+        hasPending,
+      });
+      if (decision === "list-only") { invalidateCardsCache(); return; }
+      if (decision === "ignore") return;
+      // apply：SWR 重抓 → data 變 → data effect 比對後重 mount（內容不同）並 seed 新基準。
+      refetchAndReload();
+      invalidateCardsCache();
+    });
+  }, [id, mutate, isLocallyPending]);
 
   const handleTagsChange = async (tagIds: string[]) => {
     // 樂觀更新：立即顯示 tag badge

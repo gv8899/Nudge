@@ -45,11 +45,24 @@ public struct CardsHostView: View {
     }
 
     public var body: some View {
-        #if os(iOS)
-        iOSLayout
-        #else
-        macOSLayout
-        #endif
+        Group {
+            #if os(iOS)
+            iOSLayout
+            #else
+            macOSLayout
+            #endif
+        }
+        // 即時同步：任何遠端變更 / 重連（含 iOS 回前景後的首次連線）→ 重抓列表。
+        // firstPage() 只寫 cards / nextCursor / isLoading / hasError；開著的卡片
+        // （Mac fullPageCard / quickCard、iOS navigationPath 內的 CardDTO）是獨立
+        // 的 @State / path 值、不由列表派生，CardDetailView 以 .id(card.id) 綁定，
+        // 所以重抓列表不會重建編輯器。開著那張卡的內容由 CardDetailView 自己決定套用。
+        .onReceive(NotificationCenter.default.publisher(for: NudgeSync.changeNotification)) { _ in
+            Task { await firstPage() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NudgeSync.reconnectedNotification)) { _ in
+            Task { await firstPage() }
+        }
     }
 
     #if os(iOS)
