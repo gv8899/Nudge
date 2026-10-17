@@ -1858,7 +1858,9 @@ private struct DashboardColumnCardDetail: View {
                     // 取消還在排隊的 debounce，直接存權威內容。沒改過就別存。
                     descSaveWorkItem?.cancel(); descSaveWorkItem = nil
                     if hasEditedDescription { onUpdateDescription(html) }
-                }
+                },
+                // 卡片圖片上傳（Mac；iOS 的 JS 端自己關掉入口）。
+                attachmentTaskId: card.id
             )
             .id("\(card.id)-\(reloadToken)")
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
