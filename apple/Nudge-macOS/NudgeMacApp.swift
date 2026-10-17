@@ -15,6 +15,8 @@ struct NudgeMacApp: App {
     @State private var calendarRepo: CalendarRepository
     @State private var cardRepo: CardRepository
     @State private var attachmentRepo: AttachmentRepository
+    /// 前景即時同步長連線（SSE）。生命週期由 PlatformRootView 依平台 / scenePhase 控制。
+    @State private var syncStream: SyncStreamClient
     @State private var noteRepo: NoteRepository
     @State private var recurrenceRepo: RecurrenceRepository
     @State private var notificationPrefsRepo: NotificationPreferencesRepository
@@ -60,6 +62,7 @@ struct NudgeMacApp: App {
         let calRepo = CalendarRepository(client: client)
         let cardRepo = CardRepository(client: client)
         let attachmentRepo = AttachmentRepository(client: client)
+        let syncStream = SyncStreamClient(client: client)
         let noteRepo = NoteRepository(client: client)
         let recurrenceRepo = RecurrenceRepository(client: client)
         let notificationPrefsRepo = NotificationPreferencesRepository(client: client)
@@ -75,6 +78,7 @@ struct NudgeMacApp: App {
         self._calendarRepo = State(initialValue: calRepo)
         self._cardRepo = State(initialValue: cardRepo)
         self._attachmentRepo = State(initialValue: attachmentRepo)
+        self._syncStream = State(initialValue: syncStream)
         self._noteRepo = State(initialValue: noteRepo)
         self._recurrenceRepo = State(initialValue: recurrenceRepo)
         self._notificationPrefsRepo = State(initialValue: notificationPrefsRepo)
@@ -100,6 +104,7 @@ struct NudgeMacApp: App {
                         .environment(calendarRepo)
                         .environment(cardRepo)
                         .environment(attachmentRepo)
+                        .environment(syncStream)
                         .environment(noteRepo)
                         .environment(recurrenceRepo)
                         .environment(notificationPrefsRepo)
@@ -182,6 +187,7 @@ struct NudgeMacApp: App {
                     .environment(calendarRepo)
                     .environment(cardRepo)
                     .environment(attachmentRepo)
+                    .environment(syncStream)
                     .environment(noteRepo)
                     .environment(recurrenceRepo)
                     .environment(notificationPrefsRepo)
