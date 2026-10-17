@@ -9,8 +9,9 @@ const HEARTBEAT_MS = 25_000;
 
 /**
  * 卡片即時同步的 SSE 端點。登入後每個 client 掛一條；server 收到該 user 的
- * 變動（sync-bus）就推 `event: change`。payload 只有 kind / id / updatedAt，
- * 不含內容 —— client 收到再用既有 owner-scoped GET 去抓。
+ * 變動（sync-bus）就推 `event: change`。payload 只有 kind（task 另帶 id /
+ * updatedAt），不含內容 —— client 收到再用既有 owner-scoped GET 去抓。
+ * server 的 LISTEN 斷線重連後會 closeAll() 關掉本 stream，client 重連即補抓。
  */
 export async function GET(request: NextRequest) {
   const user = await getUser();
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
 
       // 開場：讓 proxy / 瀏覽器立刻看到 body 開始（也驗證連線成功）
       write(`: connected\n\n`);
-      const unsubscribe = getRegistry().subscribe(user.id, send);
+      const unsubscribe = getRegistry().subscribe(user.id, send, () => cleanup());
       let done = false;
       const heartbeat = setInterval(() => {
         try {

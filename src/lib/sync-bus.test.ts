@@ -65,6 +65,21 @@ describe("SubscriberRegistry", () => {
     expect(r.emit("u1", { kind: "any" })).toBe(1);
     expect(got).toEqual(["any"]);
   });
+  it("closeAll：每個 onClose 呼叫一次、清空 registry，onClose 丟例外不影響其他人", () => {
+    const r = new SubscriberRegistry();
+    const closed: string[] = [];
+    r.subscribe("u1", () => {}, () => closed.push("a"));
+    r.subscribe("u1", () => {}, () => { closed.push("b"); throw new Error("boom"); });
+    r.subscribe("u2", () => {}, () => closed.push("c"));
+    r.subscribe("u2", () => {}); // 沒給 onClose 也行
+    expect(r.closeAll()).toBe(4);
+    expect(closed.sort()).toEqual(["a", "b", "c"]);
+    expect(r.count("u1")).toBe(0);
+    expect(r.count("u2")).toBe(0);
+    expect(r.emit("u1", { kind: "any" })).toBe(0);
+    expect(r.closeAll()).toBe(0);
+    expect(closed).toHaveLength(3);
+  });
   it("getRegistry 是 process 單例", () => {
     expect(getRegistry()).toBe(getRegistry());
   });
@@ -114,6 +129,31 @@ describe("ensureListener", () => {
     expect(fakes.clients).toHaveLength(1);
     await vi.advanceTimersByTimeAsync(1000);
     expect(fakes.clients).toHaveLength(2); // error + catch 只算一次失敗
+  });
+
+  it("第一次連上不 closeAll；斷線後重新 LISTEN 成功才 closeAll", async () => {
+    const spy = vi.spyOn(getRegistry(), "closeAll");
+    ensureListener();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(fakes.clients).toHaveLength(1);
+    expect(spy).not.toHaveBeenCalled();
+    (fakes.clients[0] as Fake).emit("error", new Error("conn reset"));
+    expect(spy).not.toHaveBeenCalled(); // 還沒接回
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(fakes.clients).toHaveLength(2);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it("首次連線失敗、之後連上也要 closeAll（attempt > 0）", async () => {
+    const spy = vi.spyOn(getRegistry(), "closeAll");
+    let calls = 0;
+    fakes.connectImpl = () => (++calls === 1 ? Promise.reject(new Error("down")) : Promise.resolve());
+    ensureListener();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(spy).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(fakes.clients).toHaveLength(2);
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 
   it("連線失敗退避指數成長", async () => {

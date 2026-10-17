@@ -31,21 +31,28 @@ export function parseNotifyPayload(raw: string): NotifyPayload | null {
   return null;
 }
 
-export class SubscriberRegistry {
-  private byUser = new Map<string, Set<(e: SyncEvent) => void>>();
+type Subscriber = { send: (e: SyncEvent) => void; onClose?: () => void };
 
-  subscribe(userId: string, send: (e: SyncEvent) => void): () => void {
+export class SubscriberRegistry {
+  private byUser = new Map<string, Set<Subscriber>>();
+
+  /**
+   * `onClose`：server 要求結束這條 SSE 時呼叫（見 closeAll）—— route 傳自己的
+   * cleanup，關掉 stream 讓 client 重連並跑 reconnected 補抓。
+   */
+  subscribe(userId: string, send: (e: SyncEvent) => void, onClose?: () => void): () => void {
     let set = this.byUser.get(userId);
     if (!set) {
       set = new Set();
       this.byUser.set(userId, set);
     }
-    set.add(send);
+    const sub: Subscriber = { send, onClose };
+    set.add(sub);
     let done = false;
     return () => {
       if (done) return;
       done = true;
-      set!.delete(send);
+      set!.delete(sub);
       if (set!.size === 0 && this.byUser.get(userId) === set) this.byUser.delete(userId);
     };
   }
@@ -54,7 +61,7 @@ export class SubscriberRegistry {
     const set = this.byUser.get(userId);
     if (!set) return 0;
     let delivered = 0;
-    for (const send of set) {
+    for (const { send } of set) {
       try {
         send(e);
         delivered++;
@@ -67,6 +74,23 @@ export class SubscriberRegistry {
 
   count(userId: string): number {
     return this.byUser.get(userId)?.size ?? 0;
+  }
+
+  /**
+   * 結束所有本機 SSE 連線（LISTEN 斷過又接回時用：中間的 NOTIFY 已漏掉，
+   * 關掉 stream 讓每個 client 重連並觸發 reconnected 補抓）。回傳關掉幾條。
+   */
+  closeAll(): number {
+    const all = [...this.byUser.values()].flatMap((set) => [...set]);
+    this.byUser.clear();
+    for (const { onClose } of all) {
+      try {
+        onClose?.();
+      } catch {
+        // 單一連線關閉失敗不影響其他人
+      }
+    }
+    return all.length;
   }
 }
 
@@ -100,16 +124,21 @@ export function ensureListener(): void {
   const state = g.__nudgeSyncListener;
   if (state.client || state.starting) return;
   state.starting = true;
+  // 這個 process 的 LISTEN 是否曾經斷過：斷過之後再接回，中間的 NOTIFY 已漏掉，
+  // 要 closeAll() 讓所有本機 SSE client 重連補抓。第一次連上不算。
+  let hadFailure = false;
   void connect(0);
 
   async function connect(attempt: number) {
-    const client = new Client({ connectionString: process.env.DATABASE_URL });
+    // keepAlive：閒置的 LISTEN 連線不被 NAT / proxy 靜默砍掉而不自知。
+    const client = new Client({ connectionString: process.env.DATABASE_URL, keepAlive: true });
     let dead = false;
     // delayAttempt：這次退避用第幾級；下一輪從 delayAttempt+1 繼續累加。
     // 連線成功後出錯一律從第 0 級（1s）重新開始。
     const fail = (err: unknown, delayAttempt: number) => {
       if (dead) return; // 同一條連線只處理一次，避免重複建 LISTEN client
       dead = true;
+      hadFailure = true;
       console.error("[sync-bus] listener failed:", err);
       client.removeAllListeners("notification");
       client.on("error", () => {}); // 吞掉後續遲到的 error，避免 uncaught
@@ -136,6 +165,11 @@ export function ensureListener(): void {
       connected = true;
       state.client = client;
       state.starting = false;
+      if (hadFailure || attempt > 0) {
+        hadFailure = false;
+        const closed = getRegistry().closeAll();
+        if (closed > 0) console.warn(`[sync-bus] listener reconnected; closed ${closed} SSE stream(s) for catch-up`);
+      }
     } catch (err) {
       fail(err, attempt);
     }
