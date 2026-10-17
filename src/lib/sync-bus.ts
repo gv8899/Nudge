@@ -41,9 +41,12 @@ export class SubscriberRegistry {
       this.byUser.set(userId, set);
     }
     set.add(send);
+    let done = false;
     return () => {
+      if (done) return;
+      done = true;
       set!.delete(send);
-      if (set!.size === 0) this.byUser.delete(userId);
+      if (set!.size === 0 && this.byUser.get(userId) === set) this.byUser.delete(userId);
     };
   }
 
@@ -101,30 +104,40 @@ export function ensureListener(): void {
 
   async function connect(attempt: number) {
     const client = new Client({ connectionString: process.env.DATABASE_URL });
+    let dead = false;
+    // delayAttempt：這次退避用第幾級；下一輪從 delayAttempt+1 繼續累加。
+    // 連線成功後出錯一律從第 0 級（1s）重新開始。
+    const fail = (err: unknown, delayAttempt: number) => {
+      if (dead) return; // 同一條連線只處理一次，避免重複建 LISTEN client
+      dead = true;
+      console.error("[sync-bus] listener failed:", err);
+      client.removeAllListeners("notification");
+      client.on("error", () => {}); // 吞掉後續遲到的 error，避免 uncaught
+      void client.end().catch(() => {});
+      if (state.client === client) state.client = null;
+      state.starting = true;
+      const delay = Math.min(RECONNECT_MAX_MS, RECONNECT_MIN_MS * 2 ** delayAttempt);
+      setTimeout(() => void connect(delayAttempt + 1), delay);
+    };
+    let connected = false;
+    // handler 必須在 connect() 之前掛：連線途中 socket 死掉也不會 uncaught
+    client.on("error", (err) => fail(err, connected ? 0 : attempt));
+    client.on("notification", (msg) => {
+      if (msg.channel !== SYNC_CHANNEL || !msg.payload) return;
+      const p = parseNotifyPayload(msg.payload);
+      if (!p) return;
+      const { userId, ...change } = p;
+      getRegistry().emit(userId, change as SyncChange);
+    });
     try {
       await client.connect();
       await client.query(`LISTEN ${SYNC_CHANNEL}`);
+      if (dead) return;
+      connected = true;
       state.client = client;
       state.starting = false;
-      client.on("notification", (msg) => {
-        if (msg.channel !== SYNC_CHANNEL || !msg.payload) return;
-        const p = parseNotifyPayload(msg.payload);
-        if (!p) return;
-        const { userId, ...change } = p;
-        getRegistry().emit(userId, change as SyncChange);
-      });
-      client.on("error", (err) => {
-        console.error("[sync-bus] listener error:", err);
-        state.client = null;
-        void client.end().catch(() => {});
-        state.starting = true;
-        void connect(0);
-      });
     } catch (err) {
-      console.error("[sync-bus] listener connect failed:", err);
-      void client.end().catch(() => {});
-      const delay = Math.min(RECONNECT_MAX_MS, RECONNECT_MIN_MS * 2 ** attempt);
-      setTimeout(() => void connect(attempt + 1), delay);
+      fail(err, attempt);
     }
   }
 }
