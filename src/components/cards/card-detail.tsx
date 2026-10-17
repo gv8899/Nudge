@@ -10,7 +10,9 @@ import { useSidebarCollapsed } from "@/components/sidebar/sidebar-layout";
 import { fetcher } from "@/lib/fetcher";
 import { DebouncedSaver } from "@/lib/debounced-saver";
 import { TiptapEditor } from "@/components/task/tiptap-editor";
-import { seedCardVersion, patchCardField } from "@/lib/card-version";
+import { seedCardVersion, patchCardField, getCardVersion } from "@/lib/card-version";
+import { subscribeLiveSync } from "@/lib/live-sync";
+import { decideRemoteChange } from "@/lib/live-sync-rules";
 import { TagPicker } from "@/components/tags/tag-picker";
 import { useTags } from "@/hooks/use-tags";
 import { shouldPersistDescription } from "@/lib/strip-html";
@@ -116,6 +118,30 @@ export function CardDetail({ id, embedded = false, onBack }: CardDetailProps) {
       }, 500)
   );
   useEffect(() => () => titleSaver.flush(), [titleSaver]);
+
+  // 即時同步：別處改了這張卡 → 純檢視時換最新；正在打字（saver pending）
+  // 時不動，交給存檔的 409 路徑。reconnected → 無條件補抓一次（斷線期間可能漏事件）。
+  useEffect(() => {
+    return subscribeLiveSync((m) => {
+      const hasPending = descSaver.isPending() || titleSaver.isPending() || isTitleFocusedRef.current;
+      if (m.type === "reconnected") {
+        if (!hasPending) void mutate().then(() => setReloadToken((n) => n + 1));
+        return;
+      }
+      const decision = decideRemoteChange({
+        event: m.event,
+        cardId: id,
+        baseUpdatedAt: getCardVersion(id),
+        hasPending,
+      });
+      if (decision === "list-only") { invalidateCardsCache(); return; }
+      if (decision === "ignore") return;
+      // apply：SWR 重抓 → data.updatedAt 變 → 既有 effect 會 seed 新基準；
+      // 編輯器以 reloadToken 重 mount 載入新內文（先等 mutate 回來再 ++）。
+      void mutate().then(() => setReloadToken((n) => n + 1));
+      invalidateCardsCache();
+    });
+  }, [id, mutate, descSaver, titleSaver]);
 
   const handleTagsChange = async (tagIds: string[]) => {
     // 樂觀更新：立即顯示 tag badge

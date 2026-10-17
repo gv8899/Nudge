@@ -48,3 +48,8 @@ export async function patchCardField(
 
   return { status: "ok", task: null };
 }
+
+/** 目前記錄的基準版本（live sync 回音 / 新舊判斷用）。 */
+export function getCardVersion(id: string): string | null {
+  return baseByCardId.get(id) ?? null;
+}

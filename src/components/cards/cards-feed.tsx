@@ -61,6 +61,17 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
     [cardId, mutate]
   );
 
+  // 即時同步：TaskDetailModal 判定「別處改了且本機沒在打字」→ 先重抓再重 mount 編輯器。
+  const handleRemoteChange = useCallback(async () => {
+    await mutate();
+    setEditorReloadToken((n) => n + 1);
+    globalMutate(
+      (key) => typeof key === "string" && key.startsWith("/api/cards"),
+      undefined,
+      { revalidate: true }
+    );
+  }, [mutate]);
+
   if (!data) return null;
 
   return (
@@ -75,6 +86,7 @@ function CardModal({ cardId, onClose, onExpand }: CardModalProps) {
       }}
       wide
       editorReloadToken={editorReloadToken}
+      onRemoteChange={handleRemoteChange}
       onExpand={() => onExpand(cardId)}
     />
   );

@@ -9,6 +9,9 @@ import { Maximize2, X } from "lucide-react";
 import type { Task } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
 import { shouldPersistDescription } from "@/lib/strip-html";
+import { getCardVersion } from "@/lib/card-version";
+import { subscribeLiveSync } from "@/lib/live-sync";
+import { decideRemoteChange } from "@/lib/live-sync-rules";
 
 interface TaskDetailModalProps {
   task: Task;
@@ -24,6 +27,8 @@ interface TaskDetailModalProps {
   wide?: boolean;
   /** 樂觀並行 409 衝突時 ++，強制內文編輯器重 mount 載入 server 最新內容。 */
   editorReloadToken?: number;
+  /** 即時同步：這張卡在別處被改且本機沒在打字時呼叫（parent 負責重抓 + 重載編輯器）。 */
+  onRemoteChange?: () => void;
 }
 
 export function TaskDetailModal({
@@ -38,6 +43,7 @@ export function TaskDetailModal({
   onExpand,
   wide = false,
   editorReloadToken = 0,
+  onRemoteChange,
 }: TaskDetailModalProps) {
   const t = useTranslations("task");
   const tCommon = useTranslations("common");
@@ -82,6 +88,25 @@ export function TaskDetailModal({
       }, 500)
   );
   useEffect(() => () => titleSaver.flush(), [titleSaver]);
+
+  // 即時同步（parent 決定要不要重抓；這裡只負責「正在打字就別吵」的閘門）
+  useEffect(() => {
+    if (!open || !onRemoteChange) return;
+    return subscribeLiveSync((m) => {
+      const hasPending = descSaver.isPending() || titleSaver.isPending() || isTitleFocusedRef.current;
+      if (m.type === "reconnected") {
+        if (!hasPending) onRemoteChange();
+        return;
+      }
+      const d = decideRemoteChange({
+        event: m.event,
+        cardId: task.id,
+        baseUpdatedAt: getCardVersion(task.id),
+        hasPending,
+      });
+      if (d === "apply") onRemoteChange();
+    });
+  }, [open, onRemoteChange, task.id, descSaver, titleSaver]);
 
   const handleClose = useCallback(() => {
     descSaver.flush();
