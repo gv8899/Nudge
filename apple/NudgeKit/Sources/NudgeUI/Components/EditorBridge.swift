@@ -102,6 +102,9 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
     var attachmentTaskId: String?
     /// App 層的上傳協調器（webview 關掉後上傳仍跑完 + 補寫）。沒注入就回失敗。
     var imageUploads: ImageUploadCoordinator?
+    /// SwiftUI 已 dismantle 這個 webview（卡片關閉中 / 已關）。webview 物件可能
+    /// 還活著一段時間，但不能再當「編輯器還在」—— 上傳結果改走伺服器端補寫。
+    private(set) var isTornDown = false
     private var currentScheme: ColorScheme?
     private var lastSentScheme: ColorScheme?
     #if os(iOS)
@@ -120,6 +123,15 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
         self.labels = labels
         self.onActiveMarks = onActiveMarks
         self.onHeight = onHeight
+    }
+
+    /// dismantleNSView / dismantleUIView 呼叫：標記拆除 + 移除 script message
+    /// handler（WKUserContentController 強引用 handler → coordinator ↔ webview 循環）。
+    func tearDown(webView: WKWebView) {
+        isTornDown = true
+        let ucc = webView.configuration.userContentController
+        ucc.removeScriptMessageHandler(forName: "editor")
+        ucc.removeScriptMessageHandler(forName: "editorConsole")
     }
 
     func attach(webView: WKWebView) {
@@ -284,10 +296,11 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
     /// 回 true = webview 還在且 evaluateJavaScript 成功完成 —— 不管 JS 回的
     /// Boolean。JS 回 false 代表 placeholder 不在了：在「活著的」編輯器裡那
     /// 只會是使用者自己刪掉了，此時不能走補寫（否則會把使用者刪掉的圖寫回去）。
-    /// 只有 webView == nil 或 eval 丟錯才回 false，讓 ImageUploadCoordinator
+    /// 只有已 dismantle、webView == nil 或 eval 丟錯才回 false，讓 ImageUploadCoordinator
     /// 走補寫進已存檔內文。
     func deliverUploadResult(_ payload: [String: Any]) async -> Bool {
-        guard let webView else { return false }
+        // 已 dismantle：webview 物件可能還沒釋放，但編輯器已不在畫面 → 走補寫。
+        guard !isTornDown, let webView else { return false }
         guard let data = try? JSONSerialization.data(withJSONObject: payload),
               let json = String(data: data, encoding: .utf8) else { return false }
         let script = "NudgeEditor.uploadResult(\(json))"

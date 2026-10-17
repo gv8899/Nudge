@@ -36,11 +36,19 @@ public final class ImageUploadCoordinator {
     /// key 用內部 token（不用 requestId）：同 requestId 重送時，舊 Task 的收尾不會清掉新 Task。
     @ObservationIgnored private var tasks: [UUID: Task<Void, Never>] = [:]
     public private(set) var inFlightCount = 0
+    /// 補寫時 placeholder 不在、但有存檔在途 → 等這麼久再 GET 一次。
+    @ObservationIgnored private let inFlightSaveRetryDelay: UInt64
 
-    public init(attachments: AttachmentRepository, cards: CardRepository, client: APIClient) {
+    public init(
+        attachments: AttachmentRepository,
+        cards: CardRepository,
+        client: APIClient,
+        inFlightSaveRetryDelay: UInt64 = 1_000_000_000
+    ) {
         self.attachments = attachments
         self.cards = cards
         self.client = client
+        self.inFlightSaveRetryDelay = inFlightSaveRetryDelay
     }
 
     /// 上傳；完成後呼叫 deliver。deliver 回 false（webview 已不在 / eval 失敗）→ 走補寫。
@@ -80,16 +88,54 @@ public final class ImageUploadCoordinator {
         }
     }
 
+    /// 卡片編輯器已關（或 deliver 失敗）時，把上傳結果補寫進伺服器端已存檔的內文。
+    ///
+    /// - placeholder 不在、但這張卡有存檔在途（編輯器關掉時的 flush 還沒落地）→
+    ///   等一下再 GET 一次。
+    /// - PATCH 撞 409（helper 已廣播 server 最新）→ 重新 GET + 套一次（transform 只換
+    ///   那一格 placeholder，可重入）。
+    /// - 成功 → 廣播 conflictResolved（開著同卡、沒編輯過的 CardDetailView 會改用補寫
+    ///   後內容）+ 清單重抓通知。
     private func recover(taskId: String, uploadId: String, result: AttachmentUploadResult) async {
+        var waitedForInFlightSave = false
+        var retriedConflict = false
         do {
-            let card = try await cards.get(cardId: taskId, seedVersion: false)
-            guard let next = AttachmentHTMLRewrite.replacePendingImage(
-                html: card.description, uploadId: uploadId, result: result
-            ) else { return }
-            CardVersionStore.seed(cardId: taskId, updatedAt: card.updatedAt)
-            // 409 → saveCardFieldWithVersionCheck 自己廣播 conflictResolved，這裡放棄（既有政策）。
-            try await saveCardFieldWithVersionCheck(client: client, cardId: taskId, description: next)
-            NotificationCenter.default.post(name: CardRepository.cardDidChangeNotification, object: taskId)
+            while true {
+                let card = try await cards.get(cardId: taskId, seedVersion: false)
+                guard let next = AttachmentHTMLRewrite.replacePendingImage(
+                    html: card.description, uploadId: uploadId, result: result
+                ) else {
+                    if !waitedForInFlightSave && CardVersionStore.isSaveInFlight(cardId: taskId) {
+                        waitedForInFlightSave = true
+                        try? await Task.sleep(nanoseconds: inFlightSaveRetryDelay)
+                        continue
+                    }
+                    return   // placeholder 已被後續存檔丟掉 → 使用者不要這張圖了
+                }
+                CardVersionStore.seed(cardId: taskId, updatedAt: card.updatedAt)
+                let outcome = try await saveCardFieldWithVersionCheck(
+                    client: client, cardId: taskId, description: next
+                )
+                switch outcome {
+                case .ok(let saved):
+                    NotificationCenter.default.post(
+                        name: CardVersionStore.conflictResolved,
+                        object: taskId,
+                        userInfo: [
+                            CardVersionStore.conflictTitleKey: card.title,
+                            CardVersionStore.conflictDescriptionKey: next,
+                            CardVersionStore.conflictUpdatedAtKey: saved.updatedAt,
+                        ]
+                    )
+                    NotificationCenter.default.post(name: CardRepository.cardDidChangeNotification, object: taskId)
+                    // = NudgeCommands.cardsChangedNotification（NudgeUI，NudgeCore 不能 import）。
+                    NotificationCenter.default.post(name: Notification.Name("nudge.cardsChanged"), object: nil)
+                    return
+                case .conflict:
+                    if retriedConflict { return }
+                    retriedConflict = true
+                }
+            }
         } catch {
             // 補寫盡力而為；失敗的附件留給孤兒清理（reap-orphan-attachments）。
         }

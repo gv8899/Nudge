@@ -237,6 +237,11 @@ private struct UIKitEditor: UIViewRepresentable {
             context.coordinator.pushAttachmentTaskId()
         }
     }
+
+    /// 卡片關閉：標記 coordinator 已拆（上傳結果改走補寫）+ 拆 message handler 循環。
+    static func dismantleUIView(_ uiView: WKWebView, coordinator: EditorCoordinator) {
+        coordinator.tearDown(webView: uiView)
+    }
 }
 #endif
 
@@ -310,6 +315,11 @@ private struct AppKitEditor: NSViewRepresentable {
             context.coordinator.attachmentTaskId = attachmentTaskId
             context.coordinator.pushAttachmentTaskId()
         }
+    }
+
+    /// 卡片關閉：標記 coordinator 已拆（上傳結果改走補寫）+ 拆 message handler 循環。
+    static func dismantleNSView(_ nsView: WKWebView, coordinator: EditorCoordinator) {
+        coordinator.tearDown(webView: nsView)
     }
 }
 #endif
