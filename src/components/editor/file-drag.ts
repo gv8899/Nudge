@@ -1,4 +1,4 @@
-import { isSupportedImageFile } from "@/lib/image-upload";
+import { isSupportedImageFile } from "./image-prepare";
 
 /** 這次 DnD 是不是「從外面拖檔案進來」（而不是把手的區塊拖曳）。 */
 export function isFileDrag(types: readonly string[] | DOMStringList | undefined): boolean {

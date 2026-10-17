@@ -9,7 +9,12 @@ import { useSlashCommandItems } from "@/components/editor/slash-command-items";
 import { useBlockDrag } from "@/components/editor/use-block-drag";
 import { BlockDragHandle, BlockDropIndicator } from "@/components/editor/block-drag-handle";
 import { useImageUpload } from "@/components/editor/use-image-upload";
-import { isFileDrag, splitImageFiles } from "@/components/editor/file-drag";
+import {
+  handleFileDrop,
+  handleFilePaste,
+  handlePickedFiles,
+  type EntryPointSink,
+} from "@/components/editor/image-entry-points";
 import type { ImageUploadErrorCode } from "@/lib/image-upload";
 
 interface TiptapEditorProps {
@@ -34,8 +39,7 @@ export const TiptapEditor = forwardRef<{ focus: () => void }, TiptapEditorProps>
     const [uploadError, setUploadError] = useState<ImageUploadErrorCode | null>(null);
     // editorProps / extensions 在 useEditor 建立時就固定，handler 透過 ref 拿到最新的 uploadFiles。
 
-    const showErrorRef = useRef<(code: ImageUploadErrorCode) => void>(() => {});
-    const uploadFilesRef = useRef<(files: File[], pos?: number) => Promise<void>>(async () => {});
+    const sinkRef = useRef<EntryPointSink>({ uploadFiles: () => {}, onRejected: () => {} });
 
     const editor = useEditor({
       immediatelyRender: false,
@@ -53,31 +57,8 @@ export const TiptapEditor = forwardRef<{ focus: () => void }, TiptapEditorProps>
       editorProps: {
         attributes: { class: "outline-none min-h-[50vh]" },
         // 拖檔：只接「外部檔案」，把手的區塊拖曳（無 Files type）照舊交給 useBlockDrag。
-        handleDrop: (view, event) => {
-          if (!attachmentTaskId || !isFileDrag(event.dataTransfer?.types)) return false;
-          // 外部檔案一律攔下，避免瀏覽器把分頁導向該檔案。
-          event.preventDefault();
-          const { images: files, rejected } = splitImageFiles(event.dataTransfer?.files);
-          if (rejected.length > 0) showErrorRef.current("imageUnsupported");
-          if (files.length === 0) return true;
-          const coords = view.posAtCoords({ left: event.clientX, top: event.clientY });
-          const pos = coords ? afterTopLevelBlock(view.state.doc, coords.pos) : view.state.doc.content.size;
-          void uploadFilesRef.current(files, pos);
-          return true;
-        },
-        handlePaste: (view, event) => {
-          if (!attachmentTaskId) return false;
-          // 有文字（Excel / Word 等會同時附 PNG 轉譯）→ 交給 ProseMirror 貼文字。
-          if (event.clipboardData?.getData("text/plain")) return false;
-          const { images: files, rejected } = splitImageFiles(event.clipboardData?.files);
-          if (files.length === 0 && rejected.length === 0) return false;
-          event.preventDefault();
-          if (rejected.length > 0) showErrorRef.current("imageUnsupported");
-          if (files.length === 0) return true;
-          const pos = afterTopLevelBlock(view.state.doc, view.state.selection.to);
-          void uploadFilesRef.current(files, pos);
-          return true;
-        },
+        handleDrop: (view, event) => (attachmentTaskId ? handleFileDrop(view, event, sinkRef.current) : false),
+        handlePaste: (view, event) => (attachmentTaskId ? handleFilePaste(view, event, sinkRef.current) : false),
       },
     });
 
@@ -113,8 +94,10 @@ export const TiptapEditor = forwardRef<{ focus: () => void }, TiptapEditorProps>
 
     const uploadFiles = useImageUpload(editor, attachmentTaskId, showError, handlePendingChange);
     useEffect(() => {
-      showErrorRef.current = showError;
-      uploadFilesRef.current = uploadFiles;
+      sinkRef.current = {
+        uploadFiles: (files, pos) => void uploadFiles(files, pos),
+        onRejected: () => showError("imageUnsupported"),
+      };
     }, [showError, uploadFiles]);
 
     useEffect(() => {
@@ -157,12 +140,8 @@ export const TiptapEditor = forwardRef<{ focus: () => void }, TiptapEditorProps>
             multiple
             className="hidden"
             onChange={(e) => {
-              const { images: files, rejected } = splitImageFiles(e.target.files);
+              if (editor) handlePickedFiles(editor.view, e.target.files, sinkRef.current);
               e.target.value = "";
-              if (rejected.length > 0) showError("imageUnsupported");
-              if (!editor || files.length === 0) return;
-              const pos = afterTopLevelBlock(editor.state.doc, editor.state.selection.to);
-              void uploadFiles(files, pos);
             }}
           />
         )}
@@ -170,9 +149,3 @@ export const TiptapEditor = forwardRef<{ focus: () => void }, TiptapEditorProps>
     );
   },
 );
-
-/** 把任意 doc 位置換算成「所在頂層區塊之後」的插入點（圖片永遠是頂層區塊）。 */
-function afterTopLevelBlock(doc: import("@tiptap/pm/model").Node, pos: number): number {
-  const $pos = doc.resolve(Math.min(pos, doc.content.size));
-  return $pos.depth === 0 ? $pos.pos : $pos.after(1);
-}
