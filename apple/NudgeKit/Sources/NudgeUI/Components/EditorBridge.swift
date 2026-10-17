@@ -1,11 +1,13 @@
 import Foundation
 import SwiftUI
 import WebKit
+import NudgeCore
 
 #if os(iOS)
 import UIKit
 #elseif os(macOS)
 import AppKit
+import UniformTypeIdentifiers
 #endif
 
 /// 對應 JS bridge.ts 的 NativeMessage 型別（一致順序）。
@@ -16,6 +18,7 @@ enum EditorNativeMessage {
     case height(CGFloat)
     case focus(Bool)
     case openURL(url: String)
+    case upload(requestId: String, taskId: String, mime: String, base64: String, width: Int, height: Int)
 
     static func parse(_ body: Any) -> EditorNativeMessage? {
         guard let dict = body as? [String: Any],
@@ -39,6 +42,16 @@ enum EditorNativeMessage {
         case "openURL":
             if let url = dict["url"] as? String { return .openURL(url: url) }
             return nil
+        case "upload":
+            // width / height 從 JS 來可能是 Int 或 Double → 走 NSNumber 都收。
+            guard let requestId = dict["requestId"] as? String,
+                  let taskId = dict["taskId"] as? String,
+                  let mime = dict["mime"] as? String,
+                  let base64 = dict["base64"] as? String,
+                  let width = (dict["width"] as? NSNumber)?.intValue,
+                  let height = (dict["height"] as? NSNumber)?.intValue else { return nil }
+            return .upload(requestId: requestId, taskId: taskId, mime: mime,
+                           base64: base64, width: width, height: height)
         default:
             return nil
         }
@@ -84,6 +97,11 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
     /// tab 通知更早、更必然，是最可靠的「使用者離開了編輯」訊號。設了就在
     /// blur 當下用 getHTML 取權威內容存，不靠 view 生命週期補刀。
     var onBlurSave: ((String) -> Void)?
+    /// 卡片 id —— JS 端插圖入口需要它（nil = 關掉入口，例如 Notes 編輯器）。
+    /// 變動 / ready 後用 pushAttachmentTaskId() 推給 JS。
+    var attachmentTaskId: String?
+    /// App 層的上傳協調器（webview 關掉後上傳仍跑完 + 補寫）。沒注入就回失敗。
+    var imageUploads: ImageUploadCoordinator?
     private var currentScheme: ColorScheme?
     private var lastSentScheme: ColorScheme?
     #if os(iOS)
@@ -254,6 +272,40 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
         webView.evaluateJavaScript("NudgeEditor.setLabels(\(json))")
     }
 
+    /// 把卡片 id 推給 JS（`NudgeEditor.setAttachmentTaskId`）。null → JS 關掉插圖入口。
+    func pushAttachmentTaskId() {
+        guard isReady, let webView else { return }
+        let arg = attachmentTaskId.map { escapeForJS($0) } ?? "null"
+        webView.evaluateJavaScript("NudgeEditor.setAttachmentTaskId(\(arg))")
+    }
+
+    /// 把上傳結果回灌給 JS（`NudgeEditor.uploadResult`）。
+    ///
+    /// 回 true = webview 還在且 evaluateJavaScript 成功完成 —— 不管 JS 回的
+    /// Boolean。JS 回 false 代表 placeholder 不在了：在「活著的」編輯器裡那
+    /// 只會是使用者自己刪掉了，此時不能走補寫（否則會把使用者刪掉的圖寫回去）。
+    /// 只有 webView == nil 或 eval 丟錯才回 false，讓 ImageUploadCoordinator
+    /// 走補寫進已存檔內文。
+    func deliverUploadResult(_ payload: [String: Any]) async -> Bool {
+        guard let webView else { return false }
+        guard let data = try? JSONSerialization.data(withJSONObject: payload),
+              let json = String(data: data, encoding: .utf8) else { return false }
+        let script = "NudgeEditor.uploadResult(\(json))"
+        return await withCheckedContinuation { (cont: CheckedContinuation<Bool, Never>) in
+            webView.evaluateJavaScript(script) { result, error in
+                if let error {
+                    print("[EditorCoordinator] uploadResult eval error: \(error)")
+                    cont.resume(returning: false)
+                    return
+                }
+                #if DEBUG
+                print("[EditorCoordinator] uploadResult placeholderFound=\(String(describing: result))")
+                #endif
+                cont.resume(returning: true)
+            }
+        }
+    }
+
     /// Push the SwiftUI-supplied placeholder string into the JS bundle so
     /// TipTap's Placeholder extension can render `data-placeholder`.
     /// Called after `.ready` because the editor doesn't exist before then.
@@ -319,6 +371,7 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
             print("[EditorCoordinator] ready")
             isReady = true
             pushLabels()
+            pushAttachmentTaskId()
             if let scheme = currentScheme {
                 pushTheme(scheme: scheme)
             }
@@ -366,6 +419,38 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
             #elseif os(macOS)
             NSWorkspace.shared.open(url)
             #endif
+        case .upload(let requestId, let taskId, let mime, let base64, let width, let height):
+            #if os(macOS)
+            guard let imageUploads, let data = Data(base64Encoded: base64) else {
+                Task { _ = await deliverUploadResult(
+                    ["requestId": requestId, "ok": false, "error": "imageUploadFailed"]
+                ) }
+                break
+            }
+            let request = UploadRequest(requestId: requestId, taskId: taskId, mime: mime,
+                                        data: data, width: width, height: height)
+            imageUploads.start(request) { [weak self] outcome in
+                // coordinator 已釋放（webview 拆掉）→ false，讓 ImageUploadCoordinator 補寫。
+                guard let self else { return false }
+                switch outcome {
+                case .ok(let id, let w, let h):
+                    return await self.deliverUploadResult([
+                        "requestId": requestId, "ok": true, "id": id,
+                        "width": w.map { $0 as Any } ?? NSNull(),
+                        "height": h.map { $0 as Any } ?? NSNull(),
+                    ])
+                case .failed(let code):
+                    return await self.deliverUploadResult(
+                        ["requestId": requestId, "ok": false, "error": code]
+                    )
+                }
+            }
+            #else
+            // iOS 尚未支援插圖上傳。
+            Task { _ = await deliverUploadResult(
+                ["requestId": requestId, "ok": false, "error": "imageUploadFailed"]
+            ) }
+            #endif
         }
     }
 
@@ -379,6 +464,33 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
         return str.trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
     }
 }
+
+#if os(macOS)
+// MARK: - WKUIDelegate（macOS）
+//
+// WKWebView 在 macOS 預設不處理 <input type=file>：沒有 uiDelegate 實作
+// runOpenPanel 就什麼都不會發生。這裡接上原生 NSOpenPanel。
+extension EditorCoordinator: WKUIDelegate {
+    func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters,
+                 initiatedByFrame frame: WKFrameInfo,
+                 completionHandler: @escaping @MainActor @Sendable ([URL]?) -> Void) {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = parameters.allowsMultipleSelection
+        panel.allowedContentTypes = [.jpeg, .png, .webP, .gif]
+        if let window = webView.window {
+            panel.beginSheetModal(for: window) { resp in
+                completionHandler(resp == .OK ? panel.urls : nil)
+            }
+        } else {
+            panel.begin { resp in
+                completionHandler(resp == .OK ? panel.urls : nil)
+            }
+        }
+    }
+}
+#endif
 
 public enum EditorCommand: Equatable {
     case undo, redo

@@ -245,7 +245,8 @@ public struct CardDetailView: View {
                 // 取消還在排隊的 debounce，直接存權威內容。沒改過就別存。
                 descriptionSaveWorkItem?.cancel(); descriptionSaveWorkItem = nil
                 if hasEditedDescription { onUpdateDescription(html) }
-            }
+            },
+            attachmentTaskId: initialCard.id
         )
         .id("\(initialCard.id)-\(reloadToken)")
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

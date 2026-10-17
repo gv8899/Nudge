@@ -24,11 +24,15 @@ public struct RichTextEditor: View {
     /// 編輯器失焦時立即存檔 —— 給的是 getHTML 取的權威內容。最可靠的
     /// 「離開編輯」存檔點（早於 onDisappear / tab 通知）。
     let onBlurSave: ((String) -> Void)?
+    /// 卡片 id —— 給 JS 插圖入口（上傳要帶 taskId）。nil = 不開插圖（Notes 等）。
+    let attachmentTaskId: String?
 
     @Environment(\.colorScheme) private var colorScheme
     /// 卡片內文圖片代抓（nudge-attachment scheme）。沒注入（preview 等）就不掛
     /// scheme handler —— 圖片載不到但編輯器照常運作。
     @Environment(AttachmentRepository.self) private var attachmentRepo: AttachmentRepository?
+    /// 圖片上傳協調器（App 層持有）。沒注入 → 上傳一律回失敗。
+    @Environment(ImageUploadCoordinator.self) private var imageUploads: ImageUploadCoordinator?
     #if os(macOS)
     @Environment(\.nudgeMacDetailActive) private var macDetailActive
     #endif
@@ -39,13 +43,15 @@ public struct RichTextEditor: View {
         placeholder: String = "",
         activeMarks: Binding<ActiveMarks>? = nil,
         commandBus: EditorCommandBus? = nil,
-        onBlurSave: ((String) -> Void)? = nil
+        onBlurSave: ((String) -> Void)? = nil,
+        attachmentTaskId: String? = nil
     ) {
         self._html = html
         self.placeholder = placeholder
         self.activeMarks = activeMarks
         self.commandBus = commandBus
         self.onBlurSave = onBlurSave
+        self.attachmentTaskId = attachmentTaskId
     }
 
     public var body: some View {
@@ -85,7 +91,9 @@ public struct RichTextEditor: View {
             onHeight: { _ in },
             commandBus: commandBus,
             onBlurSave: onBlurSave,
-            attachmentRepo: attachmentRepo
+            attachmentRepo: attachmentRepo,
+            imageUploads: imageUploads,
+            attachmentTaskId: attachmentTaskId
         )
         #else
         AppKitEditor(
@@ -98,7 +106,9 @@ public struct RichTextEditor: View {
             commandBus: commandBus,
             onBlurSave: onBlurSave,
             isDetailActive: macDetailActive,
-            attachmentRepo: attachmentRepo
+            attachmentRepo: attachmentRepo,
+            imageUploads: imageUploads,
+            attachmentTaskId: attachmentTaskId
         )
         #endif
     }
@@ -111,6 +121,14 @@ public struct RichTextEditor: View {
                 "label": NSLocalizedString("editor.slash\(id.capitalized)Label", bundle: .module, comment: ""),
                 "description": NSLocalizedString("editor.slash\(id.capitalized)Description", bundle: .module, comment: ""),
                 "keywords": NSLocalizedString("editor.slash\(id.capitalized)Keywords", bundle: .module, comment: ""),
+            ]
+        }
+        // 插圖錯誤訊息（JS 端 toast 用）。
+        for key in ["imageTooLarge", "imageUnsupported", "imageUploadFailed"] {
+            result[key] = [
+                "label": NSLocalizedString("editor.\(key)", bundle: .module, comment: ""),
+                "description": "",
+                "keywords": "",
             ]
         }
         return result
@@ -149,6 +167,8 @@ private struct UIKitEditor: UIViewRepresentable {
     let commandBus: EditorCommandBus?
     let onBlurSave: ((String) -> Void)?
     let attachmentRepo: AttachmentRepository?
+    let imageUploads: ImageUploadCoordinator?
+    let attachmentTaskId: String?
 
     func makeCoordinator() -> EditorCoordinator {
         EditorCoordinator(
@@ -194,6 +214,8 @@ private struct UIKitEditor: UIViewRepresentable {
         }
 
         context.coordinator.attach(webView: webView)
+        context.coordinator.imageUploads = imageUploads
+        context.coordinator.attachmentTaskId = attachmentTaskId
         context.coordinator.pushTheme(scheme: colorScheme)
         context.coordinator.loadBundle()
         context.coordinator.onBlurSave = onBlurSave
@@ -209,6 +231,11 @@ private struct UIKitEditor: UIViewRepresentable {
     func updateUIView(_ uiView: WKWebView, context: Context) {
         context.coordinator.pushTheme(scheme: colorScheme)
         context.coordinator.applyIncomingHTMLIfNeeded()
+        context.coordinator.imageUploads = imageUploads
+        if context.coordinator.attachmentTaskId != attachmentTaskId {
+            context.coordinator.attachmentTaskId = attachmentTaskId
+            context.coordinator.pushAttachmentTaskId()
+        }
     }
 }
 #endif
@@ -229,6 +256,8 @@ private struct AppKitEditor: NSViewRepresentable {
     /// 其他分頁（Daily）分隔線的 resize 游標。
     let isDetailActive: Bool
     let attachmentRepo: AttachmentRepository?
+    let imageUploads: ImageUploadCoordinator?
+    let attachmentTaskId: String?
 
     func makeCoordinator() -> EditorCoordinator {
         EditorCoordinator(
@@ -255,7 +284,11 @@ private struct AppKitEditor: NSViewRepresentable {
         webView.setValue(false, forKey: "drawsBackground")
         webView.isInspectable = true
         webView.isHidden = !isDetailActive
+        // <input type=file> → 原生 NSOpenPanel（見 EditorCoordinator: WKUIDelegate）。
+        webView.uiDelegate = context.coordinator
         context.coordinator.attach(webView: webView)
+        context.coordinator.imageUploads = imageUploads
+        context.coordinator.attachmentTaskId = attachmentTaskId
         context.coordinator.pushTheme(scheme: colorScheme)
         context.coordinator.loadBundle()
         context.coordinator.onBlurSave = onBlurSave
@@ -272,6 +305,11 @@ private struct AppKitEditor: NSViewRepresentable {
         nsView.isHidden = !isDetailActive
         context.coordinator.pushTheme(scheme: colorScheme)
         context.coordinator.applyIncomingHTMLIfNeeded()
+        context.coordinator.imageUploads = imageUploads
+        if context.coordinator.attachmentTaskId != attachmentTaskId {
+            context.coordinator.attachmentTaskId = attachmentTaskId
+            context.coordinator.pushAttachmentTaskId()
+        }
     }
 }
 #endif
