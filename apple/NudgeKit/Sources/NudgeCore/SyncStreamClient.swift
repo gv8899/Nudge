@@ -25,7 +25,9 @@ public final class SyncStreamClient {
         case stopped(reason: String)
     }
 
-    public private(set) var state: State = .idle
+    public private(set) var state: State = .idle {
+        didSet { if state != oldValue { print("[SyncStream] \(state)") } }
+    }
 
     private let client: APIClient
     private let path: String

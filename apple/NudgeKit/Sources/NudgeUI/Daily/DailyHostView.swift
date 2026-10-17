@@ -68,6 +68,9 @@ public struct DailyHostView: View {
     // mac Dashboard：兩欄 — 中央 task / 右側 cards。原本還有日曆欄，
     // 已移除 (使用者偏好直接走獨立 Calendar tab)。
     @State private var dashboardRecentCards: [CardDTO] = []
+    /// cardDidChange / cardsChanged 通知觸發的刷新走這個合併器（一次存檔 / 上傳圖片
+    /// 會短時間連發多個通知，逐一重抓會同時打出多個 `/api/cards` 重查詢）。
+    @State private var cardChangeRefresher: CoalescedRefresher?
 
     // 右欄 manual conditional 切換 detail / list（取代 inner
     // NavigationStack，避免 push 把 detail 撐到整個視窗）。當
@@ -636,12 +639,12 @@ public struct DailyHostView: View {
             // 「最近卡片」要刷新，左側行動清單的 row 也得跟著更新。popover
             // 走 cardRepo 直接 PATCH，不像 iOS 的 updateTaskTitle 會做樂觀
             // patch — 少了 reloadSilently()，row 標題會一直停在舊值。
-            refreshAfterCardChange()
+            requestRefreshAfterCardChange()
         }
         .onReceive(NotificationCenter.default.publisher(for: NudgeCommands.cardsChangedNotification)) { _ in
             // 卡片內容變動（含 Daily 右欄 detail / Cards 分頁）後即時刷新
             // 右欄「最近卡片」+ 行動清單 row（刪光內文的卡片要消失）。
-            refreshAfterCardChange()
+            requestRefreshAfterCardChange()
         }
         .onChange(of: dashboardCardDetailCard == nil) { _, isNil in
             // 詳情關閉 → 補做編輯期間被抑制的清單 / daily 刷新。
@@ -1305,21 +1308,26 @@ public struct DailyHostView: View {
     /// 編輯），先抑制、只記旗標，等詳情關閉再補。理由：編輯途中每次 debounce
     /// 存檔都會 post cardsChanged，若當下就重抓，re-render churn 會把開啟中的
     /// 編輯器打掉重建並 reseed 舊內容，過時 instance 還會反手蓋回舊值。
-    private func refreshAfterCardChange() {
-        Task {
-            // 卡片清單(dashboardRecentCards)重抓「只在右欄卡片詳情沒開時」做 ——
-            // 重抓會讓卡片欄 re-render、把開著的編輯器打掉重建（見編輯器存檔修法）。
-            // 詳情開著時記旗標，關閉時補抓。
-            if dashboardCardDetailCard == nil {
-                await reloadDashboardCards()
-            } else {
-                dashboardReloadPendingDuringDetail = true
-            }
-            // 行動清單(daily) 一律重抓 —— 它餵左欄 task row，跟右欄編輯器無關
-            // （editor 綁 dashboardCardDetailCard/dashboardRecentCards，不綁 dailyData），
-            // 重抓不會干擾編輯器；但「別處改任務標題」要靠它同步左欄 row（#4 修正）。
-            await reloadSilently()
+    /// 合併式的 refreshAfterCardChange（見 cardChangeRefresher）。
+    private func requestRefreshAfterCardChange() {
+        let refresher = cardChangeRefresher ?? CoalescedRefresher { await refreshAfterCardChangeNow() }
+        if cardChangeRefresher == nil { cardChangeRefresher = refresher }
+        refresher.request()
+    }
+
+    private func refreshAfterCardChangeNow() async {
+        // 卡片清單(dashboardRecentCards)重抓「只在右欄卡片詳情沒開時」做 ——
+        // 重抓會讓卡片欄 re-render、把開著的編輯器打掉重建（見編輯器存檔修法）。
+        // 詳情開著時記旗標，關閉時補抓。
+        if dashboardCardDetailCard == nil {
+            await reloadDashboardCards()
+        } else {
+            dashboardReloadPendingDuringDetail = true
         }
+        // 行動清單(daily) 一律重抓 —— 它餵左欄 task row，跟右欄編輯器無關
+        // （editor 綁 dashboardCardDetailCard/dashboardRecentCards，不綁 dailyData），
+        // 重抓不會干擾編輯器；但「別處改任務標題」要靠它同步左欄 row（#4 修正）。
+        await reloadSilently()
     }
 
     private func reloadDashboardCards() async {

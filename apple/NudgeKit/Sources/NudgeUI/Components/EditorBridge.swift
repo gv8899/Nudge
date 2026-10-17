@@ -166,6 +166,10 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
                 var orig = console[level];
                 console[level] = function() { forward(level, arguments); orig.apply(console, arguments); };
             });
+            document.addEventListener('error', function(ev) {
+                var t = ev.target;
+                if (t && t.tagName === 'IMG') forward('error', ['img load failed:', t.getAttribute('src'), 'natural=', t.naturalWidth+'x'+t.naturalHeight]);
+            }, true);
             window.addEventListener('error', function(ev) {
                 forward('error', ['window.error:', ev.message, 'at', ev.filename+':'+ev.lineno, ev.error && ev.error.stack]);
             });
