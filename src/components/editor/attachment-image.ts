@@ -13,6 +13,12 @@ import { attachmentApiUrl, isAllowedImageSrc } from "./attachment-url";
 export interface AttachmentImageOptions {
   /** `/` 選單「圖片」或其他入口要開檔案選擇器時呼叫；沒設 = 此平台不給上傳。 */
   onPickFiles?: () => void;
+  /**
+   * 上傳完成時 node src 要放的網址。預設 server form `/api/attachments/<id>`（Web）。
+   * Apple 頁面是 loadFileURL 載入，相對網址會解成 file:///api/… 破圖，所以 bundle
+   * 傳 `nudge-attachment://attachment/<id>`；存檔前 toServerAttachmentURLs 會改回。
+   */
+  srcForAttachment?: (id: string) => string;
   HTMLAttributes: Record<string, unknown>;
 }
 
@@ -60,6 +66,7 @@ export const AttachmentImage = Image.extend<AttachmentImageOptions>({
     return {
       ...this.parent?.(),
       onPickFiles: undefined,
+      srcForAttachment: attachmentApiUrl,
       HTMLAttributes: {},
     };
   },
@@ -159,7 +166,7 @@ export const AttachmentImage = Image.extend<AttachmentImageOptions>({
           if (dispatch) {
             tr.setNodeMarkup(hit.pos, undefined, {
               ...hit.node.attrs,
-              src: attachmentApiUrl(result.id),
+              src: (this.options.srcForAttachment ?? attachmentApiUrl)(result.id),
               attachmentId: result.id,
               uploadId: null,
               width: result.width ?? hit.node.attrs.width,

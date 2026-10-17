@@ -2,6 +2,7 @@ export {
   ImageUploadError,
   isSupportedImageFile,
   computeResizeTarget,
+  pickEncoding,
   prepareImageForUpload,
   type ImageUploadErrorCode,
 } from "@/components/editor/image-prepare";
