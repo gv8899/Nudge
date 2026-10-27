@@ -264,16 +264,15 @@ public final class APIClient: Sendable {
     /// 0.3 s 內。沒有公開 API 可關，用 KVC 設私有 `_allowsHTTP3`；key 不存在時略過
     /// （不會 crash），行為退回系統預設。
     ///
-    /// 目前只在 macOS 關（Developer ID 分發不過審核）。iOS 同樣會學到 h3，但私有 key
-    /// 有 App Store 審核風險，待決定走伺服器端拿掉 alt-svc 或同招。
+    /// iOS / macOS 都關。伺服器端 `Alt-Svc: clear` 試過無效（Zeabur 邊緣把自己的
+    /// `alt-svc: h3` 疊在前面，client 照學 h3，PR #74 驗證），所以 iOS 也用同一招；
+    /// 私有 key 有 App Store 審核風險，退件就拿掉 iOS 這段重送（2026-10-27 決定）。
     static func makeConfiguration() -> URLSessionConfiguration {
         let config = URLSessionConfiguration.default
-        #if os(macOS)
         let key = "_allowsHTTP3"
         if class_getProperty(URLSessionConfiguration.self, key) != nil {
             config.setValue(false, forKey: key)
         }
-        #endif
         return config
     }
 
