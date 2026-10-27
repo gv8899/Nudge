@@ -170,6 +170,22 @@ final class EditorCoordinator: NSObject, WKScriptMessageHandler, WKNavigationDel
                 var t = ev.target;
                 if (t && t.tagName === 'IMG') forward('error', ['img load failed:', t.getAttribute('src'), 'natural=', t.naturalWidth+'x'+t.naturalHeight]);
             }, true);
+            // macOS / iOS WKWebView：大圖（2048px）載入後 WebKit 偶爾不排重繪，
+            // 版面排好了但畫面空白（點圖有選取外框、中間沒東西），要等到其他事件
+            // 才出現。對策：load 後強制同步解碼 + 切一次 visibility 逼它重繪該區域。
+            document.addEventListener('load', function(ev) {
+                var t = ev.target;
+                if (!t || t.tagName !== 'IMG') return;
+                requestAnimationFrame(function() {
+                    try {
+                        t.decoding = 'sync';
+                        t.style.visibility = 'hidden';
+                        void t.offsetHeight;
+                        t.style.visibility = '';
+                        forward('log', ['img repaint forced:', (t.getAttribute('src') || '').slice(-24), t.naturalWidth + 'x' + t.naturalHeight]);
+                    } catch (e) {}
+                });
+            }, true);
             window.addEventListener('error', function(ev) {
                 forward('error', ['window.error:', ev.message, 'at', ev.filename+':'+ev.lineno, ev.error && ev.error.stack]);
             });

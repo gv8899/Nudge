@@ -6,6 +6,10 @@ public final class APIClient: Sendable {
 
     private let configuration: APIConfiguration
     private let session: URLSession
+    /// SSE 長連線專用 session：與一般請求分開的連線池，長時間開著的串流不跟
+    /// 圖片 / API 下載搶同一條連線。測試注入 mocked session 時沿用同一個
+    /// （MockURLProtocol 才攔得到）。
+    private let streamSession: URLSession
     private let tokenProvider: TokenProvider?
     private let handlerLock = NSLock()
     private nonisolated(unsafe) var _unauthorizedHandler: UnauthorizedHandler?
@@ -24,7 +28,13 @@ public final class APIClient: Sendable {
         unauthorizedHandler: UnauthorizedHandler? = nil
     ) {
         self.configuration = configuration
-        self.session = session
+        // 預設 session：套 makeConfiguration（關 HTTP/3）+ 分段計時 delegate（Release 保留診斷）。
+        if session === URLSession.shared {
+            self.session = URLSession(configuration: Self.makeConfiguration(), delegate: NetMetricsLogger.shared, delegateQueue: nil)
+        } else {
+            self.session = session
+        }
+        self.streamSession = (session === URLSession.shared) ? URLSession(configuration: Self.makeConfiguration()) : session
         self.tokenProvider = tokenProvider
         self._unauthorizedHandler = unauthorizedHandler
 
@@ -234,7 +244,7 @@ public final class APIClient: Sendable {
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
         request.setValue(nil, forHTTPHeaderField: "If-None-Match")
         request.timeoutInterval = 60 * 60 * 24
-        let (bytes, response) = try await session.bytes(for: request)
+        let (bytes, response) = try await streamSession.bytes(for: request)
         guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
         if http.statusCode == 401 {
             if let handler = currentUnauthorizedHandler() { await handler() }
@@ -244,6 +254,27 @@ public final class APIClient: Sendable {
             throw APIError.server(statusCode: http.statusCode, message: nil)
         }
         return (bytes, http)
+    }
+
+    /// 一般請求 / SSE 共用的 session 設定。
+    ///
+    /// 關閉 HTTP/3（QUIC）：nudge.tw 的邊緣節點會回 `alt-svc: h3`，URLSession 學到後
+    /// 整個 app 生命週期都走同一條 QUIC 連線；實測這條連線的傳輸速率會隨時間崩到
+    /// 每秒數十 KB（1.2 MB 附件要 37 s、/api/cards 要 3–7 s），同網路下 HTTP/2 都在
+    /// 0.3 s 內。沒有公開 API 可關，用 KVC 設私有 `_allowsHTTP3`；key 不存在時略過
+    /// （不會 crash），行為退回系統預設。
+    ///
+    /// 目前只在 macOS 關（Developer ID 分發不過審核）。iOS 同樣會學到 h3，但私有 key
+    /// 有 App Store 審核風險，待決定走伺服器端拿掉 alt-svc 或同招。
+    static func makeConfiguration() -> URLSessionConfiguration {
+        let config = URLSessionConfiguration.default
+        #if os(macOS)
+        let key = "_allowsHTTP3"
+        if class_getProperty(URLSessionConfiguration.self, key) != nil {
+            config.setValue(false, forKey: key)
+        }
+        #endif
+        return config
     }
 
     private func perform<Response: Decodable>(_ request: URLRequest) async throws -> Response {
@@ -361,4 +392,27 @@ public struct MultipartFile: Sendable {
 public enum SaveOutcome<T: Sendable>: Sendable {
     case ok(T)
     case conflict(T)
+}
+
+
+/// 診斷用（Release 保留）：印出每個 URLSession task 的分段時間與協定（h2/h3、連線重用、等回應、傳輸）。
+/// 抓 log：`script -q -F <log> <app binary>`。
+final class NetMetricsLogger: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+    static let shared = NetMetricsLogger()
+    func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+        let path = task.originalRequest?.url?.path ?? "?"
+        let total = Int(metrics.taskInterval.duration * 1000)
+        var parts: [String] = []
+        for (i, m) in metrics.transactionMetrics.enumerated() {
+            func ms(_ a: Date?, _ b: Date?) -> String { guard let a, let b else { return "-" }; return "\(Int(b.timeIntervalSince(a) * 1000))" }
+            let dns = ms(m.domainLookupStartDate, m.domainLookupEndDate)
+            let con = ms(m.connectStartDate, m.connectEndDate)
+            let tls = ms(m.secureConnectionStartDate, m.secureConnectionEndDate)
+            let wait = ms(m.requestEndDate, m.responseStartDate)
+            let xfer = ms(m.responseStartDate, m.responseEndDate)
+            let reqSend = ms(m.requestStartDate, m.requestEndDate)
+            parts.append("#\(i) \(m.networkProtocolName ?? "?") reused=\(m.isReusedConnection ? 1 : 0) dns=\(dns) connect=\(con) tls=\(tls) send=\(reqSend) wait=\(wait) xfer=\(xfer) fetch=\(m.resourceFetchType.rawValue)")
+        }
+        print("[net] \(path) total=\(total)ms " + parts.joined(separator: " | "))
+    }
 }
