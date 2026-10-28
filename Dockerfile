@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 
 # Install dependencies for better-sqlite3
 RUN apk add --no-cache python3 make g++
@@ -26,7 +26,7 @@ RUN npx drizzle-kit generate
 RUN npm run build
 RUN rm -f /tmp/build.db /tmp/build.db-shm /tmp/build.db-wal
 
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
