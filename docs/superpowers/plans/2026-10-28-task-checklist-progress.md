@@ -25,7 +25,7 @@
 
 ## Review Focus
 
-1. **Mac 右欄詳情與清單同時開著同一個任務**：清單上的勾選／新增若照常寫入，右欄編輯器下一次 debounce 存檔會用舊內容蓋掉（base 已被推進，server 不會回 409）。預期：右欄正顯示該任務時，清單上該任務的子項目變唯讀（勾選框 disabled、不顯示「＋ 新增子項目」、選單項目隱藏）。→ Task 7 測試／手動步驟。
+1. **Mac 右欄詳情與清單同時開著同一個任務**：清單上的勾選／新增若照常寫入，右欄編輯器下一次 debounce 存檔會用舊內容蓋掉（base 已被推進，server 不會回 409）。預期：右欄正顯示該任務時，清單操作改由右欄編輯器代為寫入（先 flush → 套用 → 存檔 → 重載），兩邊立即一致、不互蓋。→ Task 7 手動步驟。
 2. **重複但文字相同的子項目**（兩個都叫「買牛奶」）：以 index 切換，409 重套時文字比對仍能定位正確那一個；index 已不存在或文字不符則放棄重套、以最新內容刷新。→ Task 1 fixture `toggle-duplicate-text`、`rebase-index-mismatch`。
 3. **子項目文字含格式或特殊字元**（`<strong>`、`&amp;`、`<a>`、emoji）：清單顯示解碼後的純文字；新增時使用者輸入的 `<`、`&`、`"` 要 escape，不能注入 HTML。→ Task 1 fixture `marks-and-entities`、`append-escapes`。
 4. **內文有非待辦內容（段落、圖片 `<img data-attachment-id>`、標題）夾在待辦之間**：改寫後這些內容位元組不變。→ Task 1 fixture `mixed-content-untouched`。
@@ -344,15 +344,19 @@
   struct TaskChecklistPill: View { let done: Int; let total: Int; let collapsed: Bool; let onToggle: () -> Void }
   struct TaskChecklistView: View {
       let items: [ChecklistItem]
-      let isReadOnly: Bool
       @Binding var isAdding: Bool
       let onToggleItem: (Int) -> Void
       let onAppend: (String) -> Void
   }
-  // TaskRowMenu 新增參數：onAddChecklistItem: (() -> Void)?   // nil = 不顯示（重複任務 / 唯讀）
+  // TaskRowMenu 新增參數：onAddChecklistItem: (() -> Void)?   // nil = 不顯示（重複任務）
   // TaskRowView、OverdueSectionView 新增參數：
-  //   checklistItems: [ChecklistItem], checklistReadOnly: Bool,
-  //   onChecklistEdit: (ChecklistEdit) -> Void
+  //   checklistItems: [ChecklistItem], onChecklistEdit: (ChecklistEdit) -> Void
+  // 編輯器代寫通知（NudgeCore）：
+  public enum ChecklistEditRouting {
+      static let request: Notification.Name   // "nudge.checklist.editRequest"
+      // userInfo: ["taskId": String, "edit": ChecklistEditBox]
+      // 編輯器處理完 post "nudge.checklist.editApplied"，userInfo: ["taskId", "before": String, "after": String]
+  }
   ```
 
 行為：
@@ -363,11 +367,11 @@
   - `applyChecklistEdit(_ assignment:, _ edit:)`：`markLocalMutation()` → `applyTaskPatchLocally` 樂觀改 description → `taskRepo.saveChecklistEdit` → `.saved` 時算 `ChecklistHTML.transition` 決定是否呼叫 `toggleComplete(assignment)`（只在需要翻轉時）→ `reloadSilently()`。
   - `toggleComplete`：由未完成→完成且 items 非空且未全勾時，額外 `applyChecklistEdit(assignment, .checkAll)`。
   - `updateTaskDescription(taskId:description:)`（詳情路徑）：寫入前取 dailyData 內該 task 舊 description 當 before，算 transition，找到對應的非重複 assignment（`assignments` 或 `overdueTasks`）後依規則 `toggleComplete`。
-  - **唯讀規則（Review Focus 1）**：macOS `dashboardCardDetailCard?.id == task.id` 時傳 `checklistReadOnly: true`、`onAddChecklistItem: nil`。
+  - **編輯器代寫（Review Focus 1）**：`applyChecklistEdit` 開頭判斷 macOS `dashboardCardDetailCard?.id == assignment.task.id` → 不自己存，改 post `ChecklistEditRouting.request`。`CardDetailView` 收到同 id 的 request：取消並立即執行排隊中的 description 存檔（flush）→ `ChecklistHTML.apply(edit, to: descriptionHTML)`（nil 則忽略）→ 以 `applyRemote` 同樣的方式更新 `descriptionHTML` 並 `reloadToken += 1` → 立即存檔（`saveCardFieldWithVersionCheck`）→ post `editApplied`（含 before/after）。`DailyHostView` 收到 `editApplied` 時用 before/after 跑同一套 transition → `toggleComplete`，並 `applyTaskPatchLocally` 更新清單上的 description。
 
 - [ ] **Step 1:** 實作 View 與接線。
 - [ ] **Step 2: 驗證** — Run: `cd apple/NudgeKit && swift build && swift test`，再 `cd apple && xcodegen generate && xcodebuild -scheme Nudge-iOS -destination 'platform=iOS Simulator,name=iPhone 16' build` 與 `xcodebuild -scheme Nudge-macOS build`；Expected: 全部 BUILD SUCCEEDED / tests passed。（`xcodegen` 若未安裝：`brew install xcodegen`。）
-- [ ] **Step 3: 模擬器實測**（iOS Simulator + macOS app 各跑一次 Task 5 Step 4 的 1–9），macOS 另測：右欄打開某任務詳情時，清單上該任務子項目為唯讀、選單無「新增子項目」；關掉右欄後恢復。
+- [ ] **Step 3: 模擬器實測**（iOS Simulator + macOS app 各跑一次 Task 5 Step 4 的 1–9），macOS 另測：右欄打開某任務詳情時，在清單勾子項目 → 右欄內文立即顯示勾選；在右欄打幾個字後立刻去清單勾另一項 → 打的字與勾選都保留；等 3 秒後重新整理，兩者皆在；清單新增子項目亦同；全勾時母任務自動完成。
 - [ ] **Step 4: Commit**
   ```bash
   git add apple
@@ -380,7 +384,7 @@
 
 - [ ] **Step 1:** Web 與 Mac 同時開同一帳號：Web 勾子項目 → Mac 清單在即時同步後更新；Mac 新增子項目 → Web 更新。
 - [ ] **Step 2:** `npm test`、`npm run lint`（error 數不得高於 main）、`npx next build`、`cd apple/NudgeKit && swift test` 全過。
-- [ ] **Step 3:** 更新 `AGENTS.md`「架構備忘」加一節「任務 checklist 子項目」：資料來源 = description、TS↔Swift 鏡像與共用 fixture、重複任務排除（第二階段待做）、Mac 右欄唯讀規則。
+- [ ] **Step 3:** 更新 `AGENTS.md`「架構備忘」加一節「任務 checklist 子項目」：資料來源 = description、TS↔Swift 鏡像與共用 fixture、重複任務排除（第二階段待做）、Mac 右欄開著同一任務時由編輯器代寫（ChecklistEditRouting）。
 - [ ] **Step 4: Commit**
   ```bash
   git add AGENTS.md
