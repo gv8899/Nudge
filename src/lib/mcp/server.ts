@@ -16,6 +16,10 @@ import { stripHtml } from "@/lib/strip-html";
 import { TASK_STATUS_LIST } from "@/lib/constants";
 import { oauthBaseUrl } from "@/lib/oauth/store";
 import { markdownToHtml } from "./markdown";
+import { fetchImage, ImageFetchError } from "./fetch-image";
+import { db } from "@/lib/db";
+import { taskAttachments } from "@/lib/db/schema";
+import { nanoid } from "nanoid";
 import type { McpUser } from "./context";
 
 import * as tasksRoute from "@/app/api/tasks/route";
@@ -131,6 +135,10 @@ async function assertOwnsTags(userId: string, tagIds: string[]) {
 
 // ── 輸出整形 ───────────────────────────────────────────────────────────────
 
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 const ok = (data: unknown) => ({
   content: [{ type: "text" as const, text: JSON.stringify(data, null, 1) }],
 });
@@ -196,8 +204,8 @@ export function createNudgeMcpServer(user: McpUser): McpServer {
         }
         return ok(await fn(args));
       } catch (e) {
-        const message = e instanceof ToolError ? e.message : "Unexpected error. Please try again.";
-        if (!(e instanceof ToolError)) console.error("[mcp] tool error", e);
+        const message = e instanceof ToolError || e instanceof ImageFetchError ? e.message : "Unexpected error. Please try again.";
+        if (!(e instanceof ToolError || e instanceof ImageFetchError)) console.error("[mcp] tool error", e);
         return { isError: true, content: [{ type: "text" as const, text: message }] };
       }
     };
@@ -517,6 +525,57 @@ export function createNudgeMcpServer(user: McpUser): McpServer {
         return { updated: true, taskId: t.id, title: t.title, updatedAt: t.updatedAt };
       },
     ),
+  );
+
+  server.registerTool(
+    "add_image_to_card",
+    {
+      title: "Add an image to a card",
+      description:
+        "Download an image from a direct image URL (JPEG/PNG/WebP/GIF, max 5 MB — not a web page) and append it to the end of a card, " +
+        "with a source link under it. Make sure the image really shows what the user wants (e.g. the right shop branch) before adding it. " +
+        "Returns the markdown for the image so it can be kept when later replacing the card content.",
+      inputSchema: {
+        task_id: z.string(),
+        image_url: z.string().url(),
+        caption: z.string().max(200).optional().describe("Short description shown as the image alt text and source link text"),
+      },
+      annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+    },
+    guard(async ({ task_id, image_url, caption }: { task_id: string; image_url: string; caption?: string }) => {
+      await assertOwnsTask(user.id, task_id);
+      const img = await fetchImage(image_url);
+      const id = nanoid();
+      await db.insert(taskAttachments).values({
+        id,
+        userId: user.id,
+        taskId: task_id,
+        mime: img.mime,
+        bytes: img.bytes,
+        size: img.bytes.length,
+        width: null,
+        height: null,
+        createdAt: new Date().toISOString(),
+      });
+      const host = new URL(img.finalUrl).host;
+      // 語言設「自動」(null) 的用戶跟網站預設語言（zh-TW）。
+      const label = { "zh-TW": "來源：", ja: "出典：", en: "Source: " }[user.locale ?? "zh-TW"] ?? "Source: ";
+      const html =
+        `<img src="/api/attachments/${id}" data-attachment-id="${id}" alt="${escapeAttr(caption ?? "")}">` +
+        `<p>${label}<a href="${escapeAttr(image_url)}">${escapeAttr(caption ? `${caption} — ${host}` : host)}</a></p>`;
+      const current = await call<TaskRow>(taskRoute.GET, {
+        method: "GET",
+        path: `/api/tasks/${task_id}`,
+        params: { id: task_id },
+      });
+      await call(taskRoute.PATCH, {
+        method: "PATCH",
+        path: `/api/tasks/${task_id}`,
+        params: { id: task_id },
+        body: { description: `${current.description ?? ""}${html}` },
+      });
+      return { added: true, attachmentId: id, markdown: `![${caption ?? ""}](/api/attachments/${id})`, sizeBytes: img.bytes.length };
+    }),
   );
 
   server.registerTool(
