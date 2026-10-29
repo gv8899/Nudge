@@ -5,6 +5,7 @@ import { eq, and, lt, ne, min } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getUser } from "@/lib/get-user";
 import { notifyUserDevices } from "@/lib/notify-devices";
+import { ownsTask, ownedAssignmentTaskId } from "@/lib/ownership";
 
 async function getTopSortOrder(date: string) {
   const [row] = await db
@@ -26,6 +27,9 @@ export async function POST(
   const now = new Date().toISOString();
 
   let taskId = body.taskId;
+  if (taskId && !(await ownsTask(user.id, taskId))) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
   if (!taskId && body.title) {
     taskId = nanoid();
@@ -88,6 +92,9 @@ export async function DELETE(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
+  if (!(await ownedAssignmentTaskId(user.id, body.assignmentId))) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   await db.delete(dailyTaskAssignments)
     .where(eq(dailyTaskAssignments.id, body.assignmentId));
   notifyUserDevices(user.id);
@@ -100,6 +107,14 @@ export async function PATCH(request: NextRequest) {
 
   const body = await request.json();
   const { assignmentId, isCompleted, sortOrder, moveToDate } = body;
+
+  // 擁有者檢查：assignment 必須是自己的；連帶完成的 taskId 也必須是自己的。
+  if (!(await ownedAssignmentTaskId(user.id, assignmentId))) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  if (body.taskId && !(await ownsTask(user.id, body.taskId))) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
   if (moveToDate && assignmentId) {
     const [existing] = await db

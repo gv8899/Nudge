@@ -4,6 +4,7 @@ import { dailyTaskAssignments } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
 import { notifyUserDevices } from "@/lib/notify-devices";
+import { ownsAllAssignments } from "@/lib/ownership";
 
 export async function PUT(request: NextRequest) {
   const user = await getUser();
@@ -11,6 +12,9 @@ export async function PUT(request: NextRequest) {
 
   const body = await request.json();
   const { order } = body as { order: { id: string; sortOrder: number }[] };
+  if (!(await ownsAllAssignments(user.id, order.map((o) => o.id)))) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
   const nowIso = new Date().toISOString();
   for (const item of order) {
