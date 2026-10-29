@@ -543,16 +543,16 @@ export function createNudgeMcpServer(user: McpUser): McpServer {
     {
       title: "Check / uncheck a day entry",
       description:
-        "Mark a task on a day's plan as done or not done (entryId from get_day). Marking done also sets the task's status to done.",
+        "Mark a task on a day's plan as done or not done (entryId from get_day). Marking done also sets a non-recurring task's status to done; recurring tasks keep their status.",
       inputSchema: { entry_id: z.string(), done: z.boolean() },
       annotations: CHANGE,
     },
     guard(async ({ entry_id, done }: { entry_id: string; done: boolean }) => {
-      const taskId = await assertOwnsAssignment(user.id, entry_id);
+      await assertOwnsAssignment(user.id, entry_id);
       await call(dailyTasksRoute.PATCH, {
         method: "PATCH",
         path: "/api/daily/x/tasks",
-        body: { assignmentId: entry_id, isCompleted: done, taskId },
+        body: { assignmentId: entry_id, isCompleted: done },
       });
       return { updated: true, entryId: entry_id, done };
     }),
