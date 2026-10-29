@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { dailyTaskAssignments, tasks, statusHistory } from "@/lib/db/schema";
+import { dailyTaskAssignments, tasks, statusHistory, taskRecurrences } from "@/lib/db/schema";
 import { eq, and, lt, ne, min } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getUser } from "@/lib/get-user";
@@ -109,7 +109,8 @@ export async function PATCH(request: NextRequest) {
   const { assignmentId, isCompleted, sortOrder, moveToDate } = body;
 
   // 擁有者檢查：assignment 必須是自己的；連帶完成的 taskId 也必須是自己的。
-  if (!(await ownedAssignmentTaskId(user.id, assignmentId))) {
+  const assignmentTaskId = await ownedAssignmentTaskId(user.id, assignmentId);
+  if (!assignmentTaskId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   if (body.taskId && !(await ownsTask(user.id, body.taskId))) {
@@ -216,23 +217,27 @@ export async function PATCH(request: NextRequest) {
       .where(eq(dailyTaskAssignments.id, assignmentId));
   }
 
-  if (isCompleted === true && body.taskId) {
+  // 打勾 → 任務本身也標完成。taskId 一律由伺服器從 assignment 查（Mac / iOS 舊版
+  // 只送 assignmentId，過去因此只勾了當天、任務狀態沒跟著變）。
+  // 重複任務例外：勾一天不代表整個任務做完（否則狀態變 done、提醒清單會排除它）。
+  if (isCompleted === true) {
     const now = new Date().toISOString();
     const [task] = await db
-      .select()
+      .select({ status: tasks.status, recurrenceId: taskRecurrences.id })
       .from(tasks)
-      .where(eq(tasks.id, body.taskId))
+      .leftJoin(taskRecurrences, eq(taskRecurrences.taskId, tasks.id))
+      .where(eq(tasks.id, assignmentTaskId))
       .limit(1);
 
-    if (task && task.status !== "done") {
+    if (task && !task.recurrenceId && task.status !== "done") {
       await db.update(tasks)
         .set({ status: "done", updatedAt: now, completedAt: now })
-        .where(eq(tasks.id, body.taskId));
+        .where(eq(tasks.id, assignmentTaskId));
 
       await db.insert(statusHistory)
         .values({
           id: nanoid(),
-          taskId: body.taskId,
+          taskId: assignmentTaskId,
           fromStatus: task.status,
           toStatus: "done",
           changedAt: now,
