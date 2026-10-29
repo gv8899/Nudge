@@ -146,6 +146,8 @@ function dayEntry(a: DayRow) {
     recurring: a.isRecurring,
     hasReminder: a.hasReminder,
     hasContent: !!a.task.description && stripHtml(a.task.description).length > 0,
+    createdAt: a.task.createdAt,
+    completedAt: a.task.completedAt,
   };
 }
 
@@ -230,7 +232,7 @@ export function createNudgeMcpServer(user: McpUser): McpServer {
     "list_tasks",
     {
       title: "List tasks",
-      description: `List the user's tasks, most recently updated first. Archived tasks are excluded unless status=archived. ${STATUS_HELP}`,
+      description: `List the user's tasks (with created / updated / completed times), most recently updated first. Archived tasks are excluded unless status=archived. ${STATUS_HELP}`,
       inputSchema: {
         status: STATUS.optional(),
         limit: z.number().int().min(1).max(200).default(50),
@@ -251,7 +253,9 @@ export function createNudgeMcpServer(user: McpUser): McpServer {
           id: t.id,
           title: t.title,
           status: t.status,
+          createdAt: t.createdAt,
           updatedAt: t.updatedAt,
+          completedAt: t.completedAt,
           remindAt: t.remindAt,
           hasContent: !!t.description && stripHtml(t.description).length > 0,
         }));
@@ -313,6 +317,7 @@ export function createNudgeMcpServer(user: McpUser): McpServer {
         title: c.title,
         status: c.status,
         tags: c.tags.map((t) => t.name),
+        createdAt: c.createdAt,
         updatedAt: c.updatedAt,
         preview: stripHtml(c.description ?? "", 300),
       }));
