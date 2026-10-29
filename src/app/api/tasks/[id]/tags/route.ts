@@ -4,6 +4,7 @@ import { tasks, taskTags } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
 import { getUser } from "@/lib/get-user";
 import { notifyUserDevices } from "@/lib/notify-devices";
+import { ownsAllTags } from "@/lib/ownership";
 
 export async function PUT(
   request: NextRequest,
@@ -25,7 +26,10 @@ export async function PUT(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await request.json();
-  const tagIds: string[] = body.tagIds || [];
+  const tagIds: string[] = [...new Set<string>(body.tagIds || [])];
+  if (!(await ownsAllTags(user.id, tagIds))) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
   await db.delete(taskTags).where(eq(taskTags.taskId, id));
 

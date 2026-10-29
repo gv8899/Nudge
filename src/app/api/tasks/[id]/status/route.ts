@@ -6,6 +6,7 @@ import { nanoid } from "nanoid";
 import { TASK_STATUS_LIST } from "@/lib/constants";
 import { getUser } from "@/lib/get-user";
 import { notifyUserDevices } from "@/lib/notify-devices";
+import { ownsTask } from "@/lib/ownership";
 
 export async function PATCH(
   request: NextRequest,
@@ -62,6 +63,9 @@ export async function GET(
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
+  if (!(await ownsTask(user.id, id))) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const history = await db
     .select()
     .from(statusHistory)

@@ -13,6 +13,7 @@ import {
   Tag,
   AlertTriangle,
   ChevronsUpDown,
+  Sparkles,
 } from "lucide-react";
 import { useTheme, type Theme } from "@/components/providers/theme-provider";
 import { useRouter, usePathname, type Locale } from "@/i18n/routing";
@@ -20,6 +21,7 @@ import { fetcher } from "@/lib/fetcher";
 import { TagManager } from "@/components/tags/tag-manager";
 import { CalendarSection } from "./calendar-section";
 import { SubscriptionSection } from "./subscription-section";
+import { AiConnectionsSection } from "./ai-connections-section";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { SettingsGroup, SettingsRow, SettingsActionRow } from "./settings-primitives";
 import {
@@ -186,6 +188,11 @@ export function SettingsContent() {
       {/* 日曆連接 */}
       <SettingsGroup icon={Calendar} title={tCalendar("section")}>
         <CalendarSection />
+      </SettingsGroup>
+
+      {/* AI 服務連接器（MCP）：連接網址 + 已連線清單 */}
+      <SettingsGroup icon={Sparkles} title={t("aiConnections.section")}>
+        <AiConnectionsSection />
       </SettingsGroup>
 
       {/* 外觀（= theme picker 一區，對齊 Mac；紙紋理已移除） */}

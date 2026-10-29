@@ -82,6 +82,20 @@
       "confirmTitle": "アカウントを削除",
       "confirmOk": "完全に削除",
       "confirmBody": "アカウントとすべてのデータ（タスク、カード、タグなど）を完全に削除します。元に戻せません。削除しますか？"
+    },
+    "aiConnections": {
+      "section": "AI コネクタ",
+      "description": "この URL を Claude や ChatGPT などの AI サービスの「カスタムコネクタ」に追加すると、会話で Nudge を読み書きできます。",
+      "copy": "コピー",
+      "copied": "コピーしました",
+      "empty": "接続中の AI サービスはありません",
+      "unnamedClient": "名前のないアプリ",
+      "connectedAt": "{date} に接続",
+      "lastUsed": "最終使用 {date}",
+      "neverUsed": "未使用",
+      "disconnect": "接続を解除",
+      "disconnectConfirmTitle": "{client} の接続を解除しますか？",
+      "disconnectConfirmBody": "解除すると Nudge の読み書きができなくなります。再度使うには AI サービスから接続し直してください。"
     }
   },
   "tags": {
@@ -562,5 +576,21 @@
   },
   "error": {
     "unknown": "エラーが発生しました"
+  },
+  "oauth": {
+    "title": "{client} を接続",
+    "subtitle": "{client} が Nudge アカウントへのアクセスを求めています",
+    "account": "ログイン中：{email}",
+    "permissionsTitle": "許可すると、{client} は次のことができます：",
+    "permRead": "タスク、カード、デイリーノート、カレンダーの読み取り",
+    "permCreate": "タスク、カード、タグの作成",
+    "permChange": "タスク、カード、ノート、タグの変更・削除",
+    "redirectNotice": "許可すると {host} に戻ります",
+    "allow": "許可",
+    "deny": "拒否",
+    "revokeHint": "あとから「設定 → AI コネクタ」でいつでも接続を解除できます。",
+    "errorTitle": "接続を完了できません",
+    "errorBody": "この接続リクエストは無効か期限切れです。AI サービスに戻ってもう一度接続してください。",
+    "unknownClient": "名前のないアプリ"
   }
 }
