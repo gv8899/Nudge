@@ -1,0 +1,161 @@
+{
+  "parse": [
+    { "name": "empty-null", "html": null, "items": [] },
+    { "name": "no-checklist", "html": "<p>hello</p>", "items": [] },
+    {
+      "name": "regular-ul-ignored",
+      "html": "<ul><li>plain</li></ul><ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li><li data-type=\"taskItem\" data-checked=\"true\"><div><p>B</p></div></li></ul>",
+      "items": [{ "text": "A", "checked": false }, { "text": "B", "checked": true }]
+    },
+    {
+      "name": "editor-shape-with-label-input",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p>買牛奶</p></div></li></ul>",
+      "items": [{ "text": "買牛奶", "checked": true }]
+    },
+    {
+      "name": "onboarding-multi-li",
+      "html": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>X</p></div></li><li data-type=\"taskItem\" data-checked=\"false\"><div><p>Y</p></div></li><li data-type=\"taskItem\" data-checked=\"true\"><div><p>Z</p></div></li></ul>",
+      "items": [{ "text": "X", "checked": false }, { "text": "Y", "checked": false }, { "text": "Z", "checked": true }]
+    },
+    {
+      "name": "marks-and-entities",
+      "html": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p><strong>a &amp; &lt;b&gt;</strong></p></div></li></ul>",
+      "items": [{ "text": "a & <b>", "checked": true }]
+    },
+    {
+      "name": "mixed-content",
+      "html": "<p>intro</p><ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li></ul><h2>H</h2><ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>B</p></div></li></ul>",
+      "items": [{ "text": "A", "checked": false }, { "text": "B", "checked": true }]
+    }
+  ],
+  "edit": [
+    {
+      "name": "toggle-check-editor",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>買牛奶</p></div></li></ul>",
+      "edit": { "kind": "toggle", "index": 0, "text": "買牛奶", "checked": true },
+      "expected": "<ul data-type=\"taskList\"><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p>買牛奶</p></div></li></ul>"
+    },
+    {
+      "name": "toggle-uncheck-editor-removes-checked-attr",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p>買牛奶</p></div></li></ul>",
+      "edit": { "kind": "toggle", "index": 0, "text": "買牛奶", "checked": false },
+      "expected": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>買牛奶</p></div></li></ul>"
+    },
+    {
+      "name": "toggle-check-onboarding-no-input",
+      "html": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li></ul>",
+      "edit": { "kind": "toggle", "index": 0, "text": "A", "checked": true },
+      "expected": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>A</p></div></li></ul>"
+    },
+    {
+      "name": "toggle-noop-same-state",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p>買牛奶</p></div></li></ul>",
+      "edit": { "kind": "toggle", "index": 0, "text": "買牛奶", "checked": true },
+      "expected": "<ul data-type=\"taskList\"><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p>買牛奶</p></div></li></ul>"
+    },
+    {
+      "name": "toggle-duplicate-text-index1",
+      "html": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>買牛奶</p></div></li><li data-type=\"taskItem\" data-checked=\"false\"><div><p>買牛奶</p></div></li></ul>",
+      "edit": { "kind": "toggle", "index": 1, "text": "買牛奶", "checked": true },
+      "expected": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>買牛奶</p></div></li><li data-type=\"taskItem\" data-checked=\"true\"><div><p>買牛奶</p></div></li></ul>"
+    },
+    {
+      "name": "rebase-index-mismatch",
+      "html": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li></ul>",
+      "edit": { "kind": "toggle", "index": 0, "text": "X", "checked": true },
+      "expected": null
+    },
+    {
+      "name": "toggle-out-of-range",
+      "html": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li></ul>",
+      "edit": { "kind": "toggle", "index": 5, "text": "A", "checked": true },
+      "expected": null
+    },
+    {
+      "name": "check-all-mixed",
+      "html": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li><li data-type=\"taskItem\" data-checked=\"true\"><div><p>B</p></div></li></ul>",
+      "edit": { "kind": "checkAll" },
+      "expected": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>A</p></div></li><li data-type=\"taskItem\" data-checked=\"true\"><div><p>B</p></div></li></ul>"
+    },
+    {
+      "name": "check-all-empty",
+      "html": "<p>hi</p>",
+      "edit": { "kind": "checkAll" },
+      "expected": "<p>hi</p>"
+    },
+    {
+      "name": "append-to-multi-li-ul",
+      "html": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li></ul>",
+      "edit": { "kind": "append", "text": "B" },
+      "expected": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>B</p></div></li></ul>"
+    },
+    {
+      "name": "append-to-split-uls",
+      "html": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li></ul><ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>B</p></div></li></ul>",
+      "edit": { "kind": "append", "text": "C" },
+      "expected": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li></ul><ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>B</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>C</p></div></li></ul>"
+    },
+    {
+      "name": "append-no-checklist",
+      "html": "<p>hi</p>",
+      "edit": { "kind": "append", "text": "A" },
+      "expected": "<p>hi</p><ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li></ul>"
+    },
+    {
+      "name": "append-escapes-html",
+      "html": "<p>x</p>",
+      "edit": { "kind": "append", "text": "<b>&\"" },
+      "expected": "<p>x</p><ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>&lt;b&gt;&amp;&quot;</p></div></li></ul>"
+    },
+    {
+      "name": "append-blank",
+      "html": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li></ul>",
+      "edit": { "kind": "append", "text": "   " },
+      "expected": null
+    },
+    {
+      "name": "mixed-content-untouched-on-toggle",
+      "html": "<p>keep</p><ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li></ul><img src=\"/api/attachments/x\" data-attachment-id=\"x\">",
+      "edit": { "kind": "toggle", "index": 0, "text": "A", "checked": true },
+      "expected": "<p>keep</p><ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>A</p></div></li></ul><img src=\"/api/attachments/x\" data-attachment-id=\"x\">"
+    }
+  ],
+  "transition": [
+    {
+      "name": "became-all-checked",
+      "before": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>A</p></div></li><li data-type=\"taskItem\" data-checked=\"false\"><div><p>B</p></div></li></ul>",
+      "after": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>A</p></div></li><li data-type=\"taskItem\" data-checked=\"true\"><div><p>B</p></div></li></ul>",
+      "expected": "became-all-checked"
+    },
+    {
+      "name": "left-all-by-uncheck",
+      "before": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>A</p></div></li><li data-type=\"taskItem\" data-checked=\"true\"><div><p>B</p></div></li></ul>",
+      "after": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>A</p></div></li><li data-type=\"taskItem\" data-checked=\"false\"><div><p>B</p></div></li></ul>",
+      "expected": "left-all-checked"
+    },
+    {
+      "name": "append-does-not-reopen",
+      "before": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>A</p></div></li><li data-type=\"taskItem\" data-checked=\"true\"><div><p>B</p></div></li></ul>",
+      "after": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>A</p></div></li><li data-type=\"taskItem\" data-checked=\"true\"><div><p>B</p></div></li><li data-type=\"taskItem\" data-checked=\"false\"><div><p>C</p></div></li></ul>",
+      "expected": "none"
+    },
+    {
+      "name": "delete-last-unchecked-becomes-all",
+      "before": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>A</p></div></li><li data-type=\"taskItem\" data-checked=\"false\"><div><p>B</p></div></li></ul>",
+      "after": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>A</p></div></li></ul>",
+      "expected": "became-all-checked"
+    },
+    {
+      "name": "zero-to-zero",
+      "before": "<p>hi</p>",
+      "after": "<p>hi</p>",
+      "expected": "none"
+    },
+    {
+      "name": "null-before-to-unchecked",
+      "before": null,
+      "after": "<ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li></ul>",
+      "expected": "none"
+    }
+  ]
+}
