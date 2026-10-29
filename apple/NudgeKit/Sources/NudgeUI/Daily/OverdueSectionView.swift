@@ -1,5 +1,8 @@
 import SwiftUI
 import NudgeCore
+#if os(macOS)
+import AppKit
+#endif
 
 public struct OverdueSectionView: View {
     public let overdueTasks: [DailyAssignmentDTO]
@@ -12,12 +15,12 @@ public struct OverdueSectionView: View {
     public let onSetRecurrence: (DailyAssignmentDTO) -> Void
     public let onSetReminder: (DailyAssignmentDTO) -> Void
     public let onOpen: (DailyAssignmentDTO) -> Void
+    public let onChecklistEdit: (DailyAssignmentDTO, ChecklistEdit) -> Void
+    /// 行內改標題（mac：點標題文字觸發）。
+    public let onUpdateTitle: (DailyAssignmentDTO, String) -> Void
 
     @Environment(\.locale) private var locale
     @State private var isExpanded: Bool
-    #if os(macOS)
-    @State private var hoveredTaskId: String?
-    #endif
 
     public init(
         overdueTasks: [DailyAssignmentDTO],
@@ -29,7 +32,9 @@ public struct OverdueSectionView: View {
         onSkipThisOccurrence: @escaping (DailyAssignmentDTO) -> Void,
         onSetRecurrence: @escaping (DailyAssignmentDTO) -> Void,
         onSetReminder: @escaping (DailyAssignmentDTO) -> Void,
-        onOpen: @escaping (DailyAssignmentDTO) -> Void
+        onOpen: @escaping (DailyAssignmentDTO) -> Void,
+        onChecklistEdit: @escaping (DailyAssignmentDTO, ChecklistEdit) -> Void,
+        onUpdateTitle: @escaping (DailyAssignmentDTO, String) -> Void
     ) {
         self.overdueTasks = overdueTasks
         self.currentDate = currentDate
@@ -41,6 +46,8 @@ public struct OverdueSectionView: View {
         self.onSetRecurrence = onSetRecurrence
         self.onSetReminder = onSetReminder
         self.onOpen = onOpen
+        self.onChecklistEdit = onChecklistEdit
+        self.onUpdateTitle = onUpdateTitle
         _isExpanded = State(initialValue: Self.defaultExpanded(for: currentDate))
     }
 
@@ -66,7 +73,20 @@ public struct OverdueSectionView: View {
                     // mac：維持原扁平 row，無額外 padding。
                     VStack(spacing: 8) {
                         ForEach(overdueTasks, id: \.id) { task in
-                            overdueRow(task)
+                            OverdueRowView(
+                                task: task,
+                                currentDate: currentDate,
+                                onToggleComplete: { onToggleComplete(task) },
+                                onReschedule: { onReschedule(task, currentDate) },
+                                onMoveTo: { onMoveTo(task) },
+                                onArchive: { onArchive(task) },
+                                onSkipThisOccurrence: { onSkipThisOccurrence(task) },
+                                onSetRecurrence: { onSetRecurrence(task) },
+                                onSetReminder: { onSetReminder(task) },
+                                onOpen: { onOpen(task) },
+                                onChecklistEdit: { edit in onChecklistEdit(task, edit) },
+                                onUpdateTitle: { newTitle in onUpdateTitle(task, newTitle) }
+                            )
                         }
                     }
                     #if os(iOS)
@@ -117,64 +137,186 @@ public struct OverdueSectionView: View {
         .accessibilityAddTraits(.isHeader)
     }
 
-    @ViewBuilder
-    private func overdueRow(_ task: DailyAssignmentDTO) -> some View {
+}
+
+/// 單一「前幾天」任務列 —— 抽成獨立 View 以擁有自己的收合 @State（鏡像 TaskRowView
+/// 的子項目接法）。結構與 TaskRowView 幾乎一致，但選單/背景是 overdue 專屬。
+private struct OverdueRowView: View {
+    let task: DailyAssignmentDTO
+    let currentDate: String
+    let onToggleComplete: () -> Void
+    let onReschedule: () -> Void
+    let onMoveTo: () -> Void
+    let onArchive: () -> Void
+    let onSkipThisOccurrence: () -> Void
+    let onSetRecurrence: () -> Void
+    let onSetReminder: () -> Void
+    let onOpen: () -> Void
+    let onChecklistEdit: (ChecklistEdit) -> Void
+    let onUpdateTitle: (String) -> Void
+
+    #if os(macOS)
+    @State private var isHovered = false
+    #endif
+    @State private var collapsed: Bool
+    @State private var editingTitle = false
+    @State private var titleDraft = ""
+
+    init(
+        task: DailyAssignmentDTO,
+        currentDate: String,
+        onToggleComplete: @escaping () -> Void,
+        onReschedule: @escaping () -> Void,
+        onMoveTo: @escaping () -> Void,
+        onArchive: @escaping () -> Void,
+        onSkipThisOccurrence: @escaping () -> Void,
+        onSetRecurrence: @escaping () -> Void,
+        onSetReminder: @escaping () -> Void,
+        onOpen: @escaping () -> Void,
+        onChecklistEdit: @escaping (ChecklistEdit) -> Void,
+        onUpdateTitle: @escaping (String) -> Void
+    ) {
+        self.task = task
+        self.currentDate = currentDate
+        self.onToggleComplete = onToggleComplete
+        self.onReschedule = onReschedule
+        self.onMoveTo = onMoveTo
+        self.onArchive = onArchive
+        self.onSkipThisOccurrence = onSkipThisOccurrence
+        self.onSetRecurrence = onSetRecurrence
+        self.onSetReminder = onSetReminder
+        self.onOpen = onOpen
+        self.onChecklistEdit = onChecklistEdit
+        self.onUpdateTitle = onUpdateTitle
+        _collapsed = State(
+            initialValue: task.isCompleted
+                ? true
+                : ChecklistCollapseStore.isCollapsed(task.task.id)
+        )
+    }
+
+    private var checklistItems: [ChecklistItem] {
+        task.isRecurring ? [] : ChecklistHTML.parse(task.task.description)
+    }
+    private var checklistTotal: Int { checklistItems.count }
+    private var checklistDone: Int { checklistItems.filter(\.checked).count }
+    private var hasChecklist: Bool { checklistTotal > 0 }
+    private var allDone: Bool { checklistTotal > 0 && checklistDone == checklistTotal }
+    private var showChecklistBody: Bool { hasChecklist && !collapsed }
+
+    private func toggleCollapsed() {
+        collapsed.toggle()
+        if !task.isCompleted {
+            ChecklistCollapseStore.setCollapsed(task.task.id, collapsed)
+        }
+    }
+
+    private func commitTitle() {
+        guard editingTitle else { return }
+        editingTitle = false
+        let trimmed = titleDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty, trimmed != task.task.title {
+            onUpdateTitle(trimmed)
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            rowContent
+            if showChecklistBody {
+                TaskChecklistBody(
+                    items: checklistItems,
+                    onToggle: { index in
+                        let item = checklistItems[index]
+                        onChecklistEdit(.toggle(index: index, text: item.text, checked: !item.checked))
+                    },
+                    onRemove: { index in
+                        let item = checklistItems[index]
+                        onChecklistEdit(.remove(index: index, text: item.text))
+                    },
+                    onSetText: { index, newText in
+                        let item = checklistItems[index]
+                        onChecklistEdit(.setText(index: index, text: item.text, newText: newText))
+                    }
+                )
+                .padding(.horizontal, rowPaddingH)
+                .padding(.bottom, 12)
+            }
+        }
+        // hover 底圖掛外層 → 整塊（標題列＋子項目）一起變底色。
+        .background(rowBackground)
+        #if os(macOS)
+        .onHover { isHovered = $0 }
+        #endif
+        .onChange(of: task.isCompleted) { _, done in
+            if done { collapsed = true }
+        }
+    }
+
+    private var rowContent: some View {
         HStack(spacing: 8) {
             NudgeCheckbox(
                 isChecked: task.isCompleted,
                 accessibilityLabel: task.isCompleted ? "task.uncomplete" : "task.complete",
-                action: { onToggleComplete(task) }
+                action: onToggleComplete
             )
 
-            Text(task.task.title)
-                .nudgeFont(.primaryRowTitle)
-                .foregroundStyle(task.isCompleted ? Color.nudgeTextDim : Color.nudgeForeground)
-                .strikethrough(task.isCompleted)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            if editingTitle {
+                InlineRowTextField(text: $titleDraft, onCommit: commitTitle)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                Text(task.task.title)
+                    .nudgeFont(.primaryRowTitle)
+                    .foregroundStyle(task.isCompleted ? Color.nudgeTextDim : Color.nudgeForeground)
+                    .strikethrough(task.isCompleted)
+                    .lineLimit(1)
+                    .layoutPriority(1)
+                    .contentShape(Rectangle())
+                    #if os(macOS)
+                    .onTapGesture {
+                        titleDraft = task.task.title
+                        editingTitle = true
+                    }
+                    .onHover { inside in
+                        if inside { NSCursor.iBeam.push() } else { NSCursor.pop() }
+                    }
+                    #endif
+                Spacer(minLength: 8)
+            }
 
-            // 重複 / 提醒狀態標示已移到點任務彈出的 popover 內。
+            if hasChecklist {
+                TaskChecklistPill(collapsed: collapsed, allDone: allDone, onToggle: toggleCollapsed)
+            }
 
-            // Overdue rows are by definition not "today", so the menu's
-            // "Move to today" entry is always shown via isToday: false.
+            // Overdue rows are by definition not "today", so isToday: false.
             TaskRowMenu(
                 isToday: false,
                 isRecurring: task.isRecurring,
-                onMoveToToday: { onReschedule(task, currentDate) },
-                onMoveToOtherDate: { onMoveTo(task) },
-                onSkipThisOccurrence: { onSkipThisOccurrence(task) },
-                onSetRecurrence: { onSetRecurrence(task) },
-                onSetReminder: { onSetReminder(task) },
-                onArchive: { onArchive(task) }
+                onMoveToToday: onReschedule,
+                onMoveToOtherDate: onMoveTo,
+                onSkipThisOccurrence: onSkipThisOccurrence,
+                onSetRecurrence: onSetRecurrence,
+                onSetReminder: onSetReminder,
+                onArchive: onArchive
             )
         }
-        // iOS card padding 14×14 / mac 維持 12×0 緊湊。
         .padding(.horizontal, rowPaddingH)
         .padding(.vertical, rowPaddingV)
         .frame(minHeight: rowMinHeight)
-        .background(rowBackground(for: task.id))
-        // Whole-row tap to open detail — was: only the title text was
-        // tappable (and even that wasn't wired in the overdue row),
-        // so users couldn't open a card from the overdue list.
-        // NudgeCheckbox / TaskRowMenu consume their own taps.
+        // 背景/hover 已移到外層 VStack（整塊含子項目一起亮）。
         .contentShape(Rectangle())
         #if os(iOS)
-        .onTapGesture { onOpen(task) }
+        .onTapGesture { onOpen() }
         #endif
         #if os(macOS)
-        // mac：tap → post notification，MacSidebarRoot 用 window-level
-        // overlay 彈 quick-edit popover（支援點外取消）。跟 TaskRowView 同 UX。
         .onTapGesture {
             NotificationCenter.default.post(
                 name: NudgeCommands.openTaskPopoverNotification,
                 object: task
             )
         }
-        .onHover { hovered in
-            hoveredTaskId = hovered ? task.id : (hoveredTaskId == task.id ? nil : hoveredTaskId)
-        }
         .contextMenu {
-            Button { onToggleComplete(task) } label: {
+            Button(action: onToggleComplete) {
                 Label {
                     Text(task.isCompleted ? "task.uncomplete" : "task.complete", bundle: .module)
                 } icon: {
@@ -182,14 +324,14 @@ public struct OverdueSectionView: View {
                 }
             }
             Divider()
-            Button { onReschedule(task, currentDate) } label: {
+            Button(action: onReschedule) {
                 Label {
                     Text("daily.moveToToday", bundle: .module)
                 } icon: {
                     Image(systemName: "calendar.badge.checkmark")
                 }
             }
-            Button { onMoveTo(task) } label: {
+            Button(action: onMoveTo) {
                 Label {
                     Text("daily.moveToOtherDate", bundle: .module)
                 } icon: {
@@ -197,7 +339,7 @@ public struct OverdueSectionView: View {
                 }
             }
             if task.isRecurring {
-                Button { onSkipThisOccurrence(task) } label: {
+                Button(action: onSkipThisOccurrence) {
                     Label {
                         Text("daily.skipThisOccurrence", bundle: .module)
                     } icon: {
@@ -205,7 +347,7 @@ public struct OverdueSectionView: View {
                     }
                 }
             }
-            Button { onSetReminder(task) } label: {
+            Button(action: onSetReminder) {
                 Label {
                     Text("daily.setReminder", bundle: .module)
                 } icon: {
@@ -213,7 +355,7 @@ public struct OverdueSectionView: View {
                 }
             }
             Divider()
-            Button(role: .destructive) { onArchive(task) } label: {
+            Button(role: .destructive, action: onArchive) {
                 Label {
                     Text("daily.archiveButton", bundle: .module)
                 } icon: {
@@ -249,16 +391,13 @@ public struct OverdueSectionView: View {
     }
 
     @ViewBuilder
-    private func rowBackground(for id: String) -> some View {
+    private var rowBackground: some View {
         #if os(macOS)
-        // hover fill 8pt 圓角 + 8pt inset，跟 TaskRowView 的 hover 一致。
         RoundedRectangle(cornerRadius: 8, style: .continuous)
-            .fill(hoveredTaskId == id ? Color.nudgeHoverFill : Color.clear)
+            .fill(isHovered ? Color.nudgeHoverFill : Color.clear)
             .padding(.horizontal, 8)
         #else
-        // iOS overdue 卡片：warning tint 8% 表達「過期、需要關注」。
-        // 比 task tab 一般 row (foreground 4%) 視覺上明顯區隔，但不會
-        // 像紅 / orange 那樣搶眼。
+        // iOS overdue 卡片：warning tint 8%（過期、需要關注）。
         RoundedRectangle(cornerRadius: 12, style: .continuous)
             .fill(Color.nudgeWarning.opacity(0.08))
         #endif

@@ -21,6 +21,8 @@ struct MacTitleTextField: NSViewRepresentable {
     /// 只在 modal / popover 情境設 true —— 全頁瀏覽別強搶焦點。
     var autoFocus: Bool = false
     var onSubmit: () -> Void = {}
+    /// 失焦（點別處）時觸發 —— 行內編輯用來「點外存檔」。預設 no-op，詳情用法不受影響。
+    var onEndEditing: () -> Void = {}
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
@@ -90,6 +92,10 @@ struct MacTitleTextField: NSViewRepresentable {
             guard let field = obj.object as? NSTextField else { return }
             parent.text = field.stringValue
             MacTitleTextField.styleEditor(field.currentEditor() as? NSTextView)
+        }
+
+        func controlTextDidEndEditing(_ obj: Notification) {
+            parent.onEndEditing()
         }
 
         func control(

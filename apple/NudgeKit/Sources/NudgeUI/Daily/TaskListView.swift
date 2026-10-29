@@ -37,6 +37,9 @@ public struct TaskListView: View {
     public let onSkipThisOccurrence: (DailyAssignmentDTO) -> Void
     public let onSetRecurrence: (DailyAssignmentDTO) -> Void
     public let onSetReminder: (DailyAssignmentDTO) -> Void
+    public let onChecklistEdit: (DailyAssignmentDTO, ChecklistEdit) -> Void
+    /// 行內改標題（mac：點標題文字觸發）。
+    public let onUpdateTitle: (DailyAssignmentDTO, String) -> Void
     /// First-run 行內提示（預設空）。錨在對應 assignment 列上方。
     public let inlineHints: [TaskListInlineHint]
 
@@ -57,6 +60,8 @@ public struct TaskListView: View {
         onSkipThisOccurrence: @escaping (DailyAssignmentDTO) -> Void,
         onSetRecurrence: @escaping (DailyAssignmentDTO) -> Void,
         onSetReminder: @escaping (DailyAssignmentDTO) -> Void,
+        onChecklistEdit: @escaping (DailyAssignmentDTO, ChecklistEdit) -> Void,
+        onUpdateTitle: @escaping (DailyAssignmentDTO, String) -> Void,
         inlineHints: [TaskListInlineHint] = []
     ) {
         self.assignments = assignments
@@ -71,6 +76,8 @@ public struct TaskListView: View {
         self.onSkipThisOccurrence = onSkipThisOccurrence
         self.onSetRecurrence = onSetRecurrence
         self.onSetReminder = onSetReminder
+        self.onChecklistEdit = onChecklistEdit
+        self.onUpdateTitle = onUpdateTitle
         self.inlineHints = inlineHints
     }
 
@@ -195,7 +202,9 @@ public struct TaskListView: View {
             onSkipThisOccurrence: { onSkipThisOccurrence(assignment) },
             onSetRecurrence: { onSetRecurrence(assignment) },
             onSetReminder: { onSetReminder(assignment) },
-            onArchive: { onArchive(assignment) }
+            onArchive: { onArchive(assignment) },
+            onChecklistEdit: { edit in onChecklistEdit(assignment, edit) },
+            onUpdateTitle: { newTitle in onUpdateTitle(assignment, newTitle) }
         )
         #if os(macOS)
         .dropDestination(for: String.self) { droppedIds, _ in

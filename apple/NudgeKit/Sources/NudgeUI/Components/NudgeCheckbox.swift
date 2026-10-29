@@ -7,15 +7,20 @@ import SwiftUI
 public struct NudgeCheckbox: View {
     public let isChecked: Bool
     public let accessibilityLabel: LocalizedStringKey
+    /// 觸控框尺寸（預設 44 = 標準列）。子項目列傳較小值讓列更緊湊；
+    /// 字形大小（.title3）不變 → 勾選框「看起來一樣大」，只是框更小。
+    public let size: CGFloat
     public let action: () -> Void
 
     public init(
         isChecked: Bool,
         accessibilityLabel: LocalizedStringKey,
+        size: CGFloat = 44,
         action: @escaping () -> Void
     ) {
         self.isChecked = isChecked
         self.accessibilityLabel = accessibilityLabel
+        self.size = size
         self.action = action
     }
 
@@ -32,7 +37,7 @@ public struct NudgeCheckbox: View {
             Image(systemName: isChecked ? "checkmark.square.fill" : "square")
                 .font(.title3)
                 .foregroundStyle(isChecked ? Color.nudgePrimary : Color.nudgeTextDim)
-                .frame(minWidth: 44, minHeight: 44)
+                .frame(minWidth: size, minHeight: size)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

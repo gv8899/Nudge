@@ -355,7 +355,9 @@ public struct DailyHostView: View {
                                 onSkipThisOccurrence: { skipOccurrence($0) },
                                 onSetRecurrence: { openScheduleSheet(for: $0) },
                                 onSetReminder: { openScheduleSheet(for: $0) },
-                                onOpen: { navigationPath.append($0) }
+                                onOpen: { navigationPath.append($0) },
+                                onChecklistEdit: { applyChecklistEdit($0, $1) },
+                                onUpdateTitle: { updateTaskTitle(taskId: $0.task.id, title: $1) }
                             )
                             // 「今天 (N)」section 標題 — 對齊 Mac / Web：把
                             // 今天的任務跟「前幾天」rollup 視覺分清楚。同
@@ -378,6 +380,8 @@ public struct DailyHostView: View {
                                 onSkipThisOccurrence: { skipOccurrence($0) },
                                 onSetRecurrence: { openScheduleSheet(for: $0) },
                                 onSetReminder: { openScheduleSheet(for: $0) },
+                                onChecklistEdit: { applyChecklistEdit($0, $1) },
+                                onUpdateTitle: { updateTaskTitle(taskId: $0.task.id, title: $1) },
                                 inlineHints: onboardingHints
                             )
                         }
@@ -911,7 +915,9 @@ public struct DailyHostView: View {
                         onSkipThisOccurrence: { skipOccurrence($0) },
                         onSetRecurrence: { openScheduleSheet(for: $0) },
                         onSetReminder: { openScheduleSheet(for: $0) },
-                        onOpen: openTaskInRightColumn
+                        onOpen: openTaskInRightColumn,
+                        onChecklistEdit: { applyChecklistEdit($0, $1) },
+                        onUpdateTitle: { updateTaskTitle(taskId: $0.task.id, title: $1) }
                     )
                     // 「今天 (N)」section divider — 把今天的任務跟前
                     // 幾天 rollup 視覺分清楚。只在當日有任務、且 user
@@ -935,6 +941,8 @@ public struct DailyHostView: View {
                         onSkipThisOccurrence: { skipOccurrence($0) },
                         onSetRecurrence: { openScheduleSheet(for: $0) },
                         onSetReminder: { openScheduleSheet(for: $0) },
+                        onChecklistEdit: { applyChecklistEdit($0, $1) },
+                        onUpdateTitle: { updateTaskTitle(taskId: $0.task.id, title: $1) },
                         inlineHints: onboardingHints
                     )
                     // alignment: .top — frame minHeight 300 是給 drop
@@ -1454,6 +1462,13 @@ extension DailyHostView {
         // → loadState = .loading → fetch → assign → loaded" cycle, which
         // looked like the whole screen blinked on every checkbox tap).
         applyAssignmentIsCompletedLocally(id: assignment.id, value: newValue)
+        // 勾母任務（完成）且有未勾子項目 → 子項目全勾（對齊 Web syncChildrenOnParentComplete）。
+        if newValue, !assignment.isRecurring {
+            let items = ChecklistHTML.parse(assignment.task.description)
+            if !items.isEmpty, items.contains(where: { !$0.checked }) {
+                applyChecklistEdit(assignment, .checkAll)
+            }
+        }
         Task {
             do {
                 try await taskRepo.toggleComplete(
@@ -1472,6 +1487,62 @@ extension DailyHostView {
                 // original state instead of lying about persistence.
                 applyAssignmentIsCompletedLocally(id: assignment.id, value: !newValue)
                 print("[DailyHostView] toggleComplete failed: \(error)")
+            }
+        }
+    }
+
+    /// 任務列上勾/新增/刪/改字/搬移子項目 —— 鏡像 Web daily-view.handleChecklistEdit。
+    /// 樂觀更新 description（assignments + overdue 兩區）→ saveChecklistEdit（走版本檢查）
+    /// → 存進後依「全勾↔未全勾」轉變帶動母任務完成（checkAll / remove 不帶動）。
+    func applyChecklistEdit(_ assignment: DailyAssignmentDTO, _ edit: ChecklistEdit) {
+        markLocalMutation()
+        let before = assignment.task.description
+        if let optimistic = ChecklistHTML.apply(edit, to: before) {
+            applyTaskPatchLocally(taskId: assignment.task.id) { task in
+                TaskDTO(
+                    id: task.id, title: task.title, description: optimistic,
+                    status: task.status, createdAt: task.createdAt, updatedAt: task.updatedAt
+                )
+            }
+        }
+        Task {
+            do {
+                guard let result = try await taskRepo.saveChecklistEdit(
+                    taskId: assignment.task.id,
+                    currentDescription: before,
+                    updatedAt: assignment.task.updatedAt,
+                    edit: edit
+                ) else { return }
+                switch result {
+                case .saved(let description, _):
+                    // 把 server 權威內文對齊進本地（可能與樂觀版略有差異）。
+                    applyTaskPatchLocally(taskId: assignment.task.id) { task in
+                        TaskDTO(
+                            id: task.id, title: task.title, description: description,
+                            status: task.status, createdAt: task.createdAt, updatedAt: task.updatedAt
+                        )
+                    }
+                    let skipSync: Bool
+                    switch edit {
+                    case .checkAll, .remove: skipSync = true
+                    default: skipSync = false
+                    }
+                    if !skipSync {
+                        switch ChecklistHTML.transition(before: before, after: description) {
+                        case .becameAllChecked where !assignment.isCompleted:
+                            toggleComplete(assignment)
+                        case .leftAllChecked where assignment.isCompleted:
+                            toggleComplete(assignment)
+                        default:
+                            break
+                        }
+                    }
+                case .dropped:
+                    // 對不上（被別台改掉）→ 重載抓最新。
+                    await reloadSilently()
+                }
+            } catch {
+                print("[DailyHostView] applyChecklistEdit failed: \(error)")
             }
         }
     }
