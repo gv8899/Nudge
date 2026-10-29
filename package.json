@@ -72,5 +72,9 @@
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.4"
+  },
+  "overrides": {
+    "happy-dom": "21.0.4",
+    "esbuild": "0.28.2"
   }
 }
