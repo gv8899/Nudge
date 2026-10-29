@@ -290,3 +290,49 @@ export const promoRedemptions = pgTable("promo_redemptions", {
     .references(() => users.id, { onDelete: "cascade" }),
   redeemedAt: text("redeemed_at").notNull(),
 });
+
+// ── MCP 連接器 OAuth（Nudge 當授權方）──────────────────────────────────────
+// 讓 Claude / ChatGPT 等 AI 服務以使用者身分讀寫 Nudge。流程：AI 服務註冊成
+// client → 使用者在 /oauth/authorize 登入並按允許 → 換 access / refresh token
+// → 帶 token 呼叫 /api/mcp。三張表都只新增、不動既有表（dev/prod 共用 DB 安全）。
+
+// 動態註冊（RFC 7591）的 client。用網址當 client_id 的 CIMD client 不進這張表，
+// 每次授權時現抓它的 metadata 文件驗證。
+export const oauthClients = pgTable("oauth_clients", {
+  id: text("id").primaryKey(), // client_id
+  name: text("name"),
+  redirectUris: text("redirect_uris").notNull(), // JSON string[]
+  createdAt: text("created_at").notNull(),
+});
+
+// 授權碼：一次性、10 分鐘。只存 hash。
+export const oauthCodes = pgTable("oauth_codes", {
+  codeHash: text("code_hash").primaryKey(),
+  clientId: text("client_id").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  redirectUri: text("redirect_uri").notNull(),
+  codeChallenge: text("code_challenge").notNull(),
+  scope: text("scope"),
+  resource: text("resource"),
+  expiresAt: text("expires_at").notNull(),
+});
+
+// 一次授權 = 一列「連線」（grant）。access / refresh token 只存 hash；refresh
+// 每次使用就輪換。使用者在設定頁「中斷連線」= 刪這列，token 立即失效。
+export const oauthGrants = pgTable("oauth_grants", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  clientId: text("client_id").notNull(),
+  clientName: text("client_name"),
+  scope: text("scope"),
+  accessTokenHash: text("access_token_hash").notNull().unique(),
+  accessExpiresAt: text("access_expires_at").notNull(),
+  refreshTokenHash: text("refresh_token_hash").notNull().unique(),
+  refreshExpiresAt: text("refresh_expires_at").notNull(),
+  createdAt: text("created_at").notNull(),
+  lastUsedAt: text("last_used_at"),
+});

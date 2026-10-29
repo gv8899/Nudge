@@ -82,6 +82,20 @@
       "confirmTitle": "Delete Account",
       "confirmOk": "Delete Permanently",
       "confirmBody": "This permanently deletes your account and all data (tasks, cards, tags, etc.) and can’t be undone. Delete?"
+    },
+    "aiConnections": {
+      "section": "AI connector",
+      "description": "Add this URL as a custom connector in Claude, ChatGPT or other AI services to read and edit your Nudge by chatting.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "empty": "No AI services connected yet",
+      "unnamedClient": "Unnamed app",
+      "connectedAt": "Connected {date}",
+      "lastUsed": "last used {date}",
+      "neverUsed": "not used yet",
+      "disconnect": "Disconnect",
+      "disconnectConfirmTitle": "Disconnect {client}?",
+      "disconnectConfirmBody": "It will no longer be able to read or edit your Nudge. To use it again, reconnect from the AI service."
     }
   },
   "tags": {
@@ -562,5 +576,21 @@
   },
   "error": {
     "unknown": "Something went wrong"
+  },
+  "oauth": {
+    "title": "Connect {client}",
+    "subtitle": "{client} wants to access your Nudge account",
+    "account": "Signed in as {email}",
+    "permissionsTitle": "If you allow it, {client} can:",
+    "permRead": "Read your tasks, cards, daily notes and calendar",
+    "permCreate": "Create tasks, cards and tags",
+    "permChange": "Change or delete your tasks, cards, notes and tags",
+    "redirectNotice": "After you allow, you'll return to {host}",
+    "allow": "Allow",
+    "deny": "Deny",
+    "revokeHint": "You can disconnect at any time in Settings → AI connector.",
+    "errorTitle": "Can't complete the connection",
+    "errorBody": "This connection request is invalid or has expired. Go back to the AI service and connect again.",
+    "unknownClient": "Unnamed app"
   }
 }

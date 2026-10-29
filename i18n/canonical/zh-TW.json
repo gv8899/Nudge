@@ -82,6 +82,20 @@
       "confirmTitle": "刪除帳號",
       "confirmOk": "永久刪除",
       "confirmBody": "這會永久刪除你的帳號與所有資料（任務、卡片、標籤等），且無法復原。確定要刪除嗎？"
+    },
+    "aiConnections": {
+      "section": "AI 連接器",
+      "description": "把這個網址加到 Claude、ChatGPT 等 AI 服務的「自訂連接器」，就能用對話讀寫你的 Nudge。",
+      "copy": "複製",
+      "copied": "已複製",
+      "empty": "還沒有連線的 AI 服務",
+      "unnamedClient": "未命名的應用程式",
+      "connectedAt": "{date} 連線",
+      "lastUsed": "最後使用 {date}",
+      "neverUsed": "尚未使用",
+      "disconnect": "中斷連線",
+      "disconnectConfirmTitle": "中斷 {client} 的連線？",
+      "disconnectConfirmBody": "中斷後它就不能再讀寫你的 Nudge。要再使用時，需要在 AI 服務裡重新連接。"
     }
   },
   "tags": {
@@ -562,5 +576,21 @@
   },
   "error": {
     "unknown": "發生錯誤"
+  },
+  "oauth": {
+    "title": "連接 {client}",
+    "subtitle": "{client} 想要存取你的 Nudge 帳號",
+    "account": "目前登入：{email}",
+    "permissionsTitle": "允許後，{client} 可以：",
+    "permRead": "讀取你的任務、卡片、每日筆記與行事曆",
+    "permCreate": "新增任務、卡片與標籤",
+    "permChange": "修改或刪除你的任務、卡片、筆記與標籤",
+    "redirectNotice": "按下允許後會回到 {host}",
+    "allow": "允許",
+    "deny": "拒絕",
+    "revokeHint": "之後可以在「設定 → AI 連接器」隨時中斷連線。",
+    "errorTitle": "無法完成連線",
+    "errorBody": "這個連線請求無效或已過期。請回到原本的 AI 服務重新連接。",
+    "unknownClient": "未命名的應用程式"
   }
 }

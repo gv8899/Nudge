@@ -7,8 +7,14 @@ import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { verifyJWT } from "@/lib/jwt";
 import { provisionNewUser } from "@/lib/onboarding/provision-user";
+import { mcpUserContext } from "@/lib/mcp/context";
 
 export async function getUser() {
+  // 0. MCP 連接器：/api/mcp 已驗過 OAuth token，在 context 內直接用該使用者。
+  //    必須排在 Bearer 之前 —— 該請求的 Authorization 是 MCP token，不是 JWT。
+  const mcpUser = mcpUserContext.getStore();
+  if (mcpUser) return mcpUser;
+
   // 1. 優先檢查 Bearer token（App）
   const headersList = await headers();
   const authHeader = headersList.get("authorization");

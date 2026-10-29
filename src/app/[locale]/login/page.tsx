@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { signIn, auth } from "@/lib/auth";
 import { redirect } from "@/i18n/routing";
+import { redirect as redirectRaw } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 export default async function LoginPage({
@@ -8,14 +9,22 @@ export default async function LoginPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ checkout?: string }>;
+  searchParams: Promise<{ checkout?: string; next?: string }>;
 }) {
   const { locale } = await params;
+  const { checkout, next: nextParam } = await searchParams;
+  // 登入後回到原頁（例：AI 連接器授權頁）。只收站內相對路徑，擋 open redirect。
+  const next =
+    nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") && !nextParam.includes("\\")
+      ? nextParam
+      : null;
   const session = await auth();
-  if (session?.user) redirect({ href: "/", locale });
+  if (session?.user) {
+    if (next) redirectRaw(next);
+    redirect({ href: "/", locale });
+  }
 
   const t = await getTranslations({ locale, namespace: "login" });
-  const { checkout } = await searchParams;
   const tPaywall = await getTranslations({ locale, namespace: "billing.paywall" });
 
   return (
@@ -56,7 +65,7 @@ export default async function LoginPage({
           className="w-full"
           action={async () => {
             "use server";
-            await signIn("google", { redirectTo: "/" });
+            await signIn("google", { redirectTo: next ?? "/" });
           }}
         >
           <button
@@ -91,7 +100,7 @@ export default async function LoginPage({
             className="w-full"
             action={async () => {
               "use server";
-              await signIn("apple", { redirectTo: "/" });
+              await signIn("apple", { redirectTo: next ?? "/" });
             }}
           >
             <button
