@@ -182,4 +182,44 @@ extension TaskRepository {
         )
         await widgetRefresher?.refresh()
     }
+
+    // 任務列上勾/新增/刪除/改字/搬移子項目的存檔，鏡像 Web `src/lib/checklist-save.ts`。
+    // 走與詳情編輯器同一條版本檢查路徑（saveCardFieldWithVersionCheck），所以同一任務
+    // 清單與詳情同時開也不互蓋。apply 算不出（位置文字對不上）就不送；409 用 server
+    // 最新內文重套一次同一筆改動，對不上回 .dropped 讓呼叫端重載，只重試一次。
+    public func saveChecklistEdit(
+        taskId: String,
+        currentDescription: String,
+        updatedAt: Date,
+        edit: ChecklistEdit
+    ) async throws -> ChecklistSaveResult? {
+        // 只有尚無基準時才 seed —— 避免蓋掉詳情編輯器已記的（可能較新的）基準。
+        if CardVersionStore.base(cardId: taskId) == nil {
+            CardVersionStore.seed(cardId: taskId, updatedAt: updatedAt)
+        }
+        guard let next = ChecklistHTML.apply(edit, to: currentDescription) else { return nil }
+
+        switch try await saveCardFieldWithVersionCheck(client: client, cardId: taskId, description: next) {
+        case .ok(let task):
+            return .saved(description: next, updatedAt: task.updatedAt)
+        case .conflict(let latest):
+            // 409：拿 server 最新內文重套一次同一筆改動。
+            guard let rebased = ChecklistHTML.apply(edit, to: latest.description ?? "") else {
+                return .dropped(latestDescription: latest.description)
+            }
+            switch try await saveCardFieldWithVersionCheck(client: client, cardId: taskId, description: rebased) {
+            case .ok(let task2):
+                return .saved(description: rebased, updatedAt: task2.updatedAt)
+            case .conflict(let latest2):
+                // 再次衝突：不再重試，交回最新內文讓呼叫端重載。
+                return .dropped(latestDescription: latest2.description)
+            }
+        }
+    }
+}
+
+/// `saveChecklistEdit` 結果：成功存進（帶新內文+updatedAt）或放棄（帶 server 最新內文）。
+public enum ChecklistSaveResult: Sendable {
+    case saved(description: String, updatedAt: Date)
+    case dropped(latestDescription: String?)
 }

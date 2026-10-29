@@ -6007,6 +6007,28 @@
         }
       }
     },
+    "task.checklist.removeAria": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete subtask: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サブタスクを削除：%@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除子項目：%@"
+          }
+        }
+      }
+    },
     "task.complete": {
       "localizations": {
         "en": {
