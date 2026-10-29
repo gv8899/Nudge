@@ -129,7 +129,15 @@
     "viewDetails": "View details",
     "complete": "Complete task",
     "uncomplete": "Mark as incomplete",
-    "moveToOtherDate": "Move to another date"
+    "moveToOtherDate": "Move to another date",
+    "checklist": {
+      "add": "Add subtask",
+      "placeholder": "Type and press Enter, Esc to finish",
+      "progressAria": "{done} of {total} subtasks done",
+      "expand": "Expand subtasks",
+      "collapse": "Collapse subtasks",
+      "itemAria": "{text}: {state}"
+    }
   },
   "editor": {
     "dragBlockAria": "Drag block",

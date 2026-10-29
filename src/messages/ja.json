@@ -129,7 +129,15 @@
     "viewDetails": "詳細を見る",
     "complete": "タスクを完了",
     "uncomplete": "未完了に戻す",
-    "moveToOtherDate": "別の日付に移動"
+    "moveToOtherDate": "別の日付に移動",
+    "checklist": {
+      "add": "サブタスクを追加",
+      "placeholder": "入力して Enter、Esc で終了",
+      "progressAria": "サブタスク {done}/{total} 件完了",
+      "expand": "サブタスクを展開",
+      "collapse": "サブタスクを折りたたむ",
+      "itemAria": "{text}：{state}"
+    }
   },
   "editor": {
     "dragBlockAria": "ブロックをドラッグ",

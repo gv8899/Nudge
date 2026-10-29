@@ -129,7 +129,15 @@
     "viewDetails": "查看詳情",
     "complete": "完成任務",
     "uncomplete": "取消完成",
-    "moveToOtherDate": "移到其他日期"
+    "moveToOtherDate": "移到其他日期",
+    "checklist": {
+      "add": "新增子項目",
+      "placeholder": "輸入後按 Enter，Esc 結束",
+      "progressAria": "已完成 {done}/{total} 個子項目",
+      "expand": "展開子項目",
+      "collapse": "收合子項目",
+      "itemAria": "{text}：{state}"
+    }
   },
   "editor": {
     "dragBlockAria": "拖動區塊",
