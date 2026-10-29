@@ -17,6 +17,9 @@ public struct ChecklistItem: Equatable, Sendable {
 public enum ChecklistEdit: Equatable, Sendable {
     case toggle(index: Int, text: String, checked: Bool)
     case append(text: String)
+    case remove(index: Int, text: String)
+    case setText(index: Int, text: String, newText: String)
+    case move(from: Int, to: Int, text: String)
     case checkAll
 }
 
@@ -75,6 +78,49 @@ public enum ChecklistHTML {
             if isChecked(b.open) == checked { return src }
             let replaced = setChecked(b.full, checked)
             return (src as NSString).replacingCharacters(in: b.range, with: replaced)
+
+        case .remove(let index, let text):
+            let items = blocks(in: src)
+            if index < 0 || index >= items.count { return nil }
+            let b = items[index]
+            if itemText(b.inner) != text { return nil }
+            var out = (src as NSString).replacingCharacters(in: b.range, with: "")
+            // 刪光後留下的空 taskList <ul></ul> 一併清掉。
+            out = replace(out, "<ul\\b[^>]*data-type=\"taskList\"[^>]*>\\s*</ul>",
+                          with: "", [.caseInsensitive])
+            return out
+
+        case .setText(let index, let text, let rawNew):
+            let newText = rawNew.trimmingCharacters(in: .whitespacesAndNewlines)
+            if newText.isEmpty { return nil }
+            let items = blocks(in: src)
+            if index < 0 || index >= items.count { return nil }
+            let b = items[index]
+            if itemText(b.inner) != text { return nil }
+            if itemText(b.inner) == newText { return src }
+            guard let replaced = setText(b.full, newText) else { return nil }
+            return (src as NSString).replacingCharacters(in: b.range, with: replaced)
+
+        case .move(let from, let to, let text):
+            let items = blocks(in: src)
+            let n = items.count
+            if from < 0 || from >= n || to < 0 || to >= n { return nil }
+            if from == to { return src }
+            if itemText(items[from].inner) != text { return nil }
+            let ns = src as NSString
+            // taskItem 之間只能是空白（換行/縮排不影響渲染），否則放棄。
+            for i in 0..<(n - 1) {
+                let endI = items[i].range.location + items[i].range.length
+                let startNext = items[i + 1].range.location
+                let between = ns.substring(with: NSRange(location: endI, length: startNext - endI))
+                if !between.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return nil }
+            }
+            var fulls = items.map { $0.full }
+            let moved = fulls.remove(at: from)
+            fulls.insert(moved, at: to)
+            let regionStart = items[0].range.location
+            let lastEnd = items[n - 1].range.location + items[n - 1].range.length
+            return ns.substring(to: regionStart) + fulls.joined() + ns.substring(from: lastEnd)
         }
     }
 
@@ -146,6 +192,15 @@ public enum ChecklistHTML {
             }
         }
         return out
+    }
+
+    // 只換 taskItem 內第一個 <p>…</p> 的文字，其餘結構原封不動。
+    private static func setText(_ full: String, _ newText: String) -> String? {
+        if !matches(full, "<p\\b[^>]*>") { return nil }
+        // 插入文字要先當成「字面」escape，避免 $ / \ 被當成 regex 模板特殊字元。
+        let safe = NSRegularExpression.escapedTemplate(for: escapeHTML(newText))
+        return replace(full, "(<p\\b[^>]*>).*?(</p>)", with: "$1" + safe + "$2",
+                       [.caseInsensitive, .dotMatchesLineSeparators])
     }
 
     private static func newItemHTML(_ text: String) -> String {

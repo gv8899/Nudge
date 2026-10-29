@@ -15,6 +15,9 @@ import Foundation
             let index: Int?
             let text: String?
             let checked: Bool?
+            let newText: String?
+            let from: Int?
+            let to: Int?
         }
         struct EditCase: Decodable { let name: String; let html: String?; let edit: EditJSON; let expected: String? }
         struct TransitionCase: Decodable { let name: String; let before: String?; let after: String?; let expected: String }
@@ -48,6 +51,12 @@ import Foundation
                 edit = .toggle(index: c.edit.index!, text: c.edit.text!, checked: c.edit.checked!)
             case "append":
                 edit = .append(text: c.edit.text!)
+            case "remove":
+                edit = .remove(index: c.edit.index!, text: c.edit.text!)
+            case "setText":
+                edit = .setText(index: c.edit.index!, text: c.edit.text!, newText: c.edit.newText!)
+            case "move":
+                edit = .move(from: c.edit.from!, to: c.edit.to!, text: c.edit.text!)
             case "checkAll":
                 edit = .checkAll
             default:

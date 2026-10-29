@@ -118,6 +118,102 @@
       "html": "<p>keep</p><ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"false\"><div><p>A</p></div></li></ul><img src=\"/api/attachments/x\" data-attachment-id=\"x\">",
       "edit": { "kind": "toggle", "index": 0, "text": "A", "checked": true },
       "expected": "<p>keep</p><ul data-type=\"taskList\"><li data-type=\"taskItem\" data-checked=\"true\"><div><p>A</p></div></li></ul><img src=\"/api/attachments/x\" data-attachment-id=\"x\">"
+    },
+    {
+      "name": "remove-middle",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p>B</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>C</p></div></li></ul>",
+      "edit": { "kind": "remove", "index": 1, "text": "B" },
+      "expected": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>C</p></div></li></ul>"
+    },
+    {
+      "name": "remove-last-empties-ul",
+      "html": "<p>內文</p><ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>只有這項</p></div></li></ul>",
+      "edit": { "kind": "remove", "index": 0, "text": "只有這項" },
+      "expected": "<p>內文</p>"
+    },
+    {
+      "name": "remove-text-mismatch",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li></ul>",
+      "edit": { "kind": "remove", "index": 0, "text": "舊文字" },
+      "expected": null
+    },
+    {
+      "name": "remove-out-of-range",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li></ul>",
+      "edit": { "kind": "remove", "index": 5, "text": "A" },
+      "expected": null
+    },
+    {
+      "name": "setText-keeps-checked-and-structure",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p>舊</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>B</p></div></li></ul>",
+      "edit": { "kind": "setText", "index": 0, "text": "舊", "newText": "新" },
+      "expected": "<ul data-type=\"taskList\"><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p>新</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>B</p></div></li></ul>"
+    },
+    {
+      "name": "setText-escapes-html",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li></ul>",
+      "edit": { "kind": "setText", "index": 0, "text": "A", "newText": "<b>&\"" },
+      "expected": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>&lt;b&gt;&amp;&quot;</p></div></li></ul>"
+    },
+    {
+      "name": "setText-noop-same",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li></ul>",
+      "edit": { "kind": "setText", "index": 0, "text": "A", "newText": "A" },
+      "expected": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li></ul>"
+    },
+    {
+      "name": "setText-blank-is-null",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li></ul>",
+      "edit": { "kind": "setText", "index": 0, "text": "A", "newText": "   " },
+      "expected": null
+    },
+    {
+      "name": "setText-text-mismatch",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li></ul>",
+      "edit": { "kind": "setText", "index": 0, "text": "舊", "newText": "新" },
+      "expected": null
+    },
+    {
+      "name": "move-down",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p>B</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>C</p></div></li></ul>",
+      "edit": { "kind": "move", "from": 0, "to": 2, "text": "A" },
+      "expected": "<ul data-type=\"taskList\"><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p>B</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>C</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li></ul>"
+    },
+    {
+      "name": "move-up-keeps-checked",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>B</p></div></li><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p>C</p></div></li></ul>",
+      "edit": { "kind": "move", "from": 2, "to": 0, "text": "C" },
+      "expected": "<ul data-type=\"taskList\"><li data-checked=\"true\" data-type=\"taskItem\"><label><input type=\"checkbox\" checked=\"checked\"><span></span></label><div><p>C</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>B</p></div></li></ul>"
+    },
+    {
+      "name": "move-preserves-surrounding",
+      "html": "<p>內文</p><ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>B</p></div></li></ul><p>尾</p>",
+      "edit": { "kind": "move", "from": 1, "to": 0, "text": "B" },
+      "expected": "<p>內文</p><ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>B</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li></ul><p>尾</p>"
+    },
+    {
+      "name": "move-whitespace-between-li",
+      "html": "<ul data-type=\"taskList\">\n  <li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li>\n  <li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>B</p></div></li>\n</ul>",
+      "edit": { "kind": "move", "from": 0, "to": 1, "text": "A" },
+      "expected": "<ul data-type=\"taskList\">\n  <li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>B</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li>\n</ul>"
+    },
+    {
+      "name": "move-noop-same-index",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>B</p></div></li></ul>",
+      "edit": { "kind": "move", "from": 0, "to": 0, "text": "A" },
+      "expected": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>B</p></div></li></ul>"
+    },
+    {
+      "name": "move-text-mismatch",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>B</p></div></li></ul>",
+      "edit": { "kind": "move", "from": 0, "to": 1, "text": "舊" },
+      "expected": null
+    },
+    {
+      "name": "move-out-of-range",
+      "html": "<ul data-type=\"taskList\"><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>A</p></div></li><li data-checked=\"false\" data-type=\"taskItem\"><label><input type=\"checkbox\"><span></span></label><div><p>B</p></div></li></ul>",
+      "edit": { "kind": "move", "from": 0, "to": 9, "text": "A" },
+      "expected": null
     }
   ],
   "transition": [
