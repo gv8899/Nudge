@@ -54,7 +54,7 @@ export function MoveTaskPopover({ currentDate, onMove }: MoveTaskPopoverProps) {
       <button
         type="button"
         onClick={handleOpen}
-        className="text-text-faint hover:text-muted-foreground cursor-pointer transition-colors outline-none p-2"
+        className="text-text-faint hover:text-primary cursor-pointer transition-colors outline-none p-2"
         aria-label={t("moveToOtherDate")}
       >
         <SFIcon name="calendar" className="h-4 w-4" />

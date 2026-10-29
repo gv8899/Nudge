@@ -152,7 +152,9 @@ export async function GET(
         ne(tasks.status, "archived"),
       ),
     )
-    .orderBy(dailyTaskAssignments.date);
+    // sortOrder 為主、date 為輔 —— 讓 overdue 能被拖曳自訂排序（寫回 sortOrder），
+    // 沒拖過的多數任務 sortOrder 相近，順序仍接近原本的日期序。
+    .orderBy(dailyTaskAssignments.sortOrder, dailyTaskAssignments.date);
 
   const [note] = await db
     .select()

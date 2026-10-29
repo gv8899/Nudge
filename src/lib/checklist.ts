@@ -19,6 +19,9 @@ export interface ChecklistItem {
 export type ChecklistEdit =
   | { kind: "toggle"; index: number; text: string; checked: boolean }
   | { kind: "append"; text: string }
+  | { kind: "remove"; index: number; text: string }
+  | { kind: "setText"; index: number; text: string; newText: string }
+  | { kind: "move"; from: number; to: number; text: string }
   | { kind: "checkAll" };
 
 export type ChecklistTransition =
@@ -129,6 +132,14 @@ function setBlockChecked(full: string, checked: boolean): string {
   return out;
 }
 
+// 只換 taskItem 內 <p>…</p> 的文字，其餘（checkbox/attributes/結構）原封不動。
+// label 內只有 <input><span>，沒有 <p>，所以第一個 <p> 就是項目文字段落。
+function setBlockText(full: string, newText: string): string | null {
+  const re = /(<p\b[^>]*>)[\s\S]*?(<\/p>)/i;
+  if (!re.test(full)) return null;
+  return full.replace(re, `$1${escapeHtml(newText)}$2`);
+}
+
 // 新增項目用編輯器一致的 HTML（有 label/input），下次編輯器載入不會多 diff。
 function newItemHtml(text: string): string {
   return `<li data-checked="false" data-type="taskItem"><label><input type="checkbox"><span></span></label><div><p>${escapeHtml(
@@ -165,6 +176,49 @@ export function applyChecklistEdit(
       out = out.slice(0, b.start) + setBlockChecked(b.full, true) + out.slice(b.end);
     }
     return out;
+  }
+
+  if (edit.kind === "remove") {
+    const blocks = taskItemBlocks(src);
+    if (edit.index < 0 || edit.index >= blocks.length) return null;
+    const b = blocks[edit.index];
+    if (itemText(b.inner) !== edit.text) return null; // 位置對不上（內容已變）→ 放棄
+    let out = src.slice(0, b.start) + src.slice(b.end);
+    // 刪光後留下的空 taskList <ul></ul> 一併清掉，免得編輯器顯示空清單。
+    out = out.replace(/<ul\b[^>]*data-type="taskList"[^>]*>\s*<\/ul>/gi, "");
+    return out;
+  }
+
+  if (edit.kind === "move") {
+    const blocks = taskItemBlocks(src);
+    const n = blocks.length;
+    if (edit.from < 0 || edit.from >= n || edit.to < 0 || edit.to >= n) return null;
+    if (edit.from === edit.to) return src;
+    if (itemText(blocks[edit.from].inner) !== edit.text) return null; // 位置對不上
+    // taskItem 之間只要是空白就能安全搬移（換行/縮排不影響渲染）；中間若夾了
+    // 其他內容才放棄，避免吃掉東西。
+    for (let i = 0; i < n - 1; i++) {
+      if (src.slice(blocks[i].end, blocks[i + 1].start).trim() !== "") return null;
+    }
+    const fulls = blocks.map((b) => b.full);
+    const [moved] = fulls.splice(edit.from, 1);
+    fulls.splice(edit.to, 0, moved);
+    const regionStart = blocks[0].start;
+    const regionEnd = blocks[n - 1].end;
+    return src.slice(0, regionStart) + fulls.join("") + src.slice(regionEnd);
+  }
+
+  if (edit.kind === "setText") {
+    const newText = edit.newText.trim();
+    if (!newText) return null; // 空字串不接受（要清掉請用 remove）
+    const blocks = taskItemBlocks(src);
+    if (edit.index < 0 || edit.index >= blocks.length) return null;
+    const b = blocks[edit.index];
+    if (itemText(b.inner) !== edit.text) return null; // 位置對不上（內容已變）→ 放棄
+    if (itemText(b.inner) === newText) return src; // 沒變
+    const replaced = setBlockText(b.full, newText);
+    if (replaced === null) return null;
+    return src.slice(0, b.start) + replaced + src.slice(b.end);
   }
 
   // toggle

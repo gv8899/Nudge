@@ -136,7 +136,8 @@
       "progressAria": "{done} of {total} subtasks done",
       "expand": "Expand subtasks",
       "collapse": "Collapse subtasks",
-      "itemAria": "{text}: {state}"
+      "itemAria": "{text}: {state}",
+      "removeAria": "Delete subtask: {text}"
     }
   },
   "editor": {

@@ -136,7 +136,8 @@
       "progressAria": "サブタスク {done}/{total} 件完了",
       "expand": "サブタスクを展開",
       "collapse": "サブタスクを折りたたむ",
-      "itemAria": "{text}：{state}"
+      "itemAria": "{text}：{state}",
+      "removeAria": "サブタスクを削除：{text}"
     }
   },
   "editor": {

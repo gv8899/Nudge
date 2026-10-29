@@ -103,6 +103,7 @@
     "task.checklist.expand": "30a3ea453a68ed8e91caabe47da22bcd7aad896bdb0b3b7c16694f45a3ba1beb",
     "task.checklist.collapse": "8c7d4455a47194134f50765a5dd1cc47d980f30469f24b0120f4ec7fdbe5e70e",
     "task.checklist.itemAria": "484e5ad2b5fe54fa75f03153a0f8d756aaf540c3384b14fa2adcabcc85f252a4",
+    "task.checklist.removeAria": "6e255ca051e47addf954b958a5b63417f3284bf02668a7d348323404663764f7",
     "editor.dragBlockAria": "d96e2920dbbb06e90f519c1f81041e5337bf80dee89cff6bfcad14883c5b08f7",
     "editor.dragBlockTitle": "c45de2d989ba8b249134b26580c119fb438eac60209b9504adbeccbecab403cf",
     "editor.codeLangAria": "332a722234e1fa6791b028b3a1a20e49ae93d4aa484781cb9360fd21a2f5dc90",

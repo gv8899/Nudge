@@ -136,7 +136,8 @@
       "progressAria": "已完成 {done}/{total} 個子項目",
       "expand": "展開子項目",
       "collapse": "收合子項目",
-      "itemAria": "{text}：{state}"
+      "itemAria": "{text}：{state}",
+      "removeAria": "刪除子項目：{text}"
     }
   },
   "editor": {

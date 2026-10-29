@@ -20,6 +20,13 @@ import { useOnboarding, ONBOARDING_IDS } from "@/hooks/use-onboarding";
 import { useOnline } from "@/hooks/use-online";
 import { isoToday } from "@/lib/calendar-dates";
 import type { TaskStatus } from "@/lib/constants";
+import type { DailyTaskAssignment } from "@/lib/types";
+import {
+  applyChecklistEdit,
+  checklistTransition,
+  type ChecklistEdit,
+} from "@/lib/checklist";
+import { saveChecklistEdit } from "@/lib/checklist-save";
 import { ChevronRight, Sparkles } from "lucide-react";
 import {
   DndContext,
@@ -329,6 +336,54 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
     invalidateCardsCache();
   };
 
+  // 任務列上勾 / 新增子項目 → 改寫 tasks.description，走樂觀並行 PATCH。
+  const handleChecklistEdit = async (
+    assignment: DailyTaskAssignment,
+    edit: ChecklistEdit
+  ) => {
+    const { task } = assignment;
+    const before = task.description;
+    const optimisticHtml = applyChecklistEdit(before, edit);
+
+    // 樂觀更新：把新內文寫進對應 task（今日 + overdue 兩區都掃）
+    if (optimisticHtml !== null && data) {
+      const patch = (a: DailyTaskAssignment) =>
+        a.taskId === task.id
+          ? { ...a, task: { ...a.task, description: optimisticHtml } }
+          : a;
+      mutate(
+        {
+          ...data,
+          assignments: data.assignments.map(patch),
+          overdueTasks: (data.overdueTasks || []).map(patch),
+        },
+        false
+      );
+    }
+
+    const result = await saveChecklistEdit(
+      { id: task.id, description: before, updatedAt: task.updatedAt },
+      edit
+    );
+
+    // 母子同步：只在實際存進去、且非 checkAll（勾母任務那條由 checkbox 自己
+    // 走完成流程）、也非 remove（刪子項目不該讓母任務被動完成）時，依內文
+    // 「全勾 ↔ 未全勾」的轉變帶動母任務完成狀態。
+    if (result?.status === "saved" && edit.kind !== "checkAll" && edit.kind !== "remove") {
+      const tr = checklistTransition(before, result.description);
+      const isOverdue = (data?.overdueTasks || []).some((a) => a.id === assignment.id);
+      const toggle = isOverdue ? handleOverdueToggleComplete : handleToggleComplete;
+      if (tr === "became-all-checked" && !assignment.isCompleted) {
+        await toggle(assignment.id, task.id, true);
+      } else if (tr === "left-all-checked" && assignment.isCompleted) {
+        await toggle(assignment.id, task.id, false);
+      }
+    }
+
+    mutate();
+    invalidateCardsCache();
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -348,6 +403,28 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         order: reorderedIncomplete.map((a, i) => ({ id: a.id, sortOrder: i })),
+      }),
+    });
+    mutate();
+  };
+
+  // 前幾天（overdue）拖曳排序 —— 重用今天同一支 reorder API（只認 id+sortOrder，
+  // 不綁日期）。樂觀更新 overdueTasks，再把全列 0..n 的 sortOrder 寫回。
+  const handleOverdueReorder = async (activeId: string, overId: string) => {
+    if (activeId === overId) return;
+    const current = data?.overdueTasks || [];
+    const oldIndex = current.findIndex((a) => a.id === activeId);
+    const newIndex = current.findIndex((a) => a.id === overId);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(current, oldIndex, newIndex);
+    mutate({ ...data!, overdueTasks: reordered }, false);
+
+    await fetch(`/api/daily/${currentDate}/tasks/reorder`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        order: reordered.map((a, i) => ({ id: a.id, sortOrder: i })),
       }),
     });
     mutate();
@@ -507,6 +584,8 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
               onArchive={handleArchive}
               onUpdateTask={handleUpdateTask}
               onOpenDetail={openDetailInPanel}
+              onChecklistEdit={handleChecklistEdit}
+              onReorder={handleOverdueReorder}
             />
             {currentDate === isoToday() && allAssignments.length > 0 && (
               <div className="px-6 py-1.5 text-section-header text-text-dim">
@@ -540,6 +619,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                       onUpdateTask={handleUpdateTask}
                       onOpenDetail={openDetailInPanel}
                       onArchive={handleArchive}
+                      onChecklistEdit={handleChecklistEdit}
                     />
                   </Fragment>
                 ))}
@@ -570,6 +650,7 @@ export function DailyView({ date: initialDate }: DailyViewProps) {
                       onUpdateTask={handleUpdateTask}
                       onOpenDetail={openDetailInPanel}
                       onArchive={handleArchive}
+                      onChecklistEdit={handleChecklistEdit}
                     />
                   ))}
               </div>

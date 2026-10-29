@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -15,11 +15,19 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { SFIcon } from "@/components/ui/sf-icon";
-import { GripVertical, MoreHorizontal } from "lucide-react";
+import { GripVertical, MoreHorizontal, Plus } from "lucide-react";
 import type { DailyTaskAssignment } from "@/lib/types";
 import type { TaskStatus } from "@/lib/constants";
+import type { ChecklistEdit } from "@/lib/checklist";
 import { isoToday } from "@/lib/calendar-dates";
 import { skipOccurrence } from "@/lib/skip-task";
+import {
+  TaskChecklistPill,
+  TaskChecklistBody,
+  ChecklistItemInput,
+  useTaskChecklist,
+  checklistCompletionFromDescChange,
+} from "./task-checklist";
 
 interface TaskCardProps {
   assignment: DailyTaskAssignment;
@@ -30,6 +38,7 @@ interface TaskCardProps {
   onUpdateTask: (taskId: string, updates: { title?: string; description?: string }) => void;
   onOpenDetail?: (taskId: string) => void;
   onArchive: (assignmentId: string, taskId: string) => void;
+  onChecklistEdit: (assignment: DailyTaskAssignment, edit: ChecklistEdit) => void;
 }
 
 export function TaskCard({
@@ -41,16 +50,26 @@ export function TaskCard({
   onUpdateTask,
   onOpenDetail,
   onArchive,
+  onChecklistEdit,
 }: TaskCardProps) {
   const t = useTranslations("task");
   const tDaily = useTranslations("daily");
   const { task } = assignment;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
 
   const isRecurring = assignment.isRecurring;
   const todayStr = isoToday();
   const isToday = currentDate === todayStr;
+
+  const checklist = useTaskChecklist(assignment, onChecklistEdit);
+
+  // 詳情視窗內文改動時的「母任務完成」同步基準。非 pending 時隨 prop 更新。
+  const lastDescRef = useRef(task.description);
+  useEffect(() => {
+    lastDescRef.current = task.description;
+  }, [task.description]);
 
   const {
     attributes,
@@ -69,9 +88,26 @@ export function TaskCard({
 
   const handleDescChange = useCallback(
     (html: string) => {
+      const completion = checklistCompletionFromDescChange(
+        lastDescRef.current,
+        html,
+        assignment.isRecurring,
+        assignment.isCompleted
+      );
+      lastDescRef.current = html;
+      if (completion !== null) {
+        onToggleComplete(assignment.id, task.id, completion);
+      }
       onUpdateTask(task.id, { description: html });
     },
-    [task.id, onUpdateTask]
+    [
+      task.id,
+      onUpdateTask,
+      onToggleComplete,
+      assignment.id,
+      assignment.isRecurring,
+      assignment.isCompleted,
+    ]
   );
 
   // Shared menu items rendered by both the … DropdownMenu and the right-click
@@ -81,6 +117,12 @@ export function TaskCard({
   function renderMenuItems() {
     return (
       <>
+        {!isRecurring && (
+          <DropdownMenuItem onClick={checklist.startAdding}>
+            <Plus className="h-[13px] w-[13px] shrink-0" />
+            {t("checklist.add")}
+          </DropdownMenuItem>
+        )}
         {!isToday && (
           <DropdownMenuItem onClick={() => onMoveToDate(assignment.id, todayStr)}>
             <SFIcon name="calendar-badge-checkmark" className="h-[13px] w-[13px] shrink-0" />
@@ -121,15 +163,21 @@ export function TaskCard({
 
   return (
     <>
+      {/* 外層容器：拖曳用 ref/style 掛這，讓任務列 + 子項目一起移動。
+          hover 底圖掛這裡 → 有子項目時整塊（標題列＋子項目）一起變底色，
+          手機沒有 hover 也是整塊為單位。 */}
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="group overflow-hidden rounded-md transition-colors hover:bg-muted"
+      >
       {/* Right-click context menu wrapping the entire row */}
       <ContextMenuPrimitive.Root>
         <ContextMenuPrimitive.Trigger
           render={
             <div
-              ref={setNodeRef}
-              style={style}
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-3 py-2 hover:bg-muted rounded-md transition-colors group cursor-pointer"
+              className="flex items-center gap-2 px-3 py-2 cursor-pointer"
             />
           }
         >
@@ -139,7 +187,7 @@ export function TaskCard({
             {...listeners}
             onClick={(e) => e.stopPropagation()}
             aria-label={t("dragReorder", { title: task.title })}
-            className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-text-faint hover:text-muted-foreground transition-opacity shrink-0 touch-none"
+            className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-text-dim hover:text-primary transition-opacity shrink-0 touch-none"
           >
             <GripVertical className="h-4 w-4" />
           </button>
@@ -154,7 +202,9 @@ export function TaskCard({
             })}
             onClick={(e) => {
               e.stopPropagation();
-              onToggleComplete(assignment.id, task.id, !assignment.isCompleted);
+              const completing = !assignment.isCompleted;
+              onToggleComplete(assignment.id, task.id, completing);
+              checklist.syncChildrenOnParentComplete(completing);
             }}
             className={`h-[18px] w-[18px] rounded-[4px] border-2 shrink-0 cursor-pointer flex items-center justify-center transition-colors ${
               assignment.isCompleted
@@ -169,20 +219,61 @@ export function TaskCard({
             )}
           </button>
 
-          {/* 標題 */}
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className={`flex-1 min-w-0 text-primary-row-title text-left cursor-pointer bg-transparent border-none p-0 truncate ${
-              assignment.isCompleted
-                ? "line-through text-text-dim"
-                : "text-foreground"
-            }`}
-          >
-            {task.title}
-          </button>
+          {/* 標題 — 點文字進行內編輯；文字右側的空白區照舊冒泡到整列 → 開詳情卡片 */}
+          {editingTitle ? (
+            <ChecklistItemInput
+              initial={task.title}
+              onCommit={(v) => {
+                const next = v.trim();
+                if (next && next !== task.title) onUpdateTask(task.id, { title: next });
+                setEditingTitle(false);
+              }}
+              onCancel={() => setEditingTitle(false)}
+            />
+          ) : (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingTitle(true);
+                }}
+                className={`min-w-0 shrink text-primary-row-title text-left cursor-text bg-transparent border-none p-0 truncate ${
+                  assignment.isCompleted
+                    ? "line-through text-text-dim"
+                    : "text-foreground"
+                }`}
+              >
+                {task.title}
+              </button>
+              {/* 標題右側填滿區：不擋冒泡 → 點這裡開詳情卡片（維持原本行為） */}
+              <div className="flex-1 min-w-[3rem] self-stretch" aria-hidden="true" />
+            </>
+          )}
 
-          {/* 移動日期/選單 — 擋冒泡避免點 icon 也開 modal */}
+          {/* 子項目進度膠囊 — 在 ··· 左邊；自身擋冒泡 */}
+          {checklist.hasChecklist && (
+            <TaskChecklistPill
+              done={checklist.done}
+              total={checklist.total}
+              collapsed={checklist.collapsed}
+              onToggleCollapsed={checklist.toggleCollapsed}
+            />
+          )}
+
+          {/* 新增子項目 / 移動日期 / 選單 — 擋冒泡避免點 icon 也開 modal */}
           <span onClick={(e) => e.stopPropagation()} className="contents">
+          {/* ＋ 新增子項目 — 在進度膠囊與日曆之間。只有「已經有子項目」時才出現；
+              第一個子項目一律從 ··· 選單新增。 */}
+          {!isRecurring && checklist.hasChecklist && (
+            <button
+              type="button"
+              onClick={checklist.startAdding}
+              aria-label={t("checklist.add")}
+              className="text-text-faint hover:text-primary cursor-pointer transition-colors outline-none p-2 shrink-0"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          )}
           <MoveTaskPopover
             currentDate={currentDate}
             onMove={(targetDate) => onMoveToDate(assignment.id, targetDate)}
@@ -192,7 +283,7 @@ export function TaskCard({
           <DropdownMenu>
             <DropdownMenuTrigger
               aria-label={tDaily("rowMenu")}
-              className="rounded p-1 text-text-dim hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              className="rounded p-1 text-text-dim hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               <MoreHorizontal className="h-4 w-4" />
             </DropdownMenuTrigger>
@@ -207,6 +298,14 @@ export function TaskCard({
         <ContextMenuPrimitive.Portal>
           <ContextMenuPrimitive.Positioner className="isolate z-50 outline-none">
             <ContextMenuPrimitive.Popup className={popupClassName}>
+              {!isRecurring && (
+                <ContextMenuPrimitive.Item
+                  className={itemClassName}
+                  onClick={checklist.startAdding}
+                >
+                  {t("checklist.add")}
+                </ContextMenuPrimitive.Item>
+              )}
               {!isToday && (
                 <ContextMenuPrimitive.Item
                   className={itemClassName}
@@ -237,6 +336,20 @@ export function TaskCard({
           </ContextMenuPrimitive.Positioner>
         </ContextMenuPrimitive.Portal>
       </ContextMenuPrimitive.Root>
+
+      {checklist.showBody && (
+        <TaskChecklistBody
+          items={checklist.items}
+          adding={checklist.adding}
+          onToggleItem={checklist.toggleItem}
+          onAppend={checklist.append}
+          onRemove={checklist.remove}
+          onSetText={checklist.setItemText}
+          onMove={checklist.move}
+          onAddingChange={checklist.setAdding}
+        />
+      )}
+      </div>
 
       <TaskDetailModal
         task={task}
