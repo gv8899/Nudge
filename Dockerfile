@@ -19,6 +19,9 @@ COPY . .
 # 若該變數不存在（本機 build），值為空 → deploymentId=undefined → 等同不啟用，安全。
 ARG ZEABUR_GIT_COMMIT_SHA
 ENV ZEABUR_GIT_COMMIT_SHA=$ZEABUR_GIT_COMMIT_SHA
+# Railway 同樣在 build 時注入 RAILWAY_GIT_COMMIT_SHA（fallback 用）
+ARG RAILWAY_GIT_COMMIT_SHA
+ENV RAILWAY_GIT_COMMIT_SHA=$RAILWAY_GIT_COMMIT_SHA
 
 # Build 時用臨時 db，避免 SQLITE_BUSY
 ENV DB_PATH=/tmp/build.db
